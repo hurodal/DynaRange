@@ -38,9 +38,9 @@ for (image in 1:N) {
     hist(img, breaks=800)
 
     
-    ################################
+################################
     
-    # 3. EXTRACT INDIVIDUAL RAW CHANNEL(S) AND APPLY KEYSTONE CORRECTION ON IT
+# 3. EXTRACT INDIVIDUAL RAW CHANNEL(S) AND APPLY KEYSTONE CORRECTION ON IT
     
     # Keep G1 channel
     imgG=img[row(img)%%2 & col(img)%%2]
@@ -123,9 +123,9 @@ for (image in 1:N) {
     writeTIFF(imgsave, paste0("corrected_", NAME, ".tif"), bits.per.sample=16)
     
     
-    ################################
+################################
     
-    # 4. READ PATCHES TO FORM 7x11 GRID AND COLLECT (EV,SNR) PAIRS
+# 4. READ PATCHES TO FORM 7x11 GRID AND COLLECT (EV,SNR) PAIRS
     
     imgcrop=imgc[round(ytl):round(ybr), round(xtl):round(xbr)]
     DIMX=ncol(imgcrop)
@@ -163,14 +163,13 @@ for (image in 1:N) {
     
     # SNR cuves in dB
     png(paste0("snr_", NAME, ".png"), width=1280, height=800)
-    plot(log2(S), 20*log10(S/N), xlim=c(-12,0), ylim=c(-5,20), col='red',
-         main=paste0('SNR curves\nOlympus OM-1 at ', NAME),
-         xlab='RAW exposure (EV)', ylab='SNR (dB)')
-    abline(h=c(0,12), v=seq(-12,0,1), lty=2, col='gray')
-    axis(side=1, at=-12:0)
+        plot(log2(S), 20*log10(S/N), xlim=c(-12,0), ylim=c(-5,20), col='red',
+             main=paste0('SNR curves\nOlympus OM-1 at ', NAME),
+             xlab='RAW exposure (EV)', ylab='SNR (dB)')
+        abline(h=c(0,12), v=seq(-12,0,1), lty=2, col='gray')
+        axis(side=1, at=-12:0)
     dev.off()
 }
-
 
 
 # SNR curves in EV
