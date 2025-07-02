@@ -1,5 +1,5 @@
 # measuring-photographic-dynamicrange
-Classic method to measure any camera sensor's dynamic range based on noise measurements
+Classic method to calcuate any camera sensor's dynamic range based on noise measurements
 
 ![measuring-photographic-dynamicrange](/parches_iso12800.jpg)
 
