@@ -1,6 +1,6 @@
 # measuring-photographic-dynamicrange
-Using different tricks to obtain false coloured and hyper texturized hillshades
+Classic method to measure any camera sensor's dynamic range based on noise measurements
 
-![falsecolour-hypertexture-hillshade](/hillshadecolour.png)
+![measuring-photographic-dynamicrange](/parches_iso12800.jpg)
 
-![falsecolour-hypertexture-hillshade](/hillshadeofhillshade.png)
+![measuring-photographic-dynamicrange](/snr_olympusOM1.png)
