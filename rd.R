@@ -3,6 +3,7 @@
 # https://www.overfitting.net/
 
 library(tiff)
+library(Cairo)
 
 
 ################################
@@ -15,7 +16,7 @@ library(tiff)
 
 # 2. READ RAW VALUES FROM DCRAW TIFF FILES AND NORMALIZE
 
-BLACK=255  # Olympus OM-1 black level
+BLACK=256  # Olympus OM-1 black level
 SAT=4095  # Olympus OM-1 sat level
 
 filepath=getwd()
@@ -23,21 +24,21 @@ filenames=list.files(path=filepath, pattern="\\.tiff$",  # pattern="\\.tif{1,2}$
                       ignore.case=TRUE, full.names=FALSE)
 
 N=length(filenames)  # number of RAW files to process
-# for (image in 1:N) {
-for (image in 1:1) {
+CairoPNG("SNRcurves.png", width=1280, height=800)
+for (image in 1:N) {
     NAME=filenames[image]
-    cat(paste0('Processing "', NAME, '" ...'))
+    cat(paste0('Processing "', NAME, '" ...\n'))
     
     # Read RAW data
     img=readTIFF(NAME, native=FALSE, convert=FALSE, as.is=TRUE)
-    hist(img, breaks=800, main=paste0('"', NAME, '" RAW histogram'))
-    abline(v=BLACK, col='red')
+    # hist(img, breaks=800, main=paste0('"', NAME, '" RAW histogram'))
+    # abline(v=BLACK, col='red')
     
-    # Normalize to 0..1 range (negative values are allowed and preserved)
+    # Normalize to floating point 0..1 range (negative values are allowed)
     img=img-BLACK
     img=img/(SAT-BLACK)
-    hist(img, breaks=800)
-    abline(v=0, col='red')
+    # hist(img, breaks=800)
+    # abline(v=0, col='red')
 
     
 ################################
@@ -89,19 +90,17 @@ for (image in 1:1) {
     }
     
     # Check
-    for (i in 1:4) print(undo.keystone(xd[i], yd[i], k))
+    # for (i in 1:4) print(undo.keystone(xd[i], yd[i], k))
     
     # Plot trapezoids
-    png("keystonecorrection.png", width=800, height=600)
-        plot(c(xd, xd[1]), c(yd, yd[1]), type='l', col='red', asp=1,
-             xlab='X', ylab='Y', xlim=c(1, ncol(imgG)), ylim=c(nrow(imgG), 1))
-        lines(c(xu, xu[1]), c(yu, yu[1]), type='l', col='blue')
-        for (i in 1:4) {
-            lines(c(xd[i], xu[i]), c(yd[i], yu[i]), type='l', lty=3, col='darkgray')
-        }
-        abline(h=c(1,nrow(imgG)), v=c(1,ncol(imgG)))
-    dev.off()
-    
+    # plot(c(xd, xd[1]), c(yd, yd[1]), type='l', col='red', asp=1,
+    #      xlab='X', ylab='Y', xlim=c(1, ncol(imgG)), ylim=c(nrow(imgG), 1))
+    # lines(c(xu, xu[1]), c(yu, yu[1]), type='l', col='blue')
+    # for (i in 1:4) {
+    #     lines(c(xd[i], xu[i]), c(yd[i], yu[i]), type='l', lty=3, col='darkgray')
+    # }
+    # abline(h=c(1,nrow(imgG)), v=c(1,ncol(imgG)))
+
     # Correct keystone distortion
     DIMX=ncol(imgG)
     DIMY=nrow(imgG)
@@ -131,10 +130,9 @@ for (image in 1:1) {
     NCOLS=11
     NROWS=7
     SAFE=50
-    Signal=vector(mode="numeric", length=NCOLS*NROWS)
-    Noise=Signal
+    Signal=c()
+    Noise=c()
     
-    k=1
     for (i in 1:NCOLS) {
         for (j in 1:NROWS) {
             x1=round((i-1)*DIMX/NCOLS + SAFE)
@@ -144,16 +142,30 @@ for (image in 1:1) {
             patch=which(row(imgcrop)>=y1 & row(imgcrop)<=y2 & 
                         col(imgcrop)>=x1 & col(imgcrop)<=x2)
             values=imgcrop[patch]
-            Signal[k]=mean(values)  # S=mean
-            Noise[k]=var(values)^0.5  # N=stdev
-            k=k+1
+            S=mean(values)  # S=mean
+            N=var(values)^0.5  # N=stdev
             
-            imgcrop[y1:y2,x1]=0
-            imgcrop[y1:y2,x2]=0
-            imgcrop[y1,x1:x2]=0
-            imgcrop[y2,x1:x2]=0
+            # Ignore patches with negative average values, SNR < -10dB or
+            # >1% of saturated/nonlinear (>90%) values
+            if (S>0 & 20*log10(S/N) >= -10 & length(values[values>0.9])/length(values)<0.01) {
+                Signal=c(Signal,S)
+                Noise=c(Noise, N)
+                
+                imgcrop[y1:y2,x1]=0
+                imgcrop[y1:y2,x2]=0
+                imgcrop[y1,x1:x2]=0
+                imgcrop[y2,x1:x2]=0
+                
+                imgcrop[y1:y2,(x1-1)]=1
+                imgcrop[y1:y2,(x2+1)]=1
+                imgcrop[(y1-1),x1:x2]=1
+                imgcrop[(y2+1),x1:x2]=1
+            }
+
         }
     }
+    cat(paste0("  ", length(Signal), "/", NCOLS*NROWS, " patches used\n"))
+    
     # Order from lower to higher signal values (to plot beautifully)
     idx=order(Signal)
     # Apply that order to both Signal and Noise
@@ -165,20 +177,17 @@ for (image in 1:1) {
     writeTIFF(imgsave, paste0("cropwithpatches_", NAME, ".tif"), bits.per.sample=16)
     
     # SNR cuves in dB
-    png(paste0("snr_", NAME, ".png"), width=1280, height=800)
-        plot(log2(Signal), 20*log10(Signal/Noise), xlim=c(-12,0), ylim=c(-5,20), col='red',
+    if (image==1) {
+        plot(log2(Signal), 20*log10(Signal/Noise), xlim=c(-14,0), ylim=c(-10,20),
+             pch=16, cex=0.5, col='blue',
              main=paste0('SNR curves\nOlympus OM-1 at ', NAME),
              xlab='RAW exposure (EV)', ylab='SNR (dB)')
-        abline(h=c(0,12), v=seq(-12,0,1), lty=2, col='gray')
-        axis(side=1, at=-12:0)
-
-        
-# SOLUCIONAR 2 PROBLEMAS DE LAS TOMAS DE ISOS MUY ALTOS:
-# 1. LOS PARCHES MÁS OSCUROS PUEDEN TENER MEDIA <0
-# 2. LOS PARCHES MÁS EXPUESTOS TIENEN VALORES RAW SATURADOS
-# CUALQUIER PARCHE DONDE OCURRA UNA DE LAS 2 COSAS DEBE DESECHARSE
-# -> USAR Signal=c() en lugar de una long. predefinida
-        
+        abline(h=c(0,12), v=seq(-14,0,1), lty=2)
+        abline(v=seq(-14,0,1), lty=2, col='gray')
+        axis(side=1, at=-14:0)
+    } else {
+        points(log2(Signal), 20*log10(Signal/Noise), pch=16, cex=0.5, col='blue')        
+    }
 
 
 ################################
@@ -186,31 +195,49 @@ for (image in 1:1) {
 # 5. APPROXIMATION CURVES TO CALCULATE DR VALUES
     
     # Soft cubic splines approximation
+    # https://stackoverflow.com/questions/37528590/r-smooth-spline-smoothing-spline-is-not-smooth-but-overfitting-my-data
+    
     # spline_fit=smooth.spline(Signal, Signal/Noise, spar=0.5)  # spar controls smoothness
     # points(log2(Signal), 20*log10(predict(spline_fit, Signal)$y), col='blue', type='l')
     
+    # # But we'll use the inverse spline: Signal/Noise (threshold) -> Signal (DR)
+    # spline_fit=smooth.spline(Signal/Noise, Signal, spar=0.8)  # spar controls smoothness
+    # lines(log2(predict(spline_fit, Signal/Noise)$y), 20*log10(Signal/Noise), col='blue', type='l')
+    # 
+    # # Now calculate the Dynamic Range for a given SNR threshold criteria
+    # TH=c(12, 0)  # Photographic (12dB) and Engineering (0dB) DR
+    # 
+    # for (criteria in 1:length(TH)) {
+    #     DR=predict(spline_fit, 10^(TH[criteria]/20))$y
+    #     print(paste0("Dynamic range for ", TH[criteria], "dB: ",
+    #                  round(-log2(DR),1), "EV"))
+    # }
+    
+    
     # But we'll use the inverse spline: Signal/Noise (threshold) -> Signal (DR)
-        spline_fit=smooth.spline(Signal/Noise, Signal, spar=0.8)  # spar controls smoothness
-        points(log2(predict(spline_fit, Signal/Noise)$y), 20*log10(Signal/Noise), col='blue', type='l')
-    dev.off()
+    # We calculate the splines already in the log (EV vs dB) domain because
+    # curves are much softer than in linear scale and then better approximated
+    spline_fit=smooth.spline(20*log10(Signal/Noise), log2(Signal),
+                             spar=0.5, nknots=10)  # spar controls smoothness
+    lines(predict(spline_fit, 20*log10(Signal/Noise))$y, 20*log10(Signal/Noise),
+          col='red', type='l')
     
     # Now calculate the Dynamic Range for a given SNR threshold criteria
     TH=c(12, 0)  # Photographic (12dB) and Engineering (0dB) DR
     
     for (criteria in 1:length(TH)) {
-        DR=predict(spline_fit, 10^(TH[criteria]/20))$y
-        print(paste0("Dynamic range for ", TH[criteria], "dB: ",
-                     round(-log2(DR),1), "EV"))
+        DR_EV=-predict(spline_fit, TH[criteria])$y
+        cat(paste0("  Dynamic range for ", TH[criteria], "dB: ",
+                     round(DR_EV,1), "EV\n"))
     }
+    
 }
+dev.off()
 
 
 # SNR curves in EV
-plot(log2(Signal), log2(Signal/Noise), xlim=c(-12,0), ylim=c(0,5), col='red',
+plot(log2(Signal), log2(Signal/Noise), xlim=c(-12,0), ylim=c(0,4), col='red',
      main=paste0('SNR curves\nOlympus OM-1 at ', NAME),
      xlab='RAW exposure (EV)', ylab='SNR (EV)')
 abline(h=2, lty=2)
-
-
-
 
