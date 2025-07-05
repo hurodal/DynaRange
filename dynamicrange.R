@@ -238,7 +238,7 @@ for (image in 1:N) {
     DR_EV=c()
     for (threshold in 1:length(TH_dB)) {
         DR_EV=c(DR_EV, -predict(spline_fit, TH_dB[threshold])$y)
-        points(-DR_EV[threshold], TH_dB[threshold], pch=3, cex=1.5, col='red')
+        points(-DR_EV[threshold], TH_dB[threshold], pch=3, cex=1.5, col='darkgreen')
     }
 
     if (image==1) {
@@ -253,6 +253,7 @@ for (image in 1:N) {
     }
 }
 
+text(-14, 20, y, labels = paste("P", 1:5), pos = 3, col = "blue")
 dev.off()
 
 # Print calculated DR for each ISO
