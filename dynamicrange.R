@@ -238,7 +238,7 @@ for (image in 1:N) {
     DR_EV=c()
     for (threshold in 1:length(TH_dB)) {
         DR_EV=c(DR_EV, -predict(spline_fit, TH_dB[threshold])$y)
-        points(-DR_EV[threshold], TH_dB[threshold], pch=3, cex=1.5, col='darkgreen')
+        points(-DR_EV[threshold], TH_dB[threshold], pch=3, cex=1.5, col='red')
     }
 
     if (image==1) {
@@ -253,7 +253,13 @@ for (image in 1:N) {
     }
 }
 
-text(-14, 20, y, labels = paste("P", 1:5), pos = 3, col = "blue")
+# Write each file name on a separate line (adjust Y position)
+for (i in seq_along(DR_df$tiff_file)) {
+    y_pos=20-(i-1)*1.5
+    text(-14, y_pos, labels=paste0(DR_df$tiff_file[i],": ",
+                                   round(DR_df$DR_EV_12dB[i],1), "EV"), adj=0)
+}
+text(-14, y_pos-1.5, labels="Photographic DR", adj=0)
 dev.off()
 
 # Print calculated DR for each ISO
