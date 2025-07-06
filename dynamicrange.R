@@ -121,7 +121,7 @@ filepath=getwd()
 filenames=list.files(path=filepath, pattern="\\.tiff$",  # pattern="\\.tif{1,2}$",
                       ignore.case=TRUE, full.names=FALSE)
 
-CairoPNG("SNR_curves.png", width=1920, height=1080)  # HQ Full HD curves
+CairoPNG("SNRcurves.png", width=1920, height=1080)  # HQ Full HD curves
 
 N=length(filenames)  # number of RAW files to process
 for (image in 1:N) {
