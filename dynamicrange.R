@@ -223,18 +223,18 @@ SAT=4095  # Olympus OM-1 sat level
 filepath=getwd()
 filenames=list.files(path=filepath, pattern="\\.tiff$",  # pattern="\\.tif{1,2}$",
                       ignore.case=TRUE, full.names=FALSE)
+filenamesISO=gsub(".tiff", "", filenames) 
+filenamesISO=toupper(sub("^iso0*", "iso", filenamesISO))
 
-CairoPNG("SNRcurves.png", width=1920, height=1080)  # HQ Full HD curves
+CairoPNG("SNRcurvesG2.png", width=1920, height=1080)  # HQ Full HD curves
 
 N=length(filenames)  # number of RAW files to process
 for (image in 1:N) {
     NAME=filenames[image]
-    filenamesISO=gsub(".tiff", "", filenames) 
-    filenamesISO=toupper(sub("^iso0*", "iso", filenamesISO))
     cat(paste0('Processing "', NAME, '" ...\n'))
     
     # Read RAW data
-    img=readTIFF(NAME, native=FALSE, convert=FALSE, as.is=TRUE)
+    img=readTIFF(NAME, as.is=TRUE)  # read unmodified integer RAW data
     # hist(img, breaks=800, main=paste0('"', NAME, '" RAW histogram'))
     # abline(v=BLACK, col='red')
     
@@ -249,8 +249,11 @@ for (image in 1:N) {
     
 # 2. EXTRACT INDIVIDUAL RAW CHANNEL(S) AND APPLY KEYSTONE CORRECTION
     
-    # Keep R RAW channel
-    imgBayer=img[row(img)%%2 & col(img)%%2]
+    # Keep one RAW channel:
+    imgBayer=img[row(img)%%2 & col(img)%%2]  # R
+    # imgBayer=img[row(img)%%2 & !col(img)%%2]  # G1
+    # imgBayer=img[!row(img)%%2 & col(img)%%2]  # G2
+    # imgBayer=img[!row(img)%%2 & !col(img)%%2]  # B
     dim(imgBayer)=dim(img)/2
     
     # Save uncorrected but normalized image
