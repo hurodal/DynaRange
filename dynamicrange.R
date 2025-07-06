@@ -224,7 +224,7 @@ filepath=getwd()
 filenames=list.files(path=filepath, pattern="\\.tiff$",  # pattern="\\.tif{1,2}$",
                       ignore.case=TRUE, full.names=FALSE)
 filenamesISO=gsub(".tiff", "", filenames) 
-filenamesISO=toupper(sub("^iso0*", "iso", filenamesISO))
+filenamesISO=toupper(gsub("^iso0*", "iso", filenamesISO))
 
 CairoPNG("SNRcurves.png", width=1920, height=1080)  # HQ Full HD curves
 
