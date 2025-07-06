@@ -353,14 +353,15 @@ for (image in 1:N) {
     calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, SAFE=50)
     Signal=calc$Signal
     Noise=calc$Noise
+    SNR=Signal/Noise
     imgcrop=calc$imgcrop
     patches_used=length(Signal)
 
-    # Order from lower to higher signal values (to plot beautifully)
-    idx=order(Signal/Noise)  # order by independent variable in later splines
-    # Apply that order to both Signal and Noise
-    Signal=Signal[idx]
-    Noise=Noise[idx]
+    # Order from lower to higher SNR values (to plot beautifully)
+    neworder=order(SNR)  # SNR will be the independent variable in splines
+    Signal=Signal[neworder]
+    Noise=Noise[neworder]
+    SNR=SNR[neworder]
     
     imgsave=imgcrop
     imgsave[imgsave<0]=0
@@ -369,7 +370,7 @@ for (image in 1:N) {
     
     # SNR cuves in dB
     if (image==1) {
-        plot(log2(Signal), 20*log10(Signal/Noise), xlim=c(-14,0), ylim=c(-10,20),
+        plot(log2(Signal), 20*log10(SNR), xlim=c(-14,0), ylim=c(-10,20),
              pch=16, cex=0.5, col='blue',
              main='SNR curves - Olympus OM-1',
              xlab='RAW exposure (EV)', ylab='SNR (dB)')
@@ -377,11 +378,11 @@ for (image in 1:N) {
         abline(v=seq(-14,0,1), lty=2, col='gray')
         axis(side=1, at=-14:0)
     } else {
-        points(log2(Signal), 20*log10(Signal/Noise), pch=16, cex=0.5, col='blue')        
+        points(log2(Signal), 20*log10(SNR), pch=16, cex=0.5, col='blue')        
     }
     
     # # SNR curves in EV
-    # plot(log2(Signal), log2(Signal/Noise), xlim=c(-14,0), ylim=c(-2,4), 
+    # plot(log2(Signal), log2(SNR), xlim=c(-14,0), ylim=c(-2,4), 
     #      pch=16, cex=0.5, col='blue',
     #      main=paste0('SNR curves\nOlympus OM-1 at ', NAME),
     #      xlab='RAW exposure (EV)', ylab='SNR (EV)')
@@ -396,12 +397,12 @@ for (image in 1:N) {
     # Soft cubic splines approximation
     # https://stackoverflow.com/questions/37528590/r-smooth-spline-smoothing-spline-is-not-smooth-but-overfitting-my-data
     # NOTES:
-    #   Inverted variables: Signal = f(Signal/Noise) -> DR = f(SNR threshold)
+    #   Inverted variables: Signal = f(SNR) -> DR = f(SNR threshold)
     #   Splines already in log transformed domains (softer derivatives)
-    spline_fit=smooth.spline(20*log10(Signal/Noise), log2(Signal),
+    spline_fit=smooth.spline(20*log10(SNR), log2(Signal),
                              spar=0.5, nknots=10)  # spar controls smoothness
-    valuesx=predict(spline_fit, 20*log10(Signal/Noise))$y
-    valuesy=20*log10(Signal/Noise)
+    valuesx=predict(spline_fit, 20*log10(SNR))$y
+    valuesy=20*log10(SNR)
     lines(valuesx, valuesy, col='red', type='l')
     text(max(valuesx), max(valuesy)+0.5, labels=filenamesISO[image], col='red')
     
