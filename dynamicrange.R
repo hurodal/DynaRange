@@ -1,11 +1,11 @@
 # Camera RAW Dynamic range measurement
 # www.overfitting.net
-# https://www.overfitting.net/
+# https://www.overfitting.net/2025/07/rango-dinamico-de-un-sensor-de-imagen.html
 
 library(tiff)
 library(Cairo)
 library(Rcpp)
-library(microbenchmark)
+# library(microbenchmark)
 
 
 ################################
@@ -14,9 +14,13 @@ library(microbenchmark)
 
 # Undo distortion function
 calculate_keystone = function(xu, yu, xd, yd, DIMX, DIMY) {
+    # Calculate the k parameters that define a keystone correction
+    # from 4 pairs of (xu,yu) coords + 4 pairs of (xd,yd) coords
+    
     # NOTE: we swap the distorted and undistorted trapezoids because
     # we want to model the transformation
     # FROM CORRECTED coords (DST) -> TO UNCORRECTED coords (ORG)
+    # DIMX, DIMY not needed for calculations, just to plot the trapezoids
     
     # Solve 8 equations linear system: A * k = b -> k = inv(A) * b
     A=matrix(nrow=8, ncol=8)
@@ -73,9 +77,32 @@ undo_keystone = function(imgd, k) {
     
     return(imgc)
 }
-  
+
 cppFunction('
 NumericMatrix undo_keystone_cpp(NumericMatrix imgd, NumericVector k) {
+  // Return the keystone correction of an image (matrix)
+  int DIMX = imgd.ncol();  // cols = X
+  int DIMY = imgd.nrow();  // rows = Y
+  NumericMatrix imgc(DIMY, DIMX);  // output image, same size
+
+  for (int x = 0; x < DIMX; x++) {
+    for (int y = 0; y < DIMY; y++) {
+      double denom = k[6] * x + k[7] * y + 1;
+      int xu = round((k[0] * x + k[1] * y + k[2]) / denom);
+      int yu = round((k[3] * x + k[4] * y + k[5]) / denom);
+      
+      if (xu >= 0 && xu < DIMX && yu >= 0 && yu < DIMY) {
+        imgc(y, x) = imgd(yu, xu);
+      }
+    }
+  }
+
+  return imgc;
+}
+')
+
+cppFunction('
+NumericMatrix undo_keystone_cpp_old(NumericMatrix imgd, NumericVector k) {
   // Return the keystone correction of an image (matrix)
   int DIMX = imgd.ncol();  // cols = X
   int DIMY = imgd.nrow();  // rows = Y
@@ -90,7 +117,7 @@ NumericMatrix undo_keystone_cpp(NumericMatrix imgd, NumericVector k) {
       double xu = (k[0] * xp + k[1] * yp + k[2]) / denom;
       double yu = (k[3] * xp + k[4] * yp + k[5]) / denom;
 
-      int xup = round(xu) - 1;  // back to 0-based
+      int xup = round(xu) - 1;  // back to 0-based indexing
       int yup = round(yu) - 1;  // (needed to write on imgc)
 
       if (xup >= 0 && xup < DIMX && yup >= 0 && yup < DIMY) {
@@ -106,13 +133,89 @@ NumericMatrix undo_keystone_cpp(NumericMatrix imgd, NumericVector k) {
 
 ################################
 
-# 1. SAVE RAW DATA AS 16-bit TIFF FILES
-# dcraw -v -D -t 0 *.DNG  # replace DNG for any camera RAW format
+# SNR CALCULATION OVER THE PATCHES
+
+cppFunction('
+List analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS, double SAFE) {
+  // Optimize SNR calculation over the patches
+  int DIMX = imgcrop.ncol();
+  int DIMY = imgcrop.nrow();
+  
+  std::vector<double> Signal;
+  std::vector<double> Noise;
+
+  for (int i = 1; i <= NCOLS; i++) {
+    for (int j = 1; j <= NROWS; j++) {
+      int x1 = round((i - 1) * DIMX / NCOLS + SAFE);
+      int x2 = round(i * DIMX / NCOLS - SAFE);
+      int y1 = round((j - 1) * DIMY / NROWS + SAFE);
+      int y2 = round(j * DIMY / NROWS - SAFE);
+
+      std::vector<double> values;
+
+      for (int y = y1; y <= y2; y++) {
+        for (int x = x1; x <= x2; x++) {
+          if (y >= 0 && y < DIMY && x >= 0 && x < DIMX)
+            values.push_back(imgcrop(y, x));
+        }
+      }
+
+      if (values.size() == 0) continue;
+
+      // Compute mean and stddev
+      double sum = 0.0;
+      for (double v : values) sum += v;
+      double mean = sum / values.size();
+
+      double var = 0.0;
+      for (double v : values) var += (v - mean) * (v - mean);
+      double stdev = sqrt(var / values.size());
+
+      // Count saturated pixels
+      int sat = 0;
+      for (double v : values) if (v > 0.9) sat++;
+
+      if (mean > 0 && 20 * log10(mean / stdev) >= -10 && ((double)sat / values.size()) < 0.01) {
+        Signal.push_back(mean);
+        Noise.push_back(stdev);
+
+        // Draw black inner rectangle
+        for (int y = y1; y <= y2; y++) {
+          if (x1 >= 0 && x1 < DIMX) imgcrop(y, x1) = 0;
+          if (x2 >= 0 && x2 < DIMX) imgcrop(y, x2) = 0;
+        }
+        for (int x = x1; x <= x2; x++) {
+          if (y1 >= 0 && y1 < DIMY) imgcrop(y1, x) = 0;
+          if (y2 >= 0 && y2 < DIMY) imgcrop(y2, x) = 0;
+        }
+
+        // Draw white outer rectangle
+        for (int y = y1; y <= y2; y++) {
+          if (x1-1 >= 0 && x1-1 < DIMX) imgcrop(y, x1-1) = 1;
+          if (x2+1 >= 0 && x2+1 < DIMX) imgcrop(y, x2+1) = 1;
+        }
+        for (int x = x1; x <= x2; x++) {
+          if (y1-1 >= 0 && y1-1 < DIMY) imgcrop(y1-1, x) = 1;
+          if (y2+1 >= 0 && y2+1 < DIMY) imgcrop(y2+1, x) = 1;
+        }
+      }
+    }
+  }
+
+  return List::create(
+    Named("Signal") = Signal,
+    Named("Noise") = Noise,
+    Named("imgcrop") = imgcrop
+  );
+}
+')
 
 
 ################################
 
-# 2. READ RAW VALUES FROM TIFF FILES AND NORMALIZE
+# 1. EXTRACT RAW DATA AS 16-bit TIFF FILES READ THEM AND NORMALIZE
+
+# dcraw -v -D -t 0 *.DNG  # replace DNG for any camera RAW format
 
 BLACK=256  # Olympus OM-1 black level
 SAT=4095  # Olympus OM-1 sat level
@@ -144,22 +247,22 @@ for (image in 1:N) {
     
 ################################
     
-# 3. EXTRACT INDIVIDUAL RAW CHANNEL(S) AND APPLY KEYSTONE CORRECTION
+# 2. EXTRACT INDIVIDUAL RAW CHANNEL(S) AND APPLY KEYSTONE CORRECTION
     
     # Keep R RAW channel
     imgBayer=img[row(img)%%2 & col(img)%%2]
     dim(imgBayer)=dim(img)/2
     
     # Save uncorrected but normalized image
-    imgsave=imgBayer
-    imgsave[imgsave<0]=0
-    writeTIFF(imgsave, paste0("uncorrectednormalizedchart_", NAME, ".tif"), bits.per.sample=16)
-    rm(imgsave)
+    # imgsave=imgBayer
+    # imgsave[imgsave<0]=0
+    # writeTIFF(imgsave, paste0("uncorrectednormalizedchart_", NAME, ".tif"), bits.per.sample=16)
+    # rm(imgsave)
 
     # Correct keystone distortion
     DIMX=ncol(imgBayer)
     DIMY=nrow(imgBayer)
-    if (image==1) {
+    if (image==1) {  # calculate the same k for all keystone corrections
         # The 4 points (xu,yu) should be calculated from chart (corner marks)
         # Distorted points (source)
         xu=c(119, 99, 2515, 2473)  # top-left, bottom-left, bottom-right, top-right
@@ -183,9 +286,9 @@ for (image in 1:N) {
     imgc=undo_keystone_cpp(imgBayer, k)
 
     # benchmark_results=microbenchmark(
-    #     R_loops=undo_keystone(imgBayer, k),
+    #     Cpp_loops_old=undo_keystone_cpp_old(imgBayer, k),
     #     Cpp_loops=undo_keystone_cpp(imgBayer, k),
-    #     times=15
+    #     times=30
     # )
     # benchmark_results
     # boxplot(benchmark_results)
@@ -196,60 +299,59 @@ for (image in 1:N) {
     # Cpp_loops    98.4014    98.96145   101.4232   100.1011   101.5062   116.5063    15
     
     # Save corrected image
-    imgsave=imgc
-    imgsave[imgsave<0]=0
-    writeTIFF(imgsave, paste0("correctedchart_", NAME, ".tif"), bits.per.sample=16)
-    rm(imgsave)
+    # imgsave=imgc
+    # imgsave[imgsave<0]=0
+    # writeTIFF(imgsave, paste0("correctedchart_", NAME, ".tif"), bits.per.sample=16)
+    # rm(imgsave)
     
     
 ################################
     
-# 4. READ PATCHES TO FORM 7x11 GRID AND COLLECT (EV,SNR) PAIRS
+# 3. READ PATCHES TO FORM 7x11 GRID AND COLLECT (EV,SNR) PAIRS
     
     # Crop patches area
     imgcrop=imgc[round(ytl):round(ybr), round(xtl):round(xbr)]
-    DIMX=ncol(imgcrop)
-    DIMY=nrow(imgcrop)
-    
-    NCOLS=11
-    NROWS=7
-    SAFE=50
-    Signal=c()
-    Noise=c()
-    
-    for (i in 1:NCOLS) {
-        for (j in 1:NROWS) {
-            x1=round((i-1)*DIMX/NCOLS + SAFE)
-            x2=round( i   *DIMX/NCOLS - SAFE)
-            y1=round((j-1)*DIMY/NROWS + SAFE)
-            y2=round( j   *DIMY/NROWS - SAFE)
-            patch=which(row(imgcrop)>=y1 & row(imgcrop)<=y2 & 
-                        col(imgcrop)>=x1 & col(imgcrop)<=x2)
-            values=imgcrop[patch]
-            S=mean(values)  # S=mean
-            N=var(values)^0.5  # N=stdev
-            
-            # Ignore patches with negative average values, SNR < -10dB or
-            # >1% of saturated/nonlinear (>90%) values
-            if (S>0 & 20*log10(S/N) >= -10 & length(values[values>0.9])/length(values)<0.01) {
-                Signal=c(Signal,S)
-                Noise=c(Noise, N)
-                
-                # Draw patch rectangle
-                imgcrop[y1:y2,x1]=0
-                imgcrop[y1:y2,x2]=0
-                imgcrop[y1,x1:x2]=0
-                imgcrop[y2,x1:x2]=0
-                
-                imgcrop[y1:y2,(x1-1)]=1
-                imgcrop[y1:y2,(x2+1)]=1
-                imgcrop[(y1-1),x1:x2]=1
-                imgcrop[(y2+1),x1:x2]=1
-            }
 
-        }
-    }
-    used_patches=length(Signal)
+    # Analyze imgcrop dividing it in NCOLS x NROWS patches leaving a SAFE guard
+    # DIMX=ncol(imgcrop)
+    # DIMY=nrow(imgcrop)
+    # for (i in 1:NCOLS) {
+    #     for (j in 1:NROWS) {
+    #         x1=round((i-1)*DIMX/NCOLS + SAFE)
+    #         x2=round( i   *DIMX/NCOLS - SAFE)
+    #         y1=round((j-1)*DIMY/NROWS + SAFE)
+    #         y2=round( j   *DIMY/NROWS - SAFE)
+    #         patch=which(row(imgcrop)>=y1 & row(imgcrop)<=y2 & 
+    #                     col(imgcrop)>=x1 & col(imgcrop)<=x2)
+    #         values=imgcrop[patch]
+    #         S=mean(values)  # S=mean
+    #         N=var(values)^0.5  # N=stdev
+    #         
+    #         # Ignore patches with negative average values, SNR < -10dB or
+    #         # >1% of saturated/nonlinear (>90%) values
+    #         if (S>0 & 20*log10(S/N) >= -10 & length(values[values>0.9])/length(values)<0.01) {
+    #             Signal=c(Signal,S)
+    #             Noise=c(Noise, N)
+    #             
+    #             # Draw patch rectangle
+    #             imgcrop[y1:y2,x1]=0
+    #             imgcrop[y1:y2,x2]=0
+    #             imgcrop[y1,x1:x2]=0
+    #             imgcrop[y2,x1:x2]=0
+    #             
+    #             imgcrop[y1:y2,(x1-1)]=1
+    #             imgcrop[y1:y2,(x2+1)]=1
+    #             imgcrop[(y1-1),x1:x2]=1
+    #             imgcrop[(y2+1),x1:x2]=1
+    #         }
+    # 
+    #     }
+    # }
+    calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, SAFE=50)
+    Signal=calc$Signal
+    Noise=calc$Noise
+    imgcrop=calc$imgcrop
+    patches_used=length(Signal)
 
     # Order from lower to higher signal values (to plot beautifully)
     idx=order(Signal/Noise)  # order by independent variable in later splines
@@ -268,7 +370,7 @@ for (image in 1:N) {
              pch=16, cex=0.5, col='blue',
              main='SNR curves - Olympus OM-1',
              xlab='RAW exposure (EV)', ylab='SNR (dB)')
-        abline(h=c(0,12), v=seq(-14,0,1), lty=2)
+        abline(h=c(0,12), lty=2)
         abline(v=seq(-14,0,1), lty=2, col='gray')
         axis(side=1, at=-14:0)
     } else {
@@ -276,15 +378,17 @@ for (image in 1:N) {
     }
     
     # # SNR curves in EV
-    # plot(log2(Signal), log2(Signal/Noise), xlim=c(-14,0), ylim=c(0,4), col='red',
+    # plot(log2(Signal), log2(Signal/Noise), xlim=c(-14,0), ylim=c(-2,4), 
+    #      pch=16, cex=0.5, col='blue',
     #      main=paste0('SNR curves\nOlympus OM-1 at ', NAME),
     #      xlab='RAW exposure (EV)', ylab='SNR (EV)')
-    # abline(h=c(0,2), v=seq(-14,0,1), lty=2)
+    # abline(h=c(0,2), lty=2)
+    # abline(v=seq(-14,0,1), lty=2, col='gray')
 
-
+    
 ################################
 
-# 5. APPROXIMATION CURVES TO CALCULATE DR VALUES
+# 4. APPROXIMATION CURVES TO CALCULATE DR VALUES
     
     # Soft cubic splines approximation
     # https://stackoverflow.com/questions/37528590/r-smooth-spline-smoothing-spline-is-not-smooth-but-overfitting-my-data
@@ -314,23 +418,22 @@ for (image in 1:N) {
     if (image==1) {
         DR_df=data.frame(tiff_file=NAME,
                          DR_EV_12dB=DR_EV[1], DR_EV_0dB=DR_EV[2],
-                         used_patches=used_patches)        
+                         patches_used=patches_used)        
     } else {
         new_row=data.frame(tiff_file=NAME,
                            DR_EV_12dB=DR_EV[1], DR_EV_0dB=DR_EV[2],
-                           used_patches=used_patches)
+                           patches_used=patches_used)
         DR_df=rbind(DR_df, new_row)
     }
 }
 
-text(-14, 12+0.5, labels="Photographic DR (SNR>12dB)", adj=0)
-text(-14,  0+0.5, labels="Engineering DR (SNR>0dB)", adj=0)
+text(-14+0.1, 12+0.5, labels="Photographic DR (SNR>12dB)", adj=0)
+text(-14+0.1,  0+0.5, labels="Engineering DR (SNR>0dB)", adj=0)
 
 dev.off()
 
 # Print calculated DR for each ISO
 DR_df=DR_df[order(DR_df$tiff_file), ]
 print(DR_df)
-
 
 
