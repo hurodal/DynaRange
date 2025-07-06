@@ -4,6 +4,8 @@
 
 library(tiff)
 library(Cairo)
+library(Rcpp)
+library(microbenchmark)
 
 
 ################################
@@ -11,23 +13,7 @@ library(Cairo)
 # KEYSTONE CORRECTION (SAME FOR ALL IMAGES)
 
 # Undo distortion function
-keystone.correction = function(DIMX, DIMY) {
-    # Distorted points (source)
-    xu=c(119, 99, 2515, 2473)  # top-left, bottom-left, bottom-right, top-right
-    yu=c(170, 1687, 1679, 158)
-    
-    # Undistorted points (destination):
-    
-    # top-left
-    xtl=(xu[1] + xu[2]) / 2
-    ytl=(yu[1] + yu[4]) / 2
-    # bottom-right
-    xbr=(xu[3] + xu[3]) / 2
-    ybr=(yu[2] + yu[3]) / 2
-    
-    xd=c(xtl, xtl, xbr, xbr)
-    yd=c(ytl, ybr, ybr, ytl)
-    
+calculate_keystone = function(xu, yu, xd, yd, DIMX, DIMY) {
     # NOTE: we swap the distorted and undistorted trapezoids because
     # we want to model the transformation
     # FROM CORRECTED coords (DST) -> TO UNCORRECTED coords (ORG)
@@ -46,7 +32,7 @@ keystone.correction = function(DIMX, DIMY) {
     k=solve(A, b)  # equivalent to inv(A) * b = solve(A) %*% b
     
     # Check keystone correction
-    for (i in 1:4) print(undo.keystone(xd[i], yd[i], k))
+    for (i in 1:4) print(undo_keystone_coords(xd[i], yd[i], k))
     
     # Plot trapezoids
     plot(c(xd, xd[1]), c(yd, yd[1]), type='l', col='red', asp=1,
@@ -57,14 +43,65 @@ keystone.correction = function(DIMX, DIMY) {
     }
     abline(h=c(1,DIMY), v=c(1,DIMX))
     
-    return (list(k, c(xtl,ytl,xbr,ybr)))
+    return (k)
 }
 
-undo.keystone = function(xd, yd, k) {
-    xu=(k[1]*xd+k[2]*yd+k[3]) / (k[7]*xd+k[8]*yd+1)
-    yu=(k[4]*xd+k[5]*yd+k[6]) / (k[7]*xd+k[8]*yd+1)
+undo_keystone_coords = function(xd, yd, k) {
+    # Return the keystone correction of a pair (or list of pairs) of coords
+    denom=k[7]*xd + k[8]*yd + 1
+    xu=(k[1]*xd + k[2]*yd + k[3]) / denom
+    yu=(k[4]*xd + k[5]*yd + k[6]) / denom
     return(c(xu, yu))  # return pair (xu, yu)
 }
+
+undo_keystone = function(imgd, k) {
+    # Return the keystone correction of an image (matrix)
+    DIMX=ncol(imgd)
+    DIMY=nrow(imgd)
+    imgc=imgd*0
+    
+    for (x in 1:DIMX) {
+        for (y in 1:DIMY) {
+            denom=k[7]*x + k[8]*y + 1
+            xu=round((k[1]*x + k[2]*y + k[3]) / denom)
+            yu=round((k[4]*x + k[5]*y + k[6]) / denom)
+            
+            if (xu>=1 & xu<=DIMX & yu>=1 & yu<=DIMY)
+                imgc[y, x]=imgd[yu, xu]  # nearest neighbour interp
+        }
+    }
+    
+    return(imgc)
+}
+  
+cppFunction('
+NumericMatrix undo_keystone_cpp(NumericMatrix imgd, NumericVector k) {
+  // Return the keystone correction of an image (matrix)
+  int DIMX = imgd.ncol();  // cols = X
+  int DIMY = imgd.nrow();  // rows = Y
+  NumericMatrix imgc(DIMY, DIMX);  // output image, same size
+
+  for (int x = 0; x < DIMX; x++) {
+    for (int y = 0; y < DIMY; y++) {
+      double xp = x + 1;  // convert to 1-based indexing
+      double yp = y + 1;  // (needed to use k values)
+
+      double denom = k[6] * xp + k[7] * yp + 1;
+      double xu = (k[0] * xp + k[1] * yp + k[2]) / denom;
+      double yu = (k[3] * xp + k[4] * yp + k[5]) / denom;
+
+      int xup = round(xu) - 1;  // back to 0-based
+      int yup = round(yu) - 1;  // (needed to write on imgc)
+
+      if (xup >= 0 && xup < DIMX && yup >= 0 && yup < DIMY) {
+        imgc(y, x) = imgd(yup, xup);
+      }
+    }
+  }
+
+  return imgc;
+}
+')
 
 
 ################################
@@ -84,11 +121,13 @@ filepath=getwd()
 filenames=list.files(path=filepath, pattern="\\.tiff$",  # pattern="\\.tif{1,2}$",
                       ignore.case=TRUE, full.names=FALSE)
 
-CairoPNG("SNRcurves.png", width=1920, height=1080)  # HQ Full HD curves
+CairoPNG("SNR_curves.png", width=1920, height=1080)  # HQ Full HD curves
 
 N=length(filenames)  # number of RAW files to process
 for (image in 1:N) {
     NAME=filenames[image]
+    filenamesISO=gsub(".tiff", "", filenames) 
+    filenamesISO=toupper(sub("^iso0*", "iso", filenamesISO))
     cat(paste0('Processing "', NAME, '" ...\n'))
     
     # Read RAW data
@@ -107,31 +146,54 @@ for (image in 1:N) {
     
 # 3. EXTRACT INDIVIDUAL RAW CHANNEL(S) AND APPLY KEYSTONE CORRECTION
     
-    # Keep G1 channel
+    # Keep R RAW channel
     imgBayer=img[row(img)%%2 & col(img)%%2]
     dim(imgBayer)=dim(img)/2
+    
+    # Save uncorrected but normalized image
+    imgsave=imgBayer
+    imgsave[imgsave<0]=0
+    writeTIFF(imgsave, paste0("uncorrectednormalizedchart_", NAME, ".tif"), bits.per.sample=16)
+    rm(imgsave)
 
     # Correct keystone distortion
     DIMX=ncol(imgBayer)
     DIMY=nrow(imgBayer)
     if (image==1) {
-        keystone=keystone.correction(DIMX, DIMY)
-        k=unlist(keystone[1])  # calculate keystone correction
-        coords=unlist(keystone[2])  # coords of corrected image
-        xtl=coords[1]
-        ytl=coords[2]
-        xbr=coords[3]
-        ybr=coords[4]
+        # The 4 points (xu,yu) should be calculated from chart (corner marks)
+        # Distorted points (source)
+        xu=c(119, 99, 2515, 2473)  # top-left, bottom-left, bottom-right, top-right
+        yu=c(170, 1687, 1679, 158)
+        
+        # Undistorted points (destination):
+        
+        # top-left
+        xtl=(xu[1] + xu[2]) / 2
+        ytl=(yu[1] + yu[4]) / 2
+        # bottom-right
+        xbr=(xu[3] + xu[3]) / 2
+        ybr=(yu[2] + yu[3]) / 2
+        
+        xd=c(xtl, xtl, xbr, xbr)
+        yd=c(ytl, ybr, ybr, ytl)
+        
+        k=calculate_keystone(xu, yu, xd, yd, DIMX, DIMY)
     }
     
-    imgc=imgBayer*0
-    for (x in 1:DIMX) {
-        for (y in 1:DIMY) {
-            xuyu=round(undo.keystone(x, y, k))
-            if (xuyu[1]>=1 & xuyu[1]<=DIMX & xuyu[2]>=1 & xuyu[2]<=DIMY)
-                imgc[y, x]=imgBayer[xuyu[2], xuyu[1]]  # nearest neighbour interp
-        }
-    }
+    imgc=undo_keystone_cpp(imgBayer, k)
+
+    # benchmark_results=microbenchmark(
+    #     R_loops=undo_keystone(imgBayer, k),
+    #     Cpp_loops=undo_keystone_cpp(imgBayer, k),
+    #     times=15
+    # )
+    # benchmark_results
+    # boxplot(benchmark_results)
+    
+    # Unit: milliseconds
+    # expr        min          lq       mean     median         uq        max neval
+    # R_loops 24111.0131 24253.91095 24385.2646 24273.2952 24365.5697 25671.9213    15
+    # Cpp_loops    98.4014    98.96145   101.4232   100.1011   101.5062   116.5063    15
     
     # Save corrected image
     imgsave=imgc
@@ -173,6 +235,7 @@ for (image in 1:N) {
                 Signal=c(Signal,S)
                 Noise=c(Noise, N)
                 
+                # Draw patch rectangle
                 imgcrop[y1:y2,x1]=0
                 imgcrop[y1:y2,x2]=0
                 imgcrop[y1,x1:x2]=0
@@ -226,21 +289,28 @@ for (image in 1:N) {
     # Soft cubic splines approximation
     # https://stackoverflow.com/questions/37528590/r-smooth-spline-smoothing-spline-is-not-smooth-but-overfitting-my-data
     # NOTES:
-    #   Inverted variables: Signal (DR) = f(Signal/Noise) (threshold)
+    #   Inverted variables: Signal = f(Signal/Noise) -> DR = f(SNR threshold)
     #   Splines already in log transformed domains (softer derivatives)
     spline_fit=smooth.spline(20*log10(Signal/Noise), log2(Signal),
                              spar=0.5, nknots=10)  # spar controls smoothness
-    lines(predict(spline_fit, 20*log10(Signal/Noise))$y, 20*log10(Signal/Noise),
-          col='red', type='l')
+    valuesx=predict(spline_fit, 20*log10(Signal/Noise))$y
+    valuesy=20*log10(Signal/Noise)
+    lines(valuesx, valuesy, col='red', type='l')
+    text(max(valuesx), max(valuesy)+0.5, labels=filenamesISO[image], col='red')
     
     # Now calculate the Dynamic Range for a given SNR threshold criteria
     TH_dB=c(12, 0)  # Photographic (12dB) and Engineering (0dB) DR
     DR_EV=c()
     for (threshold in 1:length(TH_dB)) {
         DR_EV=c(DR_EV, -predict(spline_fit, TH_dB[threshold])$y)
-        points(-DR_EV[threshold], TH_dB[threshold], pch=3, cex=1.5, col='red')
+        xpos=-DR_EV[threshold]
+        ypos=TH_dB[threshold]
+        points(xpos, ypos, pch=3, cex=1.5)
+        text(xpos, ypos+0.5,
+             labels=paste0(round(DR_EV[threshold],1), "EV"))
     }
 
+    # Create dataframe with all calculated DR
     if (image==1) {
         DR_df=data.frame(tiff_file=NAME,
                          DR_EV_12dB=DR_EV[1], DR_EV_0dB=DR_EV[2],
@@ -253,13 +323,9 @@ for (image in 1:N) {
     }
 }
 
-# Write each file name on a separate line (adjust Y position)
-for (i in seq_along(DR_df$tiff_file)) {
-    y_pos=20-(i-1)*1.5
-    text(-14, y_pos, labels=paste0(DR_df$tiff_file[i],": ",
-                                   round(DR_df$DR_EV_12dB[i],1), "EV"), adj=0)
-}
-text(-14, y_pos-1.5, labels="Photographic DR", adj=0)
+text(-14, 12+0.5, labels="Photographic DR (SNR>12dB)", adj=0)
+text(-14,  0+0.5, labels="Engineering DR (SNR>0dB)", adj=0)
+
 dev.off()
 
 # Print calculated DR for each ISO
