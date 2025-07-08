@@ -350,7 +350,7 @@ for (image in 1:N) {
     # 
     #     }
     # }
-    calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, SAFE=50)
+    calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, SAFE=50)  # SAFE=80
     Signal=calc$Signal
     Noise=calc$Noise
     SNR=Signal/Noise
