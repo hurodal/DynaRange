@@ -6,3 +6,5 @@ Hugo lo vio:
 ![measuring-photographic-dynamicrange](/cropwithpatches_iso51200.jpg)
 
 ![measuring-photographic-dynamicrange](/SNRcurves.png)
+
+![measuring-photographic-dynamicrange](/SNRcurves.png)
