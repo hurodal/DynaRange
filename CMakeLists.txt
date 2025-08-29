@@ -20,6 +20,7 @@ find_package(CLI11 REQUIRED)
 add_executable(dynamicrange
     dynamicrange.cpp
     core/arguments.cpp
+    core/functions.cpp 
 )
 
 target_include_directories(dynamicrange PRIVATE
