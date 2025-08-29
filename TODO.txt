@@ -41,7 +41,7 @@ en realidad lo que acabo usando son curvas de aproximación, es decir curvas que
 por los puntos sino que los aproximan suavemente. 
 Esto es importante para que las desviaciones de las medidas no introduzcan error.
 
-TODO 4: 
+TODO 4: (HECHO)
 
     Sobre los ficheros RAW suministrados por el usuario, en realidad no necesitamos ni saber
  el ISO de cada uno ni obligar al usuario a renombrarlos u ordenarlos. 
