@@ -1,0 +1,51 @@
+Varios comentarios:
+
+TODO 1: 
+    
+    Entiendo que de momento solo funciona con valores black/sat pasados por el usuario.
+Faltaría añadir la posibilidad de obtenerlos de fichero RAW. Para black sería la media de todos
+los píxeles del RAW darkframe. Para sat el cuantil 5% (o incluso 1%) del RAW saturado obtenido
+con la función simplona que te pasé. 
+
+        He simplificado la función del cálculo del percentil 5% parametrizándola
+         (perc=0.5 es la mediana de toda la vida, perc=0.05 es el percentil 5%, etc...):
+
+        cppFunction('
+                    double quantilecpp(Rcpp::NumericVector xx, double perc) {
+                    Rcpp::NumericVector x = Rcpp::clone(xx);
+                    std::size_t n = x.size() * perc;
+                    std::nth_element(x.begin(), x.begin() + n, x.end());
+                    return x[n]; 
+                    }
+                    ')
+
+        set.seed(10)
+        x=rnorm(24000000)  # sensor de 24Mpx
+
+        median1=quantile(x, probs=0.05) |> as.numeric()
+        median2=quantilecpp(x, 0.05)
+
+
+
+TODO 2: 
+    
+    La corrección geométrica está hard coded para las tomas de la Olympus de Hugo. 
+Aquí tendremos que hablar sobre un diseño de carta que incluya guías para detectar sus 4 esquinas.
+Creo que con 4 círculos blancos + detección del valor máximo en la zona bastará.
+
+TODO 3:
+
+    Tus splines son splines de verdad? es decir, pasan por los puntos calculados o los aproximan?
+Lo comento porque aunque mi código R las llama splines, que son curvas de interpolación, 
+en realidad lo que acabo usando son curvas de aproximación, es decir curvas que no pasan exactamente
+por los puntos sino que los aproximan suavemente. 
+Esto es importante para que las desviaciones de las medidas no introduzcan error.
+
+TODO 4: 
+
+    Sobre los ficheros RAW suministrados por el usuario, en realidad no necesitamos ni saber
+ el ISO de cada uno ni obligar al usuario a renombrarlos u ordenarlos. 
+ Con sus niveles RAW medios ya los podemos ordenar de menos a más exposición 
+ (lo que equivale de menos a más ISO). Sería bueno que en la salida aparezcan ordenados 
+ (salvo casos raros, los propios nombres de los RAW ya deberían implicar una ordenación, 
+ pero igual un usuario empezó por el ISO mayor o repitió tomas)
