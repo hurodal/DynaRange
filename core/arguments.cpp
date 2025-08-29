@@ -46,13 +46,11 @@ ProgramOptions parse_arguments(int argc, char* argv[]) {
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
-        // --- INICIO DE LA CORRECCIÓN ---
         // app.exit(e) imprime el mensaje de ayuda/error y devuelve un código de salida.
         // Aunque debería terminar el programa, en algunos entornos no lo hace.
         // Por eso, capturamos el código de salida y terminamos el programa manualmente.
         int exit_code = app.exit(e);
         exit(exit_code);
-        // --- FIN DE LA CORRECCIÓN ---
     }
 
     // --- Lógica post-parseo ---
