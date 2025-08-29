@@ -66,6 +66,6 @@ TODO 5:
 con muchos Mpx. Te pasaré la formula, es sencilla.
 
 
-TODO 6:
+TODO 6: (HECHO)
 
     i18n -> Internacionalización -> Que el programa se pueda usar en varios idiomas disponibles.
