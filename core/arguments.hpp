@@ -16,9 +16,10 @@ struct ProgramOptions {
 // Función encargada de parsear los argumentos de línea de comandos usando CLI11.
 //
 // Reglas de argumentos:
-// - --dark-file O --dark-value: uno y solo uno debe estar presente.
-// - --sat-file O --sat-value: uno y solo uno debe estar presente.
-// - --output-data: opcional; si no se especifica, se usa un valor por defecto.
+// - --dark-file,--df O --dark-value,--dv: uno y solo uno debe estar presente.
+// - --sat-file, --sf O --sat-value,--sv: uno y solo uno debe estar presente.
+// - --output-data,-o: opcional; si no se especifica, se usa un valor por defecto.
+// - --files,-f: obligatorio. Lista de ficheros raw a procesar
 //
 // @param argc: número de argumentos pasados al programa.
 // @param argv: array de cadenas con los argumentos.

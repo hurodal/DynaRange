@@ -1,6 +1,6 @@
 Varios comentarios:
 
-TODO 1: 
+TODO 1: (HECHO)
     
     Entiendo que de momento solo funciona con valores black/sat pasados por el usuario.
 Faltaría añadir la posibilidad de obtenerlos de fichero RAW. Para black sería la media de todos

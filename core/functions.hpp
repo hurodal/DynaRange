@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
@@ -30,3 +31,12 @@ Eigen::VectorXd calculate_keystone_params(
 cv::Mat undo_keystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
 
 PatchAnalysisResult analyze_patches(cv::Mat imgcrop, int NCOLS, int NROWS, double SAFE);
+
+// --- FUNCIONES DE CÁLCULO Y EXTRACCIÓN DE DATOS ---
+std::optional<std::vector<double>> extract_raw_pixels(const std::string& filename);
+double calculate_mean(const std::vector<double>& data);
+double calculate_quantile(std::vector<double>& data, double percentile);
+
+// ---  Declaraciones de las funciones de procesamiento de ficheros ---
+double process_dark_frame(const std::string& filename);
+double process_saturation_frame(const std::string& filename);

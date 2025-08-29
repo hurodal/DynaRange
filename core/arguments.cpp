@@ -1,26 +1,10 @@
 // core/arguments.cpp
 #include "arguments.hpp"
+#include "functions.hpp"
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <string>
 #include <limits>
-
-// --- Marcadores de posición para procesado de ficheros ---
-// En un futuro, estas funciones contendrían la lógica para abrir
-// un fichero RAW/TIFF, calcular el valor medio y devolverlo.
-
-static double process_dark_frame(const std::string& filename) {
-    std::cout << "[INFO] Procesando dark frame desde: " << filename << " (valor simulado)\n";
-    // TODO: Implementar la lógica real de cálculo.
-    return 256.0;
-}
-
-static double process_saturation_frame(const std::string& filename) {
-    std::cout << "[INFO] Procesando saturación desde: " << filename << " (valor simulado)\n";
-    // TODO: Implementar la lógica real de cálculo.
-    return 4095.0;
-}
-
 
 ProgramOptions parse_arguments(int argc, char* argv[]) {
     ProgramOptions opts{};
