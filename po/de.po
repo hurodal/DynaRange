@@ -1,0 +1,129 @@
+# German translation for dynamicrange
+# Copyright (C) 2025
+msgid ""
+msgstr ""
+"Project-Id-Version: dynamicrange\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "[FINAL CONFIGURATION]"
+msgstr "[FINALE KONFIGURATION]"
+
+msgid "Black level: "
+msgstr "Schwarzwert: "
+
+msgid "Saturation point: "
+msgstr "Sättigungspunkt: "
+
+msgid "Output file: "
+msgstr "Ausgabedatei: "
+
+msgid "Pre-analyzing files to sort by exposure (using fast sampling)..."
+msgstr "Dateien werden zur Sortierung nach Belichtung voranalysiert (mittels schnellem Sampling)..."
+
+msgid "File: "
+msgstr "Datei: "
+
+msgid ", Estimated brightness: "
+msgstr ", Geschätzte Helligkeit: "
+
+msgid "Sorting finished. Starting Dynamic Range calculation process..."
+msgstr "Sortierung abgeschlossen. Starte Berechnung des Dynamikumfangs..."
+
+msgid "Error: None of the input files could be processed."
+msgstr "Fehler: Keine der Eingabedateien konnte verarbeitet werden."
+
+msgid "Processing \""
+msgstr "Verarbeite \""
+
+msgid "\"..."
+msgstr "\"..."
+
+msgid "Error: Could not open RAW file: "
+msgstr "Fehler: RAW-Datei konnte nicht geöffnet werden: "
+
+msgid "Error: Could not decode RAW data from: "
+msgstr "Fehler: RAW-Daten konnten nicht dekodiert werden von: "
+
+msgid "Info: Black="
+msgstr "Info: Schwarz="
+
+msgid "Keystone parameters calculated."
+msgstr "Keystone-Parameter berechnet."
+
+msgid "Warning: No valid patches found for "
+msgstr "Warnung: Keine gültigen Patches gefunden für "
+
+msgid "Dynamic Range Results"
+msgstr "Ergebnisse des Dynamikumfangs"
+
+msgid "RAW File"
+msgstr "RAW-Datei"
+
+msgid "DR (12dB)"
+msgstr "DR (12dB)"
+
+msgid "DR (0dB)"
+msgstr "DR (0dB)"
+
+msgid "Patches"
+msgstr "Patches"
+
+msgid "Results saved to "
+msgstr "Ergebnisse gespeichert in "
+
+msgid "Calculates the dynamic range from a series of RAW images."
+msgstr "Berechnet den Dynamikumfang aus einer Reihe von RAW-Bildern."
+
+msgid "Dark Frame"
+msgstr "Dark Frame"
+
+msgid "Options for the black level"
+msgstr "Optionen für den Schwarzwert"
+
+msgid "RAW file to calculate the black level"
+msgstr "RAW-Datei zur Berechnung des Schwarzwertes"
+
+msgid "Numeric value for the black level"
+msgstr "Numerischer Wert für den Schwarzwert"
+
+msgid "Saturation"
+msgstr "Sättigung"
+
+msgid "Options for the saturation point"
+msgstr "Optionen für den Sättigungspunkt"
+
+msgid "RAW file to calculate the saturation"
+msgstr "RAW-Datei zur Berechnung der Sättigung"
+
+msgid "Numeric value for the saturation"
+msgstr "Numerischer Wert für die Sättigung"
+
+msgid "Output CSV file"
+msgstr "Ausgabe-CSV-Datei"
+
+msgid "List of RAW files to process"
+msgstr "Liste der zu verarbeitenden RAW-Dateien"
+
+msgid "[INFO] Calculating black level from: "
+msgstr "[INFO] Berechne Schwarzwert aus: "
+
+msgid "Fatal error: Could not process the dark frame. Exiting."
+msgstr "Schwerwiegender Fehler: Dark Frame konnte nicht verarbeitet werden. Programm wird beendet."
+
+msgid "[INFO] -> Black level obtained: "
+msgstr "[INFO] -> Erhaltener Schwarzwert: "
+
+msgid "[INFO] Calculating saturation point from: "
+msgstr "[INFO] Berechne Sättigungspunkt aus: "
+
+msgid "Fatal error: Could not process the saturation file. Exiting."
+msgstr "Schwerwiegender Fehler: Sättigungsdatei konnte nicht verarbeitet werden. Programm wird beendet."
+
+msgid "[INFO] -> Saturation point obtained (5th percentile): "
+msgstr "[INFO] -> Erhaltener Sättigungspunkt (5. Perzentil): "

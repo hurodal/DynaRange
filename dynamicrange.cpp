@@ -1,11 +1,11 @@
 // dynamicrange.cpp
-// Fichero principal del ejecutable.
-// Orquesta el flujo del programa: parseo de argumentos, ordenación de ficheros,
-// procesamiento en bucle y guardado de resultados.
+// Main executable file.
+// Orchestrates the program flow: argument parsing, file sorting,
+// main processing loop, and saving results.
 
-#include "core/arguments.hpp" // Para el parseo de argumentos de línea de comandos.
-#include "core/functions.hpp" // Para todas las funciones de procesamiento de datos e imágenes.
-#include "spline.h"           // Para la interpolación con splines.
+#include "core/arguments.hpp" // For command-line argument parsing.
+#include "core/functions.hpp" // For all data and image processing functions.
+#include "spline.h"           // For spline interpolation.
 
 #include <iostream>
 #include <iomanip>
@@ -17,94 +17,106 @@
 #include <algorithm>
 #include <fstream>
 
-#include <libraw/libraw.h>     // Para la lectura de ficheros RAW.
-#include <opencv2/opencv.hpp>  // Para el manejo de imágenes.
-#include <Eigen/Dense>         // Para álgebra lineal (corrección keystone).
+#include <libraw/libraw.h>     // For reading RAW files.
+#include <opencv2/opencv.hpp>  // For image handling.
+#include <Eigen/Dense>         // For linear algebra (keystone correction).
+
+// Headers for Gettext
+#include <libintl.h>
+#include <locale.h>
+
+// Define the translation macro for abbreviation
+#define _(string) gettext(string)
 
 namespace fs = std::filesystem;
 
-// --- FUNCIÓN PRINCIPAL ---
+// --- MAIN FUNCTION ---
 int main(int argc, char* argv[]) {
-    
-    // --- 0. CONFIGURACIÓN INICIAL ---
-    // Constantes para el análisis de la carta de color.
+
+    // --- GETTEXT INITIALIZATION ---
+    setlocale(LC_ALL, ""); // Detects the system language
+    bindtextdomain("dynamicrange", "locale"); // Looks for language files in the "locale" folder
+    textdomain("dynamicrange"); // Defines the name of the translation file (dynamicrange.mo)
+
+    // --- 0. INITIAL SETUP ---
+    // Constants for the color chart analysis.
     const int NCOLS = 11;
     const int NROWS = 7;
     const double SAFE = 50.0;
 
-    // --- 1. PARSEO DE ARGUMENTOS ---
-    // Delega toda la lógica de la línea de comandos al módulo de argumentos.
-    // La función maneja errores y la petición de ayuda (--help) internamente.
+    // --- 1. ARGUMENT PARSING ---
+    // Delegates all command-line logic to the arguments module.
+    // The function handles errors and help requests (--help) internally.
     ProgramOptions opts = parse_arguments(argc, argv);
 
-    // Muestra la configuración final que se usará en el procesamiento.
+    // Displays the final configuration that will be used for processing.
     std::cout << std::fixed << std::setprecision(2);
-    std::cout << "\n[CONFIGURACIÓN FINAL]\n";
-    std::cout << "Nivel de negro: " << opts.dark_value << "\n";
-    std::cout << "Punto de saturación: " << opts.saturation_value << "\n";
-    std::cout << "Fichero de salida: " << opts.output_filename << "\n\n";
+    std::cout << "\n" << _("[FINAL CONFIGURATION]") << "\n";
+    std::cout << _("Black level: ") << opts.dark_value << "\n";
+    std::cout << _("Saturation point: ") << opts.saturation_value << "\n";
+    std::cout << _("Output file: ") << opts.output_filename << "\n\n";
 
-    // --- 2. PRE-ANÁLISIS Y ORDENACIÓN POR EXPOSICIÓN ---
-    // Para procesar los ficheros en orden de menor a mayor exposición sin depender
-    // del nombre, primero estimamos el brillo medio de cada uno usando un muestreo rápido.
+    // --- 2. PRE-ANALYSIS AND SORTING BY EXPOSURE ---
+    // To process files in order from lowest to highest exposure without relying on
+    // the filename, we first estimate the mean brightness of each file using fast sampling.
     
-    // Estructura temporal para asociar cada fichero con su brillo.
+    // Temporary structure to associate each file with its brightness.
     struct FileExposureInfo {
         std::string filename;
         double mean_brightness;
     };
 
     std::vector<FileExposureInfo> exposure_data;
-    std::cout << "Pre-analizando ficheros para ordenarlos por exposición (usando muestreo rápido)..." << std::endl;
+    std::cout << _("Pre-analyzing files to sort by exposure (using fast sampling)...") << std::endl;
 
-    // Bucle de pre-análisis: calcula el brillo estimado de cada fichero.
+    // Pre-analysis loop: calculates the estimated brightness of each file.
     for (const std::string& name : opts.input_files) {
-        // Usamos la función optimizada que solo lee una muestra de píxeles (ej. 5%).
-        auto mean_val_opt = estimate_mean_brightness(name, 0.05f); 
+        // We use the optimized function that only reads a sample of pixels (e.g., 5%).
+        auto mean_val_opt = estimate_mean_brightness(name, 0.05f);
 
         if (mean_val_opt) {
             exposure_data.push_back({name, *mean_val_opt});
-            std::cout << "  - Fichero: " << fs::path(name).filename().string() 
-                      << ", Brillo estimado: " << std::fixed << std::setprecision(2) << *mean_val_opt << std::endl;
+            std::cout << "  - " << _("File: ") << fs::path(name).filename().string()
+                      << ", " << _("Estimated brightness: ") << std::fixed << std::setprecision(2) << *mean_val_opt << std::endl;
         }
     }
 
-    // Ordena la lista de ficheros basándose en el brillo medio, de menor a mayor.
-    std::sort(exposure_data.begin(), exposure_data.end(), 
+    // Sorts the list of files based on the mean brightness, from lowest to highest.
+    std::sort(exposure_data.begin(), exposure_data.end(),
         [](const FileExposureInfo& a, const FileExposureInfo& b) {
             return a.mean_brightness < b.mean_brightness;
         }
     );
 
-    // Crea la lista final de ficheros, ahora sí, ordenada correctamente.
+    // Creates the final list of files, now correctly sorted.
     std::vector<std::string> filenames;
     for (const auto& info : exposure_data) {
         filenames.push_back(info.filename);
     }
 
     if (filenames.empty()){
-        std::cerr << "Error: Ninguno de los ficheros de entrada pudo ser procesado." << std::endl;
+        std::cerr << _("Error: None of the input files could be processed.") << std::endl;
         return 1;
     }
 
-    std::cout << "Ordenación finalizada. Iniciando proceso de cálculo de Rango Dinámico..." << std::endl;
+    std::cout << _("Sorting finished. Starting Dynamic Range calculation process...") << std::endl;
     
-    // --- 3. BUCLE PRINCIPAL DE PROCESAMIENTO ---
+    // --- 3. MAIN PROCESSING LOOP ---
     std::vector<DynamicRangeResult> all_results;
-    Eigen::VectorXd k; // Vector para los parámetros de corrección keystone.
+    Eigen::VectorXd k; // Vector for keystone correction parameters.
 
     for (int i = 0; i < filenames.size(); ++i) {
         const std::string& name = filenames[i];
-        std::cout << "\nProcesando \"" << name << "\"..." << std::endl;
+        std::cout << "\n" << _("Processing \"") << name << "\"..." << std::endl;
 
-        // Apertura y decodificación del fichero RAW
+        // Opening and decoding the RAW file
         LibRaw raw_processor;
         if (raw_processor.open_file(name.c_str()) != LIBRAW_SUCCESS) {
-            std::cerr << "Error: No se pudo abrir el archivo RAW: " << name << std::endl;
+            std::cerr << _("Error: Could not open RAW file: ") << name << std::endl;
             continue;
         }
         if (raw_processor.unpack() != LIBRAW_SUCCESS) {
-            std::cerr << "Error: No se pudieron decodificar los datos RAW de: " << name << std::endl;
+            std::cerr << _("Error: Could not decode RAW data from: ") << name << std::endl;
             continue;
         }
 
@@ -112,15 +124,15 @@ int main(int argc, char* argv[]) {
         const double sat_level = opts.saturation_value;
         int width = raw_processor.imgdata.sizes.raw_width;
         int height = raw_processor.imgdata.sizes.raw_height;
-        std::cout << "  - Info: Black=" << black_level << ", Saturation=" << sat_level << std::endl;
+        std::cout << "  - " << _("Info: Black=") << black_level << ", Saturation=" << sat_level << std::endl;
 
-        // Conversión de datos RAW a una matriz de OpenCV y normalización
+        // Conversion of RAW data to an OpenCV matrix and normalization
         cv::Mat raw_image(height, width, CV_16U, raw_processor.imgdata.rawdata.raw_image);
         cv::Mat img_float;
         raw_image.convertTo(img_float, CV_32F);
         img_float = (img_float - black_level) / (sat_level - black_level);
 
-        // Extracción de un solo canal del patrón Bayer
+        // Extraction of a single channel from the Bayer pattern
         cv::Mat imgBayer(height / 2, width / 2, CV_32FC1);
         for (int r = 0; r < imgBayer.rows; ++r) {
             for (int c = 0; c < imgBayer.cols; ++c) {
@@ -128,17 +140,17 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Si es la primera imagen, calcula los parámetros de corrección de perspectiva.
+        // If it's the first image, calculate the perspective correction parameters.
         if (i == 0) {
             std::vector<cv::Point2d> xu = {{119, 170}, {99, 1687}, {2515, 1679}, {2473, 158}};
             double xtl = (xu[0].x + xu[1].x) / 2.0; double ytl = (xu[0].y + xu[3].y) / 2.0;
             double xbr = (xu[2].x + xu[3].x) / 2.0; double ybr = (xu[1].y + xu[2].y) / 2.0;
             std::vector<cv::Point2d> xd = {{xtl, ytl}, {xtl, ybr}, {xbr, ybr}, {xbr, ytl}};
             k = calculate_keystone_params(xu, xd);
-            std::cout << "  - Parámetros Keystone calculados." << std::endl;
+            std::cout << "  - " << _("Keystone parameters calculated.") << std::endl;
         }
 
-        // Aplica la corrección, recorta la imagen y analiza los parches
+        // Apply the correction, crop the image, and analyze the patches
         cv::Mat imgc = undo_keystone(imgBayer, k);
         double xtl = (119.0 + 99.0) / 2.0; double ytl = (170.0 + 158.0) / 2.0;
         double xbr = (2515.0 + 2473.0) / 2.0; double ybr = (1687.0 + 1679.0) / 2.0;
@@ -147,11 +159,11 @@ int main(int argc, char* argv[]) {
         PatchAnalysisResult patch_data = analyze_patches(imgcrop.clone(), NCOLS, NROWS, SAFE);
         
         if (patch_data.signal.empty()) {
-            std::cerr << "Advertencia: No se encontraron parches válidos para " << name << std::endl;
+            std::cerr << _("Warning: No valid patches found for ") << name << std::endl;
             continue;
         }
 
-        // Ordena los datos de los parches por su relación señal/ruido (SNR)
+        // Sort the patch data by their signal-to-noise ratio (SNR)
         std::vector<double> Signal = patch_data.signal;
         std::vector<double> Noise = patch_data.noise;
         std::vector<size_t> p(Signal.size());
@@ -160,33 +172,33 @@ int main(int argc, char* argv[]) {
         
         std::vector<double> sorted_Signal(Signal.size()), sorted_Noise(Signal.size());
         for(size_t idx = 0; idx < Signal.size(); ++idx) {
-            sorted_Signal[idx] = Signal[p[idx]]; 
+            sorted_Signal[idx] = Signal[p[idx]];
             sorted_Noise[idx] = Noise[p[idx]];
         }
         Signal = sorted_Signal;
         Noise = sorted_Noise;
 
-        // Convierte señal y ruido a las unidades deseadas (EV y dB)
+        // Convert signal and noise to the desired units (EV and dB)
         std::vector<double> snr_db, signal_ev;
         for (size_t j = 0; j < Signal.size(); ++j) {
             snr_db.push_back(20 * log10(Signal[j] / Noise[j]));
             signal_ev.push_back(log2(Signal[j]));
         }
 
-        // Ajusta una curva spline a los datos y calcula los puntos de DR
+        // Fit a spline curve to the data and calculate the DR points
         tk::spline s;
         s.set_points(snr_db, signal_ev);
-        double dr_12db = -s(12.0); // DR con umbral de calidad "excelente" (12 dB)
-        double dr_0db = -s(0.0);   // DR con umbral de "límite aceptable" (0 dB)
+        double dr_12db = -s(12.0); // DR with "excellent" quality threshold (12 dB)
+        double dr_0db = -s(0.0);   // DR with "acceptable limit" threshold (0 dB)
         
         all_results.push_back({name, dr_12db, dr_0db, (int)Signal.size()});
     }
 
-    // --- 4. PRESENTACIÓN Y GUARDADO DE RESULTADOS ---
-    std::cout << "\n--- Resultados de Rango Dinámico ---\n";
-    std::cout << std::left << std::setw(35) << "Archivo RAW"
-              << std::setw(15) << "DR (12dB)" << std::setw(15) << "DR (0dB)"
-              << "Parches" << std::endl;
+    // --- 4. DISPLAYING AND SAVING RESULTS ---
+    std::cout << "\n--- " << _("Dynamic Range Results") << " ---\n";
+    std::cout << std::left << std::setw(35) << _("RAW File")
+              << std::setw(15) << _("DR (12dB)") << std::setw(15) << _("DR (0dB)")
+              << _("Patches") << std::endl;
     std::cout << std::string(80, '-') << std::endl;
 
     for (const auto& res : all_results) {
@@ -196,14 +208,14 @@ int main(int argc, char* argv[]) {
                   << res.patches_used << std::endl;
     }
     
-    // Guarda los resultados en el fichero CSV especificado.
+    // Save the results to the specified CSV file.
     std::ofstream csv_file(opts.output_filename);
     csv_file << "raw_file,DR_EV_12dB,DR_EV_0dB,patches_used\n";
     for (const auto& res : all_results) {
         csv_file << fs::path(res.filename).filename().string() << "," << res.dr_12db << "," << res.dr_0db << "," << res.patches_used << "\n";
     }
     csv_file.close();
-    std::cout << "\nResultados guardados en " << opts.output_filename << std::endl;
+    std::cout << "\n" << _("Results saved to ") << opts.output_filename << std::endl;
 
     return 0;
 }

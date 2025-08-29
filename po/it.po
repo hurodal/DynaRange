@@ -1,0 +1,129 @@
+# Italian translation for dynamicrange
+# Copyright (C) 2025
+msgid ""
+msgstr ""
+"Project-Id-Version: dynamicrange\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "[FINAL CONFIGURATION]"
+msgstr "[CONFIGURAZIONE FINALE]"
+
+msgid "Black level: "
+msgstr "Livello del nero: "
+
+msgid "Saturation point: "
+msgstr "Punto di saturazione: "
+
+msgid "Output file: "
+msgstr "File di output: "
+
+msgid "Pre-analyzing files to sort by exposure (using fast sampling)..."
+msgstr "Pre-analisi dei file per ordinare per esposizione (usando campionamento rapido)..."
+
+msgid "File: "
+msgstr "File: "
+
+msgid ", Estimated brightness: "
+msgstr ", Luminosità stimata: "
+
+msgid "Sorting finished. Starting Dynamic Range calculation process..."
+msgstr "Ordinamento terminato. Avvio del processo di calcolo della Gamma Dinamica..."
+
+msgid "Error: None of the input files could be processed."
+msgstr "Errore: Nessuno dei file di input ha potuto essere elaborato."
+
+msgid "Processing \""
+msgstr "Elaborazione \""
+
+msgid "\"..."
+msgstr "\"..."
+
+msgid "Error: Could not open RAW file: "
+msgstr "Errore: Impossibile aprire il file RAW: "
+
+msgid "Error: Could not decode RAW data from: "
+msgstr "Errore: Impossibile decodificare i dati RAW da: "
+
+msgid "Info: Black="
+msgstr "Info: Nero="
+
+msgid "Keystone parameters calculated."
+msgstr "Parametri Keystone calcolati."
+
+msgid "Warning: No valid patches found for "
+msgstr "Attenzione: Nessuna patch valida trovata per "
+
+msgid "Dynamic Range Results"
+msgstr "Risultati Gamma Dinamica"
+
+msgid "RAW File"
+msgstr "File RAW"
+
+msgid "DR (12dB)"
+msgstr "DR (12dB)"
+
+msgid "DR (0dB)"
+msgstr "DR (0dB)"
+
+msgid "Patches"
+msgstr "Patch"
+
+msgid "Results saved to "
+msgstr "Risultati salvati in "
+
+msgid "Calculates the dynamic range from a series of RAW images."
+msgstr "Calcola la gamma dinamica da una serie di immagini RAW."
+
+msgid "Dark Frame"
+msgstr "Dark Frame"
+
+msgid "Options for the black level"
+msgstr "Opzioni per il livello del nero"
+
+msgid "RAW file to calculate the black level"
+msgstr "File RAW per calcolare il livello del nero"
+
+msgid "Numeric value for the black level"
+msgstr "Valore numerico per il livello del nero"
+
+msgid "Saturation"
+msgstr "Saturazione"
+
+msgid "Options for the saturation point"
+msgstr "Opzioni per il punto di saturazione"
+
+msgid "RAW file to calculate the saturation"
+msgstr "File RAW per calcolare la saturazione"
+
+msgid "Numeric value for the saturation"
+msgstr "Valore numerico per la saturazione"
+
+msgid "Output CSV file"
+msgstr "File CSV di output"
+
+msgid "List of RAW files to process"
+msgstr "Elenco dei file RAW da elaborare"
+
+msgid "[INFO] Calculating black level from: "
+msgstr "[INFO] Calcolo del livello del nero da: "
+
+msgid "Fatal error: Could not process the dark frame. Exiting."
+msgstr "Errore fatale: Impossibile elaborare il dark frame. Uscita in corso."
+
+msgid "[INFO] -> Black level obtained: "
+msgstr "[INFO] -> Livello del nero ottenuto: "
+
+msgid "[INFO] Calculating saturation point from: "
+msgstr "[INFO] Calcolo del punto di saturazione da: "
+
+msgid "Fatal error: Could not process the saturation file. Exiting."
+msgstr "Errore fatale: Impossibile elaborare il file di saturazione. Uscita in corso."
+
+msgid "[INFO] -> Saturation point obtained (5th percentile): "
+msgstr "[INFO] -> Punto di saturazione ottenuto (5° percentile): "

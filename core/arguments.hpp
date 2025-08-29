@@ -4,25 +4,25 @@
 #include <string>
 #include <vector>
 
-// Estructura que contiene todos los valores de configuración obtenidos a partir
-// de los argumentos de línea de comandos.
+// Structure containing all configuration values obtained from
+// the command-line arguments.
 struct ProgramOptions {
-    double dark_value;           // Valor del nivel de negro (dark frame).
-    double saturation_value;     // Valor del punto de saturación.
-    std::string output_filename; // Nombre del archivo CSV donde se guardarán los resultados.
-    std::vector<std::string> input_files; // Lista de ficheros de entrada.
+    double dark_value;           // Black level value (dark frame).
+    double saturation_value;     // Saturation point value.
+    std::string output_filename; // Name of the CSV file where results will be saved.
+    std::vector<std::string> input_files; // List of input files.
 };
 
-// Función encargada de parsear los argumentos de línea de comandos usando CLI11.
+// Function responsible for parsing the command-line arguments using CLI11.
 //
-// Reglas de argumentos:
-// - --dark-file,--df O --dark-value,--dv: uno y solo uno debe estar presente.
-// - --sat-file, --sf O --sat-value,--sv: uno y solo uno debe estar presente.
-// - --output-data,-o: opcional; si no se especifica, se usa un valor por defecto.
-// - --files,-f: obligatorio. Lista de ficheros raw a procesar
+// Argument Rules:
+// - --dark-file OR --dark-value: one and only one must be present.
+// - --sat-file OR --sat-value: one and only one must be present.
+// - --output-data,-o: optional; if not specified, a default value is used.
+// - --files,-f: mandatory. List of raw files to process.
 //
-// @param argc: número de argumentos pasados al programa.
-// @param argv: array de cadenas con los argumentos.
-// @return: estructura ProgramOptions con los valores finales configurados.
-// @throws CLI::ParseError si los argumentos son inválidos.
+// @param argc: number of arguments passed to the program.
+// @param argv: array of strings with the arguments.
+// @return: ProgramOptions structure with the final configured values.
+// @throws CLI::ParseError if the arguments are invalid.
 ProgramOptions parse_arguments(int argc, char* argv[]);

@@ -8,7 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
-// Estructuras de datos que se usan tanto en main como en las funciones
+// Data structures used in both main and the functions
 struct DynamicRangeResult {
     std::string filename;
     double dr_12db;
@@ -22,7 +22,7 @@ struct PatchAnalysisResult {
     cv::Mat image_with_patches;
 };
 
-// Declaraciones de las funciones de procesamiento
+// Declarations of processing functions
 Eigen::VectorXd calculate_keystone_params(
     const std::vector<cv::Point2d>& src_points,
     const std::vector<cv::Point2d>& dst_points
@@ -32,14 +32,14 @@ cv::Mat undo_keystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
 
 PatchAnalysisResult analyze_patches(cv::Mat imgcrop, int NCOLS, int NROWS, double SAFE);
 
-// --- FUNCIONES DE CÁLCULO Y EXTRACCIÓN DE DATOS ---
+// --- CALCULATION AND DATA EXTRACTION FUNCTIONS ---
 std::optional<std::vector<double>> extract_raw_pixels(const std::string& filename);
 double calculate_mean(const std::vector<double>& data);
 double calculate_quantile(std::vector<double>& data, double percentile);
 
-// ---  Declaraciones de las funciones de procesamiento de ficheros ---
+// --- Declarations of file processing functions ---
 double process_dark_frame(const std::string& filename);
 double process_saturation_frame(const std::string& filename);
 
-// --- Para hacer un análisis estádistico de la saturación de un fichero raw ---
+// --- For statistical analysis of a raw file's saturation ---
 std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio = 0.1f);

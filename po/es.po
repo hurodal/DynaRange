@@ -1,0 +1,135 @@
+# Spanish translation for dynamicrange
+# Copyright (C) 2025
+# This file is distributed under the same license as the dynamicrange package.
+# Juanma, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: dynamicrange\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-29 18:30+0200\n"
+"PO-Revision-Date: 2025-08-29 18:30+0200\n"
+"Last-Translator: Gemini Assistant\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "[FINAL CONFIGURATION]"
+msgstr "[CONFIGURACIÓN FINAL]"
+
+msgid "Black level: "
+msgstr "Nivel de negro: "
+
+msgid "Saturation point: "
+msgstr "Punto de saturación: "
+
+msgid "Output file: "
+msgstr "Fichero de salida: "
+
+msgid "Pre-analyzing files to sort by exposure (using fast sampling)..."
+msgstr "Pre-analizando ficheros para ordenarlos por exposición (usando muestreo rápido)..."
+
+msgid "File: "
+msgstr "Fichero: "
+
+msgid ", Estimated brightness: "
+msgstr ", Brillo estimado: "
+
+msgid "Sorting finished. Starting Dynamic Range calculation process..."
+msgstr "Ordenación finalizada. Iniciando proceso de cálculo de Rango Dinámico..."
+
+msgid "Error: None of the input files could be processed."
+msgstr "Error: Ninguno de los ficheros de entrada pudo ser procesado."
+
+msgid "Processing \""
+msgstr "Procesando \""
+
+msgid "\"..."
+msgstr "\"..."
+
+msgid "Error: Could not open RAW file: "
+msgstr "Error: No se pudo abrir el archivo RAW: "
+
+msgid "Error: Could not decode RAW data from: "
+msgstr "Error: No se pudieron decodificar los datos RAW de: "
+
+msgid "Info: Black="
+msgstr "Info: Black="
+
+msgid "Keystone parameters calculated."
+msgstr "Parámetros Keystone calculados."
+
+msgid "Warning: No valid patches found for "
+msgstr "Advertencia: No se encontraron parches válidos para "
+
+msgid "Dynamic Range Results"
+msgstr "Resultados de Rango Dinámico"
+
+msgid "RAW File"
+msgstr "Archivo RAW"
+
+msgid "DR (12dB)"
+msgstr "DR (12dB)"
+
+msgid "DR (0dB)"
+msgstr "DR (0dB)"
+
+msgid "Patches"
+msgstr "Parches"
+
+msgid "Results saved to "
+msgstr "Resultados guardados en "
+
+msgid "Calculates the dynamic range from a series of RAW images."
+msgstr "Calcula el rango dinámico a partir de una serie de imágenes RAW."
+
+msgid "Dark Frame"
+msgstr "Dark Frame"
+
+msgid "Options for the black level"
+msgstr "Opciones para el nivel de negro"
+
+msgid "RAW file to calculate the black level"
+msgstr "Fichero RAW para calcular el nivel de negro"
+
+msgid "Numeric value for the black level"
+msgstr "Valor numérico para el nivel de negro"
+
+msgid "Saturation"
+msgstr "Saturation"
+
+msgid "Options for the saturation point"
+msgstr "Opciones para el punto de saturación"
+
+msgid "RAW file to calculate the saturation"
+msgstr "Fichero RAW para calcular la saturación"
+
+msgid "Numeric value for the saturation"
+msgstr "Valor numérico para la saturación"
+
+msgid "Output CSV file"
+msgstr "Fichero CSV de salida"
+
+msgid "List of RAW files to process"
+msgstr "Lista de ficheros RAW a procesar"
+
+msgid "[INFO] Calculating black level from: "
+msgstr "[INFO] Calculando nivel de negro desde: "
+
+msgid "Fatal error: Could not process the dark frame. Exiting."
+msgstr "Error fatal: No se pudo procesar el dark frame. Saliendo."
+
+msgid "[INFO] -> Black level obtained: "
+msgstr "[INFO] -> Nivel de negro obtenido: "
+
+msgid "[INFO] Calculating saturation point from: "
+msgstr "[INFO] Calculando punto de saturación desde: "
+
+msgid "Fatal error: Could not process the saturation file. Exiting."
+msgstr "Error fatal: No se pudo procesar el fichero de saturación. Saliendo."
+
+msgid "[INFO] -> Saturation point obtained (5th percentile): "
+msgstr "[INFO] -> Punto de saturación obtenido (percentil 5%): "

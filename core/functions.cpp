@@ -2,16 +2,19 @@
 #include "functions.hpp"
 #include <libraw/libraw.h>
 #include <vector>
-#include <numeric>   // Para std::accumulate
-#include <algorithm> // Para std::nth_element
+#include <numeric>   // For std::accumulate
+#include <algorithm> // For std::nth_element
 #include <iostream>
-#include <iomanip>   // Para std::fixed y std::setprecision
+#include <iomanip>   // For std::fixed and std::setprecision
+
+#include <libintl.h>
+#define _(string) gettext(string)
 
 /**
- * @brief Calcula los parámetros de una transformación proyectiva (keystone).
- * @param src_points Vector con los 4 puntos de origen (esquinas del objeto distorsionado).
- * @param dst_points Vector con los 4 puntos de destino (esquinas del rectángulo deseado).
- * @return Un objeto Eigen::VectorXd con los 8 parámetros de la transformación.
+ * @brief Calculates the parameters of a projective (keystone) transformation.
+ * @param src_points Vector with the 4 source points (corners of the distorted object).
+ * @param dst_points Vector with the 4 destination points (corners of the desired rectangle).
+ * @return An Eigen::VectorXd object with the 8 transformation parameters.
  */
 Eigen::VectorXd calculate_keystone_params(
     const std::vector<cv::Point2d>& src_points,
@@ -30,10 +33,10 @@ Eigen::VectorXd calculate_keystone_params(
 }
 
 /**
- * @brief Aplica una corrección de distorsión keystone a una imagen.
- * @param imgSrc Imagen de entrada (debe ser de tipo CV_32FC1).
- * @param k Parámetros de la transformación obtenidos de calculate_keystone_params.
- * @return Una nueva imagen cv::Mat con la corrección aplicada.
+ * @brief Applies a keystone distortion correction to an image.
+ * @param imgSrc Input image (must be of type CV_32FC1).
+ * @param k Transformation parameters obtained from calculate_keystone_params.
+ * @return A new cv::Mat image with the correction applied.
  */
 cv::Mat undo_keystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     int DIMX = imgSrc.cols; int DIMY = imgSrc.rows;
@@ -55,12 +58,12 @@ cv::Mat undo_keystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
 }
 
 /**
- * @brief Analiza una imagen dividiéndola en parches y calcula la señal y el ruido de cada uno.
- * @param imgcrop Imagen recortada a analizar.
- * @param NCOLS Número de columnas en la rejilla de parches.
- * @param NROWS Número de filas en la rejilla de parches.
- * @param SAFE Margen de seguridad para evitar los bordes de cada parche.
- * @return Una estructura PatchAnalysisResult con los vectores de señal/ruido y una imagen visual.
+ * @brief Analyzes an image by dividing it into patches and calculates the signal and noise for each.
+ * @param imgcrop Cropped image to be analyzed.
+ * @param NCOLS Number of columns in the patch grid.
+ * @param NROWS Number of rows in the patch grid.
+ * @param SAFE Safety margin to avoid the edges of each patch.
+ * @return A PatchAnalysisResult structure with the signal/noise vectors and a visual image.
  */
 PatchAnalysisResult analyze_patches(cv::Mat imgcrop, int NCOLS, int NROWS, double SAFE) {
     std::vector<double> signal_vec, noise_vec;
@@ -91,19 +94,19 @@ PatchAnalysisResult analyze_patches(cv::Mat imgcrop, int NCOLS, int NROWS, doubl
 }
 
 /**
- * @brief Extrae todos los valores de píxeles de un fichero RAW a un vector de dobles.
- * @param filename Ruta al fichero RAW.
- * @return Un std::optional que contiene un std::vector<double> con los datos si tiene éxito,
- * o std::nullopt si hay un error.
+ * @brief Extracts all pixel values from a RAW file into a vector of doubles.
+ * @param filename Path to the RAW file.
+ * @return An std::optional containing a std::vector<double> with the data on success,
+ * or std::nullopt on error.
  */
 std::optional<std::vector<double>> extract_raw_pixels(const std::string& filename) {
     LibRaw raw_processor;
     if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS) {
-        std::cerr << "Error: No se pudo abrir el fichero RAW: " << filename << std::endl;
+        std::cerr << _("Error: Could not open RAW file: ") << filename << std::endl;
         return std::nullopt;
     }
     if (raw_processor.unpack() != LIBRAW_SUCCESS) {
-        std::cerr << "Error: No se pudieron decodificar los datos RAW de: " << filename << std::endl;
+        std::cerr << _("Error: Could not decode RAW data from: ") << filename << std::endl;
         return std::nullopt;
     }
 
@@ -116,7 +119,7 @@ std::optional<std::vector<double>> extract_raw_pixels(const std::string& filenam
     }
 
     std::vector<double> pixels;
-    pixels.reserve(num_pixels); // Reservamos memoria para eficiencia
+    pixels.reserve(num_pixels); // Reserve memory for efficiency
 
     unsigned short* raw_data = raw_processor.imgdata.rawdata.raw_image;
     for (size_t i = 0; i < num_pixels; ++i) {
@@ -127,9 +130,9 @@ std::optional<std::vector<double>> extract_raw_pixels(const std::string& filenam
 }
 
 /**
- * @brief Calcula la media (promedio) de los valores en un vector.
- * @param data Vector de entrada (constante, no se modifica).
- * @return El valor medio como un double.
+ * @brief Calculates the mean (average) of the values in a vector.
+ * @param data Input vector (const, not modified).
+ * @return The mean value as a double.
  */
 double calculate_mean(const std::vector<double>& data) {
     if (data.empty()) {
@@ -140,81 +143,81 @@ double calculate_mean(const std::vector<double>& data) {
 }
 
 /**
- * @brief Calcula un cuantil (percentil) específico de un conjunto de datos.
- * @param data Vector de entrada. IMPORTANTE: El contenido del vector será modificado (parcialmente ordenado).
- * @param percentile El percentil deseado (ej. 0.05 para el 5%, 0.5 para la mediana).
- * @return El valor del cuantil como un double.
+ * @brief Calculates a specific quantile (percentile) of a dataset.
+ * @param data Input vector. IMPORTANT: The contents of the vector will be modified (partially sorted).
+ * @param percentile The desired percentile (e.g., 0.05 for 5%, 0.5 for the median).
+ * @return The quantile value as a double.
  */
 double calculate_quantile(std::vector<double>& data, double percentile) {
     if (data.empty()) {
         return 0.0;
     }
     
-    // Calculamos el índice del elemento deseado
+    // Calculate the index of the desired element
     size_t n = static_cast<size_t>(data.size() * percentile);
-    // Aseguramos que el índice está dentro de los límites
+    // Ensure the index is within bounds
     n = std::min(n, data.size() - 1);
 
-    // std::nth_element reorganiza el vector de forma que el elemento en la posición 'n'
-    // es el que estaría en esa posición si el vector estuviera completamente ordenado.
-    // Todos los elementos a su izquierda son menores o iguales. Es mucho más rápido que un sort completo.
+    // std::nth_element rearranges the vector so that the element at position 'n'
+    // is the one that would be in that position if the vector were fully sorted.
+    // All elements to its left are less than or equal to it. It's much faster than a full sort.
     std::nth_element(data.begin(), data.begin() + n, data.end());
     
     return data[n];
 }
 
 /**
- * @brief Procesa un fichero RAW de dark frame para obtener el nivel de negro (media).
- * @param filename Ruta al fichero RAW del dark frame.
- * @return El nivel de negro calculado. Termina el programa si hay un error.
+ * @brief Processes a dark frame RAW file to get the black level (mean).
+ * @param filename Path to the dark frame RAW file.
+ * @return The calculated black level. Terminates the program on error.
  */
 double process_dark_frame(const std::string& filename) {
-    std::cout << "[INFO] Calculando nivel de negro desde: " << filename << "..." << std::endl;
+    std::cout << _("[INFO] Calculating black level from: ") << filename << "..." << std::endl;
     auto pixels_opt = extract_raw_pixels(filename);
     if (!pixels_opt) {
-        std::cerr << "Error fatal: No se pudo procesar el dark frame. Saliendo." << std::endl;
+        std::cerr << _("Fatal error: Could not process the dark frame. Exiting.") << std::endl;
         exit(1);
     }
     
-    // Calculamos, guardamos, imprimimos y devolvemos el valor.
+    // Calculate, store, print, and return the value.
     double mean_value = calculate_mean(*pixels_opt);
-    std::cout << "[INFO] -> Nivel de negro obtenido: " 
+    std::cout << _("[INFO] -> Black level obtained: ")
               << std::fixed << std::setprecision(2) << mean_value << std::endl;
               
     return mean_value;
 }
 
 /**
- * @brief Procesa un fichero RAW de saturación para obtener el punto de saturación (cuantil).
- * @param filename Ruta al fichero RAW de saturación.
- * @return El punto de saturación calculado. Termina el programa si hay un error.
+ * @brief Processes a saturation RAW file to get the saturation point (quantile).
+ * @param filename Path to the saturation RAW file.
+ * @return The calculated saturation point. Terminates the program on error.
  */
 double process_saturation_frame(const std::string& filename) {
-    std::cout << "[INFO] Calculando punto de saturación desde: " << filename << "..." << std::endl;
+    std::cout << _("[INFO] Calculating saturation point from: ") << filename << "..." << std::endl;
     auto pixels_opt = extract_raw_pixels(filename);
     if (!pixels_opt) {
-        std::cerr << "Error fatal: No se pudo procesar el fichero de saturación. Saliendo." << std::endl;
+        std::cerr << _("Fatal error: Could not process the saturation file. Exiting.") << std::endl;
         exit(1);
     }
 
-    // Calculamos, guardamos, imprimimos y devolvemos el valor.
+    // Calculate, store, print, and return the value.
     double quantile_value = calculate_quantile(*pixels_opt, 0.05);
-    std::cout << "[INFO] -> Punto de saturación obtenido (percentil 5%): " 
+    std::cout << _("[INFO] -> Saturation point obtained (5th percentile): ")
               << std::fixed << std::setprecision(2) << quantile_value << std::endl;
 
     return quantile_value;
 }
 
 /**
- * @brief Estima el brillo medio de un fichero RAW leyendo solo una fracción de sus píxeles.
- * @param filename Ruta al fichero RAW.
- * @param sample_ratio Fracción de píxeles a muestrear (ej. 0.1 para el 10%).
- * @return Un std::optional que contiene la media estimada si tiene éxito.
+ * @brief Estimates the mean brightness of a RAW file by reading only a fraction of its pixels.
+ * @param filename Path to the RAW file.
+ * @param sample_ratio Fraction of pixels to sample (e.g., 0.1 for 10%). The default value is specified in the .hpp.
+ * @return An std::optional containing the estimated mean on success.
  */
 std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio) {
     LibRaw raw_processor;
     if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS || raw_processor.unpack() != LIBRAW_SUCCESS) {
-        // No mostramos error aquí, ya que extract_raw_pixels lo hará si falla más tarde
+        // We don't show an error here, as extract_raw_pixels will do it later if it fails
         return std::nullopt;
     }
 
@@ -223,8 +226,8 @@ std::optional<double> estimate_mean_brightness(const std::string& filename, floa
         return std::nullopt;
     }
 
-    // Calculamos el "paso" para leer 1 de cada N píxeles.
-    // Si sample_ratio es 0.1 (10%), el paso será 10.
+    // Calculate the "step" to read 1 of every N pixels.
+    // If sample_ratio is 0.1 (10%), the step will be 10.
     int step = (sample_ratio > 0 && sample_ratio < 1) ? static_cast<int>(1.0f / sample_ratio) : 1;
 
     unsigned short* raw_data = raw_processor.imgdata.rawdata.raw_image;
