@@ -204,3 +204,38 @@ double process_saturation_frame(const std::string& filename) {
 
     return quantile_value;
 }
+
+/**
+ * @brief Estima el brillo medio de un fichero RAW leyendo solo una fracción de sus píxeles.
+ * @param filename Ruta al fichero RAW.
+ * @param sample_ratio Fracción de píxeles a muestrear (ej. 0.1 para el 10%).
+ * @return Un std::optional que contiene la media estimada si tiene éxito.
+ */
+std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio) {
+    LibRaw raw_processor;
+    if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS || raw_processor.unpack() != LIBRAW_SUCCESS) {
+        // No mostramos error aquí, ya que extract_raw_pixels lo hará si falla más tarde
+        return std::nullopt;
+    }
+
+    size_t num_pixels = (size_t)raw_processor.imgdata.sizes.raw_width * raw_processor.imgdata.sizes.raw_height;
+    if (num_pixels == 0) {
+        return std::nullopt;
+    }
+
+    // Calculamos el "paso" para leer 1 de cada N píxeles.
+    // Si sample_ratio es 0.1 (10%), el paso será 10.
+    int step = (sample_ratio > 0 && sample_ratio < 1) ? static_cast<int>(1.0f / sample_ratio) : 1;
+
+    unsigned short* raw_data = raw_processor.imgdata.rawdata.raw_image;
+    
+    double sum = 0.0;
+    long long count = 0;
+
+    for (size_t i = 0; i < num_pixels; i += step) {
+        sum += static_cast<double>(raw_data[i]);
+        count++;
+    }
+
+    return (count > 0) ? (sum / count) : 0.0;
+}

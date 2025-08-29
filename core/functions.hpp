@@ -40,3 +40,6 @@ double calculate_quantile(std::vector<double>& data, double percentile);
 // ---  Declaraciones de las funciones de procesamiento de ficheros ---
 double process_dark_frame(const std::string& filename);
 double process_saturation_frame(const std::string& filename);
+
+// --- Para hacer un análisis estádistico de la saturación de un fichero raw ---
+std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio = 0.1f);
