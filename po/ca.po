@@ -1,0 +1,129 @@
+# Catalan translation for dynamicrange
+# Copyright (C) 2025
+msgid ""
+msgstr ""
+"Project-Id-Version: dynamicrange\n"
+"Language-Team: Catalan\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "[FINAL CONFIGURATION]"
+msgstr "[CONFIGURACIÓ FINAL]"
+
+msgid "Black level: "
+msgstr "Nivell de negre: "
+
+msgid "Saturation point: "
+msgstr "Punt de saturació: "
+
+msgid "Output file: "
+msgstr "Fitxer de sortida: "
+
+msgid "Pre-analyzing files to sort by exposure (using fast sampling)..."
+msgstr "Pre-analitzant fitxers per ordenar-los per exposició (usant mostreig ràpid)..."
+
+msgid "File: "
+msgstr "Fitxer: "
+
+msgid ", Estimated brightness: "
+msgstr ", Brillantor estimada: "
+
+msgid "Sorting finished. Starting Dynamic Range calculation process..."
+msgstr "Ordenació finalitzada. Iniciant procés de càlcul del Rang Dinàmic..."
+
+msgid "Error: None of the input files could be processed."
+msgstr "Error: No s'ha pogut processar cap dels fitxers d'entrada."
+
+msgid "Processing \""
+msgstr "Processant \""
+
+msgid "\"..."
+msgstr "\"..."
+
+msgid "Error: Could not open RAW file: "
+msgstr "Error: No s'ha pogut obrir el fitxer RAW: "
+
+msgid "Error: Could not decode RAW data from: "
+msgstr "Error: No s'han pogut descodificar les dades RAW de: "
+
+msgid "Info: Black="
+msgstr "Info: Negre="
+
+msgid "Keystone parameters calculated."
+msgstr "Paràmetres Keystone calculats."
+
+msgid "Warning: No valid patches found for "
+msgstr "Avís: No s'han trobat pegats vàlids per a "
+
+msgid "Dynamic Range Results"
+msgstr "Resultats del Rang Dinàmic"
+
+msgid "RAW File"
+msgstr "Fitxer RAW"
+
+msgid "DR (12dB)"
+msgstr "DR (12dB)"
+
+msgid "DR (0dB)"
+msgstr "DR (0dB)"
+
+msgid "Patches"
+msgstr "Pegats"
+
+msgid "Results saved to "
+msgstr "Resultats desats a "
+
+msgid "Calculates the dynamic range from a series of RAW images."
+msgstr "Calcula el rang dinàmic a partir d'una sèrie d'imatges RAW."
+
+msgid "Dark Frame"
+msgstr "Dark Frame"
+
+msgid "Options for the black level"
+msgstr "Opcions per al nivell de negre"
+
+msgid "RAW file to calculate the black level"
+msgstr "Fitxer RAW per a calcular el nivell de negre"
+
+msgid "Numeric value for the black level"
+msgstr "Valor numèric per al nivell de negre"
+
+msgid "Saturation"
+msgstr "Saturació"
+
+msgid "Options for the saturation point"
+msgstr "Opcions per al punt de saturació"
+
+msgid "RAW file to calculate the saturation"
+msgstr "Fitxer RAW per a calcular la saturació"
+
+msgid "Numeric value for the saturation"
+msgstr "Valor numèric per a la saturació"
+
+msgid "Output CSV file"
+msgstr "Fitxer CSV de sortida"
+
+msgid "List of RAW files to process"
+msgstr "Llista de fitxers RAW a processar"
+
+msgid "[INFO] Calculating black level from: "
+msgstr "[INFO] Calculant el nivell de negre des de: "
+
+msgid "Fatal error: Could not process the dark frame. Exiting."
+msgstr "Error fatal: No s'ha pogut processar el dark frame. Sortint."
+
+msgid "[INFO] -> Black level obtained: "
+msgstr "[INFO] -> Nivell de negre obtingut: "
+
+msgid "[INFO] Calculating saturation point from: "
+msgstr "[INFO] Calculant el punt de saturació des de: "
+
+msgid "Fatal error: Could not process the saturation file. Exiting."
+msgstr "Error fatal: No s'ha pogut processar el fitxer de saturació. Sortint."
+
+msgid "[INFO] -> Saturation point obtained (5th percentile): "
+msgstr "[INFO] -> Punt de saturació obtingut (5è percentil): "

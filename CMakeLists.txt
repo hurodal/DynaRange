@@ -33,7 +33,7 @@ include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 
 # Define the languages you will translate to
-set(LANGUAGES "es" "de" "it" "fr" "pt")
+set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 
 # Create the .pot template from the project's sources
 GETTEXT_CREATE_POT_FILE(
