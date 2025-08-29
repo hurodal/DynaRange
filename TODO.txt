@@ -32,14 +32,22 @@ TODO 2:
     La corrección geométrica está hard coded para las tomas de la Olympus de Hugo. 
 Aquí tendremos que hablar sobre un diseño de carta que incluya guías para detectar sus 4 esquinas.
 Creo que con 4 círculos blancos + detección del valor máximo en la zona bastará.
+No hemos hablado de la carta, si usamos la de Bill Claff o nos inventamos una.
+Sea como sea la carta de Bill Claff no tiene testigos en las 4 esquinas para poder
+corregir los errores del usuario en la toma y hacer la corrección geométrica. 
+La que viste en el código está hard coded para los RAW de Hugo, pero claro no vale de forma general
+La carta de Bill, bien generada, y con 4 círculos blancos en las esquinas, 
+debería ser fácil de detectar sus esquinas. Yo escribiría la función para detectar esos 4 puntos
 
-TODO 3:
+
+TODO 3: (Los splines son de verdad, mejor usar *ajuste por mínimos cuadrados* "least-squares fit" )
 
     Tus splines son splines de verdad? es decir, pasan por los puntos calculados o los aproximan?
 Lo comento porque aunque mi código R las llama splines, que son curvas de interpolación, 
 en realidad lo que acabo usando son curvas de aproximación, es decir curvas que no pasan exactamente
 por los puntos sino que los aproximan suavemente. 
 Esto es importante para que las desviaciones de las medidas no introduzcan error.
+
 
 TODO 4: (HECHO)
 
@@ -49,3 +57,15 @@ TODO 4: (HECHO)
  (lo que equivale de menos a más ISO). Sería bueno que en la salida aparezcan ordenados 
  (salvo casos raros, los propios nombres de los RAW ya deberían implicar una ordenación, 
  pero igual un usuario empezó por el ISO mayor o repitió tomas)
+ 
+
+TODO 5:
+
+    Habría que añadir una normalización del RD para cierta cantidad de Mpx, que sería la usable para
+ comparar cámaras de forma justa. El cálculo a nivel de píxel actual es injusto para las cámaras
+con muchos Mpx. Te pasaré la formula, es sencilla.
+
+
+TODO 6:
+
+    i18n -> Internacionalización -> Que el programa se pueda usar en varios idiomas disponibles.
