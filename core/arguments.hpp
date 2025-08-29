@@ -16,8 +16,8 @@ struct ProgramOptions {
 // Function responsible for parsing the command-line arguments using CLI11.
 //
 // Argument Rules:
-// - --dark-file OR --dark-value: one and only one must be present.
-// - --sat-file OR --sat-value: one and only one must be present.
+// - --dark-file,--df OR --dark-value,--dv: one and only one must be present.
+// - --sat-file,--sf OR --sat-value,--sv: one and only one must be present.
 // - --output-data,-o: optional; if not specified, a default value is used.
 // - --files,-f: mandatory. List of raw files to process.
 //

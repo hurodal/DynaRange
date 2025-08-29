@@ -19,17 +19,17 @@ ProgramOptions parse_arguments(int argc, char* argv[]) {
 
     // --- Group 1: Black Level (mutually exclusive and mandatory) ---
     auto dark_group = app.add_option_group(_("Dark Frame"), _("Options for the black level"));
-    auto opt_dark_file = dark_group->add_option("--dark-file", dark_file, _("RAW file to calculate the black level"))
+    auto opt_dark_file = dark_group->add_option("--df,--dark-file", dark_file, _("RAW file to calculate the black level"))
                            ->check(CLI::ExistingFile);
-    auto opt_dark_value = dark_group->add_option("--dark-value", dark_value_cli, _("Numeric value for the black level"))
+    auto opt_dark_value = dark_group->add_option("--dv,--dark-value", dark_value_cli, _("Numeric value for the black level"))
                             ->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
     dark_group->require_option(1); 
 
     // --- Group 2: Saturation Level (mutually exclusive and mandatory) ---
     auto sat_group = app.add_option_group(_("Saturation"), _("Options for the saturation point"));
-    auto opt_sat_file = sat_group->add_option("--sat-file", sat_file, _("RAW file to calculate the saturation"))
+    auto opt_sat_file = sat_group->add_option("--sf,--sat-file", sat_file, _("RAW file to calculate the saturation"))
                           ->check(CLI::ExistingFile);
-    auto opt_sat_value = sat_group->add_option("--sat-value", sat_value_cli, _("Numeric value for the saturation"))
+    auto opt_sat_value = sat_group->add_option("--sv,--sat-value", sat_value_cli, _("Numeric value for the saturation"))
                            ->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
     sat_group->require_option(1);
 
