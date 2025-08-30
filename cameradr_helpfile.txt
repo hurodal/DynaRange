@@ -1,0 +1,18 @@
+C:\>cameradr
+
+Digital camera Dynamic Range calculation "cameradr" v1.0
+by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (algorithms)
+
+Usage:  cameradr [OPTION]... [FILE]...
+
+--black      -b   <float> : Camera RAW black level
+--blackfile  -bf  <file>  : Black RAW file (ideally shot at base ISO)
+--sat        -s   <int>   : Camera RAW saturation level
+--satfile    -sf  <file>  : Saturation RAW file (ideally shot at base ISO)
+--snrdb      -db  <float> : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
+--normmpx    -mpx <float> : Number of Mpx for DR normalization (default=8Mpx)
+--inputfiles -i   <files> : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--output     -o   <file>  : Output filename with all results (black level, sat level, SNR samples, DR values)
+
+
+C:\>
