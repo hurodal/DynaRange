@@ -22,7 +22,7 @@ struct PatchAnalysisResult {
     cv::Mat image_with_patches;
 };
 
-// Declarations of processing functions
+// Declarations of image processing functions
 Eigen::VectorXd calculate_keystone_params(
     const std::vector<cv::Point2d>& src_points,
     const std::vector<cv::Point2d>& dst_points
@@ -36,10 +36,8 @@ PatchAnalysisResult analyze_patches(cv::Mat imgcrop, int NCOLS, int NROWS, doubl
 std::optional<std::vector<double>> extract_raw_pixels(const std::string& filename);
 double calculate_mean(const std::vector<double>& data);
 double calculate_quantile(std::vector<double>& data, double percentile);
+std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio = 0.1f);
 
 // --- Declarations of file processing functions ---
-double process_dark_frame(const std::string& filename);
-double process_saturation_frame(const std::string& filename);
-
-// --- For statistical analysis of a raw file's saturation ---
-std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio = 0.1f);
+std::optional<double> process_dark_frame(const std::string& filename);
+std::optional<double> process_saturation_frame(const std::string& filename);

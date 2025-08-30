@@ -1,8 +1,8 @@
-# Catalan translation for dynamicrange
+# Catalan translation for dynrange
 # Copyright (C) 2025
 msgid ""
 msgstr ""
-"Project-Id-Version: dynamicrange\n"
+"Project-Id-Version: dynrange\n"
 "Language-Team: Catalan\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"

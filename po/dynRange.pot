@@ -1,0 +1,155 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-31 00:16+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: dynRange.cpp:49
+msgid "[FINAL CONFIGURATION]"
+msgstr ""
+
+#: dynRange.cpp:50
+msgid "Black level: "
+msgstr ""
+
+#: dynRange.cpp:51
+msgid "Saturation point: "
+msgstr ""
+
+#: dynRange.cpp:52
+msgid "Output file: "
+msgstr ""
+
+#: dynRange.cpp:56
+msgid "Pre-analyzing files to sort by exposure (using fast sampling)..."
+msgstr ""
+
+#: dynRange.cpp:64
+msgid "File: "
+msgstr ""
+
+#: dynRange.cpp:65
+msgid "Estimated brightness: "
+msgstr ""
+
+#: dynRange.cpp:82
+msgid "Sorting finished. Starting Dynamic Range calculation process..."
+msgstr ""
+
+#: dynRange.cpp:87
+msgid "A critical error occurred during processing. Please check the log."
+msgstr ""
+
+#: dynRangeGui.cpp:62
+msgid "Dynamic Range Calculator"
+msgstr ""
+
+#: dynRangeGui.cpp:77
+msgid "Input"
+msgstr ""
+
+#: dynRangeGui.cpp:78
+msgid "Log"
+msgstr ""
+
+#: dynRangeGui.cpp:79
+msgid "Results"
+msgstr ""
+
+#: dynRangeGui.cpp:93
+msgid "Please select at least one input RAW file."
+msgstr ""
+
+#: dynRangeGui.cpp:93 dynRangeGui.cpp:119
+msgid "Error"
+msgstr ""
+
+#: dynRangeGui.cpp:100
+msgid ""
+"Execution started...\n"
+"---\n"
+msgstr ""
+
+#: dynRangeGui.cpp:117
+msgid ""
+"\n"
+"---\n"
+"Execution failed."
+msgstr ""
+
+#: dynRangeGui.cpp:118
+msgid ""
+"An error occurred during processing. Please check the log tab for details."
+msgstr ""
+
+#: dynRangeGui.cpp:121
+msgid ""
+"\n"
+"---\n"
+"Execution finished successfully."
+msgstr ""
+
+#: core/gui/InputTab.cpp:21
+msgid "Add RAW Files..."
+msgstr ""
+
+#: core/gui/InputTab.cpp:23
+msgid "Execute"
+msgstr ""
+
+#: core/gui/InputTab.cpp:25
+msgid "Dark Frame"
+msgstr ""
+
+#: core/gui/InputTab.cpp:26
+msgid "Dark File:"
+msgstr ""
+
+#: core/gui/InputTab.cpp:28
+msgid "Dark Value:"
+msgstr ""
+
+#: core/gui/InputTab.cpp:31
+msgid "Saturation"
+msgstr ""
+
+#: core/gui/InputTab.cpp:32
+msgid "Saturation File:"
+msgstr ""
+
+#: core/gui/InputTab.cpp:34
+msgid "Saturation Value:"
+msgstr ""
+
+#: core/gui/InputTab.cpp:37
+msgid "Input RAW Files"
+msgstr ""
+
+#: core/gui/InputTab.cpp:41
+msgid "Equivalent CLI Command"
+msgstr ""
+
+#: core/gui/InputTab.cpp:60
+msgid "Select RAW files"
+msgstr ""
+
+#: core/gui/ResultsTab.cpp:15
+msgid "CSV Output:"
+msgstr ""
+
+#: core/gui/ResultsTab.cpp:17
+msgid "Generated Graph (placeholder):"
+msgstr ""

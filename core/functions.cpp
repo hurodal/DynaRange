@@ -2,13 +2,10 @@
 #include "functions.hpp"
 #include <libraw/libraw.h>
 #include <vector>
-#include <numeric>   // For std::accumulate
-#include <algorithm> // For std::nth_element
+#include <numeric>
+#include <algorithm>
 #include <iostream>
-#include <iomanip>   // For std::fixed and std::setprecision
-
-#include <libintl.h>
-#define _(string) gettext(string)
+#include <iomanip>
 
 /**
  * @brief Calculates the parameters of a projective (keystone) transformation.
@@ -102,11 +99,11 @@ PatchAnalysisResult analyze_patches(cv::Mat imgcrop, int NCOLS, int NROWS, doubl
 std::optional<std::vector<double>> extract_raw_pixels(const std::string& filename) {
     LibRaw raw_processor;
     if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS) {
-        std::cerr << _("Error: Could not open RAW file: ") << filename << std::endl;
+        std::cerr << "Error: Could not open RAW file: " << filename << std::endl;
         return std::nullopt;
     }
     if (raw_processor.unpack() != LIBRAW_SUCCESS) {
-        std::cerr << _("Error: Could not decode RAW data from: ") << filename << std::endl;
+        std::cerr << "Error: Could not decode RAW data from: " << filename << std::endl;
         return std::nullopt;
     }
 
@@ -119,7 +116,7 @@ std::optional<std::vector<double>> extract_raw_pixels(const std::string& filenam
     }
 
     std::vector<double> pixels;
-    pixels.reserve(num_pixels); // Reserve memory for efficiency
+    pixels.reserve(num_pixels);
 
     unsigned short* raw_data = raw_processor.imgdata.rawdata.raw_image;
     for (size_t i = 0; i < num_pixels; ++i) {
@@ -153,14 +150,9 @@ double calculate_quantile(std::vector<double>& data, double percentile) {
         return 0.0;
     }
     
-    // Calculate the index of the desired element
     size_t n = static_cast<size_t>(data.size() * percentile);
-    // Ensure the index is within bounds
     n = std::min(n, data.size() - 1);
 
-    // std::nth_element rearranges the vector so that the element at position 'n'
-    // is the one that would be in that position if the vector were fully sorted.
-    // All elements to its left are less than or equal to it. It's much faster than a full sort.
     std::nth_element(data.begin(), data.begin() + n, data.end());
     
     return data[n];
@@ -169,19 +161,17 @@ double calculate_quantile(std::vector<double>& data, double percentile) {
 /**
  * @brief Processes a dark frame RAW file to get the black level (mean).
  * @param filename Path to the dark frame RAW file.
- * @return The calculated black level. Terminates the program on error.
+ * @return An optional containing the calculated black level, or nullopt on failure.
  */
-double process_dark_frame(const std::string& filename) {
-    std::cout << _("[INFO] Calculating black level from: ") << filename << "..." << std::endl;
+std::optional<double> process_dark_frame(const std::string& filename) {
+    std::cout << "[INFO] Calculating black level from: " << filename << "..." << std::endl;
     auto pixels_opt = extract_raw_pixels(filename);
     if (!pixels_opt) {
-        std::cerr << _("Fatal error: Could not process the dark frame. Exiting.") << std::endl;
-        exit(1);
+        return std::nullopt;
     }
     
-    // Calculate, store, print, and return the value.
     double mean_value = calculate_mean(*pixels_opt);
-    std::cout << _("[INFO] -> Black level obtained: ")
+    std::cout << "[INFO] -> Black level obtained: " 
               << std::fixed << std::setprecision(2) << mean_value << std::endl;
               
     return mean_value;
@@ -190,19 +180,17 @@ double process_dark_frame(const std::string& filename) {
 /**
  * @brief Processes a saturation RAW file to get the saturation point (quantile).
  * @param filename Path to the saturation RAW file.
- * @return The calculated saturation point. Terminates the program on error.
+ * @return An optional containing the calculated saturation point, or nullopt on failure.
  */
-double process_saturation_frame(const std::string& filename) {
-    std::cout << _("[INFO] Calculating saturation point from: ") << filename << "..." << std::endl;
+std::optional<double> process_saturation_frame(const std::string& filename) {
+    std::cout << "[INFO] Calculating saturation point from: " << filename << "..." << std::endl;
     auto pixels_opt = extract_raw_pixels(filename);
     if (!pixels_opt) {
-        std::cerr << _("Fatal error: Could not process the saturation file. Exiting.") << std::endl;
-        exit(1);
+        return std::nullopt;
     }
 
-    // Calculate, store, print, and return the value.
     double quantile_value = calculate_quantile(*pixels_opt, 0.05);
-    std::cout << _("[INFO] -> Saturation point obtained (5th percentile): ")
+    std::cout << "[INFO] -> Saturation point obtained (5th percentile): " 
               << std::fixed << std::setprecision(2) << quantile_value << std::endl;
 
     return quantile_value;
@@ -217,7 +205,6 @@ double process_saturation_frame(const std::string& filename) {
 std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio) {
     LibRaw raw_processor;
     if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS || raw_processor.unpack() != LIBRAW_SUCCESS) {
-        // We don't show an error here, as extract_raw_pixels will do it later if it fails
         return std::nullopt;
     }
 
@@ -226,8 +213,6 @@ std::optional<double> estimate_mean_brightness(const std::string& filename, floa
         return std::nullopt;
     }
 
-    // Calculate the "step" to read 1 of every N pixels.
-    // If sample_ratio is 0.1 (10%), the step will be 10.
     int step = (sample_ratio > 0 && sample_ratio < 1) ? static_cast<int>(1.0f / sample_ratio) : 1;
 
     unsigned short* raw_data = raw_processor.imgdata.rawdata.raw_image;
