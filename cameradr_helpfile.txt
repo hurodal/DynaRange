@@ -7,7 +7,7 @@ Usage:  cameradr [OPTION]... [FILE]...
 
 --black      -b   <float> : Camera RAW black level
 --blackfile  -bf  <file>  : Black RAW file (ideally shot at base ISO)
---sat        -s   <int>   : Camera RAW saturation level
+--sat        -s   <float> : Camera RAW saturation level
 --satfile    -sf  <file>  : Saturation RAW file (ideally shot at base ISO)
 --snrdb      -db  <float> : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
 --normmpx    -mpx <float> : Number of Mpx for DR normalization (default=8Mpx)
