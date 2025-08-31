@@ -6,7 +6,7 @@
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 #include <wx/intl.h>
-#include <clocale>
+#include <clocale> // Required for setlocale
 
 #include "../../core/functions.hpp"
 
@@ -76,31 +76,48 @@ void InputTab::UpdateCommandPreview() {
     m_commandPreviewText->ChangeValue(command);
 }
 void InputTab::OnStart(wxCommandEvent& event) { wxPostEvent(GetParent()->GetParent(), event); }
+
 ProgramOptions InputTab::GetProgramOptions() {
     ProgramOptions opts;
+    
+    // --- START OF THE FIX ---
+    // Save the current numeric locale (e.g., "es_ES.UTF-8")
     char* current_locale = setlocale(LC_NUMERIC, nullptr);
+    // Temporarily switch to the "C" locale so that decimal points '.' are recognized
     setlocale(LC_NUMERIC, "C");
 
+    // Logic to get the black level value
     wxString dark_path = m_darkFilePicker->GetPath();
     if (!dark_path.IsEmpty()) {
         auto dark_val_opt = process_dark_frame(std::string(dark_path.mb_str()), std::cout);
-        if(dark_val_opt) opts.dark_value = *dark_val_opt;
-        else opts.dark_value = -1;
+        if(dark_val_opt) {
+            opts.dark_value = *dark_val_opt;
+        } else {
+            wxMessageBox("Error processing the selected dark frame file.", "Error", wxOK | wxICON_ERROR);
+            opts.dark_value = -1;
+        }
     } else {
         m_darkValueText->GetValue().ToDouble(&opts.dark_value);
     }
 
+    // Logic to get the saturation value
     wxString sat_path = m_satFilePicker->GetPath();
     if (!sat_path.IsEmpty()) {
         auto sat_val_opt = process_saturation_frame(std::string(sat_path.mb_str()), std::cout);
-        if(sat_val_opt) opts.saturation_value = *sat_val_opt;
-        else opts.saturation_value = -1;
+        if(sat_val_opt) {
+            opts.saturation_value = *sat_val_opt;
+        } else {
+            wxMessageBox("Error processing the selected saturation file.", "Error", wxOK | wxICON_ERROR);
+            opts.saturation_value = -1;
+        }
     } else {
         m_satValueText->GetValue().ToDouble(&opts.saturation_value);
     }
     
+    // Restore the original locale
     setlocale(LC_NUMERIC, current_locale);
-
+    // --- END OF THE FIX ---
+    
     opts.dark_file_path = std::string(dark_path.mb_str());
     opts.sat_file_path = std::string(sat_path.mb_str());
 
