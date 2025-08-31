@@ -9,11 +9,12 @@ Usage: cameradr [OPTION]... [FILE]...
 --black-file          -B <file>  : Black RAW file (ideally shot at base ISO)
 --saturation-level    -s <float> : Camera RAW saturation level
 --saturation-file     -S <file>  : Saturation RAW file (ideally shot at base ISO)
---snrthreshold-db     -t <float> : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
+--snrthreshold-db     -d <float> : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
 --drnormalization-mpx -m <float> : Number of Mpx for DR normalization (default=8Mpx)
 --input-files         -i <files> : Input RAW files shot over the magenta test chart (ideally for every ISO)
 --output-file         -o <file>  : Output filename with all results (black level, sat level, SNR samples, DR values)
 
 
 C:\>
+
 
