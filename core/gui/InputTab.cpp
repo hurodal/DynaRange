@@ -81,9 +81,9 @@ ProgramOptions InputTab::GetProgramOptions() {
     ProgramOptions opts;
     
     // --- START OF THE FIX ---
-    // Save the current numeric locale (e.g., "es_ES.UTF-8")
+    // Save the current numeric locale (e.g., "en_US.UTF-8")
     char* current_locale = setlocale(LC_NUMERIC, nullptr);
-    // Temporarily switch to the "C" locale so that decimal points '.' are recognized
+    // Temporarily switch to the "C" locale to ensure decimal points '.' are recognized
     setlocale(LC_NUMERIC, "C");
 
     // Logic to get the black level value
