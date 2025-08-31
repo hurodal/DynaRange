@@ -1,39 +1,38 @@
 // dynRangeGui.cpp
 #include <wx/wx.h>
 #include <wx/notebook.h>
-#include <wx/filepicker.h>
-#include <wx/valnum.h>
-#include <wx/grid.h>
-#include <wx/sstream.h>
-#include <wx/txtstrm.h>
-#include <wx/listbox.h>
 #include <wx/intl.h>
-
 #include <thread>
 #include <sstream>
-#include <fstream>
 #include <string>
+#include <fstream>
+#include <filesystem>
 
 #include "core/arguments.hpp"
 #include "core/engine.hpp"
+#include "core/functions.hpp"
+#include "core/gui/EventIDs.hpp"
 #include "core/gui/InputTab.hpp"
 #include "core/gui/LogTab.hpp"
 #include "core/gui/ResultsTab.hpp"
-#include "core/gui/EventIDs.hpp"
 
+// Use the standard C initialization, which is more robust for our core library
 #include <libintl.h>
 #include <locale.h>
 
-const int ID_START_BUTTON_FROM_TAB = 2001;
+// --- GUI Class Declarations ---
 
+// Custom event to safely communicate from the worker thread to the GUI
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxThreadEvent);
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxThreadEvent);
 
+// Main Application Class
 class MyApp : public wxApp {
 public:
     virtual bool OnInit();
 };
 
+// Main Window Class
 class MyFrame : public wxFrame {
 public:
     MyFrame(const wxString& title);
@@ -49,13 +48,14 @@ private:
     bool m_success;
 };
 
+// --- GUI Class Implementations ---
+
 wxIMPLEMENT_APP(MyApp);
 
 bool MyApp::OnInit() {
-    // Forzamos un locale estándar y robusto que soporta UTF-8.
-    // Esto evita problemas con configuraciones de sistema inconsistentes.
+    // Set a standard, robust locale that supports UTF-8.
+    // This avoids issues with inconsistent system settings.
     setlocale(LC_ALL, "C.UTF-8");
-
     bindtextdomain("dynrange", "locale");
     textdomain("dynrange");
 
@@ -93,6 +93,9 @@ void MyFrame::OnStart(wxCommandEvent& event) {
         wxMessageBox(_("Please select at least one input RAW file."), _("Error"), wxOK | wxICON_ERROR, this);
         return;
     }
+    if (m_lastRunOptions.dark_value < 0 || m_lastRunOptions.saturation_value < 0) {
+        return;
+    }
     
     m_inputTab->SetStartButtonState(false);
     m_notebook->SetSelection(1);
@@ -100,8 +103,18 @@ void MyFrame::OnStart(wxCommandEvent& event) {
     m_logTab->AppendLog(_("Execution started...\n---\n"));
 
     std::thread worker_thread([this]() {
+        // Set the locale for this thread to ensure consistency
+        setlocale(LC_ALL, "C.UTF-8");
+
         std::stringstream log_stream;
-        m_success = run_dynamic_range_analysis(m_lastRunOptions, log_stream);
+        ProgramOptions opts = m_lastRunOptions;
+
+        if (prepare_and_sort_files(opts, log_stream)) {
+            m_success = run_dynamic_range_analysis(opts, log_stream);
+        } else {
+            m_success = false;
+        }
+        
         m_logOutput = log_stream.str();
         wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
     });
@@ -115,8 +128,7 @@ void MyFrame::OnWorkerCompleted(wxThreadEvent& event) {
 
     if (!m_success) {
         m_logTab->AppendLog(_("\n---\nExecution failed."));
-        wxMessageBox(_("An error occurred during processing. Please check the log tab for details."), 
-                     _("Error"), wxOK | wxICON_ERROR, this);
+        wxMessageBox(_("An error occurred during processing. Please check the log tab for details."), _("Error"), wxOK | wxICON_ERROR, this);
     } else {
         m_logTab->AppendLog(_("\n---\nExecution finished successfully."));
         m_notebook->SetSelection(2);

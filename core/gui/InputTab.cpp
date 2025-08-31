@@ -6,8 +6,9 @@
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 #include <wx/intl.h>
+#include <clocale>
 
-extern const int ID_START_BUTTON_FROM_TAB;
+#include "../../core/functions.hpp"
 
 InputTab::InputTab(wxWindow* parent) : wxPanel(parent, wxID_ANY) {
     wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
@@ -72,19 +73,43 @@ void InputTab::UpdateCommandPreview() {
     else { command += " --sat-value " + m_satValueText->GetValue(); }
     command += " -f";
     for (const wxString& file : m_inputFiles) { command += " \"" + file + "\""; }
-    
-    // --- INICIO DE LA CORRECCIÓN ---
-    // Usamos ChangeValue para cambiar el texto sin generar un nuevo evento de cambio de texto.
     m_commandPreviewText->ChangeValue(command);
-    // --- FIN DE LA CORRECCIÓN ---
 }
 void InputTab::OnStart(wxCommandEvent& event) { wxPostEvent(GetParent()->GetParent(), event); }
 ProgramOptions InputTab::GetProgramOptions() {
     ProgramOptions opts;
-    m_darkValueText->GetValue().ToDouble(&opts.dark_value);
-    m_satValueText->GetValue().ToDouble(&opts.saturation_value);
-    for (const wxString& file : m_inputFiles) { opts.input_files.push_back(std::string(file.mb_str())); }
+    char* current_locale = setlocale(LC_NUMERIC, nullptr);
+    setlocale(LC_NUMERIC, "C");
+
+    wxString dark_path = m_darkFilePicker->GetPath();
+    if (!dark_path.IsEmpty()) {
+        auto dark_val_opt = process_dark_frame(std::string(dark_path.mb_str()), std::cout);
+        if(dark_val_opt) opts.dark_value = *dark_val_opt;
+        else opts.dark_value = -1;
+    } else {
+        m_darkValueText->GetValue().ToDouble(&opts.dark_value);
+    }
+
+    wxString sat_path = m_satFilePicker->GetPath();
+    if (!sat_path.IsEmpty()) {
+        auto sat_val_opt = process_saturation_frame(std::string(sat_path.mb_str()), std::cout);
+        if(sat_val_opt) opts.saturation_value = *sat_val_opt;
+        else opts.saturation_value = -1;
+    } else {
+        m_satValueText->GetValue().ToDouble(&opts.saturation_value);
+    }
+    
+    setlocale(LC_NUMERIC, current_locale);
+
+    opts.dark_file_path = std::string(dark_path.mb_str());
+    opts.sat_file_path = std::string(sat_path.mb_str());
+
+    for (const wxString& file : m_inputFiles) {
+        opts.input_files.push_back(std::string(file.mb_str()));
+    }
+    
     opts.output_filename = "DR_results.csv";
+    
     return opts;
 }
 void InputTab::SetStartButtonState(bool enabled) { m_startButton->Enable(enabled); }

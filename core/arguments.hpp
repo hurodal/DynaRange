@@ -7,8 +7,15 @@
 // Structure containing all configuration values obtained from
 // the command-line arguments.
 struct ProgramOptions {
+    // Final numeric values
     double dark_value;           // Black level value (dark frame).
     double saturation_value;     // Saturation point value.
+
+    // Paths to the files (if used by the GUI)
+    std::string dark_file_path;
+    std::string sat_file_path;
+
+    // Input and output files
     std::string output_filename; // Name of the CSV file where results will be saved.
     std::vector<std::string> input_files; // List of input files.
 };
@@ -16,8 +23,8 @@ struct ProgramOptions {
 // Function responsible for parsing the command-line arguments using CLI11.
 //
 // Argument Rules:
-// - --dark-file,--df OR --dark-value,--dv: one and only one must be present.
-// - --sat-file,--sf OR --sat-value,--sv: one and only one must be present.
+// - --dark-file OR --dark-value: one and only one must be present.
+// - --sat-file OR --sat-value: one and only one must be present.
 // - --output-data,-o: optional; if not specified, a default value is used.
 // - --files,-f: mandatory. List of raw files to process.
 //

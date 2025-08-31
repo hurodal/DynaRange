@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <ostream>
+#include "arguments.hpp" // Required to know about the ProgramOptions struct
 
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
@@ -39,5 +41,9 @@ double calculate_quantile(std::vector<double>& data, double percentile);
 std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio = 0.1f);
 
 // --- Declarations of file processing functions ---
-std::optional<double> process_dark_frame(const std::string& filename);
-std::optional<double> process_saturation_frame(const std::string& filename);
+// Modified to accept a log stream for GUI output
+std::optional<double> process_dark_frame(const std::string& filename, std::ostream& log_stream);
+std::optional<double> process_saturation_frame(const std::string& filename, std::ostream& log_stream);
+
+// --- Centralized function for file preparation and sorting ---
+bool prepare_and_sort_files(ProgramOptions& opts, std::ostream& log_stream);

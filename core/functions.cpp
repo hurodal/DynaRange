@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 /**
  * @brief Calculates the parameters of a projective (keystone) transformation.
@@ -161,18 +164,19 @@ double calculate_quantile(std::vector<double>& data, double percentile) {
 /**
  * @brief Processes a dark frame RAW file to get the black level (mean).
  * @param filename Path to the dark frame RAW file.
+ * @param log_stream The output stream for progress messages.
  * @return An optional containing the calculated black level, or nullopt on failure.
  */
-std::optional<double> process_dark_frame(const std::string& filename) {
-    std::cout << "[INFO] Calculating black level from: " << filename << "..." << std::endl;
+std::optional<double> process_dark_frame(const std::string& filename, std::ostream& log_stream) {
+    log_stream << "[INFO] Calculating black level from: " << filename << "..." << std::endl;
     auto pixels_opt = extract_raw_pixels(filename);
     if (!pixels_opt) {
         return std::nullopt;
     }
     
     double mean_value = calculate_mean(*pixels_opt);
-    std::cout << "[INFO] -> Black level obtained: " 
-              << std::fixed << std::setprecision(2) << mean_value << std::endl;
+    log_stream << "[INFO] -> Black level obtained: " 
+               << std::fixed << std::setprecision(2) << mean_value << std::endl;
               
     return mean_value;
 }
@@ -180,18 +184,19 @@ std::optional<double> process_dark_frame(const std::string& filename) {
 /**
  * @brief Processes a saturation RAW file to get the saturation point (quantile).
  * @param filename Path to the saturation RAW file.
+ * @param log_stream The output stream for progress messages.
  * @return An optional containing the calculated saturation point, or nullopt on failure.
  */
-std::optional<double> process_saturation_frame(const std::string& filename) {
-    std::cout << "[INFO] Calculating saturation point from: " << filename << "..." << std::endl;
+std::optional<double> process_saturation_frame(const std::string& filename, std::ostream& log_stream) {
+    log_stream << "[INFO] Calculating saturation point from: " << filename << "..." << std::endl;
     auto pixels_opt = extract_raw_pixels(filename);
     if (!pixels_opt) {
         return std::nullopt;
     }
 
     double quantile_value = calculate_quantile(*pixels_opt, 0.05);
-    std::cout << "[INFO] -> Saturation point obtained (5th percentile): " 
-              << std::fixed << std::setprecision(2) << quantile_value << std::endl;
+    log_stream << "[INFO] -> Saturation point obtained (5th percentile): " 
+               << std::fixed << std::setprecision(2) << quantile_value << std::endl;
 
     return quantile_value;
 }
@@ -226,4 +231,52 @@ std::optional<double> estimate_mean_brightness(const std::string& filename, floa
     }
 
     return (count > 0) ? (sum / count) : 0.0;
+}
+
+/**
+ * @brief Pre-analyzes and sorts the input files based on their mean brightness.
+ * @param opts The ProgramOptions struct, whose input_files member will be sorted in place.
+ * @param log_stream The output stream for progress messages.
+ * @return True if successful, false if no files could be processed.
+ */
+bool prepare_and_sort_files(ProgramOptions& opts, std::ostream& log_stream) {
+    // Temporary structure to associate each file with its brightness.
+    struct FileExposureInfo {
+        std::string filename;
+        double mean_brightness;
+    };
+
+    std::vector<FileExposureInfo> exposure_data;
+    log_stream << "Pre-analyzing files to sort by exposure (using fast sampling)..." << std::endl;
+
+    // Pre-analysis loop: calculates the estimated brightness of each file.
+    for (const std::string& name : opts.input_files) {
+        auto mean_val_opt = estimate_mean_brightness(name, 0.05f);
+        if (mean_val_opt) {
+            exposure_data.push_back({name, *mean_val_opt});
+            log_stream << "  - " << "File: " << fs::path(name).filename().string()
+                       << ", " << "Estimated brightness: " << std::fixed << std::setprecision(2) << *mean_val_opt << std::endl;
+        }
+    }
+
+    if (exposure_data.empty()) {
+        log_stream << "Error: None of the input files could be processed." << std::endl;
+        return false;
+    }
+
+    // Sort the list of files based on mean brightness.
+    std::sort(exposure_data.begin(), exposure_data.end(),
+        [](const FileExposureInfo& a, const FileExposureInfo& b) {
+            return a.mean_brightness < b.mean_brightness;
+        }
+    );
+
+    // Update the 'opts' file list with the now-sorted list.
+    opts.input_files.clear();
+    for (const auto& info : exposure_data) {
+        opts.input_files.push_back(info.filename);
+    }
+    
+    log_stream << "Sorting finished. Starting Dynamic Range calculation process..." << std::endl;
+    return true;
 }
