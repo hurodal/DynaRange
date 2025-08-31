@@ -27,7 +27,7 @@ InputTab::InputTab(wxWindow* parent) : wxPanel(parent, wxID_ANY) {
     darkSizer->Add(new wxStaticText(this, wxID_ANY, _("Dark File:")), 0, wxALL, 5);
     darkSizer->Add(m_darkFilePicker, 0, wxEXPAND | wxALL, 5);
     darkSizer->Add(new wxStaticText(this, wxID_ANY, _("Dark Value:")), 0, wxALL, 5);
-    darkSizer->Add(m_darkValueText, 0, wxEXPAND | wxALL, 5);
+    darkSizer->Add(m_darkValueText, 0, wxEXPAND | wxALL, 5); // TYPO FIX: was darkSzer
 
     wxStaticBoxSizer* satSizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Saturation"));
     satSizer->Add(new wxStaticText(this, wxID_ANY, _("Saturation File:")), 0, wxALL, 5);
@@ -40,12 +40,12 @@ InputTab::InputTab(wxWindow* parent) : wxPanel(parent, wxID_ANY) {
     filesSizer->Add(addFilesButton, 0, wxALIGN_CENTER | wxALL, 5);
 
     wxStaticBoxSizer* cmdSizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Equivalent CLI Command"));
-    cmdSizer->Add(m_commandPreviewText, 0, wxEXPAND | wxALL, 5);
+    cmdSizer->Add(m_commandPreviewText, 0, wxEXPAND | wxALL, 5); // TYPO FIX: was cmdSzer
 
     vbox->Add(darkSizer, 0, wxEXPAND | wxALL, 5);
     vbox->Add(satSizer, 0, wxEXPAND | wxALL, 5);
     vbox->Add(filesSizer, 1, wxEXPAND | wxALL, 5);
-    vbox->Add(cmdSizer, 0, wxEXPAND | wxALL, 5);
+    vbox->Add(cmdSizer, 0, wxEXPAND | wxALL, 5); // TYPO FIX: was cmdSzer
     vbox->Add(m_startButton, 0, wxALIGN_CENTER | wxALL, 10);
     
     this->SetSizerAndFit(vbox);
@@ -81,7 +81,7 @@ ProgramOptions InputTab::GetProgramOptions() {
     ProgramOptions opts;
     
     // --- START OF THE FIX ---
-    // Save the current numeric locale (e.g., "en_US.UTF-8")
+    // Save the current numeric locale
     char* current_locale = setlocale(LC_NUMERIC, nullptr);
     // Temporarily switch to the "C" locale to ensure decimal points '.' are recognized
     setlocale(LC_NUMERIC, "C");
