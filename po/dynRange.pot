@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-31 16:08+0200\n"
+"POT-Creation-Date: 2025-08-31 16:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,53 +37,47 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: dynRangeGui.cpp:62
-msgid "Dynamic Range Calculator"
-msgstr ""
-
-#: dynRangeGui.cpp:77
+#: dynRangeGui.cpp:107
 msgid "Input"
 msgstr ""
 
-#: dynRangeGui.cpp:78
+#: dynRangeGui.cpp:108
 msgid "Log"
 msgstr ""
 
-#: dynRangeGui.cpp:79
+#: dynRangeGui.cpp:109
 msgid "Results"
 msgstr ""
 
-#: dynRangeGui.cpp:93
+#: dynRangeGui.cpp:125
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: dynRangeGui.cpp:93 dynRangeGui.cpp:131
+#: dynRangeGui.cpp:125 dynRangeGui.cpp:177
 msgid "Error"
 msgstr ""
 
-#: dynRangeGui.cpp:103
-msgid ""
-"Execution started...\n"
-"---\n"
-msgstr ""
-
-#: dynRangeGui.cpp:130
+#: dynRangeGui.cpp:175
 msgid ""
 "\n"
 "---\n"
 "Execution failed."
 msgstr ""
 
-#: dynRangeGui.cpp:131
+#: dynRangeGui.cpp:176
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: dynRangeGui.cpp:133
+#: dynRangeGui.cpp:179
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
+msgstr ""
+
+#: dynRangeGui.cpp:200
+msgid "Dynamic Range Calculator"
 msgstr ""
 
 #: core/arguments.cpp:21
