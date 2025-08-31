@@ -40,7 +40,6 @@ double calculate_mean(const std::vector<double>& data);
 double calculate_quantile(std::vector<double>& data, double percentile);
 std::optional<double> estimate_mean_brightness(const std::string& filename, float sample_ratio = 0.1f);
 
-// --- Declarations of file processing functions ---
 // Modified to accept a log stream for GUI output
 std::optional<double> process_dark_frame(const std::string& filename, std::ostream& log_stream);
 std::optional<double> process_saturation_frame(const std::string& filename, std::ostream& log_stream);

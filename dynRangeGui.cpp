@@ -120,12 +120,10 @@ MyFrame::MyFrame(const wxString& title)
 }
 
 void MyFrame::OnStart(wxCommandEvent& event) {
+    // 1. The GUI gathers the "recipe" from the input tab.
     m_lastRunOptions = m_inputTab->GetProgramOptions();
     if (m_lastRunOptions.input_files.empty()) {
         wxMessageBox(_("Please select at least one input RAW file."), _("Error"), wxOK | wxICON_ERROR, this);
-        return;
-    }
-    if (m_lastRunOptions.dark_value < 0 || m_lastRunOptions.saturation_value < 0) {
         return;
     }
     
@@ -133,30 +131,52 @@ void MyFrame::OnStart(wxCommandEvent& event) {
     m_notebook->SetSelection(1);
     m_logTab->ClearLog();
 
-    // Launch the worker thread
+    // 2. The worker thread is launched, which will handle ALL processing.
     std::thread worker_thread([this]() {
-        // Set the locale for this thread to ensure consistency
         setlocale(LC_ALL, "C.UTF-8");
 
-        // --- START OF THE MODIFICATION FOR THE THREAD ---
-        // 1. Create our custom streambuf, targeting this window (MyFrame)
         WxLogStreambuf log_streambuf(this);
-        // 2. Create a std::ostream that will use our custom streambuf
         std::ostream log_stream(&log_streambuf);
         
-        ProgramOptions opts = m_lastRunOptions;
+        ProgramOptions opts = m_lastRunOptions; // Create a local copy for the thread
 
-        // 3. Pass the new log_stream to the functions. Now, every time they write
-        //    to it (e.g., with std::endl), an event will be sent to the GUI.
-        if (prepare_and_sort_files(opts, log_stream)) {
-            m_success = run_dynamic_range_analysis(opts, log_stream);
-        } else {
-            m_success = false;
-        }
+        // --- START OF PREPARATION LOGIC IN THE THREAD ---
         
-        // 4. At the end, send the "completed" event
+        // Step A: Process dark frame file, if one was provided.
+        if (!opts.dark_file_path.empty()) {
+            auto dark_val_opt = process_dark_frame(opts.dark_file_path, log_stream);
+            if (!dark_val_opt) {
+                m_success = false;
+                wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
+                return; // End thread on failure
+            }
+            opts.dark_value = *dark_val_opt; // Overwrite the value from the text box
+        }
+
+        // Step B: Process saturation file, if one was provided.
+        if (!opts.sat_file_path.empty()) {
+            auto sat_val_opt = process_saturation_frame(opts.sat_file_path, log_stream);
+            if (!sat_val_opt) {
+                m_success = false;
+                wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
+                return; // End thread on failure
+            }
+            opts.saturation_value = *sat_val_opt; // Overwrite the value from the text box
+        }
+
+        // Step C: Sort the input files
+        if (!prepare_and_sort_files(opts, log_stream)) {
+            m_success = false;
+            wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
+            return; // End thread on failure
+        }
+        // --- END OF PREPARATION LOGIC ---
+
+        // 3. With the data now fully prepared, call the main engine.
+        m_success = run_dynamic_range_analysis(opts, log_stream);
+        
+        // 4. Notify the main window that the work is finished.
         wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
-        // --- END OF THE MODIFICATION FOR THE THREAD ---
     });
 
     worker_thread.detach();

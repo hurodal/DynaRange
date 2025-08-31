@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-31 16:36+0200\n"
+"POT-Creation-Date: 2025-08-31 19:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,34 +49,34 @@ msgstr ""
 msgid "Results"
 msgstr ""
 
-#: dynRangeGui.cpp:125
+#: dynRangeGui.cpp:126
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: dynRangeGui.cpp:125 dynRangeGui.cpp:177
+#: dynRangeGui.cpp:126 dynRangeGui.cpp:197
 msgid "Error"
 msgstr ""
 
-#: dynRangeGui.cpp:175
+#: dynRangeGui.cpp:195
 msgid ""
 "\n"
 "---\n"
 "Execution failed."
 msgstr ""
 
-#: dynRangeGui.cpp:176
+#: dynRangeGui.cpp:196
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: dynRangeGui.cpp:179
+#: dynRangeGui.cpp:199
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
 msgstr ""
 
-#: dynRangeGui.cpp:200
+#: dynRangeGui.cpp:220
 msgid "Dynamic Range Calculator"
 msgstr ""
 
@@ -84,7 +84,7 @@ msgstr ""
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: core/arguments.cpp:28 core/gui/InputTab.cpp:26
+#: core/arguments.cpp:28 core/gui/InputTab.cpp:21
 msgid "Dark Frame"
 msgstr ""
 
@@ -100,7 +100,7 @@ msgstr ""
 msgid "Numeric value for the black level"
 msgstr ""
 
-#: core/arguments.cpp:36 core/gui/InputTab.cpp:32
+#: core/arguments.cpp:36 core/gui/InputTab.cpp:40
 msgid "Saturation"
 msgstr ""
 
@@ -124,39 +124,39 @@ msgstr ""
 msgid "List of RAW files to process"
 msgstr ""
 
-#: core/gui/InputTab.cpp:22
-msgid "Add RAW Files..."
-msgstr ""
-
-#: core/gui/InputTab.cpp:24
-msgid "Execute"
-msgstr ""
-
-#: core/gui/InputTab.cpp:27
+#: core/gui/InputTab.cpp:30
 msgid "Dark File:"
 msgstr ""
 
-#: core/gui/InputTab.cpp:29
+#: core/gui/InputTab.cpp:32
 msgid "Dark Value:"
 msgstr ""
 
-#: core/gui/InputTab.cpp:33
+#: core/gui/InputTab.cpp:47
 msgid "Saturation File:"
 msgstr ""
 
-#: core/gui/InputTab.cpp:35
+#: core/gui/InputTab.cpp:49
 msgid "Saturation Value:"
 msgstr ""
 
-#: core/gui/InputTab.cpp:38
+#: core/gui/InputTab.cpp:57
+msgid "Add RAW Files..."
+msgstr ""
+
+#: core/gui/InputTab.cpp:58
 msgid "Input RAW Files"
 msgstr ""
 
-#: core/gui/InputTab.cpp:42
+#: core/gui/InputTab.cpp:63
 msgid "Equivalent CLI Command"
 msgstr ""
 
-#: core/gui/InputTab.cpp:61
+#: core/gui/InputTab.cpp:66
+msgid "Execute"
+msgstr ""
+
+#: core/gui/InputTab.cpp:86
 msgid "Select RAW files"
 msgstr ""
 
