@@ -7,7 +7,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- BÚSQUEDA DE DEPENDENCIAS ---
+# --- DEPENDENCY SEARCH ---
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED COMPONENTS core imgproc)
@@ -17,15 +17,27 @@ find_package(Gettext REQUIRED)
 find_package(wxWidgets REQUIRED)
 
 
-# --- DEFINICIÓN DE TARGETS ---
+# --- TARGET DEFINITIONS ---
 
-# TARGET 1: La librería estática (El motor)
-add_library(dynrange_core STATIC
+# A variable with all shared logic source files
+set(CORE_SOURCES
     core/arguments.cpp
     core/functions.cpp
-    core/engine.cpp 
+    core/engine.cpp
 )
-target_include_directories(dynrange_core PUBLIC
+
+# TARGET: The Command-Line (CLI) Executable
+add_executable(dynRange
+    dynRange.cpp
+    ${CORE_SOURCES}
+)
+target_link_libraries(dynRange PRIVATE
+    ${LIBRAW_LIBRARIES}
+    ${OpenCV_LIBS}
+    CLI11::CLI11
+    ${GETTEXT_LIBRARIES}
+)
+target_include_directories(dynRange PRIVATE
     ${PROJECT_SOURCE_DIR}
     core
     ${LIBRAW_INCLUDE_DIRS}
@@ -33,36 +45,36 @@ target_include_directories(dynrange_core PUBLIC
     ${EIGEN3_INCLUDE_DIR}
     ${GETTEXT_INCLUDE_DIRS}
 )
-target_link_libraries(dynrange_core PUBLIC
-    ${LIBRAW_LIBRARIES}
-    ${OpenCV_LIBS}
-    CLI11::CLI11
-    ${GETTEXT_LIBRARIES}
-)
-
-# TARGET 2: El ejecutable de línea de comandos (Frontend CLI)
-add_executable(dynRange dynRange.cpp)
-target_link_libraries(dynRange PRIVATE dynrange_core)
-target_include_directories(dynRange PRIVATE core)
 
 
-# TARGET 3: El ejecutable de la GUI (Frontend GUI)
+# TARGET: The Graphical User Interface (GUI) Executable
 add_executable(dynRangeGui
     dynRangeGui.cpp
     core/gui/InputTab.cpp
     core/gui/LogTab.cpp
     core/gui/ResultsTab.cpp
+    ${CORE_SOURCES}
 )
-target_include_directories(dynRangeGui PRIVATE core)
 target_link_libraries(dynRangeGui PRIVATE 
-    dynrange_core 
     ${wxWidgets_LIBRARIES}
+    ${LIBRAW_LIBRARIES}
+    ${OpenCV_LIBS}
+    CLI11::CLI11
+    ${GETTEXT_LIBRARIES}
+)
+target_include_directories(dynRangeGui PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    core
+    ${wxWidgets_INCLUDE_DIRS}
+    ${LIBRAW_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
+    ${GETTEXT_INCLUDE_DIRS}
 )
 target_compile_definitions(dynRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
-target_include_directories(dynRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
 
 
-# --- CONFIGURACIÓN DE GETTEXT ---
+# --- GETTEXT CONFIGURATION ---
 include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
@@ -70,9 +82,7 @@ set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 set(I18N_SOURCES
     dynRange.cpp
     dynRangeGui.cpp
-    core/arguments.cpp
-    core/functions.cpp
-    core/engine.cpp
+    ${CORE_SOURCES}
     core/gui/InputTab.cpp
     core/gui/LogTab.cpp
     core/gui/ResultsTab.cpp
@@ -82,7 +92,7 @@ GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
 
 
-# --- OPCIONAL: CONFIGURACIÓN DE INSTALADOR ---
+# --- OPTIONAL: INSTALLER CONFIGURATION ---
 include(InstallRequiredSystemLibraries)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

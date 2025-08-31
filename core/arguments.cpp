@@ -6,7 +6,7 @@
 #include <string>
 #include <limits>
 #include <optional>
-#include <clocale>
+#include <clocale> // Required for setlocale
 
 #include <libintl.h>
 #define _(string) gettext(string)
@@ -59,14 +59,12 @@ ProgramOptions parse_arguments(int argc, char* argv[]) {
         exit(exit_code);
     }
 
-    // Restore the original locale so the rest of the program (e.g., printf, cout)
-    // uses the user's settings (e.g., decimal commas, if applicable).
+    // Restore the original locale so the rest of the program uses the user's settings
     setlocale(LC_NUMERIC, current_locale);
 
 
     // --- Post-parsing logic ---
     if (*opt_dark_file) {
-        // CORRECTION: Pass std::cout as the second argument
         auto dark_val_opt = process_dark_frame(dark_file, std::cout);
         if (!dark_val_opt) {
             std::cerr << "Fatal error: Could not process dark file: " << dark_file << ". Exiting." << std::endl;
@@ -78,7 +76,6 @@ ProgramOptions parse_arguments(int argc, char* argv[]) {
     }
 
     if (*opt_sat_file) {
-        // CORRECTION: Pass std::cout as the second argument
         auto sat_val_opt = process_saturation_frame(sat_file, std::cout);
         if (!sat_val_opt) {
             std::cerr << "Fatal error: Could not process saturation file: " << sat_file << ". Exiting." << std::endl;
