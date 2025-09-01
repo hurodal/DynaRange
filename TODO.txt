@@ -1,6 +1,6 @@
 Varios comentarios:
 
-TODO 1: (HECHO)
+TODO 1: CÁLCULO DE BLACK/SAT DESDE FICHEROS RAW -> (HECHO)
     
     Entiendo que de momento solo funciona con valores black/sat pasados por el usuario.
 Faltaría añadir la posibilidad de obtenerlos de fichero RAW. Para black sería la media de todos
@@ -26,8 +26,7 @@ con la función simplona que te pasé.
         median2=quantilecpp(x, 0.05)
 
 
-
-TODO 2: 
+TODO 2: DISEÑO CARTA MAGENTA Y CORRECCIÓN GEOMÉTRICA
     
     La corrección geométrica está hard coded para las tomas de la Olympus de Hugo. 
 Aquí tendremos que hablar sobre un diseño de carta que incluya guías para detectar sus 4 esquinas.
@@ -40,7 +39,9 @@ La carta de Bill, bien generada, y con 4 círculos blancos en las esquinas,
 debería ser fácil de detectar sus esquinas. Yo escribiría la función para detectar esos 4 puntos
 
 
-TODO 3: (Los splines son de verdad, mejor usar *ajuste por mínimos cuadrados* "least-squares fit" )
+TODO 3: CURVAS DE APROXIMACIÓN vs INTERPOLACIÓN
+
+(Los splines son de verdad, mejor usar *ajuste por mínimos cuadrados* "least-squares fit" )
 
     Tus splines son splines de verdad? es decir, pasan por los puntos calculados o los aproximan?
 Lo comento porque aunque mi código R las llama splines, que son curvas de interpolación, 
@@ -49,7 +50,7 @@ por los puntos sino que los aproximan suavemente.
 Esto es importante para que las desviaciones de las medidas no introduzcan error.
 
 
-TODO 4: (HECHO)
+TODO 4: ORDENACIÓN FICHEROS RAW POR EXPOSICIÓN -> (HECHO)
 
     Sobre los ficheros RAW suministrados por el usuario, en realidad no necesitamos ni saber
  el ISO de cada uno ni obligar al usuario a renombrarlos u ordenarlos. 
@@ -57,29 +58,27 @@ TODO 4: (HECHO)
  (lo que equivale de menos a más ISO). Sería bueno que en la salida aparezcan ordenados 
  (salvo casos raros, los propios nombres de los RAW ya deberían implicar una ordenación, 
  pero igual un usuario empezó por el ISO mayor o repitió tomas)
- 
-
-TODO 5:
-
-    Habría que añadir una normalización del RD para cierta cantidad de Mpx, que sería la usable para
- comparar cámaras de forma justa. El cálculo a nivel de píxel actual es injusto para las cámaras
-con muchos Mpx. Te pasaré la formula, es sencilla.
 
 
-TODO 6: (HECHO)
+TODO 6: INTERNACIONALIZACIÓN -> (HECHO)
 
     i18n -> Internacionalización -> Que el programa se pueda usar en varios idiomas disponibles.
 
 
-TODO 7: 
+TODO 5: NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
 
-    Normalización Mpx
+   Código para normalización del RD para cierta cantidad de Mpx, que sería la usable para
+comparar cámaras de forma justa. El cálculo a nivel de píxel actual es injusto para las cámaras
+con muchos Mpx. Te pasaré la formula, es sencilla.
 
-TODO 8: 
 
-    Cálculo esquinas carta (max del canal G del RAW en cada cuadrante)
+TODO 8: CÁLCULO ESQUINAS CARTA MAGENTA PARA CORRECCIÓN GEOMÉTRICA
 
-TODO 9: 
+    Código para cálculo esquinas carta (max del canal G del RAW en cada cuadrante)
 
-    Obtención valores por defecto BLACK y SAT si el usuario no los aporta 
-    (mínima potencia de 2 con datos en la toma ISO mínimo, fondo escala bits toma ISO máximo)
+
+TODO 9: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA CARTA A ISO BASE
+
+    Código para obtención valores por defecto BLACK y SAT si el usuario no los aporta 
+    BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
+    SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
