@@ -82,3 +82,9 @@ TODO 9: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA
     Código para obtención valores por defecto BLACK y SAT si el usuario no los aporta 
     BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
     SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
+
+
+TODO 10: PARAMETRIZAR EL NÚMERO DE PÍXELES DE SEGURIDAD EN CADA PARCHE
+
+    Por defecto SAFE=50 -> habrá 100 píxeles entre cada área evaluada y sus vecinos
+
