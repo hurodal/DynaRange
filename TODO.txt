@@ -69,3 +69,17 @@ con muchos Mpx. Te pasaré la formula, es sencilla.
 TODO 6: (HECHO)
 
     i18n -> Internacionalización -> Que el programa se pueda usar en varios idiomas disponibles.
+
+
+TODO 7: 
+
+    Normalización Mpx
+
+TODO 8: 
+
+    Cálculo esquinas carta (max del canal G del RAW en cada cuadrante)
+
+TODO 9: 
+
+    Obtención valores por defecto BLACK y SAT si el usuario no los aporta 
+    (mínima potencia de 2 con datos en la toma ISO mínimo, fondo escala bits toma ISO máximo)
