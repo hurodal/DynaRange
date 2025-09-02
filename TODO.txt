@@ -42,7 +42,7 @@ Por otro lado he añadido 4 testigos blancos centrados donde caerían las esquin
 Las 4 bolitas deberían buscarse en el canal G del RAW menos expuesto (ISO base) para que ningún parche se pueda confundir con ellas. Escribiré una rutina que busque esos centros.
 
 
-TODO 3: CURVAS DE APROXIMACIÓN vs INTERPOLACIÓN
+TODO 3: CURVAS DE APROXIMACIÓN vs INTERPOLACIÓN (HECHO)
 
 (Los splines son de verdad, mejor usar *ajuste por mínimos cuadrados* "least-squares fit" )
 
