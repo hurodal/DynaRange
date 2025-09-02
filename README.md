@@ -14,4 +14,4 @@ The basic usage will be as follows:
 
 ![measuring-photographic-dynamicrange](/cropwithpatches_iso51200.jpg)
 
-![measuring-photographic-dynamicrange](/SNRcurves.png)
+![measuring-photographic-dynamicrange](/SNRcurvesBLACK254.85.png)
