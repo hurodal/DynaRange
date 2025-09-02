@@ -34,9 +34,12 @@ Creo que con 4 círculos blancos + detección del valor máximo en la zona basta
 No hemos hablado de la carta, si usamos la de Bill Claff o nos inventamos una.
 Sea como sea la carta de Bill Claff no tiene testigos en las 4 esquinas para poder
 corregir los errores del usuario en la toma y hacer la corrección geométrica. 
-La que viste en el código está hard coded para los RAW de Hugo, pero claro no vale de forma general
-La carta de Bill, bien generada, y con 4 círculos blancos en las esquinas, 
-debería ser fácil de detectar sus esquinas. Yo escribiría la función para detectar esos 4 puntos
+
+He creado una rutina (la he subido a main) para crear la carta de colores. Podemos poner tantos parches como queramos pero en principio he replicado los 11x7 de Bill, con dos mejoras:
+* El magenta es más próximo a la alineación de canales RAW (o debería, ya lo veremos)
+* He reducido los saltos de color en los parches oscuros y aumentado en los claros, para tener un mejor reparto de muestras
+Por otro lado he añadido 4 testigos blancos centrados donde caerían las esquinas de una fila más de parches por cada lado. Tras hacer la foto estas bolitas se desenfocarán y será fácil localizar su centro (será el nivel RAW máximo), con lo cual ya tendremos las 4 coordenadas para automatizar la corrección geométrica imprescindible para ser inmunes a que el usuario no centre bien las fotos.
+Las 4 bolitas deberían buscarse en el canal G del RAW menos expuesto (ISO base) para que ningún parche se pueda confundir con ellas. Escribiré una rutina que busque esos centros.
 
 
 TODO 3: CURVAS DE APROXIMACIÓN vs INTERPOLACIÓN
