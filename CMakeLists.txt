@@ -21,14 +21,14 @@ find_package(wxWidgets REQUIRED)
 
 # A variable with all shared logic source files
 set(CORE_SOURCES
-    core/arguments.cpp
-    core/functions.cpp
-    core/engine.cpp
+    src/core/arguments.cpp
+    src/core/functions.cpp
+    src/core/engine.cpp
 )
 
 # TARGET: The Command-Line (CLI) Executable
 add_executable(dynRange
-    dynRange.cpp
+    src/dynRange.cpp
     ${CORE_SOURCES}
 )
 target_link_libraries(dynRange PRIVATE
@@ -39,22 +39,21 @@ target_link_libraries(dynRange PRIVATE
 )
 target_include_directories(dynRange PRIVATE
     ${PROJECT_SOURCE_DIR}
-    core
+    src/core
     ${LIBRAW_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${GETTEXT_INCLUDE_DIRS}
 )
 
-
 # TARGET: The Graphical User Interface (GUI) Executable
 add_executable(dynRangeGui
-    dynRangeGui.cpp
-    core/gui/InputTab.cpp
-    core/gui/LogTab.cpp
-    core/gui/ResultsTab.cpp
+    src/dynRangeGuiApp.cpp        # NUEVO: Punto de entrada de la aplicación gráfica
+    src/gui/DynaRangeBase.cpp     # NUEVO: Código de la GUI generado
+    src/gui/DynaRangeFrame.cpp    # NUEVO: Lógica de nuestra GUI
     ${CORE_SOURCES}
 )
+
 target_link_libraries(dynRangeGui PRIVATE 
     ${wxWidgets_LIBRARIES}
     ${LIBRAW_LIBRARIES}
@@ -64,7 +63,7 @@ target_link_libraries(dynRangeGui PRIVATE
 )
 target_include_directories(dynRangeGui PRIVATE
     ${PROJECT_SOURCE_DIR}
-    core
+    src/core
     ${wxWidgets_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
@@ -80,13 +79,12 @@ set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 
 set(I18N_SOURCES
-    dynRange.cpp
-    dynRangeGui.cpp
+    src/dynRange.cpp
+    src/dynRangeGuiApp.cpp      # NUEVO
+    src/gui/DynaRangeFrame.cpp  # NUEVO
     ${CORE_SOURCES}
-    core/gui/InputTab.cpp
-    core/gui/LogTab.cpp
-    core/gui/ResultsTab.cpp
 )
+
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})

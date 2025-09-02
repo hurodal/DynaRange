@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-02 16:40+0200\n"
+"POT-Creation-Date: 2025-09-02 17:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,153 +17,97 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dynRange.cpp:36
+#: src/dynRange.cpp:36
 msgid "[FINAL CONFIGURATION]"
 msgstr ""
 
-#: dynRange.cpp:37
+#: src/dynRange.cpp:37
 msgid "Black level: "
 msgstr ""
 
-#: dynRange.cpp:38
+#: src/dynRange.cpp:38
 msgid "Saturation point: "
 msgstr ""
 
-#: dynRange.cpp:39
+#: src/dynRange.cpp:39
 msgid "Output file: "
 msgstr ""
 
-#: dynRange.cpp:50
+#: src/dynRange.cpp:50
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: dynRangeGui.cpp:107
-msgid "Input"
-msgstr ""
-
-#: dynRangeGui.cpp:108
-msgid "Log"
-msgstr ""
-
-#: dynRangeGui.cpp:109
-msgid "Results"
-msgstr ""
-
-#: dynRangeGui.cpp:126
+#: src/gui/DynaRangeFrame.cpp:78
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: dynRangeGui.cpp:126 dynRangeGui.cpp:197
+#: src/gui/DynaRangeFrame.cpp:78 src/gui/DynaRangeFrame.cpp:123
 msgid "Error"
 msgstr ""
 
-#: dynRangeGui.cpp:195
+#: src/gui/DynaRangeFrame.cpp:122
 msgid ""
 "\n"
 "---\n"
-"Execution failed."
+"Execution failed. Please check the log for details."
 msgstr ""
 
-#: dynRangeGui.cpp:196
+#: src/gui/DynaRangeFrame.cpp:123
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: dynRangeGui.cpp:199
+#: src/gui/DynaRangeFrame.cpp:125
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
 msgstr ""
 
-#: dynRangeGui.cpp:220
-msgid "Dynamic Range Calculator"
-msgstr ""
-
-#: core/arguments.cpp:21
-msgid "Calculates the dynamic range from a series of RAW images."
-msgstr ""
-
-#: core/arguments.cpp:28 core/gui/InputTab.cpp:21
-msgid "Dark Frame"
-msgstr ""
-
-#: core/arguments.cpp:28
-msgid "Options for the black level"
-msgstr ""
-
-#: core/arguments.cpp:29
-msgid "RAW file to calculate the black level"
-msgstr ""
-
-#: core/arguments.cpp:31
-msgid "Numeric value for the black level"
-msgstr ""
-
-#: core/arguments.cpp:36 core/gui/InputTab.cpp:40
-msgid "Saturation"
-msgstr ""
-
-#: core/arguments.cpp:36
-msgid "Options for the saturation point"
-msgstr ""
-
-#: core/arguments.cpp:37
-msgid "RAW file to calculate the saturation"
-msgstr ""
-
-#: core/arguments.cpp:39
-msgid "Numeric value for the saturation"
-msgstr ""
-
-#: core/arguments.cpp:44
-msgid "Output CSV file"
-msgstr ""
-
-#: core/arguments.cpp:48
-msgid "List of RAW files to process"
-msgstr ""
-
-#: core/gui/InputTab.cpp:30
-msgid "Dark File:"
-msgstr ""
-
-#: core/gui/InputTab.cpp:32
-msgid "Dark Value:"
-msgstr ""
-
-#: core/gui/InputTab.cpp:47
-msgid "Saturation File:"
-msgstr ""
-
-#: core/gui/InputTab.cpp:49
-msgid "Saturation Value:"
-msgstr ""
-
-#: core/gui/InputTab.cpp:57
-msgid "Add RAW Files..."
-msgstr ""
-
-#: core/gui/InputTab.cpp:58
-msgid "Input RAW Files"
-msgstr ""
-
-#: core/gui/InputTab.cpp:63
-msgid "Equivalent CLI Command"
-msgstr ""
-
-#: core/gui/InputTab.cpp:66
-msgid "Execute"
-msgstr ""
-
-#: core/gui/InputTab.cpp:86
+#: src/gui/DynaRangeFrame.cpp:132
 msgid "Select RAW files"
 msgstr ""
 
-#: core/gui/ResultsTab.cpp:15
-msgid "CSV Output:"
+#: src/core/arguments.cpp:21
+msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: core/gui/ResultsTab.cpp:17
-msgid "Generated Graph (placeholder):"
+#: src/core/arguments.cpp:28
+msgid "Dark Frame"
+msgstr ""
+
+#: src/core/arguments.cpp:28
+msgid "Options for the black level"
+msgstr ""
+
+#: src/core/arguments.cpp:29
+msgid "RAW file to calculate the black level"
+msgstr ""
+
+#: src/core/arguments.cpp:31
+msgid "Numeric value for the black level"
+msgstr ""
+
+#: src/core/arguments.cpp:36
+msgid "Saturation"
+msgstr ""
+
+#: src/core/arguments.cpp:36
+msgid "Options for the saturation point"
+msgstr ""
+
+#: src/core/arguments.cpp:37
+msgid "RAW file to calculate the saturation"
+msgstr ""
+
+#: src/core/arguments.cpp:39
+msgid "Numeric value for the saturation"
+msgstr ""
+
+#: src/core/arguments.cpp:44
+msgid "Output CSV file"
+msgstr ""
+
+#: src/core/arguments.cpp:48
+msgid "List of RAW files to process"
 msgstr ""
