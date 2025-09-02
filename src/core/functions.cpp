@@ -280,3 +280,23 @@ bool prepare_and_sort_files(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "Sorting finished. Starting Dynamic Range calculation process..." << std::endl;
     return true;
 }
+
+// Realiza un ajuste de mínimos cuadrados para encontrar los coeficientes de un polinomio.
+void polyfit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order)
+{
+    CV_Assert(src_x.rows > 0 && src_y.rows > 0 && src_x.total() == src_y.total() && src_x.rows >= order + 1);
+
+    cv::Mat A = cv::Mat::zeros(src_x.rows, order + 1, CV_64F);
+
+    for (int i = 0; i < src_x.rows; ++i) {
+        for (int j = 0; j <= order; ++j) {
+            A.at<double>(i, j) = std::pow(src_x.at<double>(i), j);
+        }
+    }
+    
+    // Inversión de columnas para que los coeficientes salgan en el orden esperado (mayor a menor potencia)
+    cv::Mat A_flipped;
+    cv::flip(A, A_flipped, 1);
+
+    cv::solve(A_flipped, src_y, dst, cv::DECOMP_SVD);
+}

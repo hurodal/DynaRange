@@ -48,6 +48,10 @@ ProgramOptions parse_arguments(int argc, char* argv[]) {
     app.add_option("-f,--files", opts.input_files, _("List of RAW files to process"))
        ->required()
        ->check(CLI::ExistingFile);
+    
+    // --- NUEVO: Bandera para seleccionar el método de ajuste ---
+    app.add_flag("--splines", opts.use_splines, "Use spline interpolation instead of polynomial fitting");
+
 
     // --- Error handling and parsing ---
     try {

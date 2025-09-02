@@ -8,6 +8,7 @@
 #include "arguments.hpp" // Required to know about the ProgramOptions struct
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp> // Necesario para cv::Mat
 #include <Eigen/Dense>
 
 // Data structures used in both main and the functions
@@ -46,3 +47,5 @@ std::optional<double> process_saturation_frame(const std::string& filename, std:
 
 // --- Centralized function for file preparation and sorting ---
 bool prepare_and_sort_files(ProgramOptions& opts, std::ostream& log_stream);
+
+void polyfit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order);

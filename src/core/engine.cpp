@@ -1,4 +1,3 @@
-// core/engine.cpp
 #include "engine.hpp"
 #include "functions.hpp"
 #include "spline.h"
@@ -15,6 +14,63 @@
 #include <Eigen/Dense>
 
 namespace fs = std::filesystem;
+
+// --- Función de ayuda para calcular el DR para un umbral específico ---
+double calculate_dr_for_threshold(double threshold, const std::vector<double>& snr_db, const std::vector<double>& signal_ev, bool use_splines, std::ostream& log_stream) {
+    const double filter_range = 5.0;
+    
+    // 1. Filtrar los parches según el nuevo criterio (umbral +/- 5dB)
+    std::vector<double> filtered_snr, filtered_signal;
+    for (size_t i = 0; i < snr_db.size(); ++i) {
+        if (snr_db[i] >= (threshold - filter_range) && snr_db[i] <= (threshold + filter_range)) {
+            filtered_snr.push_back(snr_db[i]);
+            filtered_signal.push_back(signal_ev[i]);
+        }
+    }
+
+    log_stream << "  - Info: For " << threshold << "dB threshold, using " << filtered_snr.size() << " patches." << std::endl;
+
+    if (use_splines) {
+        // --- MÉTODO SPLINE ---
+        if (filtered_snr.size() < 2) { 
+            log_stream << "  - Warning: Not enough data points for spline interpolation at " << threshold << "dB." << std::endl;
+            return 0.0;
+        }
+        tk::spline s;
+        std::vector<size_t> p(filtered_snr.size());
+        std::iota(p.begin(), p.end(), 0);
+        std::sort(p.begin(), p.end(), [&](size_t i, size_t j){ return filtered_snr[i] < filtered_snr[j]; });
+        
+        std::vector<double> sorted_filtered_snr(filtered_snr.size()), sorted_filtered_signal(filtered_signal.size());
+        for(size_t idx = 0; idx < p.size(); ++idx) {
+            sorted_filtered_snr[idx] = filtered_snr[p[idx]]; 
+            sorted_filtered_signal[idx] = filtered_signal[p[idx]];
+        }
+
+        s.set_points(sorted_filtered_snr, sorted_filtered_signal);
+        return -s(threshold);
+
+    } else {
+        // --- MÉTODO POLINÓMICO (por defecto) ---
+        if (filtered_snr.size() < 3) {
+            log_stream << "  - Warning: Not enough data points for polynomial fit at " << threshold << "dB." << std::endl;
+            return 0.0;
+        }
+        
+        cv::Mat snr_mat(filtered_snr.size(), 1, CV_64F, filtered_snr.data());
+        cv::Mat signal_mat(filtered_signal.size(), 1, CV_64F, filtered_signal.data());
+        
+        cv::Mat coeffs;
+        polyfit(snr_mat, signal_mat, coeffs, 2); // Usa nuestra nueva función polyfit
+
+        double c2 = coeffs.at<double>(0);
+        double c1 = coeffs.at<double>(1);
+        double c0 = coeffs.at<double>(2);
+        
+        double signal_at_threshold = c2 * threshold * threshold + c1 * threshold + c0;
+        return -signal_at_threshold;
+    }
+}
 
 bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_stream) {
     const int NCOLS = 11;
@@ -43,6 +99,7 @@ bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_st
         log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
 
         cv::Mat raw_image(raw_processor.imgdata.sizes.raw_height, raw_processor.imgdata.sizes.raw_width, CV_16U, raw_processor.imgdata.rawdata.raw_image);
+        
         cv::Mat img_float;
         raw_image.convertTo(img_float, CV_32F);
         img_float = (img_float - opts.dark_value) / (opts.saturation_value - opts.dark_value);
@@ -53,7 +110,6 @@ bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_st
                 imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
             }
         }
-
         if (i == 0) {
             std::vector<cv::Point2d> xu = {{119, 170}, {99, 1687}, {2515, 1679}, {2473, 158}};
             double xtl = (xu[0].x + xu[1].x) / 2.0; double ytl = (xu[0].y + xu[3].y) / 2.0;
@@ -62,7 +118,6 @@ bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_st
             k = calculate_keystone_params(xu, xd);
             log_stream << "  - Keystone parameters calculated." << std::endl;
         }
-
         cv::Mat imgc = undo_keystone(imgBayer, k);
         double xtl = (119.0 + 99.0) / 2.0; double ytl = (170.0 + 158.0) / 2.0;
         double xbr = (2515.0 + 2473.0) / 2.0; double ybr = (1687.0 + 1679.0) / 2.0;
@@ -75,38 +130,16 @@ bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_st
             continue;
         }
 
-        std::vector<double> Signal = patch_data.signal;
-        std::vector<double> Noise = patch_data.noise;
-        std::vector<size_t> p(Signal.size());
-        std::iota(p.begin(), p.end(), 0);
-        std::sort(p.begin(), p.end(), [&](size_t i, size_t j){ return (Signal[i]/Noise[i]) < (Signal[j]/Noise[j]); });
-        
-        std::vector<double> sorted_Signal(Signal.size()), sorted_Noise(Signal.size());
-        for(size_t idx = 0; idx < Signal.size(); ++idx) {
-            sorted_Signal[idx] = Signal[p[idx]]; 
-            sorted_Noise[idx] = Noise[p[idx]];
-        }
-        Signal = sorted_Signal;
-        Noise = sorted_Noise;
-
         std::vector<double> snr_db, signal_ev;
-        for (size_t j = 0; j < Signal.size(); ++j) {
-            snr_db.push_back(20 * log10(Signal[j] / Noise[j]));
-            signal_ev.push_back(log2(Signal[j]));
+        for (size_t j = 0; j < patch_data.signal.size(); ++j) {
+            snr_db.push_back(20 * log10(patch_data.signal[j] / patch_data.noise[j]));
+            signal_ev.push_back(log2(patch_data.signal[j]));
         }
-
-        tk::spline s;
-        s.set_points(snr_db, signal_ev);
-        double dr_12db = -s(12.0);
-        double dr_0db = -s(0.0);
         
-        // --- DEBUGGING LINES ---
-        //log_stream << "  - DEBUG: Calculated DR (12dB): " << dr_12db 
-        //           << ", DR (0dB): " << dr_0db 
-        //           << ", Patches used: " << Signal.size() << std::endl;
-        // --- END DEBUGGING LINES ---
+        double dr_12db = calculate_dr_for_threshold(12.0, snr_db, signal_ev, opts.use_splines, log_stream);
+        double dr_0db = calculate_dr_for_threshold(0.0, snr_db, signal_ev, opts.use_splines, log_stream);
         
-        all_results.push_back({name, dr_12db, dr_0db, (int)Signal.size()});
+        all_results.push_back({name, dr_12db, dr_0db, (int)patch_data.signal.size()});
     }
 
     log_stream << "\n--- Dynamic Range Results ---\n";
@@ -114,14 +147,12 @@ bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_st
               << std::setw(15) << "DR (12dB)" << std::setw(15) << "DR (0dB)"
               << "Patches" << std::endl;
     log_stream << std::string(80, '-') << std::endl;
-
     for (const auto& res : all_results) {
         log_stream << std::left << std::setw(35) << fs::path(res.filename).filename().string()
                   << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_12db
                   << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_0db
                   << res.patches_used << std::endl;
     }
-    
     std::ofstream csv_file(opts.output_filename);
     csv_file << "raw_file,DR_EV_12dB,DR_EV_0dB,patches_used\n";
     for (const auto& res : all_results) {
