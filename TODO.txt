@@ -26,7 +26,7 @@ con la función simplona que te pasé.
         median2=quantilecpp(x, 0.05)
 
 
-TODO 2: DISEÑO CARTA MAGENTA -> (HECHO) magentachart.R
+TODO 2: DISEÑO CARTA MAGENTA -> magentachart.R
     
     La corrección geométrica está hard coded para las tomas de la Olympus de Hugo. 
 Aquí tendremos que hablar sobre un diseño de carta que incluya guías para detectar sus 4 esquinas.
@@ -40,6 +40,10 @@ He creado una rutina (la he subido a main) para crear la carta de colores. Podem
 * He reducido los saltos de color en los parches oscuros y aumentado en los claros, para tener un mejor reparto de muestras
 Por otro lado he añadido 4 testigos blancos centrados donde caerían las esquinas de una fila más de parches por cada lado. Tras hacer la foto estas bolitas se desenfocarán y será fácil localizar su centro (será el nivel RAW máximo), con lo cual ya tendremos las 4 coordenadas para automatizar la corrección geométrica imprescindible para ser inmunes a que el usuario no centre bien las fotos.
 Las 4 bolitas deberían buscarse en el canal G del RAW menos expuesto (ISO base) para que ningún parche se pueda confundir con ellas. Escribiré una rutina que busque esos centros.
+
+Ver si es factible la parametrización:
+--chart -c <gamma R G B> : Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma
+gamma es un float (por defecto gamma=1/1.4) y RGB son enteros en el rango 0..255
 
 
 TODO 3: CURVAS DE APROXIMACIÓN vs INTERPOLACIÓN (HECHO)
@@ -90,5 +94,3 @@ TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA
 TODO 9: PARAMETRIZAR EL NÚMERO DE PÍXELES DE SEGURIDAD EN CADA PARCHE
 
     Por defecto SAFE=50 -> habrá 100 píxeles entre cada área evaluada y sus vecinos
-
-123321
