@@ -91,3 +91,4 @@ TODO 9: PARAMETRIZAR EL NÚMERO DE PÍXELES DE SEGURIDAD EN CADA PARCHE
 
     Por defecto SAFE=50 -> habrá 100 píxeles entre cada área evaluada y sus vecinos
 
+123321
