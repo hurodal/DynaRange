@@ -5,7 +5,7 @@ by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (al
 
 Usage: cameradr [OPTION]... [FILE]...
 
---chart               -c <gamma R G B> : Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma
+--chart               -c <R G B gamma> : Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma
 --black-level         -b <float>       : Camera RAW black level
 --black-file          -B <file>        : Totally dark RAW file (ideally shot at base ISO)
 --saturation-level    -s <float>       : Camera RAW saturation level
@@ -19,3 +19,4 @@ Usage: cameradr [OPTION]... [FILE]...
 
 
 C:\>
+
