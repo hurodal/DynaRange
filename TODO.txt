@@ -79,9 +79,11 @@ comparar cámaras de forma justa. El cálculo a nivel de píxel actual es injust
 con muchos Mpx. Te pasaré la formula, es sencilla.
 
 
-TODO 7: CÁLCULO ESQUINAS CARTA MAGENTA PARA CORRECCIÓN GEOMÉTRICA
+TODO 7: CÁLCULO ESQUINAS CARTA MAGENTA PARA CORRECCIÓN GEOMÉTRICA -> (HECHO)
 
-    Código para cálculo esquinas carta (max del canal G del RAW en cada cuadrante)
+    Código para cálculo esquinas carta (max del canal G del RAW en cada cuadrante): detect4corners.R
+    Divide la imagen en 4 cuadrantes (se asume que en cada uno habrá uno y solo un círculo) y en cada uno
+    se toman los 0,05% píxeles más brillantes -> se calcula la mediana de sus posiciones X e Y
 
 
 TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA CARTA A ISO BASE
