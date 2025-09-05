@@ -58,8 +58,9 @@ Esto es importante para que las desviaciones de las medidas no introduzcan error
 
 IMPORTANTE: aproximación por polinomios cuadráticos (orden 2): cada umbral (12dB, 0dB,...) que se desee calcular
 requiere su propio polinomio. Para que éste sea hiper robusto, se desecharán los datos de parches con S/N
-que esté más de 6dB separada del umbral:
-P.ej. para calcular el RD con el criterio 12dB, solo se usarán parches con S/N entre 12-6=6dB y 12+6=18dB
+que esté más de 5dB (o valor parametrizable) separada del umbral:
+P.ej. para calcular el RD con el criterio 12dB, solo se usarán parches con S/N entre 12-5 = 7dB y 12+5 = 17dB
+En parches_desechar_calculo_polinomios.png se explica la forma de desechar parches
 
 
 TODO 4: ORDENACIÓN FICHEROS RAW POR EXPOSICIÓN -> (HECHO)
