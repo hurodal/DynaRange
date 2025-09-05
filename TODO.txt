@@ -84,12 +84,20 @@ TODO 6: NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
 comparar cámaras de forma justa. El cálculo a nivel de píxel actual es injusto para las cámaras
 con muchos Mpx. Te pasaré la formula, es sencilla.
 
+La corrección se hace sobre los valores obtenidos de SNR, ANTES de ajustarlos a curvas, según la fórmula:
+
+SNRnorm dB = SNRpor píxel dB + 20 * log10 (Mpx / 12,7)^(1/2)
+
 
 TODO 7: CÁLCULO ESQUINAS CARTA MAGENTA PARA CORRECCIÓN GEOMÉTRICA -> (HECHO)
 
     Código para cálculo esquinas carta (max del canal G del RAW en cada cuadrante): detect4corners.R
     Divide la imagen en 4 cuadrantes (se asume que en cada uno habrá uno y solo un círculo) y en cada uno
     se toman los 0,05% píxeles más brillantes -> se calcula la mediana de sus posiciones X e Y
+
+    Problema: es preciso detectar la localización del canal G del RAW, normalmente RG/GB pero a veces GB/RG. Opciones:
+      1. Leer metadatos con LibRAW
+      2. Buscar el canal más expuesto, pero cerca de las esquinas (testigos)
 
 
 TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA CARTA A ISO BASE
