@@ -162,8 +162,9 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_generateGraphStaticText->Wrap( -1 );
 	resultsSizer->Add( m_generateGraphStaticText, 0, wxALL, 5 );
 
-	m_imageGraph = new wxStaticBitmap( m_resultsPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
-	resultsSizer->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
+	// >>>Disable temp till we add image to avoid warning popup message
+	//m_imageGraph = new wxStaticBitmap( m_resultsPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	//resultsSizer->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
 
 
 	m_resultsPanel->SetSizer( resultsSizer );
