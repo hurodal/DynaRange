@@ -56,6 +56,11 @@ en realidad lo que acabo usando son curvas de aproximación, es decir curvas que
 por los puntos sino que los aproximan suavemente. 
 Esto es importante para que las desviaciones de las medidas no introduzcan error.
 
+IMPORTANTE: aproximación por polinomios cuadráticos (orden 2): cada umbral (12dB, 0dB,...) que se desee calcular
+requiere su propio polinomio. Para que éste sea hiper robusto, se desecharán los datos de parches con S/N
+que esté más de 6dB separada del umbral:
+P.ej. para calcular el RD con el criterio 12dB, solo se usarán parches con S/N entre 12-6=6dB y 12+6=18dB
+
 
 TODO 4: ORDENACIÓN FICHEROS RAW POR EXPOSICIÓN -> (HECHO)
 
@@ -65,6 +70,7 @@ TODO 4: ORDENACIÓN FICHEROS RAW POR EXPOSICIÓN -> (HECHO)
  (lo que equivale de menos a más ISO). Sería bueno que en la salida aparezcan ordenados 
  (salvo casos raros, los propios nombres de los RAW ya deberían implicar una ordenación, 
  pero igual un usuario empezó por el ISO mayor o repitió tomas)
+ El RAW MENOS expuesto será el usado para localizar los 4 extremos de la carta
 
 
 TODO 5: INTERNACIONALIZACIÓN -> (HECHO)
@@ -96,3 +102,16 @@ TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA
 TODO 9: PARAMETRIZAR EL NÚMERO DE PÍXELES DE SEGURIDAD EN CADA PARCHE
 
     Por defecto SAFE=50 -> habrá 100 píxeles entre cada área evaluada y sus vecinos
+
+
+TODO 10: USAR LOS 4 CANALES RAW
+
+   Ejecutar el procesado 4 veces uno para cada canal:
+    imgBayer=img[row(img)%%2 & col(img)%%2]  # R
+    imgBayer=img[row(img)%%2 & !col(img)%%2]  # G1
+    imgBayer=img[!row(img)%%2 & col(img)%%2]  # G2
+    imgBayer=img[!row(img)%%2 & !col(img)%%2]  # B
+
+    Los puntos proporcionados por cada canal son 100% compatibles entre sí, así que pueden aproximarse polinómicamente todos juntos
+
+
