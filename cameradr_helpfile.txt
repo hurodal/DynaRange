@@ -3,7 +3,7 @@ C:\>rango
 Digital camera Dynamic Range calculation "rango" v1.0
 by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (algorithms)
 
-Usage: cameradr [OPTION]... [FILE]...
+Usage: rango [OPTION]... [FILE]...
 
 --chart               -c <R G B gamma> : Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma
 --black-level         -b <float>       : Camera RAW black level
@@ -20,6 +20,7 @@ Usage: cameradr [OPTION]... [FILE]...
 
 
 C:\>
+
 
 
 
