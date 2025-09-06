@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(dynRange CXX)
+project(dynaRange CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -21,17 +21,17 @@ set(CORE_SOURCES
     src/core/engine.cpp
 )
 
-add_executable(dynRange
-    src/dynRange.cpp
+add_executable(dynaRange
+    src/dynaRange.cpp
     ${CORE_SOURCES}
     icono_owl.rc
 )
-target_include_directories(dynRange PRIVATE 
+target_include_directories(dynaRange PRIVATE 
     ${OpenCV_INCLUDE_DIRS} 
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
 )
-target_link_libraries(dynRange PRIVATE 
+target_link_libraries(dynaRange PRIVATE 
     ${OpenCV_LIBS} 
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
@@ -39,20 +39,20 @@ target_link_libraries(dynRange PRIVATE
     intl
 )
 
-add_executable(dynRangeGui WIN32
-    src/dynRangeGuiApp.cpp
+add_executable(dynaRangeGui WIN32
+    src/dynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
     icono_noise.rc
 )
-target_include_directories(dynRangeGui PRIVATE 
+target_include_directories(dynaRangeGui PRIVATE 
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
 )
-target_link_libraries(dynRangeGui PRIVATE
+target_link_libraries(dynaRangeGui PRIVATE
     ${wxWidgets_LIBRARIES}
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
@@ -65,8 +65,8 @@ include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 set(I18N_SOURCES
-    src/dynRange.cpp
-    src/dynRangeGuiApp.cpp
+    src/dynaRange.cpp
+    src/dynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
 )
@@ -77,5 +77,5 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL
 include(InstallRequiredSystemLibraries)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-install(TARGETS dynRange dynRangeGui DESTINATION bin)
+install(TARGETS dynaRange dynaRangeGui DESTINATION bin)
 include(CPack)
