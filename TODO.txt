@@ -56,10 +56,12 @@ en realidad lo que acabo usando son curvas de aproximación, es decir curvas que
 por los puntos sino que los aproximan suavemente. 
 Esto es importante para que las desviaciones de las medidas no introduzcan error.
 
-IMPORTANTE: aproximación por polinomios cuadráticos (orden 2): cada umbral (12dB, 0dB,...) que se desee calcular
-requiere su propio polinomio. Para que éste sea hiper robusto, se desecharán los datos de parches con S/N
-que esté más de 6dB separada del umbral:
-P.ej. para calcular el RD con el criterio 12dB, solo se usarán parches con S/N entre 12-6=6dB y 12+6=18dB
+Opciones que evalúo actualmente:
+
+1. Usar TODOS los puntos obtenidos de la curva de S/N y aplicar un ajuste polinómico de mínimos cuadrados de orden 2 o 3
+2. Filtrar quedándonos solo con los puntos con S/N en la vecindad del umbral usado (12dB, 0dB,...) y aplicar un ajuste polinómico de orden 2 o incluso lineal
+P.ej. para calcular el RD con el criterio 12dB, solo se usarán parches con S/N entre 12-5 = 7dB y 12+5 = 17dB
+En parches_desechar_calculo_polinomios.png se explica la forma de desechar parches. Este método es el más robusto pero plantea la imposibilidad de pintar una curva global que ajuste bien todos los puntos
 
 
 TODO 4: ORDENACIÓN FICHEROS RAW POR EXPOSICIÓN -> (HECHO)
@@ -84,12 +86,20 @@ TODO 6: NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
 comparar cámaras de forma justa. El cálculo a nivel de píxel actual es injusto para las cámaras
 con muchos Mpx. Te pasaré la formula, es sencilla.
 
+La corrección se hace sobre los valores obtenidos de SNR, ANTES de ajustarlos a curvas, según la fórmula:
+
+SNRnorm dB = SNRpor píxel dB + 20 * log10 (Mpx / 12,7)^(1/2)
+
 
 TODO 7: CÁLCULO ESQUINAS CARTA MAGENTA PARA CORRECCIÓN GEOMÉTRICA -> (HECHO)
 
     Código para cálculo esquinas carta (max del canal G del RAW en cada cuadrante): detect4corners.R
     Divide la imagen en 4 cuadrantes (se asume que en cada uno habrá uno y solo un círculo) y en cada uno
     se toman los 0,05% píxeles más brillantes -> se calcula la mediana de sus posiciones X e Y
+
+    Problema: es preciso detectar la localización del canal G del RAW, normalmente RG/GB pero a veces GB/RG. Opciones:
+      1. Leer metadatos con LibRAW
+      2. Buscar el canal más expuesto, pero cerca de las esquinas (testigos)
 
 
 TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA CARTA A ISO BASE
