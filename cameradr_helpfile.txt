@@ -1,6 +1,6 @@
-C:\>cameradr
+C:\>rango
 
-Digital camera Dynamic Range calculation "cameradr" v1.0
+Digital camera Dynamic Range calculation "rango" v1.0
 by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (algorithms)
 
 Usage: cameradr [OPTION]... [FILE]...
@@ -20,5 +20,6 @@ Usage: cameradr [OPTION]... [FILE]...
 
 
 C:\>
+
 
 
