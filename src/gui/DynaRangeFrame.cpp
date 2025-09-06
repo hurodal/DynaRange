@@ -6,11 +6,15 @@
 #include <wx/filedlg.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <wx/image.h>
 #include <thread>
 #include <ostream>
 #include <streambuf>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 // --- LÓGICA DE LOGGING Y EVENTOS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -49,6 +53,9 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
     
+    // AÑADIDO: Conectar el evento de clic en la tabla
+    m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
+
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
     
@@ -65,6 +72,10 @@ DynaRangeFrame::~DynaRangeFrame()
     // Desconectamos los eventos para evitar problemas al cerrar
     m_executeButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
+    
+    // AÑADIDO: Desconectar el evento de la tabla
+    m_cvsGrid->Unbind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
+
     Unbind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Unbind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
     m_darkFilePicker->Unbind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
@@ -127,6 +138,12 @@ void DynaRangeFrame::OnWorkerCompleted(wxThreadEvent& event) {
         AppendLog(_("\n---\nExecution finished successfully."));
         m_mainNotebook->SetSelection(2);
         LoadResults(m_lastRunOptions);
+        
+        // MODIFICADO: Carga el gráfico del último fichero por defecto
+        if (!m_inputFiles.IsEmpty()) {
+            wxFileName lastFile(m_inputFiles.Last());
+            LoadGraphImage(lastFile.GetFullName());
+        }
     }
 }
 
@@ -136,6 +153,26 @@ void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) {
     openFileDialog.GetPaths(m_inputFiles);
     m_rawFileslistBox->Set(m_inputFiles);
     UpdateCommandPreview();
+}
+
+// --- AÑADIDO: NUEVO MANEJADOR DE EVENTOS PARA EL CLIC EN LA TABLA ---
+void DynaRangeFrame::OnGridCellClick(wxGridEvent& event)
+{
+    int row = event.GetRow();
+    
+    // MODIFICADO: Si se hace clic en la cabecera (fila -1) o en un área vacía,
+    // o en la fila de etiquetas (fila 0), muestra el gráfico resumen.
+    if (row < 1) { 
+        // Usamos un nombre de fichero especial y reconocible para el gráfico resumen
+        LoadGraphImage("DR_summary_plot.png");
+    } else { // Si se hace clic en una fila de datos, muestra el gráfico individual
+        wxString rawFilename = m_cvsGrid->GetCellValue(row, 0);
+        if (!rawFilename.IsEmpty()) {
+            LoadGraphImage(rawFilename);
+        }
+    }
+
+    event.Skip();
 }
 
 void DynaRangeFrame::OnInputChanged(wxEvent& event) {
@@ -200,4 +237,50 @@ void DynaRangeFrame::LoadResults(const ProgramOptions& opts) {
     }
     m_cvsGrid->AutoSize();
     this->Layout();
+}
+
+void DynaRangeFrame::LoadGraphImage(const wxString& filename)
+{
+    if (filename.IsEmpty() || !m_imageGraph) {
+        return;
+    }
+
+    fs::path csvPath(m_lastRunOptions.output_filename);
+    fs::path graphPath;
+    std::string graphFilenameStr;
+
+    if (filename == "DR_summary_plot.png") {
+        graphFilenameStr = "DR_summary_plot.png";
+        graphPath = csvPath.parent_path() / graphFilenameStr;
+    } else {
+        fs::path rawFile(std::string(filename.mb_str()));
+        graphFilenameStr = rawFile.stem().string() + "_snr_plot.png";
+        graphPath = csvPath.parent_path() / graphFilenameStr;
+    }
+
+    wxImage image;
+    if (!image.LoadFile(wxString(graphPath.string()))) {
+        m_imageGraph->SetBitmap(wxBitmap(1,1)); // Usar un bitmap válido pero vacío
+        m_generateGraphStaticText->SetLabel(_("Generated Graph (Image not found): ") + wxString(graphFilenameStr));
+        return;
+    }
+
+    m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(graphFilenameStr));
+
+    wxSize panelSize = m_imageGraph->GetSize();
+    if (panelSize.GetWidth() == 0 || panelSize.GetHeight() == 0) return;
+
+    int imgWidth = image.GetWidth();
+    int imgHeight = image.GetHeight();
+
+    double hScale = (double)panelSize.GetWidth() / imgWidth;
+    double vScale = (double)panelSize.GetHeight() / imgHeight;
+    double scale = std::min(hScale, vScale);
+
+    if (scale < 1.0) {
+        image.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
+    }
+    
+    m_imageGraph->SetBitmap(wxBitmap(image));
+    m_resultsPanel->Layout();
 }

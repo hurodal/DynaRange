@@ -16,8 +16,6 @@ Usage: rango [OPTION]... [FILE]...
 --patch-safe          -p <int>         : Number of border safety pixels around each patch (default=50px)
 --input-files         -i <files>       : Input RAW files shot over the magenta test chart (ideally for every ISO)
 --output-file         -o <file>        : Output filename with all results (black level, sat level, SNR samples, DR values)
---splines                              : Internally use splines not polynomies
-
 
 C:\>
 

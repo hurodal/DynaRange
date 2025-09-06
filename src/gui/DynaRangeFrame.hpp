@@ -18,6 +18,7 @@ private:
     void OnExecuteClick(wxCommandEvent& event);
     void OnAddFilesClick(wxCommandEvent& event);
     void OnInputChanged(wxEvent& event);
+    void OnGridCellClick(wxGridEvent& event);
 
     // --- Manejadores de eventos del hilo de trabajo ---
     void OnWorkerUpdate(wxThreadEvent& event);
@@ -28,6 +29,7 @@ private:
     void ClearLog();
     void AppendLog(const wxString& text);
     void LoadResults(const ProgramOptions& opts);
+    void LoadGraphImage(const wxString& rawFilename);
     ProgramOptions GetProgramOptions();
     void SetExecuteButtonState(bool enabled);
 

@@ -19,7 +19,8 @@ struct ProgramOptions {
     std::string output_filename; // Name of the CSV file where results will be saved.
     std::vector<std::string> input_files; // List of input files.
 
-    bool use_splines = false; // By default, use polynomies, not splines
+    // Orden del ajuste polinómico
+    int poly_order = 2; // By default, use 2nd order polynomial
 };
 
 // Function responsible for parsing the command-line arguments using CLI11.

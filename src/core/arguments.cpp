@@ -44,14 +44,15 @@ ProgramOptions parse_arguments(int argc, char* argv[]) {
     app.add_option("-o,--output-data", opts.output_filename, _("Output CSV file"))
        ->default_val("DR_results.csv");
 
+    // --- NUEVO: Opción para el orden del polinomio ---
+    app.add_option("--poly-fit", opts.poly_order, _("Polynomic order (default=2) to fit the SNR curve"))
+       ->check(CLI::IsMember({2, 3}))
+       ->default_val(2);
+
     // --- Option 4: Input files (mandatory) ---
     app.add_option("-f,--files", opts.input_files, _("List of RAW files to process"))
        ->required()
        ->check(CLI::ExistingFile);
-    
-    // --- NUEVO: Bandera para seleccionar el método de ajuste ---
-    app.add_flag("--splines", opts.use_splines, "Use spline interpolation instead of polynomial fitting");
-
 
     // --- Error handling and parsing ---
     try {

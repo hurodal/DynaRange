@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-06 18:54+0200\n"
+"POT-Creation-Date: 2025-09-06 23:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,35 +37,43 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:80
+#: src/gui/DynaRangeFrame.cpp:91
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:80 src/gui/DynaRangeFrame.cpp:125
+#: src/gui/DynaRangeFrame.cpp:91 src/gui/DynaRangeFrame.cpp:136
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:124
+#: src/gui/DynaRangeFrame.cpp:135
 msgid ""
 "\n"
 "---\n"
 "Execution failed. Please check the log for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:125
+#: src/gui/DynaRangeFrame.cpp:136
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:127
+#: src/gui/DynaRangeFrame.cpp:138
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:134
+#: src/gui/DynaRangeFrame.cpp:151
 msgid "Select RAW files"
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:264
+msgid "Generated Graph (Image not found): "
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:268
+msgid "Generated Graph: "
 msgstr ""
 
 #: src/core/arguments.cpp:21
@@ -109,5 +117,9 @@ msgid "Output CSV file"
 msgstr ""
 
 #: src/core/arguments.cpp:48
+msgid "Polynomic order (default=2) to fit the SNR curve"
+msgstr ""
+
+#: src/core/arguments.cpp:53
 msgid "List of RAW files to process"
 msgstr ""
