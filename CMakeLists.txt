@@ -24,6 +24,7 @@ set(CORE_SOURCES
 add_executable(dynRange
     src/dynRange.cpp
     ${CORE_SOURCES}
+    icono.rc
 )
 target_include_directories(dynRange PRIVATE 
     ${OpenCV_INCLUDE_DIRS} 
@@ -43,6 +44,7 @@ add_executable(dynRangeGui WIN32
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
+    icono.rc
 )
 target_include_directories(dynRangeGui PRIVATE 
     ${OpenCV_INCLUDE_DIRS}
