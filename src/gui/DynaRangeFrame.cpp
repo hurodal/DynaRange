@@ -4,6 +4,8 @@
 
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
+#include <wx/stdpaths.h>
+#include <wx/filename.h>
 #include <thread>
 #include <ostream>
 #include <streambuf>
@@ -149,7 +151,8 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
     }
-    opts.output_filename = "DR_results.csv";
+    wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
+    opts.output_filename = std::string((docsPath + wxFileName::GetPathSeparator() + "DR_results.csv").mb_str());
     return opts;
 }
 

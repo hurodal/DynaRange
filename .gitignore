@@ -1,3 +1,6 @@
 .gitignore
+Instalador_DynaRange.exe
+DynaRange_Portable/dynRange.exe
+DynaRange_Portable/dynRangeGui.exe
 /raws
 /build
