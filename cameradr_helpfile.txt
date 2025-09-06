@@ -11,6 +11,7 @@ Usage: cameradr [OPTION]... [FILE]...
 --saturation-level    -s <float>       : Camera RAW saturation level
 --saturation-file     -S <file>        : Totally clipped RAW file (ideally shot at base ISO)
 --snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
+--poly-fit            -f <2-3>         : polynomic order (default=3) to fit the SNR curve
 --drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
 --patch-safe          -p <int>         : Number of border safety pixels around each patch (default=50px)
 --input-files         -i <files>       : Input RAW files shot over the magenta test chart (ideally for every ISO)
@@ -19,4 +20,5 @@ Usage: cameradr [OPTION]... [FILE]...
 
 
 C:\>
+
 
