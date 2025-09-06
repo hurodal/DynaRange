@@ -3,21 +3,21 @@
 
 ; --- Información Básica del Instalador ---
 Name "DynaRange"
-OutFile "Instalador_DynaRange.exe"
+OutFile "DynaRange_Installer.exe"
 InstallDir "$PROGRAMFILES64\DynaRange"
 RequestExecutionLevel admin
 
 ; --- Información de Versión (para Propiedades del Archivo) ---
-VIProductVersion "1.0.0.0"
-VIAddVersionKey "FileVersion" "1.0.0.0"
+VIProductVersion "1.0.0.2"
+VIAddVersionKey "FileVersion" "1.0.0.2"
 VIAddVersionKey "ProductName" "DynaRange"
 VIAddVersionKey "FileDescription" "Dynamic Range Analysis Tool"
 VIAddVersionKey "LegalCopyright" "Hurodal"
 
 ; --- Iconos del Instalador y Desinstalador ---
-; (Asegúrate de tener un archivo "icono_app.ico" junto a este script)
-!define MUI_ICON "icono_app.ico"
-!define MUI_UNICON "icono_app.ico"
+; (Asegúrate de tener un archivo "favicon_noise.ico" junto a este script)
+!define MUI_ICON "favicon_noise.ico"
+!define MUI_UNICON "favicon_noise.ico"
 
 ; --- Páginas del Asistente ---
 !insertmacro MUI_PAGE_WELCOME
@@ -45,8 +45,8 @@ Section "Programa Principal"
   File /r "DynaRange_Portable\*.*" 
   
   ; [cite_start]Crea accesos directos (ahora con icono) [cite: 8]
-  CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\DynaRangeGui.exe" "" "icono_app.ico"
-  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\DynaRangeGui.exe" "" "icono_app.ico"
+  CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\DynaRangeGui.exe" "" "favicon_noise.ico"
+  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\DynaRangeGui.exe" "" "favicon_noise.ico"
 
   ; Escribe la información para "Agregar o quitar programas" de Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DynaRange" "DisplayName" "DynaRange"

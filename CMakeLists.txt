@@ -24,7 +24,7 @@ set(CORE_SOURCES
 add_executable(dynRange
     src/dynRange.cpp
     ${CORE_SOURCES}
-    icono.rc
+    icono_owl.rc
 )
 target_include_directories(dynRange PRIVATE 
     ${OpenCV_INCLUDE_DIRS} 
@@ -36,7 +36,7 @@ target_link_libraries(dynRange PRIVATE
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
-    intl # <--- CORRECCIÓN AÑADIDA
+    intl
 )
 
 add_executable(dynRangeGui WIN32
@@ -44,7 +44,7 @@ add_executable(dynRangeGui WIN32
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
-    icono.rc
+    icono_noise.rc
 )
 target_include_directories(dynRangeGui PRIVATE 
     ${OpenCV_INCLUDE_DIRS}
@@ -58,7 +58,7 @@ target_link_libraries(dynRangeGui PRIVATE
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
-    intl # <--- CORRECCIÓN AÑADIDA
+    intl
 )
 
 include(UseGettext)
