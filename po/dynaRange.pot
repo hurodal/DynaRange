@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-07 21:55+0200\n"
+"POT-Creation-Date: 2025-09-08 00:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,11 +84,11 @@ msgstr ""
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:295
+#: src/gui/DynaRangeFrame.cpp:292
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:299
+#: src/gui/DynaRangeFrame.cpp:296
 msgid "Generated Graph: "
 msgstr ""
 

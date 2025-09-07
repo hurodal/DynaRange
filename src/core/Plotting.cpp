@@ -217,7 +217,10 @@ void DrawCurvesAndData(
         cairo_move_to(cr, label_x - 40, label_y - 30);
         cairo_show_text(cr, label.c_str());
 
-        // ETIQUETAS DE INTERSECCIÓN
+        // *****
+        // CORRECCIÓN DEFINITIVA: Lógica de las etiquetas EV restaurada
+        // para coincidir con el comportamiento de la versión funcional original.
+        // *****
         cairo_set_source_rgb(cr, 0.0, 0.0, 0.0); // Negro
         cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
         cairo_set_font_size(cr, 16.0);
@@ -225,11 +228,11 @@ void DrawCurvesAndData(
         auto ev12 = FindIntersectionEV(curve.poly_coeffs, 12.0, local_min_ev, local_max_ev);
         if (ev12) {
             std::stringstream ss;
-            ss << std::fixed << std::setprecision(2) << *ev12 << " EV";
+            ss << std::fixed << std::setprecision(2) << *ev12 << "EV";
             auto [px, py] = map_coords(*ev12, 12.0);
             
-            double offset_y = draw_above_12db ? -10 : 25;
-            cairo_move_to(cr, px + 5, py + offset_y);
+            double offset_y = draw_above_12db ? -15.0 : 5.0;
+            cairo_move_to(cr, px + 15, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
             draw_above_12db = !draw_above_12db;
         }
@@ -237,11 +240,11 @@ void DrawCurvesAndData(
         auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
         if (ev0) {
             std::stringstream ss;
-            ss << std::fixed << std::setprecision(2) << *ev0 << " EV";
+            ss << std::fixed << std::setprecision(2) << *ev0 << "EV";
             auto [px, py] = map_coords(*ev0, 0.0);
             
-            double offset_y = draw_above_0db ? -10 : 25;
-            cairo_move_to(cr, px + 5, py + offset_y);
+            double offset_y = draw_above_0db ? -15.0 : 5.0;
+            cairo_move_to(cr, px + 25, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
             draw_above_0db = !draw_above_0db;
         }
@@ -294,7 +297,7 @@ void GenerateSnrPlot(
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    std::cout << "[INFO] Plot saved to: " << output_filename << std::endl;
+    std::cout << "[INFO] Plot saved to2: " << output_filename << std::endl;
 }
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -339,16 +342,12 @@ std::optional<std::string> GenerateSummaryPlot(
 
     std::string title = "SNR Curves - Summary";
     std::string filename_suffix = "";
-    std::string safe_camera_name = camera_name; 
     if (!camera_name.empty()) {
         title += " (" + camera_name + ")";
         
-        // Reemplaza caracteres no válidos para nombres de fichero (espacios por guiones bajos)
+        std::string safe_camera_name = camera_name;
         std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
-        // *****
-        // MODIFICACIÓN 1: Nuevo formato de sufijo para el nombre del fichero
-        // *****
-        filename_suffix = "_" + safe_camera_name; // Quitamos los paréntesis y el guion bajo extra
+        filename_suffix = "_" + safe_camera_name;
     }
 
     std::string output_filename = (fs::path(output_dir) / ("DR_summary_plot" + filename_suffix + ".png")).string();

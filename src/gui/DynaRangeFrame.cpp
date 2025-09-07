@@ -187,16 +187,13 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     // Valores fijos para la GUI (podrían añadirse controles más adelante)
     opts.snr_threshold_db = 12.0;
     opts.dr_normalization_mpx = 8.0;
-    opts.poly_order = 3;
+    opts.poly_order = 2;
     opts.patch_safe = 50;
     
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
     }
 
-    // *****
-    // CORRECCIÓN: Se restaura la declaración de 'output_dir'
-    // *****
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
     // La variable output_dir se declara aquí
     fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
@@ -212,12 +209,12 @@ void DynaRangeFrame::UpdateCommandPreview() {
     else { command += " --saturation-level " + m_saturationValueTextCtrl->GetValue(); }
 
     command += " --snrthreshold-db " + wxString::Format("%.2f", 12.0);
-    command += " --poly-fit " + wxString::Format("%d", 3);
+    command += " --poly-fit " + wxString::Format("%d", 2);
     command += " --drnormalization-mpx " + wxString::Format("%.2f", 8.0);
     command += " --patch-safe " + wxString::Format("%d", 50);
     
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
-    fs::path output_dir = fs::path(std::string(docsPath.mb_str())) / "DynaRange_Results";
+    fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
     command += " --output-file \"" + wxString((output_dir / "DR_results.csv").string()) + "\"";
 
     command += " --input-files ";
