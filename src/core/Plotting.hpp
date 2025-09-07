@@ -18,11 +18,13 @@ void GenerateSnrPlot(
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
-    const cv::Mat& intersection_coeffs // <--- AÑADIDO
+    const cv::Mat& intersection_coeffs,
+    std::ostream& log_stream // <--- AÑADIDO
 );
 
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_dir,
     const std::string& camera_name,
-    const std::vector<CurveData>& all_curves
+    const std::vector<CurveData>& all_curves,
+    std::ostream& log_stream // <--- AÑADIDO
 );

@@ -5,6 +5,5 @@
 #include <optional>
 #include <string>
 
-
-//  La función ahora devuelve un opcional<string> 
-std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream);
+// Acepta opts por referencia (&) para poder modificarla
+std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream);

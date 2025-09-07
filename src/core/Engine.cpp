@@ -16,7 +16,6 @@
 
 namespace fs = std::filesystem;
 
-// La función CalculateDrForThreshold no cambia
 double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_db, const std::vector<double>& signal_ev, int poly_order, std::ostream& log_stream) {
     const double filter_range = 5.0;
     std::vector<double> filtered_snr, filtered_signal;
@@ -42,8 +41,36 @@ double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_
     return -signal_at_threshold;
 }
 
-// FUNCIÓN PRINCIPAL REVERTIDA A UN MODELO SECUENCIAL PARA GARANTIZAR ESTABILIDAD
-std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream) {
+std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
+    // 1. Procesar dark y saturation frames (si se proporcionaron)
+    if (!opts.dark_file_path.empty()) {
+        auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
+        if (!dark_val_opt) { log_stream << "Fatal error processing dark frame." << std::endl; return std::nullopt; }
+        opts.dark_value = *dark_val_opt;
+    }
+    if (!opts.sat_file_path.empty()) {
+        auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
+        if (!sat_val_opt) { log_stream << "Fatal error processing saturation frame." << std::endl; return std::nullopt; }
+        opts.saturation_value = *sat_val_opt;
+    }
+
+    // 2. Imprimir la configuración final
+    log_stream << std::fixed << std::setprecision(2);
+    log_stream << "\n[FINAL CONFIGURATION]\n";
+    log_stream << "Black level: " << opts.dark_value << "\n";
+    log_stream << "Saturation point: " << opts.saturation_value << "\n";
+    log_stream << "SNR threshold: " << opts.snr_threshold_db << " dB\n";
+    log_stream << "DR normalization: " << opts.dr_normalization_mpx << " Mpx\n";
+    log_stream << "Polynomic order: " << opts.poly_order << "\n";
+    log_stream << "Patch safe: " << opts.patch_safe << " px\n";
+    log_stream << "Output file: " << opts.output_filename << "\n\n";
+
+    // 3. Preparar y ordenar ficheros
+    if (!PrepareAndSortFiles(opts, log_stream)) {
+        return std::nullopt;
+    }
+
+    // 4. Continuar con el análisis principal...
     const int NCOLS = 11, NROWS = 7;
     const double SAFE = static_cast<double>(opts.patch_safe); 
     
@@ -68,7 +95,7 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
         LibRaw raw_processor;
         if (raw_processor.open_file(name.c_str()) != LIBRAW_SUCCESS || raw_processor.unpack() != LIBRAW_SUCCESS) {
             log_stream << "Error: Could not open/decode RAW file: " << name << std::endl;
-            return std::nullopt;
+            continue;
         }
         log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
         cv::Mat raw_image(raw_processor.imgdata.sizes.raw_height, raw_processor.imgdata.sizes.raw_width, CV_16U, raw_processor.imgdata.rawdata.raw_image);
@@ -116,8 +143,7 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
 
         fs::path plot_path = fs::path(opts.output_filename).parent_path() / (fs::path(name).stem().string() + "_snr_plot.png");
         
-        // **CORRECCIÓN**: Pasamos AMBOS juegos de coeficientes a la función del gráfico individual
-        GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs_for_drawing, poly_coeffs_for_intersection);
+        GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs_for_drawing, poly_coeffs_for_intersection, log_stream);
         
         double dr_12db = CalculateDrForThreshold(opts.snr_threshold_db, snr_db, signal_ev, 2, log_stream);
         double dr_0db = CalculateDrForThreshold(0.0, snr_db, signal_ev, 2, log_stream);
@@ -128,8 +154,8 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
 
     std::optional<std::string> summary_plot_path_opt = std::nullopt;
     if (!all_curves_data.empty()) {
-        fs::path output_dir = fs::path(opts.output_filename).parent_path();
-        summary_plot_path_opt = GenerateSummaryPlot(output_dir.string(), camera_model_name, all_curves_data);
+        fs::path output_dir_path = fs::path(opts.output_filename).parent_path();
+        summary_plot_path_opt = GenerateSummaryPlot(output_dir_path.string(), camera_model_name, all_curves_data, log_stream);
     }
 
     log_stream << "\n--- Dynamic Range Results ---\n";

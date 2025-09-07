@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-08 01:19+0200\n"
+"POT-Creation-Date: 2025-09-08 01:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,39 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/DynaRangeCli.cpp:36
-msgid "[FINAL CONFIGURATION]"
-msgstr ""
-
-#: src/DynaRangeCli.cpp:37
-msgid "Black level: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:38
-msgid "Saturation point: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:40
-msgid "SNR threshold: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:41
-msgid "DR normalization: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:42
-msgid "Polynomic order: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:43
-msgid "Patch safe: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:45
-msgid "Output file: "
-msgstr ""
-
-#: src/DynaRangeCli.cpp:56
+#: src/DynaRangeCli.cpp:25
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
@@ -57,38 +25,38 @@ msgstr ""
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:84 src/gui/DynaRangeFrame.cpp:138
+#: src/gui/DynaRangeFrame.cpp:84 src/gui/DynaRangeFrame.cpp:122
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:137
+#: src/gui/DynaRangeFrame.cpp:121
 msgid ""
 "\n"
 "---\n"
 "Execution failed. Please check the log for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:138
+#: src/gui/DynaRangeFrame.cpp:122
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:140
+#: src/gui/DynaRangeFrame.cpp:124
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:149
+#: src/gui/DynaRangeFrame.cpp:132
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:292
+#: src/gui/DynaRangeFrame.cpp:279
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:296
+#: src/gui/DynaRangeFrame.cpp:283
 msgid "Generated Graph: "
 msgstr ""
 
@@ -96,62 +64,52 @@ msgstr ""
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/Arguments.cpp:22
+#: src/core/Arguments.cpp:19
 msgid "Options for the black level"
 msgstr ""
 
-#: src/core/Arguments.cpp:23
+#: src/core/Arguments.cpp:20
 msgid "Totally dark RAW file (ideally shot at base ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:24
+#: src/core/Arguments.cpp:21
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/Arguments.cpp:27
+#: src/core/Arguments.cpp:24
 msgid "Options for the saturation point"
 msgstr ""
 
-#: src/core/Arguments.cpp:28
+#: src/core/Arguments.cpp:25
 msgid "Totally clipped RAW file (ideally shot at base ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:29
+#: src/core/Arguments.cpp:26
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/Arguments.cpp:33
-msgid ""
-"Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) "
-"with gamma"
-msgstr ""
-
-#: src/core/Arguments.cpp:33
-msgid "Test Chart"
-msgstr ""
-
-#: src/core/Arguments.cpp:34
+#: src/core/Arguments.cpp:29
 msgid "SNR threshold in dB for DR calculation (default=12dB, Photographic DR)"
 msgstr ""
 
-#: src/core/Arguments.cpp:35
-msgid "Polynomic order (default=3) to fit the SNR curve"
+#: src/core/Arguments.cpp:30
+msgid "Polynomic order (default=2) to fit the SNR curve"
 msgstr ""
 
-#: src/core/Arguments.cpp:36
+#: src/core/Arguments.cpp:31
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/Arguments.cpp:37
+#: src/core/Arguments.cpp:32
 msgid "Number of border safety pixels around each patch (default=50px)"
 msgstr ""
 
-#: src/core/Arguments.cpp:38
+#: src/core/Arguments.cpp:33
 msgid ""
 "Input RAW files shot over the magenta test chart (ideally for every ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:39
+#: src/core/Arguments.cpp:34
 msgid ""
 "Output filename with all results (black level, sat level, SNR samples, DR "
 "values)"

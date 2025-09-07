@@ -228,17 +228,18 @@ void GenerateSnrPlot(
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
-    const cv::Mat& intersection_coeffs)
+    const cv::Mat& intersection_coeffs,
+    std::ostream& log_stream)
 {
     if (signal_ev.size() < 2) {
-        std::cout << "[WARNING] Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
+        log_stream << "[WARNING] Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
         return;
     }
     
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        std::cerr << "[ERROR] Failed to create cairo context." << std::endl;
+        log_stream << "[ERROR] Failed to create cairo context." << std::endl;
         cairo_surface_destroy(surface);
         return;
     }
@@ -264,18 +265,19 @@ void GenerateSnrPlot(
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    std::cout << "[INFO] Plot saved to: " << output_filename << std::endl;
+    log_stream << "  - Info: Plot saved to: " << output_filename << std::endl;
 }
 
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_dir,
     const std::string& camera_name,
-    const std::vector<CurveData>& all_curves)
+    const std::vector<CurveData>& all_curves,
+    std::ostream& log_stream)
 {
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        std::cerr << "[ERROR] Failed to create cairo context." << std::endl;
+        log_stream << "[ERROR] Failed to create cairo context." << std::endl;
         cairo_surface_destroy(surface);
         return std::nullopt;
     }
@@ -290,7 +292,7 @@ std::optional<std::string> GenerateSummaryPlot(
         }
     }
     if (!has_data) {
-        std::cout << "[WARNING] Skipping summary plot due to no data points." << std::endl;
+        log_stream << "[WARNING] Skipping summary plot due to no data points." << std::endl;
         cairo_destroy(cr);
         cairo_surface_destroy(surface);
         return std::nullopt;
@@ -325,7 +327,7 @@ std::optional<std::string> GenerateSummaryPlot(
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    std::cout << "[INFO] Summary Plot saved to: " << output_filename << std::endl;
+    log_stream << "  - Info: Summary Plot saved to: " << output_filename << std::endl;
     
     return output_filename;
 }
