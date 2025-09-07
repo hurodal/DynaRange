@@ -79,7 +79,7 @@ void DrawPlotBase(
     gc->DrawText("Photographic DR (SNR > 12dB)", map_coords(bounds.at("min_ev"), 12.0).m_x + 20, map_coords(bounds.at("min_ev"), 12.0).m_y - 20);
     
     DrawDashedLine(gc, map_coords(bounds.at("min_ev"), 0.0).m_x, map_coords(bounds.at("min_ev"), 0.0).m_y, map_coords(bounds.at("max_ev"), 0.0).m_x, map_coords(bounds.at("max_ev"), 0.0).m_y, dashed_pen);
-    gc->DrawText("Engineering DR (SNR > 0dB)", map_coords(bounds.at("min_ev"), 0.0).m_x + 20, map_coords(bounds.at("min_ev"), 0.0).m_y - 20); // Corregido a -20
+    gc->DrawText("Engineering DR (SNR > 0dB)", map_coords(bounds.at("min_ev"), 0.0).m_x + 20, map_coords(bounds.at("min_ev"), 0.0).m_y - 20);
 
     // Etiquetas de los ejes
     gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
@@ -105,17 +105,16 @@ void DrawPlotBase(
     
     double text_width_x, text_height_x;
     gc->GetTextExtent("RAW exposure (EV)", &text_width_x, &text_height_x);
-    gc->DrawText("RAW exposure (EV)", PLOT_WIDTH / 2 - (text_width_x / 2), PLOT_HEIGHT - margin_bottom + 60); // Ajustado a +60
+    gc->DrawText("RAW exposure (EV)", PLOT_WIDTH / 2 - (text_width_x / 2), PLOT_HEIGHT - margin_bottom + 60);
     
     wxGraphicsMatrix matrix = gc->CreateMatrix();
     matrix.Rotate(-M_PI / 2.0);
-    // CORRECCIÓN: Traslación ajustada para la etiqueta SNR (dB)
     double snr_text_width, snr_text_height;
     gc->GetTextExtent("SNR (dB)", &snr_text_width, &snr_text_height);
     matrix.Translate(-(PLOT_HEIGHT / 2.0 + snr_text_width / 2.0), margin_left / 2.0);
     gc->SetTransform(matrix);
     gc->DrawText("SNR (dB)", 0, 0);
-    gc->SetTransform(gc->CreateMatrix()); // Restablece la matriz de transformación
+    gc->SetTransform(gc->CreateMatrix());
 }
 
 void DrawCurvesAndData(
@@ -123,16 +122,18 @@ void DrawCurvesAndData(
     const std::vector<CurveData>& curves,
     const std::map<std::string, double>& bounds)
 {
-    // Mantenemos los márgenes actuales que ya están funcionando para los datos
     const int margin_left = 180, margin_top = 100, margin_right = 100;
     const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
-    const int plot_area_height = PLOT_HEIGHT - margin_top - 120; 
+    const int plot_area_height = PLOT_HEIGHT - margin_top - 120;
 
     auto map_coords = [&](double ev, double db) {
         double px = margin_left + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width;
         double py = (PLOT_HEIGHT - 120) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height;
         return wxPoint2DDouble(px, py);
     };
+
+    bool draw_above_12db = true;
+    bool draw_above_0db = true;
 
     for (const auto& curve : curves) {
         if (curve.signal_ev.empty()) continue;
@@ -167,36 +168,43 @@ void DrawCurvesAndData(
         gc->SetPen(*wxTRANSPARENT_PEN); 
         for(size_t j = 0; j < curve.signal_ev.size(); ++j) {
             wxPoint2DDouble point = map_coords(curve.signal_ev[j], curve.snr_db[j]);
-            gc->DrawEllipse(point.m_x - 3, point.m_y - 3, 6, 6); // Mantengo el tamaño 6x6, si quieres más pequeños cámbialo a 2 o 4
+            gc->DrawEllipse(point.m_x - 2, point.m_y - 2, 4, 4);
         }
 
-        // Etiquetas ISO (ej. Iso00200)
+        // Etiquetas
         std::string label = fs::path(curve.name).stem().string();
         wxPoint2DDouble label_pos_end = map_coords(curve.signal_ev.back(), curve.snr_db.back());
         gc->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), wxColour(200, 0, 0));
         gc->DrawText(label, label_pos_end.m_x - 40, label_pos_end.m_y - 30);
 
-        // Etiquetas EV para 12dB
         auto ev12 = FindIntersectionEV(curve.poly_coeffs, 12.0, local_min_ev, local_max_ev);
         if (ev12) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << *ev12 << "EV";
             wxPoint2DDouble p = map_coords(*ev12, 12.0);
             gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
-            // CORRECCIÓN: Ajuste de posición de las etiquetas EV (12dB)
-            // Para evitar solapamiento, si ya hay una etiqueta cerca, podríamos no dibujar esta.
-            // Por ahora, solo se ajusta la posición.
-            gc->DrawText(ss.str(), p.m_x + 15, p.m_y - 15);
+            
+            if (draw_above_12db) {
+                gc->DrawText(ss.str(), p.m_x + 5, p.m_y - 15);
+            } else {
+                gc->DrawText(ss.str(), p.m_x + 5, p.m_y + 15);
+            }
+            draw_above_12db = !draw_above_12db;
         }
-        // Etiquetas EV para 0dB
+
         auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
         if (ev0) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << *ev0 << "EV";
             wxPoint2DDouble p = map_coords(*ev0, 0.0);
             gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
-            // CORRECCIÓN: Ajuste de posición de las etiquetas EV (0dB)
-            gc->DrawText(ss.str(), p.m_x + 15, p.m_y - 15);
+
+            if (draw_above_0db) {
+                gc->DrawText(ss.str(), p.m_x + 5, p.m_y - 15);
+            } else {
+                gc->DrawText(ss.str(), p.m_x + 5, p.m_y + 15);
+            }
+            draw_above_0db = !draw_above_0db;
         }
     }
 }
