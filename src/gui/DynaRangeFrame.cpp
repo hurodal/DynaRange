@@ -209,7 +209,7 @@ void DynaRangeFrame::UpdateCommandPreview() {
     else { command += " --saturation-level " + m_saturationValueTextCtrl->GetValue(); }
 
     command += " --snrthreshold-db " + wxString::Format("%.2f", 12.0);
-    command += " --poly-fit " + wxString::Format("%d", 2);
+    command += " --poly-fit " + wxString::Format("%d", 3);
     command += " --drnormalization-mpx " + wxString::Format("%.2f", 8.0);
     command += " --patch-safe " + wxString::Format("%d", 50);
     

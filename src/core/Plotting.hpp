@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <optional>
-#include <opencv2/core.hpp>
+#include <ostream>
 #include "Analysis.hpp" 
 
 // Dimensiones base del lienzo.
@@ -17,10 +17,10 @@ void GenerateSnrPlot(
     const std::string& image_title,
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
-    const cv::Mat& poly_coeffs
+    const cv::Mat& poly_coeffs,
+    const cv::Mat& intersection_coeffs // <--- AÑADIDO
 );
 
-// Ahora devuelve la ruta del fichero generado
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_dir,
     const std::string& camera_name,

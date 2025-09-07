@@ -29,7 +29,8 @@ struct CurveData {
     std::string camera_model;
     std::vector<double> signal_ev;
     std::vector<double> snr_db;
-    cv::Mat poly_coeffs;
+    cv::Mat poly_coeffs;           // Coeficientes para DIBUJAR la curva (SNR = f(EV))
+    cv::Mat intersection_coeffs;   // Coeficientes para CALCULAR intersecciones (EV = f(SNR))
 };
 
 // --- DECLARACIONES DE FUNCIONES DE ANÁLISIS ---

@@ -16,7 +16,7 @@
 
 namespace fs = std::filesystem;
 
-// Función de ayuda interna.
+// La función CalculateDrForThreshold no cambia
 double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_db, const std::vector<double>& signal_ev, int poly_order, std::ostream& log_stream) {
     const double filter_range = 5.0;
     std::vector<double> filtered_snr, filtered_signal;
@@ -42,9 +42,9 @@ double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_
     return -signal_at_threshold;
 }
 
+// FUNCIÓN PRINCIPAL REVERTIDA A UN MODELO SECUENCIAL PARA GARANTIZAR ESTABILIDAD
 std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream) {
     const int NCOLS = 11, NROWS = 7;
-    // Usamos el valor de patch_safe de las opciones
     const double SAFE = static_cast<double>(opts.patch_safe); 
     
     std::vector<DynamicRangeResult> all_results;
@@ -52,14 +52,12 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
     Eigen::VectorXd k;
     const auto& filenames = opts.input_files;
     
-    // Variable para almacenar el nombre de la cámara
     std::string camera_model_name = "";
 
     for (size_t i = 0; i < filenames.size(); ++i) {
         const std::string& name = filenames[i];
         log_stream << "\nProcessing \"" << fs::path(name).filename().string() << "\"..." << std::endl;
 
-        // Intentar obtener el nombre de la cámara del primer fichero
         if (i == 0) {
             camera_model_name = GetCameraModel(name);
             if (!camera_model_name.empty()) {
@@ -84,6 +82,7 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
             }
         }
         if (i == 0) {
+            log_stream << "  - Calculating Keystone parameters..." << std::endl;
             std::vector<cv::Point2d> xu = {{119, 170}, {99, 1687}, {2515, 1679}, {2473, 158}};
             double xtl = (xu[0].x + xu[1].x) / 2.0; double ytl = (xu[0].y + xu[3].y) / 2.0;
             double xbr = (xu[2].x + xu[3].x) / 2.0; double ybr = (xu[1].y + xu[2].y) / 2.0;
@@ -108,30 +107,38 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
         }
         cv::Mat signal_mat_global(signal_ev.size(), 1, CV_64F, signal_ev.data());
         cv::Mat snr_mat_global(snr_db.size(), 1, CV_64F, snr_db.data());
-        cv::Mat poly_coeffs_global;
-        PolyFit(signal_mat_global, snr_mat_global, poly_coeffs_global, opts.poly_order);
+        
+        cv::Mat poly_coeffs_for_drawing;
+        PolyFit(signal_mat_global, snr_mat_global, poly_coeffs_for_drawing, opts.poly_order);
+        
+        cv::Mat poly_coeffs_for_intersection;
+        PolyFit(snr_mat_global, signal_mat_global, poly_coeffs_for_intersection, 2);
+
         fs::path plot_path = fs::path(opts.output_filename).parent_path() / (fs::path(name).stem().string() + "_snr_plot.png");
-        GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs_global);
-        double dr_12db = CalculateDrForThreshold(opts.snr_threshold_db, snr_db, signal_ev, opts.poly_order, log_stream);
-        double dr_0db = CalculateDrForThreshold(0.0, snr_db, signal_ev, opts.poly_order, log_stream);
+        
+        // **CORRECCIÓN**: Pasamos AMBOS juegos de coeficientes a la función del gráfico individual
+        GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs_for_drawing, poly_coeffs_for_intersection);
+        
+        double dr_12db = CalculateDrForThreshold(opts.snr_threshold_db, snr_db, signal_ev, 2, log_stream);
+        double dr_0db = CalculateDrForThreshold(0.0, snr_db, signal_ev, 2, log_stream);
         all_results.push_back({name, dr_12db, dr_0db, (int)patch_data.signal.size()});
         
-        // Guardamos el modelo de la cámara en la estructura de datos
-        all_curves_data.push_back({name, camera_model_name, signal_ev, snr_db, poly_coeffs_global.clone()});
+        all_curves_data.push_back({name, camera_model_name, signal_ev, snr_db, poly_coeffs_for_drawing.clone(), poly_coeffs_for_intersection.clone()});
     }
 
     std::optional<std::string> summary_plot_path_opt = std::nullopt;
     if (!all_curves_data.empty()) {
         fs::path output_dir = fs::path(opts.output_filename).parent_path();
-        // Llamamos a la nueva función GenerateSummaryPlot con el nombre de la cámara
         summary_plot_path_opt = GenerateSummaryPlot(output_dir.string(), camera_model_name, all_curves_data);
     }
 
     log_stream << "\n--- Dynamic Range Results ---\n";
-    log_stream << std::left << std::setw(30) << "RAW File" << std::setw(15) << "DR(" << opts.snr_threshold_db << "dB)" << std::setw(15) << "DR(0dB)" << "Patches" << std::endl;
-    log_stream << std::string(75, '-') << std::endl;
+    std::stringstream dr_header_ss;
+    dr_header_ss << "DR(" << std::fixed << std::setprecision(2) << opts.snr_threshold_db << "dB)";
+    log_stream << std::left << std::setw(30) << "RAW File" << std::setw(20) << dr_header_ss.str() << std::setw(15) << "DR(0dB)" << "Patches" << std::endl;
+    log_stream << std::string(80, '-') << std::endl;
     for (const auto& res : all_results) {
-        log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string() << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_12db << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_0db << res.patches_used << std::endl;
+        log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string() << std::fixed << std::setprecision(4) << std::setw(20) << res.dr_12db << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_0db << res.patches_used << std::endl;
     }
     std::ofstream csv_file(opts.output_filename);
     csv_file << "raw_file,DR_" << opts.snr_threshold_db << "dB,DR_0dB,patches_used\n";
@@ -141,6 +148,5 @@ std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, s
     csv_file.close();
     log_stream << "\nResults saved to " << opts.output_filename << std::endl;
     
-    // Devolvemos la ruta del gráfico resumen
     return summary_plot_path_opt;
 }
