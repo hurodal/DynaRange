@@ -4,7 +4,11 @@
 #include <string>
 #include <vector>
 #include <opencv2/core.hpp>
-#include "Analysis.hpp"
+#include "Analysis.hpp" // Necesita CurveData
+
+// AÑADIDO: Dimensiones de alta resolución para mayor nitidez
+constexpr int PLOT_WIDTH = 3840;
+constexpr int PLOT_HEIGHT = 2160;
 
 // --- DECLARACIONES DE FUNCIONES DE GRÁFICOS ---
 void GenerateSnrPlot(

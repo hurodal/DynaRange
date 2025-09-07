@@ -1,5 +1,6 @@
 #include "DynaRangeFrame.hpp"
 #include "../core/Engine.hpp"
+#include "../core/Analysis.hpp"
 
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
@@ -102,22 +103,22 @@ void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event)
         ProgramOptions opts = m_lastRunOptions;
 
         if (!opts.dark_file_path.empty()) {
-            auto dark_val_opt = process_dark_frame(opts.dark_file_path, log_stream);
+            auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
             if (!dark_val_opt) { m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
             opts.dark_value = *dark_val_opt;
         }
 
         if (!opts.sat_file_path.empty()) {
-            auto sat_val_opt = process_saturation_frame(opts.sat_file_path, log_stream);
+            auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
             if (!sat_val_opt) { m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
             opts.saturation_value = *sat_val_opt;
         }
 
-        if (!prepare_and_sort_files(opts, log_stream)) {
+        if (!PrepareAndSortFiles(opts, log_stream)) {
             m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return;
         }
 
-        m_success = run_dynamic_range_analysis(opts, log_stream);
+        m_success = RunDynamicRangeAnalysis(opts, log_stream);
         wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
     });
 

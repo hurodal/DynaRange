@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-06 23:47+0200\n"
+"POT-Creation-Date: 2025-09-07 13:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,23 +17,23 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/dynaRange.cpp:36
+#: src/DynaRangeCli.cpp:36
 msgid "[FINAL CONFIGURATION]"
 msgstr ""
 
-#: src/dynaRange.cpp:37
+#: src/DynaRangeCli.cpp:37
 msgid "Black level: "
 msgstr ""
 
-#: src/dynaRange.cpp:38
+#: src/DynaRangeCli.cpp:38
 msgid "Saturation point: "
 msgstr ""
 
-#: src/dynaRange.cpp:39
+#: src/DynaRangeCli.cpp:39
 msgid "Output file: "
 msgstr ""
 
-#: src/dynaRange.cpp:50
+#: src/DynaRangeCli.cpp:50
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
@@ -76,50 +76,50 @@ msgstr ""
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/core/arguments.cpp:21
+#: src/core/Arguments.cpp:17
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/arguments.cpp:28
+#: src/core/Arguments.cpp:22
 msgid "Dark Frame"
 msgstr ""
 
-#: src/core/arguments.cpp:28
+#: src/core/Arguments.cpp:22
 msgid "Options for the black level"
 msgstr ""
 
-#: src/core/arguments.cpp:29
+#: src/core/Arguments.cpp:23
 msgid "RAW file to calculate the black level"
 msgstr ""
 
-#: src/core/arguments.cpp:31
+#: src/core/Arguments.cpp:24
 msgid "Numeric value for the black level"
 msgstr ""
 
-#: src/core/arguments.cpp:36
+#: src/core/Arguments.cpp:27
 msgid "Saturation"
 msgstr ""
 
-#: src/core/arguments.cpp:36
+#: src/core/Arguments.cpp:27
 msgid "Options for the saturation point"
 msgstr ""
 
-#: src/core/arguments.cpp:37
+#: src/core/Arguments.cpp:28
 msgid "RAW file to calculate the saturation"
 msgstr ""
 
-#: src/core/arguments.cpp:39
+#: src/core/Arguments.cpp:29
 msgid "Numeric value for the saturation"
 msgstr ""
 
-#: src/core/arguments.cpp:44
+#: src/core/Arguments.cpp:32
 msgid "Output CSV file"
 msgstr ""
 
-#: src/core/arguments.cpp:48
+#: src/core/Arguments.cpp:33
 msgid "Polynomic order (default=2) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments.cpp:53
+#: src/core/Arguments.cpp:34
 msgid "List of RAW files to process"
 msgstr ""
