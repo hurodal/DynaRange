@@ -8,8 +8,8 @@ InstallDir "$PROGRAMFILES64\DynaRange"
 RequestExecutionLevel admin
 
 ; --- Información de Versión (para Propiedades del Archivo) ---
-VIProductVersion "1.0.1.0"
-VIAddVersionKey "FileVersion" "1.0.1.0"
+VIProductVersion "1.1.0.0"
+VIAddVersionKey "FileVersion" "1.1.0.0"
 VIAddVersionKey "ProductName" "DynaRange"
 VIAddVersionKey "FileDescription" "Dynamic Range Analysis Tool"
 VIAddVersionKey "LegalCopyright" "Hurodal"
