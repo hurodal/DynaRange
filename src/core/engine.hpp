@@ -1,9 +1,7 @@
-// core/engine.hpp
+// Fichero: core/Engine.hpp
 #pragma once
-#include "arguments.hpp"
+#include "Arguments.hpp"
 #include <ostream>
 
-// The main engine function.
-// Takes the configuration and an output stream for logs.
-// Returns true on success, false on failure.
-bool run_dynamic_range_analysis(const ProgramOptions& opts, std::ostream& log_stream);
+// Declaración de la función principal del motor, ahora en PascalCase.
+bool RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream);
