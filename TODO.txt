@@ -58,8 +58,8 @@ Esto es importante para que las desviaciones de las medidas no introduzcan error
 
 Opciones que evalúo actualmente:
 
-1. Usar TODOS los puntos obtenidos de la curva de S/N y aplicar un ajuste polinómico de mínimos cuadrados de orden 2 o 3
-2. Filtrar quedándonos solo con los puntos con S/N en la vecindad del umbral usado (12dB, 0dB,...) y aplicar un ajuste polinómico de orden 2 o incluso lineal
+1. Usar TODOS los puntos obtenidos de la curva de S/N y aplicar un ajuste polinómico de mínimos cuadrados de orden 2 o 3 -> AJUSTE ÓPTIMO CURVA DE ORDEN 3, SOLUCIÓN DEFINITIVA
+2. Filtrar quedándonos solo con los puntos con S/N en la vecindad del umbral usado (12dB, 0dB,...) y aplicar un ajuste polinómico de orden 2 o incluso lineal -> NO HACE FALTA NI PROBARLO
 P.ej. para calcular el RD con el criterio 12dB, solo se usarán parches con S/N entre 12-5 = 7dB y 12+5 = 17dB
 En parches_desechar_calculo_polinomios.png se explica la forma de desechar parches. Este método es el más robusto pero plantea la imposibilidad de pintar una curva global que ajuste bien todos los puntos
 
