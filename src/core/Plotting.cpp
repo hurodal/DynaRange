@@ -12,6 +12,10 @@ namespace fs = std::filesystem;
 
 namespace { // Namespace anónimo para funciones auxiliares internas a este fichero
 
+    // Factor de escala dinámico. Todo se calcula en proporción a un diseño base de 1920px.
+constexpr double BASE_WIDTH = 1920.0;
+constexpr double scale = PLOT_WIDTH / BASE_WIDTH;
+
 // Declaraciones anticipadas para que las funciones se puedan llamar entre sí
 void DrawDashedLine(cv::Mat& img, cv::Point p1, cv::Point p2, const cv::Scalar& color, int thickness, int dash_length = 15); // dash_length más corto
 std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
@@ -20,10 +24,9 @@ std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_sn
 
 void DrawDashedLine(cv::Mat& img, cv::Point p1, cv::Point p2, const cv::Scalar& color, int thickness, int dash_length) {
     double dist = cv::norm(p1 - p2);
+    if (dist < 1e-6) return;
     double dx = (p2.x - p1.x) / dist;
     double dy = (p2.y - p1.y) / dist;
-
-    // Ajuste para asegurar que el final de la línea sea correcto
     for (double i = 0; i < dist; i += dash_length * 2) {
         cv::Point start = {static_cast<int>(p1.x + i * dx), static_cast<int>(p1.y + i * dy)};
         cv::Point end = {static_cast<int>(p1.x + std::min(i + dash_length, dist) * dx), static_cast<int>(p1.y + std::min(i + dash_length, dist) * dy)};
@@ -32,47 +35,39 @@ void DrawDashedLine(cv::Mat& img, cv::Point p1, cv::Point p2, const cv::Scalar& 
 }
 
 std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev) {
-    if (coeffs.rows < 3) return std::nullopt; // Solo para polinomios de grado 2 (ax^2 + bx + c)
-
-    double c2 = coeffs.at<double>(0); // a
-    double c1 = coeffs.at<double>(1); // b
-    double c0 = coeffs.at<double>(2); // c
-    
-    // Resolvemos ax^2 + bx + (c - y) = 0
-    double a = c2;
-    double b = c1;
-    double c = c0 - target_snr_db;
-
-    double discriminant = b * b - 4 * a * c;
-
-    if (discriminant < 0) return std::nullopt;
-
-    double sqrt_d = sqrt(discriminant);
-    double ev1 = (-b + sqrt_d) / (2 * a);
-    double ev2 = (-b - sqrt_d) / (2 * a);
-
-    // Devolvemos la raíz que esté dentro del rango de datos válido
-    // Priorizamos la que esté más a la derecha (mayor EV) si ambas son válidas y tienen sentido en el contexto de la curva SNR.
-    // Para una curva SNR típica, la intersección relevante suele ser la de mayor EV.
-    if (ev1 >= min_ev && ev1 <= max_ev && ev2 >= min_ev && ev2 <= max_ev) {
-        return std::max(ev1, ev2);
-    } else if (ev1 >= min_ev && ev1 <= max_ev) {
-        return ev1;
-    } else if (ev2 >= min_ev && ev2 <= max_ev) {
-        return ev2;
+    if (coeffs.empty() || coeffs.rows < 2) return std::nullopt;
+    double c2 = (coeffs.rows > 2) ? coeffs.at<double>(0) : 0.0;
+    double c1 = (coeffs.rows > 2) ? coeffs.at<double>(1) : coeffs.at<double>(0);
+    double c0 = (coeffs.rows > 2) ? coeffs.at<double>(2) : coeffs.at<double>(1);
+    if (std::abs(c2) < 1e-9) {
+        if (std::abs(c1) < 1e-9) return std::nullopt;
+        double ev = (target_snr_db - c0) / c1;
+        if (ev >= min_ev && ev <= max_ev) return ev;
+    } else {
+        double a = c2, b = c1, c = c0 - target_snr_db;
+        double discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return std::nullopt;
+        double sqrt_d = sqrt(discriminant);
+        double ev1 = (-b + sqrt_d) / (2 * a);
+        double ev2 = (-b - sqrt_d) / (2 * a);
+        if (ev1 >= min_ev && ev1 <= max_ev) return ev1;
+        if (ev2 >= min_ev && ev2 <= max_ev) return ev2;
     }
-    
     return std::nullopt;
 }
+
 
 // --- FUNCIÓN AUXILIAR 1: DIBUJA LA BASE DEL GRÁFICO ---
 void DrawPlotBase(
     cv::Mat& plot_img,
     const std::string& title,
     const std::map<std::string, double>& bounds,
-    bool show_stripe_labels) // Ahora solo controla si se muestran las etiquetas de las franjas
+    bool show_stripe_labels)
 {
-    const int margin_left = 240, margin_bottom = 200, margin_top = 240, margin_right = 600;
+    const int margin_left = static_cast<int>(120 * scale);
+    const int margin_bottom = static_cast<int>(100 * scale);
+    const int margin_top = static_cast<int>(120 * scale);
+    const int margin_right = static_cast<int>(300 * scale);
     const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
     const int plot_area_height = PLOT_HEIGHT - margin_top - margin_bottom;
 
@@ -82,85 +77,43 @@ void DrawPlotBase(
         return cv::Point(px, py);
     };
 
-    // Fondo general siempre blanco
-    cv::rectangle(plot_img, {0,0}, {PLOT_WIDTH, PLOT_HEIGHT}, cv::Scalar(255,255,255), -1); 
+    cv::rectangle(plot_img, {0,0}, {PLOT_WIDTH, PLOT_HEIGHT}, cv::Scalar(255,255,255), -1);
     
-    // Dibujar las 5 franjas (3 blancas, 2 celestes) para TODOS los gráficos
-    cv::Scalar light_blue(255, 248, 224); // Celeste muy pálido
-
-    // Franja blanca superior (de 17dB a max_db) - "Parches desechados"
-    cv::Rect stripe_discarded_top(margin_left, margin_top, plot_area_width, map_coords(0, 17).y - margin_top);
-    cv::rectangle(plot_img, stripe_discarded_top, cv::Scalar(255,255,255), -1);
+    cv::Scalar light_blue(255, 248, 224);
     if (show_stripe_labels) {
-        cv::putText(plot_img, "Parches desechados", {margin_left + 40, stripe_discarded_top.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,200}, 2);
-    }
-    
-    // Franja celeste RD_12dB (de 7dB a 17dB)
-    cv::Rect stripe_12db(margin_left, map_coords(0, 17).y, plot_area_width, map_coords(0, 7).y - map_coords(0, 17).y);
-    cv::rectangle(plot_img, stripe_12db, light_blue, -1);
-    if (show_stripe_labels) {
-        cv::putText(plot_img, "Polinomio 1", {margin_left + plot_area_width/4 - 60, stripe_12db.y + stripe_12db.height/2 + 20}, cv::FONT_HERSHEY_SIMPLEX, 1.5, {0,0,0}, 3); // Etiqueta Polinomio 1
-        cv::putText(plot_img, "Parches usados para RD_12dB", {margin_left + 40, stripe_12db.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,0}, 2);
-    }
-
-    // Franja blanca central (de 5dB a 7dB) - "Parches desechados"
-    cv::Rect stripe_discarded_middle(margin_left, map_coords(0, 7).y, plot_area_width, map_coords(0, 5).y - map_coords(0, 7).y);
-    cv::rectangle(plot_img, stripe_discarded_middle, cv::Scalar(255,255,255), -1);
-    if (show_stripe_labels) {
-        cv::putText(plot_img, "Parches desechados", {margin_left + 40, stripe_discarded_middle.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,200}, 2);
-    }
-
-    // Franja celeste RD_0dB (de -5dB a 5dB)
-    cv::Rect stripe_0db(margin_left, map_coords(0, 5).y, plot_area_width, map_coords(0, -5).y - map_coords(0, 5).y);
-    cv::rectangle(plot_img, stripe_0db, light_blue, -1);
-    if (show_stripe_labels) {
-        cv::putText(plot_img, "Polinomio 2", {margin_left + plot_area_width/4 - 60, stripe_0db.y + stripe_0db.height/2 + 20}, cv::FONT_HERSHEY_SIMPLEX, 1.5, {0,0,0}, 3); // Etiqueta Polinomio 2
-        cv::putText(plot_img, "Parches usados para RD_0dB", {margin_left + 40, stripe_0db.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,0}, 2);
-    }
-
-    // Franja blanca inferior (de min_db a -5dB) - "Parches desechados"
-    cv::Rect stripe_discarded_bottom(margin_left, map_coords(0, -5).y, plot_area_width, (PLOT_HEIGHT - margin_bottom) - map_coords(0, -5).y);
-    cv::rectangle(plot_img, stripe_discarded_bottom, cv::Scalar(255,255,255), -1);
-    if (show_stripe_labels) {
-        cv::putText(plot_img, "Parches desechados", {margin_left + 40, stripe_discarded_bottom.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,200}, 2);
-    }
-
-    // Rejilla y etiquetas de los ejes
-    for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
-        cv::line(plot_img, map_coords(ev, bounds.at("min_db")), map_coords(ev, bounds.at("max_db")), {220,220,220}, 2);
-        cv::putText(plot_img, std::to_string((int)ev), {map_coords(ev, bounds.at("min_db")).x-15, PLOT_HEIGHT-margin_bottom+45}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0,0,0}, 2);
-    }
-    for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) {
-        cv::line(plot_img, map_coords(bounds.at("min_ev"), db), map_coords(bounds.at("max_ev"), db), {220,220,220}, 2);
-        cv::putText(plot_img, std::to_string((int)db), {margin_left-70, map_coords(bounds.at("min_ev"), db).y+10}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0,0,0}, 2);
+        cv::Rect stripe_12db(margin_left, map_coords(0, 17).y, plot_area_width, map_coords(0, 7).y - map_coords(0, 17).y);
+        cv::rectangle(plot_img, stripe_12db, light_blue, -1);
+        cv::putText(plot_img, "Parches usados para RD_12dB", {margin_left + 40, stripe_12db.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2 * scale, {0,0,0}, std::max(1, static_cast<int>(2 * scale)));
+        
+        cv::Rect stripe_0db(margin_left, map_coords(0, 5).y, plot_area_width, map_coords(0, -5).y - map_coords(0, 5).y);
+        cv::rectangle(plot_img, stripe_0db, light_blue, -1);
+        cv::putText(plot_img, "Parches usados para RD_0dB", {margin_left + 40, stripe_0db.y + 60}, cv::FONT_HERSHEY_SIMPLEX, 1.2 * scale, {0,0,0}, std::max(1, static_cast<int>(2 * scale)));
     }
     
-    // Líneas de referencia discontinuas
-    DrawDashedLine(plot_img, map_coords(bounds.at("min_ev"), 12.0), map_coords(bounds.at("max_ev"), 12.0), cv::Scalar(0, 0, 0), 2);
-    cv::putText(plot_img, "Photographic DR (SNR > 12dB)", {map_coords(bounds.at("min_ev"), 12.0).x + 40, map_coords(bounds.at("min_ev"), 12.0).y - 10}, cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0), 2);
+    DrawDashedLine(plot_img, map_coords(bounds.at("min_ev"), 12.0), map_coords(bounds.at("max_ev"), 12.0), {0,0,0}, std::max(1, static_cast<int>(2 * scale)), static_cast<int>(15 * scale));
+    cv::putText(plot_img, "Photographic DR (SNR > 12dB)", {map_coords(bounds.at("min_ev"), 12.0).x + 40, map_coords(bounds.at("min_ev"), 12.0).y - 20}, cv::FONT_HERSHEY_SIMPLEX, 1.0 * scale, {0,0,0}, std::max(1, static_cast<int>(2 * scale)));
     
-    DrawDashedLine(plot_img, map_coords(bounds.at("min_ev"), 0.0), map_coords(bounds.at("max_ev"), 0.0), cv::Scalar(0, 0, 0), 2);
-    cv::putText(plot_img, "Engineering DR (SNR > 0dB)", {map_coords(bounds.at("min_ev"), 0.0).x + 40, map_coords(bounds.at("min_ev"), 0.0).y - 10}, cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0), 2);
+    DrawDashedLine(plot_img, map_coords(bounds.at("min_ev"), 0.0), map_coords(bounds.at("max_ev"), 0.0), {0,0,0}, std::max(1, static_cast<int>(2 * scale)), static_cast<int>(15 * scale));
+    cv::putText(plot_img, "Engineering DR (SNR > 0dB)", {map_coords(bounds.at("min_ev"), 0.0).x + 40, map_coords(bounds.at("min_ev"), 0.0).y + 40}, cv::FONT_HERSHEY_SIMPLEX, 1.0 * scale, {0,0,0}, std::max(1, static_cast<int>(2 * scale)));
 
-    // Borde principal del área de trazado
     cv::Rect plot_rect(margin_left, margin_top, plot_area_width, plot_area_height);
-    cv::rectangle(plot_img, plot_rect, {0,0,0}, 3);
-    
-    // Títulos de los ejes y del gráfico
-    cv::putText(plot_img, "RAW Exposure (EV)", {PLOT_WIDTH/2-150, PLOT_HEIGHT-50}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,0}, 3);
-    cv::putText(plot_img, title, {PLOT_WIDTH/2-300, margin_top-60}, cv::FONT_HERSHEY_SIMPLEX, 2.0, {0,0,0}, 3);
+    cv::rectangle(plot_img, plot_rect, {0,0,0}, std::max(1, static_cast<int>(3 * scale)));
 
-    // Etiqueta del eje Y
+    for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { cv::line(plot_img, map_coords(ev, bounds.at("min_db")), map_coords(ev, bounds.at("max_db")), {220,220,220}, std::max(1, static_cast<int>(2 * scale))); cv::putText(plot_img, std::to_string((int)ev), {map_coords(ev, bounds.at("min_db")).x-15, PLOT_HEIGHT-margin_bottom+45}, cv::FONT_HERSHEY_SIMPLEX, 1.0 * scale, {0,0,0}, std::max(1, static_cast<int>(2 * scale))); }
+    for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) { cv::line(plot_img, map_coords(bounds.at("min_ev"), db), map_coords(bounds.at("max_ev"), db), {220,220,220}, std::max(1, static_cast<int>(2 * scale))); cv::putText(plot_img, std::to_string((int)db), {margin_left-70, map_coords(bounds.at("min_ev"), db).y+10}, cv::FONT_HERSHEY_SIMPLEX, 1.0 * scale, {0,0,0}, std::max(1, static_cast<int>(2 * scale))); }
+    
+    cv::putText(plot_img, "RAW Exposure (EV)", {PLOT_WIDTH/2-150, PLOT_HEIGHT-50}, cv::FONT_HERSHEY_SIMPLEX, 1.2 * scale, {0,0,0}, std::max(1, static_cast<int>(3 * scale)));
+    cv::putText(plot_img, title, {PLOT_WIDTH/2-300, margin_top-60}, cv::FONT_HERSHEY_SIMPLEX, 2.0 * scale, {0,0,0}, std::max(1, static_cast<int>(3 * scale)));
+    
     std::string y_label_text = "SNR (dB)";
-    cv::Size text_size = cv::getTextSize(y_label_text, cv::FONT_HERSHEY_SIMPLEX, 1.2, 3, nullptr);
-    cv::Point text_origin(60, margin_top + (plot_area_height + text_size.width) / 2);
-    cv::Mat text_canvas = cv::Mat::zeros(text_size.height + 20, text_size.width + 20, CV_8UC3); // Lienzo temporal en blanco y negro
-    cv::putText(text_canvas, y_label_text, cv::Point(10, text_size.height + 10), cv::FONT_HERSHEY_SIMPLEX, 1.2, {255,255,255}, 3);
+    cv::Size text_size = cv::getTextSize(y_label_text, cv::FONT_HERSHEY_SIMPLEX, 1.2 * scale, std::max(1, static_cast<int>(3 * scale)), nullptr);
+    cv::Point text_origin(static_cast<int>(60 * scale), margin_top + (plot_area_height + text_size.width) / 2);
+    cv::Mat text_canvas = cv::Mat::zeros(text_size.height + 20, text_size.width + 20, CV_8UC3);
+    cv::putText(text_canvas, y_label_text, cv::Point(10, text_size.height + 10), cv::FONT_HERSHEY_SIMPLEX, 1.2 * scale, {255,255,255}, std::max(1, static_cast<int>(3 * scale)));
     cv::rotate(text_canvas, text_canvas, cv::ROTATE_90_COUNTERCLOCKWISE);
     cv::Mat text_roi = plot_img(cv::Rect(text_origin.x, text_origin.y - text_canvas.rows, text_canvas.cols, text_canvas.rows));
-    text_roi.setTo(cv::Scalar(0,0,0), text_canvas); // Pega el texto en negro sobre el imagen principal
+    text_roi.setTo(cv::Scalar(0,0,0), text_canvas);
 }
-
 
 // --- FUNCIÓN AUXILIAR 2: DIBUJA LAS CURVAS, PUNTOS Y ETIQUETAS DE INTERSECCIÓN ---
 void DrawCurvesAndData(
@@ -237,19 +190,30 @@ void GenerateSnrPlot(
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs)
 {
+    if (signal_ev.empty()) { // Comprobación simplificada
+        std::cout << "[WARNING] Skipping plot for \"" << image_title << "\" due to no data points." << std::endl;
+        return;
+    }
+
     cv::Mat plot_img(PLOT_HEIGHT, PLOT_WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
 
-    double min_ev_data = signal_ev.empty() ? 0 : *std::min_element(signal_ev.begin(), signal_ev.end());
-    double max_ev_data = signal_ev.empty() ? 0 : *std::max_element(signal_ev.end(), signal_ev.end());
+    auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
+    double min_ev_data = *min_max_ev.first;
+    double max_ev_data = *min_max_ev.second;
     
-    // Rango DB fijo para uniformidad
     std::map<std::string, double> bounds;
-    bounds["min_ev"] = floor(min_ev_data) - 1.0;
-    bounds["max_ev"] = ceil(max_ev_data) + 1.0;
-    bounds["min_db"] = -15.0; // Fijo para consistencia con el resumen y las franjas
-    bounds["max_db"] = 25.0;  // Fijo para consistencia con el resumen y las franjas
+    // Lógica anti-cuelgues si el rango de datos es cero
+    if (max_ev_data - min_ev_data < 1e-6) {
+        bounds["min_ev"] = min_ev_data - 0.5;
+        bounds["max_ev"] = max_ev_data + 0.5;
+    } else {
+        bounds["min_ev"] = floor(min_ev_data) - 1.0;
+        bounds["max_ev"] = ceil(max_ev_data) + 1.0;
+    }
+    bounds["min_db"] = -15.0;
+    bounds["max_db"] = 25.0;
 
-    DrawPlotBase(plot_img, "SNR Curve - " + image_title, bounds, true); // show_stripe_labels = true para individuales también
+    DrawPlotBase(plot_img, "SNR Curve - " + image_title, bounds, false);
 
     std::vector<CurveData> single_curve_vec = {{image_title, signal_ev, snr_db, poly_coeffs}};
     DrawCurvesAndData(plot_img, single_curve_vec, bounds);
@@ -266,23 +230,33 @@ void GenerateSummaryPlot(
     cv::Mat plot_img(PLOT_HEIGHT, PLOT_WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
 
     double min_ev_global = 1e6, max_ev_global = -1e6;
-    if (all_curves.empty()) return;
+    bool has_data = false;
     for (const auto& curve : all_curves) {
         if (!curve.signal_ev.empty()) {
+            has_data = true;
             min_ev_global = std::min(min_ev_global, *std::min_element(curve.signal_ev.begin(), curve.signal_ev.end()));
             max_ev_global = std::max(max_ev_global, *std::max_element(curve.signal_ev.begin(), curve.signal_ev.end()));
         }
     }
-    
-    // Rango DB fijo y rango EV ajustado a todas las curvas
-    std::map<std::string, double> bounds;
-    bounds["min_ev"] = floor(min_ev_global) - 1.0;
-    bounds["max_ev"] = ceil(max_ev_global) + 1.0;
-    bounds["min_db"] = -15.0; // Fijo para consistencia con las franjas
-    bounds["max_db"] = 25.0;  // Fijo para consistencia con las franjas
-    
-    DrawPlotBase(plot_img, "SNR Curves - Olympus OM-1", bounds, true); // Título cambiado y show_stripe_labels = true
 
+    if (!has_data) {
+        std::cout << "[WARNING] Skipping summary plot due to no data points across all files." << std::endl;
+        return;
+    }
+    
+    std::map<std::string, double> bounds;
+    // Lógica anti-cuelgues si el rango de datos es cero
+    if (max_ev_global - min_ev_global < 1e-6) {
+        bounds["min_ev"] = min_ev_global - 0.5;
+        bounds["max_ev"] = max_ev_global + 0.5;
+    } else {
+        bounds["min_ev"] = floor(min_ev_global) - 1.0;
+        bounds["max_ev"] = ceil(max_ev_global) + 1.0;
+    }
+    bounds["min_db"] = -15.0;
+    bounds["max_db"] = 25.0;
+    
+    DrawPlotBase(plot_img, "SNR Curves - Olympus OM-1", bounds, true);
     DrawCurvesAndData(plot_img, all_curves, bounds);
 
     cv::imwrite(output_filename, plot_img);

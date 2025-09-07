@@ -6,7 +6,7 @@
 #include <opencv2/core.hpp>
 #include "Analysis.hpp" // Necesita CurveData
 
-// AÑADIDO: Dimensiones de alta resolución para mayor nitidez
+// Dimensiones base del lienzo. Cambia estos valores y el gráfico se reescalará automáticamente.
 constexpr int PLOT_WIDTH = 3840;
 constexpr int PLOT_HEIGHT = 2160;
 
