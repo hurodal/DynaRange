@@ -1,3 +1,4 @@
+// Fichero: gui/DynaRangeFrame.cpp
 #include "DynaRangeFrame.hpp"
 #include "../core/Engine.hpp"
 #include "../core/Analysis.hpp"
@@ -52,18 +53,13 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     // --- Conexiones de Eventos (Binding) ---
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
-    
-    // AÑADIDO: Conectar el evento de clic en la tabla
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
-
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
-    
     m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-
     UpdateCommandPreview();
 }
 
@@ -72,10 +68,7 @@ DynaRangeFrame::~DynaRangeFrame()
     // Desconectamos los eventos para evitar problemas al cerrar
     m_executeButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
-    
-    // AÑADIDO: Desconectar el evento de la tabla
     m_cvsGrid->Unbind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
-
     Unbind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Unbind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
     m_darkFilePicker->Unbind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
@@ -104,21 +97,29 @@ void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event)
 
         if (!opts.dark_file_path.empty()) {
             auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
-            if (!dark_val_opt) { m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
+            if (!dark_val_opt) { m_summaryPlotPath.clear(); wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
             opts.dark_value = *dark_val_opt;
         }
 
         if (!opts.sat_file_path.empty()) {
             auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
-            if (!sat_val_opt) { m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
+            if (!sat_val_opt) { m_summaryPlotPath.clear(); wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
             opts.saturation_value = *sat_val_opt;
         }
 
         if (!PrepareAndSortFiles(opts, log_stream)) {
-            m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return;
+            m_summaryPlotPath.clear(); wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return;
+        }
+        
+
+        //  Captura la ruta del gráfico resumen
+        auto summary_path_opt = RunDynamicRangeAnalysis(opts, log_stream);
+        if(summary_path_opt) {
+            m_summaryPlotPath = *summary_path_opt;
+        } else {
+            m_summaryPlotPath.clear();
         }
 
-        m_success = RunDynamicRangeAnalysis(opts, log_stream);
         wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
     });
 
@@ -131,7 +132,8 @@ void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
 
 void DynaRangeFrame::OnWorkerCompleted(wxThreadEvent& event) {
     SetExecuteButtonState(true);
-    if (!m_success) {
+    //  Comprueba si m_summaryPlotPath está vacío para determinar el éxito
+    if (m_summaryPlotPath.empty()) {
         AppendLog(_("\n---\nExecution failed. Please check the log for details."));
         wxMessageBox(_("An error occurred during processing. Please check the log tab for details."), _("Error"), wxOK | wxICON_ERROR, this);
     } else {
@@ -139,36 +141,32 @@ void DynaRangeFrame::OnWorkerCompleted(wxThreadEvent& event) {
         m_mainNotebook->SetSelection(2);
         LoadResults(m_lastRunOptions);
         
-        // MODIFICADO: Carga el gráfico del último fichero por defecto
-        if (!m_inputFiles.IsEmpty()) {
-            wxFileName lastFile(m_inputFiles.Last());
-            LoadGraphImage(lastFile.GetFullName());
-        }
+        LoadGraphImage(wxString(m_summaryPlotPath));
     }
 }
 
 void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) {
-    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef)|*.dng;*.cr2;*.nef", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (openFileDialog.ShowModal() == wxID_CANCEL) return;
     openFileDialog.GetPaths(m_inputFiles);
     m_rawFileslistBox->Set(m_inputFiles);
     UpdateCommandPreview();
 }
 
-// --- AÑADIDO: NUEVO MANEJADOR DE EVENTOS PARA EL CLIC EN LA TABLA ---
 void DynaRangeFrame::OnGridCellClick(wxGridEvent& event)
 {
     int row = event.GetRow();
     
-    // MODIFICADO: Si se hace clic en la cabecera (fila -1) o en un área vacía,
-    // o en la fila de etiquetas (fila 0), muestra el gráfico resumen.
+    // Si se hace clic en la cabecera (fila 0), o en el área fuera de los datos.
     if (row < 1) { 
-        // Usamos un nombre de fichero especial y reconocible para el gráfico resumen
-        LoadGraphImage("DR_summary_plot.png");
-    } else { // Si se hace clic en una fila de datos, muestra el gráfico individual
-        wxString rawFilename = m_cvsGrid->GetCellValue(row, 0);
+        if (!m_summaryPlotPath.empty()) {
+            LoadGraphImage(wxString(m_summaryPlotPath)); // Carga el gráfico resumen
+        }
+    } else { // Si se hace clic en una fila de datos (RAW individual)
+        // La columna 0 contiene el nombre del fichero RAW, ej: "iso00200.DNG"
+        wxString rawFilename = m_cvsGrid->GetCellValue(row, 0); 
         if (!rawFilename.IsEmpty()) {
-            LoadGraphImage(rawFilename);
+            LoadGraphImage(rawFilename); // Carga el gráfico individual para ese RAW
         }
     }
 
@@ -185,21 +183,44 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     opts.sat_file_path = std::string(m_saturationFilePicker->GetPath().mb_str());
     m_darkValueTextCtrl->GetValue().ToDouble(&opts.dark_value);
     m_saturationValueTextCtrl->GetValue().ToDouble(&opts.saturation_value);
+    
+    // Valores fijos para la GUI (podrían añadirse controles más adelante)
+    opts.snr_threshold_db = 12.0;
+    opts.dr_normalization_mpx = 8.0;
+    opts.poly_order = 3;
+    opts.patch_safe = 50;
+    
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
     }
+
+    // *****
+    // CORRECCIÓN: Se restaura la declaración de 'output_dir'
+    // *****
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
-    opts.output_filename = std::string((docsPath + wxFileName::GetPathSeparator() + "DR_results.csv").mb_str());
+    // La variable output_dir se declara aquí
+    fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
+    
+    opts.output_filename = (output_dir / "DR_results.csv").string();
     return opts;
 }
-
 void DynaRangeFrame::UpdateCommandPreview() {
-    wxString command = "./dynRange";
-    if (!m_darkFilePicker->GetPath().IsEmpty()) { command += " --dark-file \"" + m_darkFilePicker->GetPath() + "\""; }
-    else { command += " --dark-value " + m_darkValueTextCtrl->GetValue(); }
-    if (!m_saturationFilePicker->GetPath().IsEmpty()) { command += " --sat-file \"" + m_saturationFilePicker->GetPath() + "\""; }
-    else { command += " --sat-value " + m_saturationValueTextCtrl->GetValue(); }
-    command += " -f";
+    wxString command = "dynaRange";
+    if (!m_darkFilePicker->GetPath().IsEmpty()) { command += " --black-file \"" + m_darkFilePicker->GetPath() + "\""; }
+    else { command += " --black-level " + m_darkValueTextCtrl->GetValue(); }
+    if (!m_saturationFilePicker->GetPath().IsEmpty()) { command += " --saturation-file \"" + m_saturationFilePicker->GetPath() + "\""; }
+    else { command += " --saturation-level " + m_saturationValueTextCtrl->GetValue(); }
+
+    command += " --snrthreshold-db " + wxString::Format("%.2f", 12.0);
+    command += " --poly-fit " + wxString::Format("%d", 3);
+    command += " --drnormalization-mpx " + wxString::Format("%.2f", 8.0);
+    command += " --patch-safe " + wxString::Format("%d", 50);
+    
+    wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
+    fs::path output_dir = fs::path(std::string(docsPath.mb_str())) / "DynaRange_Results";
+    command += " --output-file \"" + wxString((output_dir / "DR_results.csv").string()) + "\"";
+
+    command += " --input-files ";
     for (const wxString& file : m_inputFiles) { command += " \"" + file + "\""; }
     m_equivalentCliTextCtrl->ChangeValue(command);
 }
@@ -239,33 +260,43 @@ void DynaRangeFrame::LoadResults(const ProgramOptions& opts) {
     this->Layout();
 }
 
-void DynaRangeFrame::LoadGraphImage(const wxString& filename)
+void DynaRangeFrame::LoadGraphImage(const wxString& full_path_or_raw_filename)
 {
-    if (filename.IsEmpty() || !m_imageGraph) {
+    if (full_path_or_raw_filename.IsEmpty() || !m_imageGraph) {
         return;
     }
 
-    fs::path csvPath(m_lastRunOptions.output_filename);
     fs::path graphPath;
-    std::string graphFilenameStr;
+    std::string displayFilename; // Nombre que se mostrará en la GUI
 
-    if (filename == "DR_summary_plot.png") {
-        graphFilenameStr = "DR_summary_plot.png";
-        graphPath = csvPath.parent_path() / graphFilenameStr;
+    // Obtenemos el directorio donde se guardan los resultados
+    fs::path output_dir = fs::path(std::string(wxStandardPaths::Get().GetDocumentsDir().mb_str()));
+    
+    // Verificamos si es una ruta completa o solo el nombre de un RAW
+    fs::path input_path(std::string(full_path_or_raw_filename.mb_str()));
+
+    // Si la entrada es la ruta completa del resumen (que viene de m_summaryPlotPath)
+    // O si la entrada es un nombre de fichero RAW (como "DSC00001.ARW")
+    if (input_path.is_absolute() && fs::exists(input_path)) {
+        // Es una ruta absoluta y existente (ej. el summary_plot_path completo)
+        graphPath = input_path;
+        displayFilename = graphPath.filename().string();
     } else {
-        fs::path rawFile(std::string(filename.mb_str()));
-        graphFilenameStr = rawFile.stem().string() + "_snr_plot.png";
-        graphPath = csvPath.parent_path() / graphFilenameStr;
+        // Asumimos que es un nombre de RAW (ej. "DSC00001.ARW") o un nombre de archivo como "DR_summary_plot.png"
+        std::string filename_str = input_path.stem().string(); // "DSC00001"
+        std::string plot_filename = filename_str + "_snr_plot.png";
+        graphPath = output_dir / plot_filename;
+        displayFilename = plot_filename; // Mostrar el nombre del archivo del gráfico
     }
 
     wxImage image;
-    if (!image.LoadFile(wxString(graphPath.string()))) {
-        m_imageGraph->SetBitmap(wxBitmap(1,1)); // Usar un bitmap válido pero vacío
-        m_generateGraphStaticText->SetLabel(_("Generated Graph (Image not found): ") + wxString(graphFilenameStr));
+    if (!fs::exists(graphPath) || !image.LoadFile(wxString(graphPath.string()))) {
+        m_imageGraph->SetBitmap(wxBitmap(1,1));
+        m_generateGraphStaticText->SetLabel(_("Generated Graph (Image not found): ") + wxString(displayFilename));
         return;
     }
 
-    m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(graphFilenameStr));
+    m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(displayFilename));
 
     wxSize panelSize = m_imageGraph->GetSize();
     if (panelSize.GetWidth() == 0 || panelSize.GetHeight() == 0) return;
@@ -277,10 +308,11 @@ void DynaRangeFrame::LoadGraphImage(const wxString& filename)
     double vScale = (double)panelSize.GetHeight() / imgHeight;
     double scale = std::min(hScale, vScale);
 
+    // Solo reescalamos si la imagen es más grande que el panel
     if (scale < 1.0) {
         image.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
     }
     
     m_imageGraph->SetBitmap(wxBitmap(image));
-    m_resultsPanel->Layout();
+    m_resultsPanel->Layout(); // Asegura que el panel se redibuja con la nueva imagen
 }

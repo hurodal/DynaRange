@@ -36,6 +36,12 @@ int main(int argc, char* argv[]) {
     std::cout << "\n" << _("[FINAL CONFIGURATION]") << "\n";
     std::cout << _("Black level: ") << opts.dark_value << "\n";
     std::cout << _("Saturation point: ") << opts.saturation_value << "\n";
+    // AÑADIDO: Muestra los nuevos argumentos de configuración
+    std::cout << _("SNR threshold: ") << opts.snr_threshold_db << " dB\n";
+    std::cout << _("DR normalization: ") << opts.dr_normalization_mpx << " Mpx\n";
+    std::cout << _("Polynomic order: ") << opts.poly_order << "\n";
+    std::cout << _("Patch safe: ") << opts.patch_safe << " px\n";
+    
     std::cout << _("Output file: ") << opts.output_filename << "\n\n";
 
     // --- 2. PREPARE AND SORT FILES ---

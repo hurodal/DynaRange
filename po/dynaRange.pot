@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-07 17:00+0200\n"
+"POT-Creation-Date: 2025-09-07 21:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,50 +29,66 @@ msgstr ""
 msgid "Saturation point: "
 msgstr ""
 
-#: src/DynaRangeCli.cpp:39
+#: src/DynaRangeCli.cpp:40
+msgid "SNR threshold: "
+msgstr ""
+
+#: src/DynaRangeCli.cpp:41
+msgid "DR normalization: "
+msgstr ""
+
+#: src/DynaRangeCli.cpp:42
+msgid "Polynomic order: "
+msgstr ""
+
+#: src/DynaRangeCli.cpp:43
+msgid "Patch safe: "
+msgstr ""
+
+#: src/DynaRangeCli.cpp:45
 msgid "Output file: "
 msgstr ""
 
-#: src/DynaRangeCli.cpp:50
+#: src/DynaRangeCli.cpp:56
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:91
+#: src/gui/DynaRangeFrame.cpp:84
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:91 src/gui/DynaRangeFrame.cpp:136
+#: src/gui/DynaRangeFrame.cpp:84 src/gui/DynaRangeFrame.cpp:138
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:135
+#: src/gui/DynaRangeFrame.cpp:137
 msgid ""
 "\n"
 "---\n"
 "Execution failed. Please check the log for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:136
+#: src/gui/DynaRangeFrame.cpp:138
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:138
+#: src/gui/DynaRangeFrame.cpp:140
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:151
+#: src/gui/DynaRangeFrame.cpp:149
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:264
+#: src/gui/DynaRangeFrame.cpp:295
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:268
+#: src/gui/DynaRangeFrame.cpp:299
 msgid "Generated Graph: "
 msgstr ""
 
@@ -81,23 +97,15 @@ msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
 #: src/core/Arguments.cpp:22
-msgid "Dark Frame"
-msgstr ""
-
-#: src/core/Arguments.cpp:22
 msgid "Options for the black level"
 msgstr ""
 
 #: src/core/Arguments.cpp:23
-msgid "RAW file to calculate the black level"
+msgid "Totally dark RAW file (ideally shot at base ISO)"
 msgstr ""
 
 #: src/core/Arguments.cpp:24
-msgid "Numeric value for the black level"
-msgstr ""
-
-#: src/core/Arguments.cpp:27
-msgid "Saturation"
+msgid "Camera RAW black level"
 msgstr ""
 
 #: src/core/Arguments.cpp:27
@@ -105,21 +113,46 @@ msgid "Options for the saturation point"
 msgstr ""
 
 #: src/core/Arguments.cpp:28
-msgid "RAW file to calculate the saturation"
+msgid "Totally clipped RAW file (ideally shot at base ISO)"
 msgstr ""
 
 #: src/core/Arguments.cpp:29
-msgid "Numeric value for the saturation"
-msgstr ""
-
-#: src/core/Arguments.cpp:32
-msgid "Output CSV file"
+msgid "Camera RAW saturation level"
 msgstr ""
 
 #: src/core/Arguments.cpp:33
-msgid "Polynomic order (default=2) to fit the SNR curve"
+msgid ""
+"Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) "
+"with gamma"
+msgstr ""
+
+#: src/core/Arguments.cpp:33
+msgid "Test Chart"
 msgstr ""
 
 #: src/core/Arguments.cpp:34
-msgid "List of RAW files to process"
+msgid "SNR threshold in dB for DR calculation (default=12dB, Photographic DR)"
+msgstr ""
+
+#: src/core/Arguments.cpp:35
+msgid "Polynomic order (default=3) to fit the SNR curve"
+msgstr ""
+
+#: src/core/Arguments.cpp:36
+msgid "Number of Mpx for DR normalization (default=8Mpx)"
+msgstr ""
+
+#: src/core/Arguments.cpp:37
+msgid "Number of border safety pixels around each patch (default=50px)"
+msgstr ""
+
+#: src/core/Arguments.cpp:38
+msgid ""
+"Input RAW files shot over the magenta test chart (ideally for every ISO)"
+msgstr ""
+
+#: src/core/Arguments.cpp:39
+msgid ""
+"Output filename with all results (black level, sat level, SNR samples, DR "
+"values)"
 msgstr ""

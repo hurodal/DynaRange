@@ -3,12 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 #include <opencv2/core.hpp>
-#include "Analysis.hpp" // Necesita CurveData
-#include <wx/wx.h> // Cabecera principal de wxWidgets
-#include <wx/graphics.h> // Para el contexto de gráficos
+#include "Analysis.hpp" 
 
-// Dimensiones base del lienzo. Cambia estos valores y el gráfico se reescalará automáticamente.
+// Dimensiones base del lienzo.
 constexpr int PLOT_WIDTH = 1920;
 constexpr int PLOT_HEIGHT = 1080;
 
@@ -21,7 +20,9 @@ void GenerateSnrPlot(
     const cv::Mat& poly_coeffs
 );
 
-void GenerateSummaryPlot(
-    const std::string& output_filename,
+// Ahora devuelve la ruta del fichero generado
+std::optional<std::string> GenerateSummaryPlot(
+    const std::string& output_dir,
+    const std::string& camera_name,
     const std::vector<CurveData>& all_curves
 );

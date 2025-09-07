@@ -16,7 +16,7 @@
 
 namespace fs = std::filesystem;
 
-// Función de ayuda interna, ahora en PascalCase.
+// Función de ayuda interna.
 double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_db, const std::vector<double>& signal_ev, int poly_order, std::ostream& log_stream) {
     const double filter_range = 5.0;
     std::vector<double> filtered_snr, filtered_signal;
@@ -42,21 +42,35 @@ double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_
     return -signal_at_threshold;
 }
 
-bool RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream) {
+std::optional<std::string> RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream) {
     const int NCOLS = 11, NROWS = 7;
-    const double SAFE = 50.0;
+    // Usamos el valor de patch_safe de las opciones
+    const double SAFE = static_cast<double>(opts.patch_safe); 
+    
     std::vector<DynamicRangeResult> all_results;
     std::vector<CurveData> all_curves_data;
     Eigen::VectorXd k;
     const auto& filenames = opts.input_files;
+    
+    // Variable para almacenar el nombre de la cámara
+    std::string camera_model_name = "";
 
-    for (int i = 0; i < filenames.size(); ++i) {
+    for (size_t i = 0; i < filenames.size(); ++i) {
         const std::string& name = filenames[i];
-        log_stream << "\nProcessing \"" << name << "\"..." << std::endl;
+        log_stream << "\nProcessing \"" << fs::path(name).filename().string() << "\"..." << std::endl;
+
+        // Intentar obtener el nombre de la cámara del primer fichero
+        if (i == 0) {
+            camera_model_name = GetCameraModel(name);
+            if (!camera_model_name.empty()) {
+                log_stream << "  - Info: Detected camera model: " << camera_model_name << std::endl;
+            }
+        }
+
         LibRaw raw_processor;
         if (raw_processor.open_file(name.c_str()) != LIBRAW_SUCCESS || raw_processor.unpack() != LIBRAW_SUCCESS) {
             log_stream << "Error: Could not open/decode RAW file: " << name << std::endl;
-            return false;
+            return std::nullopt;
         }
         log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
         cv::Mat raw_image(raw_processor.imgdata.sizes.raw_height, raw_processor.imgdata.sizes.raw_width, CV_16U, raw_processor.imgdata.rawdata.raw_image);
@@ -98,29 +112,35 @@ bool RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_strea
         PolyFit(signal_mat_global, snr_mat_global, poly_coeffs_global, opts.poly_order);
         fs::path plot_path = fs::path(opts.output_filename).parent_path() / (fs::path(name).stem().string() + "_snr_plot.png");
         GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs_global);
-        double dr_12db = CalculateDrForThreshold(12.0, snr_db, signal_ev, opts.poly_order, log_stream);
+        double dr_12db = CalculateDrForThreshold(opts.snr_threshold_db, snr_db, signal_ev, opts.poly_order, log_stream);
         double dr_0db = CalculateDrForThreshold(0.0, snr_db, signal_ev, opts.poly_order, log_stream);
         all_results.push_back({name, dr_12db, dr_0db, (int)patch_data.signal.size()});
-        all_curves_data.push_back({name, signal_ev, snr_db, poly_coeffs_global.clone()});
+        
+        // Guardamos el modelo de la cámara en la estructura de datos
+        all_curves_data.push_back({name, camera_model_name, signal_ev, snr_db, poly_coeffs_global.clone()});
     }
 
+    std::optional<std::string> summary_plot_path_opt = std::nullopt;
     if (!all_curves_data.empty()) {
-        fs::path summary_plot_path = fs::path(opts.output_filename).parent_path() / "DR_summary_plot.png";
-        GenerateSummaryPlot(summary_plot_path.string(), all_curves_data);
+        fs::path output_dir = fs::path(opts.output_filename).parent_path();
+        // Llamamos a la nueva función GenerateSummaryPlot con el nombre de la cámara
+        summary_plot_path_opt = GenerateSummaryPlot(output_dir.string(), camera_model_name, all_curves_data);
     }
 
     log_stream << "\n--- Dynamic Range Results ---\n";
-    log_stream << std::left << std::setw(30) << "RAW File" << std::setw(15) << "DR(12dB)" << std::setw(15) << "DR(0dB)" << "Patches" << std::endl;
+    log_stream << std::left << std::setw(30) << "RAW File" << std::setw(15) << "DR(" << opts.snr_threshold_db << "dB)" << std::setw(15) << "DR(0dB)" << "Patches" << std::endl;
     log_stream << std::string(75, '-') << std::endl;
     for (const auto& res : all_results) {
         log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string() << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_12db << std::fixed << std::setprecision(4) << std::setw(15) << res.dr_0db << res.patches_used << std::endl;
     }
     std::ofstream csv_file(opts.output_filename);
-    csv_file << "raw_file,DR_12dB,DR_0dB,patches_used\n";
+    csv_file << "raw_file,DR_" << opts.snr_threshold_db << "dB,DR_0dB,patches_used\n";
     for (const auto& res : all_results) {
         csv_file << fs::path(res.filename).filename().string() << "," << res.dr_12db << "," << res.dr_0db << "," << res.patches_used << "\n";
     }
     csv_file.close();
     log_stream << "\nResults saved to " << opts.output_filename << std::endl;
-    return true;
+    
+    // Devolvemos la ruta del gráfico resumen
+    return summary_plot_path_opt;
 }

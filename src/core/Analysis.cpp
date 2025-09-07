@@ -9,6 +9,16 @@
 
 namespace fs = std::filesystem;
 
+std::string GetCameraModel(const std::string& filename) {
+    LibRaw raw_processor;
+    if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS) {
+        // No se puede abrir, devuelve cadena vacía
+        return "";
+    }
+    // Devuelve el modelo de la cámara. Si no existe, idata.model es una cadena vacía.
+    return std::string(raw_processor.imgdata.idata.model);
+}
+
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points) {
     Eigen::Matrix<double, 8, 8> A;
     Eigen::Vector<double, 8> b;

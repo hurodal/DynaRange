@@ -26,12 +26,14 @@ struct PatchAnalysisResult {
 
 struct CurveData {
     std::string name;
+    std::string camera_model;
     std::vector<double> signal_ev;
     std::vector<double> snr_db;
     cv::Mat poly_coeffs;
 };
 
 // --- DECLARACIONES DE FUNCIONES DE ANÁLISIS ---
+std::string GetCameraModel(const std::string& filename);
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double SAFE);
