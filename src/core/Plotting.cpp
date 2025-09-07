@@ -117,6 +117,7 @@ void DrawPlotBase(
     gc->SetTransform(gc->CreateMatrix());
 }
 
+
 void DrawCurvesAndData(
     wxGraphicsContext* gc,
     const std::vector<CurveData>& curves,
@@ -184,10 +185,11 @@ void DrawCurvesAndData(
             wxPoint2DDouble p = map_coords(*ev12, 12.0);
             gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
             
+            // CORRECCIÓN: Ajuste de posición de las etiquetas EV (12dB)
             if (draw_above_12db) {
-                gc->DrawText(ss.str(), p.m_x + 5, p.m_y - 15);
+                gc->DrawText(ss.str(), p.m_x + 15, p.m_y - 15);
             } else {
-                gc->DrawText(ss.str(), p.m_x + 5, p.m_y + 15);
+                gc->DrawText(ss.str(), p.m_x + 15, p.m_y + 5);
             }
             draw_above_12db = !draw_above_12db;
         }
@@ -199,10 +201,11 @@ void DrawCurvesAndData(
             wxPoint2DDouble p = map_coords(*ev0, 0.0);
             gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
 
+            // CORRECCIÓN: Ajuste de posición de las etiquetas EV (0dB)
             if (draw_above_0db) {
-                gc->DrawText(ss.str(), p.m_x + 5, p.m_y - 15);
+                gc->DrawText(ss.str(), p.m_x + 25, p.m_y - 15);
             } else {
-                gc->DrawText(ss.str(), p.m_x + 5, p.m_y + 15);
+                gc->DrawText(ss.str(), p.m_x + 15, p.m_y + 5);
             }
             draw_above_0db = !draw_above_0db;
         }
