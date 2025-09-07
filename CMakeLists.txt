@@ -31,6 +31,8 @@ target_include_directories(dynaRange PRIVATE
     ${OpenCV_INCLUDE_DIRS} 
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
+    # Añadido: Se necesitan las cabeceras de wxWidgets para el módulo de Plotting
+    ${wxWidgets_INCLUDE_DIRS}
 )
 target_link_libraries(dynaRange PRIVATE 
     ${OpenCV_LIBS} 
@@ -38,6 +40,8 @@ target_link_libraries(dynaRange PRIVATE
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
     intl
+    # Añadido: Se necesitan las librerías de wxWidgets para el módulo de Plotting
+    ${wxWidgets_LIBRARIES}
 )
 
 add_executable(dynaRangeGui WIN32

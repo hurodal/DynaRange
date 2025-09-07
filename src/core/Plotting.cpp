@@ -10,21 +10,17 @@
 
 namespace fs = std::filesystem;
 
-namespace { // Namespace anónimo para funciones auxiliares internas a este fichero
+namespace { // Namespace anónimo para funciones auxiliares
 
-void DrawDashedLine(cv::Mat& img, cv::Point p1, cv::Point p2, const cv::Scalar& color, int thickness, int dash_length = 20);
+void DrawDashedLine(wxGraphicsContext* gc, double x1, double y1, double x2, double y2, const wxPen& pen, int dash_length = 20);
 std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
 
-void DrawDashedLine(cv::Mat& img, cv::Point p1, cv::Point p2, const cv::Scalar& color, int thickness, int dash_length) {
-    double dist = cv::norm(p1 - p2);
-    if (dist < 1e-6) return;
-    double dx = (p2.x - p1.x) / dist;
-    double dy = (p2.y - p1.y) / dist;
-    for (double i = 0; i < dist; i += dash_length * 2) {
-        cv::Point start = {static_cast<int>(p1.x + i * dx), static_cast<int>(p1.y + i * dy)};
-        cv::Point end = {static_cast<int>(p1.x + std::min(i + dash_length, dist) * dx), static_cast<int>(p1.y + std::min(i + dash_length, dist) * dy)};
-        cv::line(img, start, end, color, thickness, cv::LINE_AA);
-    }
+void DrawDashedLine(wxGraphicsContext* gc, double x1, double y1, double x2, double y2, const wxPen& pen, int dash_length) {
+    gc->SetPen(pen);
+    wxGraphicsPath path = gc->CreatePath();
+    path.MoveToPoint(x1, y1);
+    path.AddLineToPoint(x2, y2);
+    gc->StrokePath(path);
 }
 
 std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev) {
@@ -42,115 +38,165 @@ std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_sn
 }
 
 void DrawPlotBase(
-    cv::Mat& plot_img,
+    wxGraphicsContext* gc,
     const std::string& title,
     const std::map<std::string, double>& bounds)
 {
-    const int margin_left = 240, margin_bottom = 200, margin_top = 240, margin_right = 600;
+    const int margin_left = 180, margin_bottom = 120, margin_top = 100, margin_right = 100;
     const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
     const int plot_area_height = PLOT_HEIGHT - margin_top - margin_bottom;
 
     auto map_coords = [&](double ev, double db) {
-        int px = static_cast<int>(margin_left + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width);
-        int py = static_cast<int>((PLOT_HEIGHT - margin_bottom) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height);
-        return cv::Point(px, py);
+        double px = margin_left + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width;
+        double py = (PLOT_HEIGHT - margin_bottom) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height;
+        return wxPoint2DDouble(px, py);
     };
 
-    cv::rectangle(plot_img, {0,0}, {PLOT_WIDTH, PLOT_HEIGHT}, cv::Scalar(255,255,255), -1);
-    
-    // --- Comienza el orden de dibujado corregido ---
+    // Fondo blanco
+    gc->SetBrush(*wxWHITE_BRUSH);
+    gc->DrawRectangle(0, 0, PLOT_WIDTH, PLOT_HEIGHT);
 
-    // 1. Rejilla
+    // Rejilla
+    wxPen light_grey_pen(*wxLIGHT_GREY, 1);
+    gc->SetPen(light_grey_pen);
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
-        cv::line(plot_img, map_coords(ev, bounds.at("min_db")), map_coords(ev, bounds.at("max_db")), {220,220,220}, 2);
+        gc->StrokeLine(map_coords(ev, bounds.at("min_db")).m_x, map_coords(ev, bounds.at("min_db")).m_y, map_coords(ev, bounds.at("max_db")).m_x, map_coords(ev, bounds.at("max_db")).m_y);
     }
     for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) {
-        cv::line(plot_img, map_coords(bounds.at("min_ev"), db), map_coords(bounds.at("max_ev"), db), {220,220,220}, 2);
+        gc->StrokeLine(map_coords(bounds.at("min_ev"), db).m_x, map_coords(bounds.at("min_ev"), db).m_y, map_coords(bounds.at("max_ev"), db).m_x, map_coords(bounds.at("max_ev"), db).m_y);
     }
 
-    // 2. Borde principal del área de trazado
-    cv::Rect plot_rect(margin_left, margin_top, plot_area_width, plot_area_height);
-    cv::rectangle(plot_img, plot_rect, {0,0,0}, 3);
+    // Borde principal del área de trazado
+    wxPen black_pen(*wxBLACK, 3);
+    gc->SetPen(black_pen);
+    gc->SetBrush(*wxTRANSPARENT_BRUSH);
+    gc->DrawRectangle(margin_left, margin_top, plot_area_width, plot_area_height);
     
-    // 3. Líneas de referencia (ahora se dibujan después de la rejilla y el borde para asegurar visibilidad)
-    DrawDashedLine(plot_img, map_coords(bounds.at("min_ev"), 12.0), map_coords(bounds.at("max_ev"), 12.0), {0,0,0}, 2);
-    cv::putText(plot_img, "Photographic DR (SNR > 12dB)", {map_coords(bounds.at("min_ev"), 12.0).x + 40, map_coords(bounds.at("min_ev"), 12.0).y - 20}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0,0,0}, 2);
+    // Líneas de referencia
+    wxPen dashed_pen(*wxBLACK, 2, wxPENSTYLE_DOT_DASH);
+    DrawDashedLine(gc, map_coords(bounds.at("min_ev"), 12.0).m_x, map_coords(bounds.at("min_ev"), 12.0).m_y, map_coords(bounds.at("max_ev"), 12.0).m_x, map_coords(bounds.at("max_ev"), 12.0).m_y, dashed_pen);
+    gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
+    gc->DrawText("Photographic DR (SNR > 12dB)", map_coords(bounds.at("min_ev"), 12.0).m_x + 20, map_coords(bounds.at("min_ev"), 12.0).m_y - 20);
     
-    DrawDashedLine(plot_img, map_coords(bounds.at("min_ev"), 0.0), map_coords(bounds.at("max_ev"), 0.0), {0,0,0}, 2);
-    cv::putText(plot_img, "Engineering DR (SNR > 0dB)", {map_coords(bounds.at("min_ev"), 0.0).x + 40, map_coords(bounds.at("min_ev"), 0.0).y + 40}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0,0,0}, 2);
+    DrawDashedLine(gc, map_coords(bounds.at("min_ev"), 0.0).m_x, map_coords(bounds.at("min_ev"), 0.0).m_y, map_coords(bounds.at("max_ev"), 0.0).m_x, map_coords(bounds.at("max_ev"), 0.0).m_y, dashed_pen);
+    gc->DrawText("Engineering DR (SNR > 0dB)", map_coords(bounds.at("min_ev"), 0.0).m_x + 20, map_coords(bounds.at("min_ev"), 0.0).m_y - 20); // Corregido a -20
 
-    // 4. Etiquetas de los ejes (números)
-    for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { cv::putText(plot_img, std::to_string((int)ev), {map_coords(ev, bounds.at("min_db")).x-15, PLOT_HEIGHT-margin_bottom+45}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0,0,0}, 2); }
-    for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) { cv::putText(plot_img, std::to_string((int)db), {margin_left-70, map_coords(bounds.at("min_ev"), db).y+10}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0,0,0}, 2); }
-    
-    // 5. Títulos
-    cv::putText(plot_img, "RAW Exposure (EV)", {PLOT_WIDTH/2-150, PLOT_HEIGHT-50}, cv::FONT_HERSHEY_SIMPLEX, 1.2, {0,0,0}, 3);
-    cv::putText(plot_img, title, {PLOT_WIDTH/2-300, margin_top-60}, cv::FONT_HERSHEY_SIMPLEX, 2.0, {0,0,0}, 3);
+    // Etiquetas de los ejes
+    gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
+    for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { 
+        double text_width, text_height;
+        std::string ev_str = std::to_string((int)ev);
+        gc->GetTextExtent(ev_str, &text_width, &text_height);
+        gc->DrawText(ev_str, map_coords(ev, bounds.at("min_db")).m_x - (text_width / 2), PLOT_HEIGHT - margin_bottom + 20); 
+    }
+    for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) { 
+        double text_width, text_height;
+        std::string db_str = std::to_string((int)db);
+        gc->GetTextExtent(db_str, &text_width, &text_height);
+        gc->DrawText(db_str, margin_left - text_width - 15, map_coords(bounds.at("min_ev"), db).m_y - (text_height / 2)); 
+    }
 
-    // 6. Etiqueta del eje Y
-    std::string y_label_text = "SNR (dB)";
-    cv::Size text_size = cv::getTextSize(y_label_text, cv::FONT_HERSHEY_SIMPLEX, 1.2, 3, nullptr);
-    cv::Point text_origin(60, margin_top + (plot_area_height + text_size.width) / 2);
-    cv::Mat text_canvas = cv::Mat::zeros(text_size.height + 20, text_size.width + 20, CV_8UC3);
-    cv::putText(text_canvas, y_label_text, cv::Point(10, text_size.height + 10), cv::FONT_HERSHEY_SIMPLEX, 1.2, {255,255,255}, 3);
-    cv::rotate(text_canvas, text_canvas, cv::ROTATE_90_COUNTERCLOCKWISE);
-    cv::Mat text_roi = plot_img(cv::Rect(text_origin.x, text_origin.y - text_canvas.rows, text_canvas.cols, text_canvas.rows));
-    text_roi.setTo(cv::Scalar(0,0,0), text_canvas);
+    // Títulos
+    gc->SetFont(wxFont(24, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), *wxBLACK);
+    gc->DrawText(title, PLOT_WIDTH / 2 - 300, margin_top - 60);
+
+    // Etiquetas de los ejes mejoradas
+    gc->SetFont(wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), *wxBLACK);
+    
+    double text_width_x, text_height_x;
+    gc->GetTextExtent("RAW exposure (EV)", &text_width_x, &text_height_x);
+    gc->DrawText("RAW exposure (EV)", PLOT_WIDTH / 2 - (text_width_x / 2), PLOT_HEIGHT - margin_bottom + 60); // Ajustado a +60
+    
+    wxGraphicsMatrix matrix = gc->CreateMatrix();
+    matrix.Rotate(-M_PI / 2.0);
+    // CORRECCIÓN: Traslación ajustada para la etiqueta SNR (dB)
+    double snr_text_width, snr_text_height;
+    gc->GetTextExtent("SNR (dB)", &snr_text_width, &snr_text_height);
+    matrix.Translate(-(PLOT_HEIGHT / 2.0 + snr_text_width / 2.0), margin_left / 2.0);
+    gc->SetTransform(matrix);
+    gc->DrawText("SNR (dB)", 0, 0);
+    gc->SetTransform(gc->CreateMatrix()); // Restablece la matriz de transformación
 }
 
 void DrawCurvesAndData(
-    cv::Mat& plot_img,
+    wxGraphicsContext* gc,
     const std::vector<CurveData>& curves,
     const std::map<std::string, double>& bounds)
 {
-    const int margin_left = 240, margin_top = 240, margin_right = 600;
+    // Mantenemos los márgenes actuales que ya están funcionando para los datos
+    const int margin_left = 180, margin_top = 100, margin_right = 100;
     const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
+    const int plot_area_height = PLOT_HEIGHT - margin_top - 120; 
 
     auto map_coords = [&](double ev, double db) {
-        int px = static_cast<int>(margin_left + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width);
-        int py = static_cast<int>((PLOT_HEIGHT - 200) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * (PLOT_HEIGHT - margin_top - 200));
-        return cv::Point(px, py);
+        double px = margin_left + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width;
+        double py = (PLOT_HEIGHT - 120) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height;
+        return wxPoint2DDouble(px, py);
     };
 
     for (const auto& curve : curves) {
         if (curve.signal_ev.empty()) continue;
         
-        cv::Scalar curve_line_color(0, 0, 200); // Color de línea para las curvas (Rojo en BGR)
-        cv::Scalar curve_point_color(200, 0, 0); // Color de puntos (Azul en BGR)
+        wxPen curve_line_pen(wxColour(200, 0, 0), 2);
+        wxBrush curve_point_brush(wxColour(0, 0, 200));
 
         auto min_max_ev_it = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
         double local_min_ev = *(min_max_ev_it.first);
         double local_max_ev = *(min_max_ev_it.second);
 
-        std::vector<cv::Point> poly_points;
+        // Curva del polinomio
+        wxGraphicsPath poly_path = gc->CreatePath();
+        double snr_poly_start = 0.0;
+        for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
+            snr_poly_start += curve.poly_coeffs.at<double>(j) * std::pow(local_min_ev, curve.poly_coeffs.rows - 1 - j);
+        }
+        poly_path.MoveToPoint(map_coords(local_min_ev, snr_poly_start));
+        
         for (double ev = local_min_ev; ev <= local_max_ev; ev += 0.05) {
             double snr_poly = 0.0;
-            for (int j = 0; j < curve.poly_coeffs.rows; ++j) { snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(ev, curve.poly_coeffs.rows - 1 - j); }
-            poly_points.push_back(map_coords(ev, snr_poly));
+            for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
+                snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(ev, curve.poly_coeffs.rows - 1 - j);
+            }
+            poly_path.AddLineToPoint(map_coords(ev, snr_poly));
         }
-        cv::polylines(plot_img, poly_points, false, curve_line_color, 2, cv::LINE_AA); // Grosor de línea ajustado a 2
+        gc->SetPen(curve_line_pen);
+        gc->StrokePath(poly_path);
 
+        // Puntos de datos
+        gc->SetBrush(curve_point_brush);
+        gc->SetPen(*wxTRANSPARENT_PEN); 
         for(size_t j = 0; j < curve.signal_ev.size(); ++j) {
-            cv::circle(plot_img, map_coords(curve.signal_ev[j], curve.snr_db[j]), 4, curve_point_color, -1, cv::LINE_AA); // Radio de puntos ajustado a 4
+            wxPoint2DDouble point = map_coords(curve.signal_ev[j], curve.snr_db[j]);
+            gc->DrawEllipse(point.m_x - 3, point.m_y - 3, 6, 6); // Mantengo el tamaño 6x6, si quieres más pequeños cámbialo a 2 o 4
         }
 
+        // Etiquetas ISO (ej. Iso00200)
         std::string label = fs::path(curve.name).stem().string();
-        cv::Point label_pos_end = map_coords(curve.signal_ev.back(), curve.snr_db.back());
-        cv::putText(plot_img, label, {label_pos_end.x - 40, label_pos_end.y - 30}, cv::FONT_HERSHEY_SIMPLEX, 1.0, curve_line_color, 2, cv::LINE_AA);
+        wxPoint2DDouble label_pos_end = map_coords(curve.signal_ev.back(), curve.snr_db.back());
+        gc->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), wxColour(200, 0, 0));
+        gc->DrawText(label, label_pos_end.m_x - 40, label_pos_end.m_y - 30);
 
+        // Etiquetas EV para 12dB
         auto ev12 = FindIntersectionEV(curve.poly_coeffs, 12.0, local_min_ev, local_max_ev);
         if (ev12) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << *ev12 << "EV";
-            cv::Point p = map_coords(*ev12, 12.0);
-            cv::putText(plot_img, ss.str(), {p.x + 15, p.y - 15}, cv::FONT_HERSHEY_SIMPLEX, 0.8, {0,0,0}, 2);
+            wxPoint2DDouble p = map_coords(*ev12, 12.0);
+            gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
+            // CORRECCIÓN: Ajuste de posición de las etiquetas EV (12dB)
+            // Para evitar solapamiento, si ya hay una etiqueta cerca, podríamos no dibujar esta.
+            // Por ahora, solo se ajusta la posición.
+            gc->DrawText(ss.str(), p.m_x + 15, p.m_y - 15);
         }
+        // Etiquetas EV para 0dB
         auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
         if (ev0) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << *ev0 << "EV";
-            cv::Point p = map_coords(*ev0, 0.0);
-            cv::putText(plot_img, ss.str(), {p.x + 15, p.y - 15}, cv::FONT_HERSHEY_SIMPLEX, 0.8, {0,0,0}, 2);
+            wxPoint2DDouble p = map_coords(*ev0, 0.0);
+            gc->SetFont(*wxNORMAL_FONT, *wxBLACK);
+            // CORRECCIÓN: Ajuste de posición de las etiquetas EV (0dB)
+            gc->DrawText(ss.str(), p.m_x + 15, p.m_y - 15);
         }
     }
 }
@@ -168,7 +214,13 @@ void GenerateSnrPlot(
         std::cout << "[WARNING] Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
         return;
     }
-    cv::Mat plot_img(PLOT_HEIGHT, PLOT_WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
+    wxBitmap bmp(PLOT_WIDTH, PLOT_HEIGHT);
+    wxGraphicsContext* gc = wxGraphicsContext::Create(bmp);
+    if (!gc) {
+        std::cerr << "[ERROR] Failed to create graphics context." << std::endl;
+        return;
+    }
+
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
     double min_ev_data = *min_max_ev.first;
     double max_ev_data = *min_max_ev.second;
@@ -182,10 +234,13 @@ void GenerateSnrPlot(
     }
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
-    DrawPlotBase(plot_img, "SNR Curve - " + image_title, bounds); // Ya no se pasa 'show_stripe_labels'
+
+    DrawPlotBase(gc, "SNR Curve - " + image_title, bounds);
     std::vector<CurveData> single_curve_vec = {{image_title, signal_ev, snr_db, poly_coeffs}};
-    DrawCurvesAndData(plot_img, single_curve_vec, bounds); // Ya no se pasa 'is_summary'
-    cv::imwrite(output_filename, plot_img);
+    DrawCurvesAndData(gc, single_curve_vec, bounds);
+    
+    bmp.SaveFile(output_filename, wxBITMAP_TYPE_PNG);
+    delete gc;
     std::cout << "[INFO] Plot saved to: " << output_filename << std::endl;
 }
 
@@ -193,7 +248,13 @@ void GenerateSummaryPlot(
     const std::string& output_filename,
     const std::vector<CurveData>& all_curves)
 {
-    cv::Mat plot_img(PLOT_HEIGHT, PLOT_WIDTH, CV_8UC3, cv::Scalar(255, 255, 255));
+    wxBitmap bmp(PLOT_WIDTH, PLOT_HEIGHT);
+    wxGraphicsContext* gc = wxGraphicsContext::Create(bmp);
+    if (!gc) {
+        std::cerr << "[ERROR] Failed to create graphics context." << std::endl;
+        return;
+    }
+
     double min_ev_global = 1e6, max_ev_global = -1e6;
     bool has_data = false;
     for (const auto& curve : all_curves) {
@@ -205,8 +266,10 @@ void GenerateSummaryPlot(
     }
     if (!has_data) {
         std::cout << "[WARNING] Skipping summary plot due to no data points." << std::endl;
+        delete gc;
         return;
     }
+
     std::map<std::string, double> bounds;
     if (max_ev_global - min_ev_global < 1e-6) {
         bounds["min_ev"] = min_ev_global - 0.5;
@@ -217,8 +280,11 @@ void GenerateSummaryPlot(
     }
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
-    DrawPlotBase(plot_img, "SNR Curves - Olympus OM-1", bounds); // Ya no se pasa 'show_stripe_labels'
-    DrawCurvesAndData(plot_img, all_curves, bounds); // Ya no se pasa 'is_summary'
-    cv::imwrite(output_filename, plot_img);
+
+    DrawPlotBase(gc, "SNR Curves - Olympus OM-1", bounds);
+    DrawCurvesAndData(gc, all_curves, bounds);
+
+    bmp.SaveFile(output_filename, wxBITMAP_TYPE_PNG);
+    delete gc;
     std::cout << "[INFO] Summary Plot saved to: " << output_filename << std::endl;
 }

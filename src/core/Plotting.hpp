@@ -5,6 +5,8 @@
 #include <vector>
 #include <opencv2/core.hpp>
 #include "Analysis.hpp" // Necesita CurveData
+#include <wx/wx.h> // Cabecera principal de wxWidgets
+#include <wx/graphics.h> // Para el contexto de gráficos
 
 // Dimensiones base del lienzo. Cambia estos valores y el gráfico se reescalará automáticamente.
 constexpr int PLOT_WIDTH = 1920;
