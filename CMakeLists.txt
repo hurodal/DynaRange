@@ -16,13 +16,14 @@ find_package(Gettext REQUIRED)
 find_package(wxWidgets REQUIRED)
 
 set(CORE_SOURCES
-    src/core/arguments.cpp
-    src/core/functions.cpp
-    src/core/engine.cpp
+    src/core/Analysis.cpp
+    src/core/Arguments.cpp
+    src/core/Engine.cpp
+    src/core/Plotting.cpp
 )
 
 add_executable(dynaRange
-    src/dynaRange.cpp
+    src/DynaRangeCli.cpp
     ${CORE_SOURCES}
     icono_owl.rc
 )
@@ -40,7 +41,7 @@ target_link_libraries(dynaRange PRIVATE
 )
 
 add_executable(dynaRangeGui WIN32
-    src/dynaRangeGuiApp.cpp
+    src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
@@ -65,8 +66,8 @@ include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 set(I18N_SOURCES
-    src/dynaRange.cpp
-    src/dynaRangeGuiApp.cpp
+    src/DynaRangeCli.cpp
+    src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
 )

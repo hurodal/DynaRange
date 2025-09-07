@@ -1,6 +1,5 @@
 #include "DynaRangeFrame.hpp"
-#include "../core/engine.hpp"
-#include "../core/functions.hpp"
+#include "../core/Engine.hpp"
 
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>

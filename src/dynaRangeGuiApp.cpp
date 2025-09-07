@@ -1,7 +1,8 @@
 #include <wx/wx.h>
-#include "gui/DynaRangeFrame.hpp"
-#include <clocale>
 #include <wx/image.h>
+#include <clocale>
+#include "gui/DynaRangeFrame.hpp"
+
 
 // Clase principal de la aplicación
 class MyApp : public wxApp {

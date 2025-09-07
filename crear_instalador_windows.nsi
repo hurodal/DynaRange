@@ -3,13 +3,13 @@
 
 ; --- Información Básica del Instalador ---
 Name "DynaRange"
-OutFile "DynaRange_Installer.exe"
+OutFile "dynaRangeInstaller.exe"
 InstallDir "$PROGRAMFILES64\DynaRange"
 RequestExecutionLevel admin
 
 ; --- Información de Versión (para Propiedades del Archivo) ---
-VIProductVersion "1.0.0.2"
-VIAddVersionKey "FileVersion" "1.0.0.2"
+VIProductVersion "1.0.1.0"
+VIAddVersionKey "FileVersion" "1.0.1.0"
 VIAddVersionKey "ProductName" "DynaRange"
 VIAddVersionKey "FileDescription" "Dynamic Range Analysis Tool"
 VIAddVersionKey "LegalCopyright" "Hurodal"
@@ -42,11 +42,11 @@ Section "Programa Principal"
   WriteUninstaller "$INSTDIR\uninstall.exe"
   
   ; [cite_start]Copia todos los archivos de tu carpeta portable [cite: 6, 7]
-  File /r "DynaRange_Portable\*.*" 
+  File /r "dynaRangePortable\*.*" 
   
   ; [cite_start]Crea accesos directos (ahora con icono) [cite: 8]
-  CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\DynaRangeGui.exe" "" "favicon_noise.ico"
-  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\DynaRangeGui.exe" "" "favicon_noise.ico"
+  CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
+  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
 
   ; Escribe la información para "Agregar o quitar programas" de Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DynaRange" "DisplayName" "DynaRange"

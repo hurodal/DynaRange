@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DynaRangeBase.h"
-#include "../core/arguments.hpp" // Para ProgramOptions
+#include "../core/Arguments.hpp" // Para ProgramOptions
 
 // Declaración de los eventos personalizados para el hilo de trabajo
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
