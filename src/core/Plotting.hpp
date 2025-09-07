@@ -7,8 +7,8 @@
 #include "Analysis.hpp" // Necesita CurveData
 
 // Dimensiones base del lienzo. Cambia estos valores y el gráfico se reescalará automáticamente.
-constexpr int PLOT_WIDTH = 3840;
-constexpr int PLOT_HEIGHT = 2160;
+constexpr int PLOT_WIDTH = 1920;
+constexpr int PLOT_HEIGHT = 1080;
 
 // --- DECLARACIONES DE FUNCIONES DE GRÁFICOS ---
 void GenerateSnrPlot(
