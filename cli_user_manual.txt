@@ -1,0 +1,23 @@
+C:\>rango
+
+Digital camera Dynamic Range calculation "rango" v1.0
+by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (algorithms)
+
+Usage: rango [OPTION]... [FILE]...
+
+--chart               -c <R G B gamma> : Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma
+--black-level         -b <float>       : Camera RAW black level
+--black-file          -B <file>        : Totally dark RAW file (ideally shot at base ISO)
+--saturation-level    -s <float>       : Camera RAW saturation level
+--saturation-file     -S <file>        : Totally clipped RAW file (ideally shot at base ISO)
+--snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
+--poly-fit            -f <2-3>         : polynomic order (default=3) to fit the SNR curve
+--drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
+--patch-safe          -p <int>         : Number of border safety pixels around each patch (default=50px)
+--input-files         -i <files>       : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--output-file         -o <file>        : Output filename with all results (black level, sat level, SNR samples, DR values)
+--report-command      -C <boolean>     : If set then add Equivalent command to graphics.
+
+C:\>
+
+
