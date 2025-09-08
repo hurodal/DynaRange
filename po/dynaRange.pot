@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-08 18:23+0200\n"
+"POT-Creation-Date: 2025-09-08 19:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,11 +72,11 @@ msgstr ""
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:339
+#: src/gui/DynaRangeFrame.cpp:342
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:344
+#: src/gui/DynaRangeFrame.cpp:347
 msgid "Generated Graph: "
 msgstr ""
 
@@ -112,25 +112,29 @@ msgstr ""
 msgid "SNR threshold in dB for DR calculation (default=12dB, Photographic DR)"
 msgstr ""
 
-#: src/core/Arguments.cpp:34
+#: src/core/Arguments.cpp:30
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/Arguments.cpp:36
+#: src/core/Arguments.cpp:31
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/Arguments.cpp:37
+#: src/core/Arguments.cpp:32
 msgid "Number of border safety pixels around each patch (default=50px)"
 msgstr ""
 
-#: src/core/Arguments.cpp:38
+#: src/core/Arguments.cpp:33
 msgid ""
 "Input RAW files shot over the magenta test chart (ideally for every ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:39
+#: src/core/Arguments.cpp:34
 msgid ""
 "Output filename with all results (black level, sat level, SNR samples, DR "
 "values)"
+msgstr ""
+
+#: src/core/Arguments.cpp:35
+msgid "If set then add Equivalent command to graphics."
 msgstr ""

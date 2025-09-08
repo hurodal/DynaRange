@@ -17,6 +17,7 @@ void GenerateSnrPlot(
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
+    const ProgramOptions& opts,
     std::ostream& log_stream)
 {
     if (signal_ev.size() < 2) {
@@ -41,14 +42,13 @@ void GenerateSnrPlot(
         bounds["max_ev"] = max_ev_data + 0.5;
     } else {
         bounds["min_ev"] = floor(min_ev_data) - 1.0;
-        // **CORRECCIÓN**: Ajustar el límite superior del eje X
         bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
     }
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    DrawPlotBase(cr, "SNR Curve - " + image_title, bounds);
-    std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs}};
+    DrawPlotBase(cr, "SNR Curve - " + image_title, bounds, opts.generated_command);
+    std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs, opts.generated_command}};
     DrawCurvesAndData(cr, single_curve_vec, bounds);
     
     cairo_surface_write_to_png(surface, output_filename.c_str());
@@ -57,11 +57,11 @@ void GenerateSnrPlot(
     log_stream << "  - Info: Plot saved to: " << output_filename << std::endl;
 }
 
-
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_dir,
     const std::string& camera_name,
     const std::vector<CurveData>& all_curves,
+    const ProgramOptions& opts,
     std::ostream& log_stream)
 {
     if (all_curves.empty()) {
@@ -99,7 +99,6 @@ std::optional<std::string> GenerateSummaryPlot(
         bounds["max_ev"] = max_ev_global + 0.5;
     } else {
         bounds["min_ev"] = floor(min_ev_global) - 1.0;
-        // **CORRECCIÓN**: Ajustar el límite superior del eje X
         bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     }
     bounds["min_db"] = -15.0;
@@ -117,7 +116,7 @@ std::optional<std::string> GenerateSummaryPlot(
 
     std::string output_filename = (fs::path(output_dir) / ("DR_summary_plot" + filename_suffix + ".png")).string();
 
-    DrawPlotBase(cr, title, bounds);
+    DrawPlotBase(cr, title, bounds, opts.generated_command);
     DrawCurvesAndData(cr, all_curves, bounds);
 
     cairo_surface_write_to_png(surface, output_filename.c_str());

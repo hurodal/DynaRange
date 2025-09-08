@@ -11,6 +11,7 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
+constexpr int INTERSECTION_POLY_ORDER = 2;
 
 // --- DEFINICIÓN DE ESTRUCTURAS ---
 struct DynamicRangeResult {
@@ -32,6 +33,7 @@ struct CurveData {
     std::vector<double> signal_ev;
     std::vector<double> snr_db;
     cv::Mat poly_coeffs;
+    std::string generated_command;
 };
 
 // --- DECLARACIONES DE FUNCIONES DE ANÁLISIS ---

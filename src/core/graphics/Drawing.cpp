@@ -29,7 +29,8 @@ void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, dou
 void DrawPlotBase(
     cairo_t* cr,
     const std::string& title,
-    const std::map<std::string, double>& bounds)
+    const std::map<std::string, double>& bounds,
+    const std::string& command_text)
 {
     const int margin_left = 180, margin_bottom = 120, margin_top = 100, margin_right = 100;
     const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
@@ -119,10 +120,18 @@ void DrawPlotBase(
     cairo_rotate(cr, -M_PI / 2.0);
     cairo_show_text(cr, y_label.c_str());
     cairo_restore(cr);
+
+    if (!command_text.empty()) {
+        cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(cr, 12.0);
+        cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
+        cairo_text_extents_t cmd_extents;
+        cairo_text_extents(cr, command_text.c_str(), &cmd_extents);
+        
+        cairo_move_to(cr, PLOT_WIDTH - margin_right - cmd_extents.width - 10, PLOT_HEIGHT - 20);
+        cairo_show_text(cr, command_text.c_str());
+    }
 }
-
-
-// Fichero: core/graphics/Drawing.cpp
 
 void DrawCurvesAndData(
     cairo_t* cr,

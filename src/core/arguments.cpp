@@ -27,16 +27,12 @@ ProgramOptions ParseArguments(int argc, char* argv[]) {
     sat_group->require_option(1);
     
     app.add_option("--snrthreshold-db", opts.snr_threshold_db, _("SNR threshold in dB for DR calculation (default=12dB, Photographic DR)"))->default_val(12.0);
-    
-    // Usa la constante para el valor por defecto del argumento.
-    // El valor de opts.poly_order ya se inicializa con DEFAULT_POLY_ORDER en el .hpp,
-    // y aquí se sobreescribirá si el usuario pasa el argumento -f.
     app.add_option("--poly-fit,-f", opts.poly_order, _("Polynomic order (default=3) to fit the SNR curve"))->check(CLI::IsMember({2, 3, 4, 5}))->default_val(DEFAULT_POLY_ORDER);
-    
     app.add_option("--drnormalization-mpx,-m", opts.dr_normalization_mpx, _("Number of Mpx for DR normalization (default=8Mpx)"))->default_val(8.0);
     app.add_option("--patch-safe,-p", opts.patch_safe, _("Number of border safety pixels around each patch (default=50px)"))->default_val(50);
     app.add_option("-i,--input-files", opts.input_files, _("Input RAW files shot over the magenta test chart (ideally for every ISO)"))->required()->check(CLI::ExistingFile);
     app.add_option("-o,--output-file", opts.output_filename, _("Output filename with all results (black level, sat level, SNR samples, DR values)"))->default_val("DR_results.csv");
+    app.add_flag("-C,--report-command", opts.report_command, _("If set then add Equivalent command to graphics."));
 
     try {
         app.parse(argc, argv);

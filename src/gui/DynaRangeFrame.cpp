@@ -217,6 +217,9 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     opts.poly_order = DEFAULT_POLY_ORDER;
     opts.patch_safe = 50;
     
+    // La GUI siempre activa el reporte del comando
+    opts.report_command = true;
+    
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
     }
