@@ -1,17 +1,15 @@
-// Fichero: core/Plotting.hpp
+// Fichero: core/graphics/Plotting.hpp
 #pragma once
 
 #include <string>
 #include <vector>
 #include <optional>
 #include <ostream>
-#include "Analysis.hpp" 
+#include "Drawing.hpp"
 
-// Dimensiones base del lienzo.
-constexpr int PLOT_WIDTH = 1920;
-constexpr int PLOT_HEIGHT = 1080;
+// --- FUNCIONES PÚBLICAS DE GENERACIÓN DE GRÁFICOS ---
 
-// --- DECLARACIONES DE FUNCIONES DE GRÁFICOS ---
+// Genera un gráfico PNG para una única curva de SNR.
 void GenerateSnrPlot(
     const std::string& output_filename,
     const std::string& image_title,
@@ -21,6 +19,7 @@ void GenerateSnrPlot(
     std::ostream& log_stream 
 );
 
+// Genera un gráfico PNG resumen con todas las curvas de SNR.
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_dir,
     const std::string& camera_name,

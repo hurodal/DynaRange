@@ -6,11 +6,11 @@
 #include <optional>
 #include <ostream>
 #include "Arguments.hpp" 
+#include "Math.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
-constexpr int INTERSECTION_POLY_ORDER = 2;
 
 // --- DEFINICIÓN DE ESTRUCTURAS ---
 struct DynamicRangeResult {
@@ -31,7 +31,7 @@ struct CurveData {
     std::string camera_model;
     std::vector<double> signal_ev;
     std::vector<double> snr_db;
-    cv::Mat poly_coeffs;           // El único juego de coeficientes
+    cv::Mat poly_coeffs;
 };
 
 // --- DECLARACIONES DE FUNCIONES DE ANÁLISIS ---
@@ -46,7 +46,3 @@ std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream
 std::optional<double> ProcessSaturationFrame(const std::string& filename, std::ostream& log_stream);
 std::optional<double> EstimateMeanBrightness(const std::string& filename, float sample_ratio = 0.1f);
 bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream);
-void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order);
-
-// AÑADIDO: Declaración pública de FindIntersectionEV
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);

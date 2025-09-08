@@ -1,7 +1,7 @@
 // Fichero: core/Engine.cpp
 #include "Engine.hpp"
 #include "Analysis.hpp"
-#include "Plotting.hpp"
+#include "graphics/Plotting.hpp"
 #include <iostream>
 #include <iomanip>
 #include <vector>

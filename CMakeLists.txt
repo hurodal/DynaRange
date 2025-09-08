@@ -19,11 +19,14 @@ find_package(wxWidgets REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
 
+# --- CORRECCIÓN: Añadir el nuevo fichero Math.cpp a los fuentes ---
 set(CORE_SOURCES
     src/core/Analysis.cpp
     src/core/Arguments.cpp
     src/core/Engine.cpp
-    src/core/Plotting.cpp
+    src/core/graphics/Drawing.cpp
+    src/core/graphics/Plotting.cpp
+    src/core/Math.cpp
 )
 
 add_executable(dynaRange
