@@ -2,6 +2,8 @@
 #pragma once
 #include "Arguments.hpp"
 #include <ostream>
+#include <optional>
+#include <string>
 
-// Declaración de la función principal del motor, ahora en PascalCase.
-bool RunDynamicRangeAnalysis(const ProgramOptions& opts, std::ostream& log_stream);
+// Acepta opts por referencia (&) para poder modificarla
+std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream);

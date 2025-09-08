@@ -15,6 +15,10 @@ find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 find_package(wxWidgets REQUIRED)
 
+# Buscar la librería de Cairo
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CAIRO REQUIRED cairo)
+
 set(CORE_SOURCES
     src/core/Analysis.cpp
     src/core/Arguments.cpp
@@ -31,8 +35,7 @@ target_include_directories(dynaRange PRIVATE
     ${OpenCV_INCLUDE_DIRS} 
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
-    # Añadido: Se necesitan las cabeceras de wxWidgets para el módulo de Plotting
-    ${wxWidgets_INCLUDE_DIRS}
+    ${CAIRO_INCLUDE_DIRS}
 )
 target_link_libraries(dynaRange PRIVATE 
     ${OpenCV_LIBS} 
@@ -40,8 +43,7 @@ target_link_libraries(dynaRange PRIVATE
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
     intl
-    # Añadido: Se necesitan las librerías de wxWidgets para el módulo de Plotting
-    ${wxWidgets_LIBRARIES}
+    ${CAIRO_LIBRARIES}
 )
 
 add_executable(dynaRangeGui WIN32
@@ -56,6 +58,7 @@ target_include_directories(dynaRangeGui PRIVATE
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
+    ${CAIRO_INCLUDE_DIRS}
 )
 target_link_libraries(dynaRangeGui PRIVATE
     ${wxWidgets_LIBRARIES}
@@ -64,6 +67,7 @@ target_link_libraries(dynaRangeGui PRIVATE
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
     intl
+    ${CAIRO_LIBRARIES}
 )
 
 include(UseGettext)

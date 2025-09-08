@@ -1,6 +1,6 @@
 // Fichero: core/Arguments.cpp
 #include "Arguments.hpp"
-#include "Analysis.hpp" // Depende de las funciones de análisis
+#include "Analysis.hpp"
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <limits>
@@ -16,22 +16,27 @@ ProgramOptions ParseArguments(int argc, char* argv[]) {
     ProgramOptions opts{};
     CLI::App app{_("Calculates the dynamic range from a series of RAW images.")};
 
-    std::string dark_file, sat_file;
-    double dark_value_cli = -1.0, sat_value_cli = -1.0;
-
-    auto dark_group = app.add_option_group(_("Dark Frame"), _("Options for the black level"));
-    auto opt_dark_file = dark_group->add_option("--dark-file", dark_file, _("RAW file to calculate the black level"))->check(CLI::ExistingFile);
-    auto opt_dark_value = dark_group->add_option("--dark-value", dark_value_cli, _("Numeric value for the black level"))->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
+    auto dark_group = app.add_option_group("--black-level", _("Options for the black level"));
+    dark_group->add_option("-b,--black-file", opts.dark_file_path, _("Totally dark RAW file (ideally shot at base ISO)"))->check(CLI::ExistingFile);
+    dark_group->add_option("--black-level", opts.dark_value, _("Camera RAW black level"))->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
     dark_group->require_option(1); 
 
-    auto sat_group = app.add_option_group(_("Saturation"), _("Options for the saturation point"));
-    auto opt_sat_file = sat_group->add_option("--sat-file", sat_file, _("RAW file to calculate the saturation"))->check(CLI::ExistingFile);
-    auto opt_sat_value = sat_group->add_option("--sat-value", sat_value_cli, _("Numeric value for the saturation"))->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
+    auto sat_group = app.add_option_group("--saturation-level", _("Options for the saturation point"));
+    sat_group->add_option("-s,--saturation-file", opts.sat_file_path, _("Totally clipped RAW file (ideally shot at base ISO)"))->check(CLI::ExistingFile);
+    sat_group->add_option("--saturation-level", opts.saturation_value, _("Camera RAW saturation level"))->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
     sat_group->require_option(1);
-
-    app.add_option("-o,--output-data", opts.output_filename, _("Output CSV file"))->default_val("DR_results.csv");
-    app.add_option("--poly-fit", opts.poly_order, _("Polynomic order (default=2) to fit the SNR curve"))->check(CLI::IsMember({2, 3}))->default_val(2);
-    app.add_option("-f,--files", opts.input_files, _("List of RAW files to process"))->required()->check(CLI::ExistingFile);
+    
+    app.add_option("--snrthreshold-db", opts.snr_threshold_db, _("SNR threshold in dB for DR calculation (default=12dB, Photographic DR)"))->default_val(12.0);
+    
+    // Usa la constante para el valor por defecto del argumento.
+    // El valor de opts.poly_order ya se inicializa con DEFAULT_POLY_ORDER en el .hpp,
+    // y aquí se sobreescribirá si el usuario pasa el argumento -f.
+    app.add_option("--poly-fit,-f", opts.poly_order, _("Polynomic order (default=3) to fit the SNR curve"))->check(CLI::IsMember({2, 3, 4, 5}))->default_val(DEFAULT_POLY_ORDER);
+    
+    app.add_option("--drnormalization-mpx,-m", opts.dr_normalization_mpx, _("Number of Mpx for DR normalization (default=8Mpx)"))->default_val(8.0);
+    app.add_option("--patch-safe,-p", opts.patch_safe, _("Number of border safety pixels around each patch (default=50px)"))->default_val(50);
+    app.add_option("-i,--input-files", opts.input_files, _("Input RAW files shot over the magenta test chart (ideally for every ISO)"))->required()->check(CLI::ExistingFile);
+    app.add_option("-o,--output-file", opts.output_filename, _("Output filename with all results (black level, sat level, SNR samples, DR values)"))->default_val("DR_results.csv");
 
     try {
         app.parse(argc, argv);
@@ -41,30 +46,6 @@ ProgramOptions ParseArguments(int argc, char* argv[]) {
     }
 
     setlocale(LC_NUMERIC, current_locale);
-
-    if (*opt_dark_file) {
-        // Llamada a la función renombrada
-        auto dark_val_opt = ProcessDarkFrame(dark_file, std::cout);
-        if (!dark_val_opt) {
-            std::cerr << "Fatal error: Could not process dark file: " << dark_file << ". Exiting." << std::endl;
-            exit(1);
-        }
-        opts.dark_value = *dark_val_opt;
-    } else {
-        opts.dark_value = dark_value_cli;
-    }
-
-    if (*opt_sat_file) {
-        // Llamada a la función renombrada
-        auto sat_val_opt = ProcessSaturationFrame(sat_file, std::cout);
-        if (!sat_val_opt) {
-            std::cerr << "Fatal error: Could not process saturation file: " << sat_file << ". Exiting." << std::endl;
-            exit(1);
-        }
-        opts.saturation_value = *sat_val_opt;
-    } else {
-        opts.saturation_value = sat_value_cli;
-    }
 
     return opts;
 }

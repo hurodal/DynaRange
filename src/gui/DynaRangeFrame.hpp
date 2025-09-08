@@ -1,9 +1,11 @@
 #pragma once
 
 #include "DynaRangeBase.h"
-#include "../core/Arguments.hpp" // Para ProgramOptions
+#include "../core/Arguments.hpp" // For ProgramOptions
+#include <wx/arrstr.h>          // For wxArrayString
+#include <string>               // Required for std::string
 
-// Declaración de los eventos personalizados para el hilo de trabajo
+// Custom event declarations for the worker thread
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxThreadEvent);
 
@@ -13,18 +15,22 @@ public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
 
-private:
-    // --- Manejadores de eventos de la GUI ---
+protected:
+    // Event Handlers
+    // **FIXED**: Removed 'override' as the base class does not use virtual event handlers.
     void OnExecuteClick(wxCommandEvent& event);
     void OnAddFilesClick(wxCommandEvent& event);
-    void OnInputChanged(wxEvent& event);
     void OnGridCellClick(wxGridEvent& event);
 
-    // --- Manejadores de eventos del hilo de trabajo ---
+    // Worker thread event handlers
     void OnWorkerUpdate(wxThreadEvent& event);
     void OnWorkerCompleted(wxThreadEvent& event);
+    
+    // Other handlers
+    void OnInputChanged(wxEvent& event);
 
-    // --- Funciones de lógica migradas ---
+private:
+    // Logic functions
     void UpdateCommandPreview();
     void ClearLog();
     void AppendLog(const wxString& text);
@@ -33,8 +39,8 @@ private:
     ProgramOptions GetProgramOptions();
     void SetExecuteButtonState(bool enabled);
 
-    // --- Variables miembro migradas ---
+    // Member variables
     ProgramOptions m_lastRunOptions;
-    bool m_success;
     wxArrayString m_inputFiles;
+    std::string m_summaryPlotPath; 
 };

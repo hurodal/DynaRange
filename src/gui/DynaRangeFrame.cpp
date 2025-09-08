@@ -1,6 +1,7 @@
+// Fichero: gui/DynaRangeFrame.cpp
 #include "DynaRangeFrame.hpp"
 #include "../core/Engine.hpp"
-#include "../core/Analysis.hpp"
+#include "../core/Analysis.hpp" 
 
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
@@ -52,19 +53,31 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     // --- Conexiones de Eventos (Binding) ---
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
-    
-    // AÑADIDO: Conectar el evento de clic en la tabla
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
-
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
-    
     m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-
     UpdateCommandPreview();
+
+    // Cargar el logotipo al iniciar la aplicación.
+    // Busca el logo en el mismo directorio que el ejecutable.
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    wxFileName fn(exePath);
+    wxString appDir = fn.GetPath();
+    wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
+    
+    wxImage logoImage;
+    if (logoImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
+        m_imageGraph->SetBitmap(wxBitmap(logoImage));
+        m_generateGraphStaticText->SetLabel(_("Welcome to Dynamic Range Calculator"));
+    } else {
+        m_imageGraph->SetBitmap(wxBitmap()); // Si no hay logo, usa un bitmap nulo
+        m_generateGraphStaticText->SetLabel(_("Welcome (logo.png not found)"));
+    }
+    m_resultsPanel->Layout();
 }
 
 DynaRangeFrame::~DynaRangeFrame()
@@ -72,10 +85,7 @@ DynaRangeFrame::~DynaRangeFrame()
     // Desconectamos los eventos para evitar problemas al cerrar
     m_executeButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
-    
-    // AÑADIDO: Desconectar el evento de la tabla
     m_cvsGrid->Unbind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
-
     Unbind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Unbind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
     m_darkFilePicker->Unbind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
@@ -83,6 +93,7 @@ DynaRangeFrame::~DynaRangeFrame()
     m_darkValueTextCtrl->Unbind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Unbind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
 }
+
 
 void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event)
 {
@@ -96,82 +107,97 @@ void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event)
     m_mainNotebook->SetSelection(1);
     ClearLog();
 
+    // Deshabilitamos el panel y mostramos el logo como placeholder.
+    m_resultsPanel->Enable(false); 
+
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    wxFileName fn(exePath);
+    wxString appDir = fn.GetPath();
+    wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
+    
+    wxImage logoImage;
+    if (logoImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
+        m_imageGraph->SetBitmap(wxBitmap(logoImage));
+        m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
+    } else {
+        m_imageGraph->SetBitmap(wxBitmap());
+        m_generateGraphStaticText->SetLabel(_("Processing..."));
+    }
+    m_resultsPanel->Layout();
+
+    // Limpiamos el grid antes de empezar
+    if (m_cvsGrid->GetNumberRows() > 0) m_cvsGrid->DeleteRows(0, m_cvsGrid->GetNumberRows());
+    if (m_cvsGrid->GetNumberCols() > 0) m_cvsGrid->DeleteCols(0, m_cvsGrid->GetNumberCols());
+
     std::thread worker_thread([this]() {
         WxLogStreambuf log_streambuf(this);
         std::ostream log_stream(&log_streambuf);
         
         ProgramOptions opts = m_lastRunOptions;
+        m_summaryPlotPath.clear();
 
-        if (!opts.dark_file_path.empty()) {
-            auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
-            if (!dark_val_opt) { m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
-            opts.dark_value = *dark_val_opt;
+        auto summary_path_opt = RunDynamicRangeAnalysis(opts, log_stream);
+        
+        if(summary_path_opt) {
+            m_summaryPlotPath = *summary_path_opt;
         }
 
-        if (!opts.sat_file_path.empty()) {
-            auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
-            if (!sat_val_opt) { m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return; }
-            opts.saturation_value = *sat_val_opt;
-        }
-
-        if (!PrepareAndSortFiles(opts, log_stream)) {
-            m_success = false; wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED)); return;
-        }
-
-        m_success = RunDynamicRangeAnalysis(opts, log_stream);
         wxQueueEvent(this, new wxThreadEvent(wxEVT_COMMAND_WORKER_COMPLETED));
     });
 
     worker_thread.detach();
 }
 
+
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
     AppendLog(event.GetString());
 }
 
+
 void DynaRangeFrame::OnWorkerCompleted(wxThreadEvent& event) {
     SetExecuteButtonState(true);
-    if (!m_success) {
+    m_resultsPanel->Enable(true); // Habilitamos el panel de nuevo
+    
+    if (m_summaryPlotPath.empty()) {
         AppendLog(_("\n---\nExecution failed. Please check the log for details."));
         wxMessageBox(_("An error occurred during processing. Please check the log tab for details."), _("Error"), wxOK | wxICON_ERROR, this);
+        m_generateGraphStaticText->SetLabel(_("Error during processing. Check log."));
     } else {
         AppendLog(_("\n---\nExecution finished successfully."));
         m_mainNotebook->SetSelection(2);
         LoadResults(m_lastRunOptions);
-        
-        // MODIFICADO: Carga el gráfico del último fichero por defecto
-        if (!m_inputFiles.IsEmpty()) {
-            wxFileName lastFile(m_inputFiles.Last());
-            LoadGraphImage(lastFile.GetFullName());
-        }
+        LoadGraphImage(wxString(m_summaryPlotPath));
     }
 }
 
 void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) {
-    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef)|*.dng;*.cr2;*.nef", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (openFileDialog.ShowModal() == wxID_CANCEL) return;
     openFileDialog.GetPaths(m_inputFiles);
     m_rawFileslistBox->Set(m_inputFiles);
     UpdateCommandPreview();
 }
 
-// --- AÑADIDO: NUEVO MANEJADOR DE EVENTOS PARA EL CLIC EN LA TABLA ---
+
 void DynaRangeFrame::OnGridCellClick(wxGridEvent& event)
 {
     int row = event.GetRow();
-    
-    // MODIFICADO: Si se hace clic en la cabecera (fila -1) o en un área vacía,
-    // o en la fila de etiquetas (fila 0), muestra el gráfico resumen.
+
+    // Fila -1: Cabeceras grises (A, B, C...)
+    // Fila 0: Títulos de texto ("raw_file", etc.)
+    // Fila 1 en adelante: Datos de los RAWs
     if (row < 1) { 
-        // Usamos un nombre de fichero especial y reconocible para el gráfico resumen
-        LoadGraphImage("DR_summary_plot.png");
-    } else { // Si se hace clic en una fila de datos, muestra el gráfico individual
+        if (!m_summaryPlotPath.empty()) {
+            LoadGraphImage(wxString(m_summaryPlotPath));
+        }
+    } else { 
+        // **CORRECCIÓN DE ÍNDICE**:
+        // La fila 1 del grid es la primera de datos, que corresponde al raw en la fila 1 del grid
         wxString rawFilename = m_cvsGrid->GetCellValue(row, 0);
         if (!rawFilename.IsEmpty()) {
             LoadGraphImage(rawFilename);
         }
     }
-
     event.Skip();
 }
 
@@ -185,23 +211,53 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     opts.sat_file_path = std::string(m_saturationFilePicker->GetPath().mb_str());
     m_darkValueTextCtrl->GetValue().ToDouble(&opts.dark_value);
     m_saturationValueTextCtrl->GetValue().ToDouble(&opts.saturation_value);
+    
+    opts.snr_threshold_db = 12.0;
+    opts.dr_normalization_mpx = 8.0;
+    opts.poly_order = DEFAULT_POLY_ORDER;
+    opts.patch_safe = 50;
+    
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
     }
+
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
-    opts.output_filename = std::string((docsPath + wxFileName::GetPathSeparator() + "DR_results.csv").mb_str());
+    fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
+    //fs::create_directories(output_dir);
+    opts.output_filename = (output_dir / "DR_results.csv").string();
+    
     return opts;
 }
 
 void DynaRangeFrame::UpdateCommandPreview() {
-    wxString command = "./dynRange";
-    if (!m_darkFilePicker->GetPath().IsEmpty()) { command += " --dark-file \"" + m_darkFilePicker->GetPath() + "\""; }
-    else { command += " --dark-value " + m_darkValueTextCtrl->GetValue(); }
-    if (!m_saturationFilePicker->GetPath().IsEmpty()) { command += " --sat-file \"" + m_saturationFilePicker->GetPath() + "\""; }
-    else { command += " --sat-value " + m_saturationValueTextCtrl->GetValue(); }
-    command += " -f";
-    for (const wxString& file : m_inputFiles) { command += " \"" + file + "\""; }
-    m_equivalentCliTextCtrl->ChangeValue(command);
+    ProgramOptions opts = GetProgramOptions();
+    std::stringstream command_ss;
+    command_ss << "dynaRange";
+
+    if (!opts.dark_file_path.empty()) {
+        command_ss << " --black-file \"" << opts.dark_file_path << "\"";
+    } else {
+        command_ss << " --black-level " << opts.dark_value;
+    }
+
+    if (!opts.sat_file_path.empty()) {
+        command_ss << " --saturation-file \"" << opts.sat_file_path << "\"";
+    } else {
+        command_ss << " --saturation-level " << opts.saturation_value;
+    }
+
+    command_ss << " --snrthreshold-db " << std::fixed << std::setprecision(2) << opts.snr_threshold_db;
+    command_ss << " --poly-fit " << opts.poly_order;
+    command_ss << " --drnormalization-mpx " << std::fixed << std::setprecision(2) << opts.dr_normalization_mpx;
+    command_ss << " --patch-safe " << opts.patch_safe;
+    command_ss << " --output-file \"" << opts.output_filename << "\"";
+    
+    command_ss << " --input-files";
+    for (const auto& file : opts.input_files) {
+        command_ss << " \"" << file << "\"";
+    }
+    
+    m_equivalentCliTextCtrl->ChangeValue(command_ss.str());
 }
 
 void DynaRangeFrame::SetExecuteButtonState(bool enabled) {
@@ -219,56 +275,80 @@ void DynaRangeFrame::AppendLog(const wxString& text) {
 void DynaRangeFrame::LoadResults(const ProgramOptions& opts) {
     std::ifstream file(opts.output_filename);
     if (!file) { return; }
+    
+    // Limpieza del grid por si acaso
     if (m_cvsGrid->GetNumberRows() > 0) m_cvsGrid->DeleteRows(0, m_cvsGrid->GetNumberRows());
     if (m_cvsGrid->GetNumberCols() > 0) m_cvsGrid->DeleteCols(0, m_cvsGrid->GetNumberCols());
+
     std::string line;
-    int row = 0;
+    int csv_row_index = 0;
+    
     while (std::getline(file, line)) {
         std::stringstream ss(line);
         std::string cell;
         int col = 0;
-        m_cvsGrid->AppendRows(1);
-        while (std::getline(ss, cell, ',')) {
-            if (col >= m_cvsGrid->GetNumberCols()) { m_cvsGrid->AppendCols(1); }
-            m_cvsGrid->SetCellValue(row, col, cell);
-            col++;
+
+        if (csv_row_index == 0) { // Cabecera del CSV
+            // Añadimos la fila para los títulos de texto
+            m_cvsGrid->AppendRows(1);
+
+            while (std::getline(ss, cell, ',')) {
+                if (col >= m_cvsGrid->GetNumberCols()) m_cvsGrid->AppendCols(1);
+                // Ponemos los títulos en la Fila 0 del grid
+                m_cvsGrid->SetCellValue(0, col, cell); 
+                col++;
+            }
+        } else { // Datos del CSV
+            m_cvsGrid->AppendRows(1);
+            // La primera línea de datos del CSV (csv_row_index=1) va en la Fila 1 del grid
+            int grid_row = csv_row_index; 
+            while (std::getline(ss, cell, ',')) {
+                if (col >= m_cvsGrid->GetNumberCols()) m_cvsGrid->AppendCols(1);
+                m_cvsGrid->SetCellValue(grid_row, col, cell);
+                col++;
+            }
         }
-        row++;
+        csv_row_index++;
     }
+
     m_cvsGrid->AutoSize();
     this->Layout();
 }
 
-void DynaRangeFrame::LoadGraphImage(const wxString& filename)
+void DynaRangeFrame::LoadGraphImage(const wxString& path_or_raw_name)
 {
-    if (filename.IsEmpty() || !m_imageGraph) {
+    if (path_or_raw_name.IsEmpty() || !m_imageGraph) {
         return;
     }
 
-    fs::path csvPath(m_lastRunOptions.output_filename);
     fs::path graphPath;
-    std::string graphFilenameStr;
+    std::string displayFilename;
+    fs::path inputPath(std::string(path_or_raw_name.mb_str()));
+    fs::path outputDir = fs::path(m_lastRunOptions.output_filename).parent_path();
 
-    if (filename == "DR_summary_plot.png") {
-        graphFilenameStr = "DR_summary_plot.png";
-        graphPath = csvPath.parent_path() / graphFilenameStr;
+    if (inputPath.is_absolute() && fs::exists(inputPath)) {
+        graphPath = inputPath;
     } else {
-        fs::path rawFile(std::string(filename.mb_str()));
-        graphFilenameStr = rawFile.stem().string() + "_snr_plot.png";
-        graphPath = csvPath.parent_path() / graphFilenameStr;
+        graphPath = outputDir / (inputPath.stem().string() + "_snr_plot.png");
     }
+    displayFilename = graphPath.filename().string();
 
     wxImage image;
-    if (!image.LoadFile(wxString(graphPath.string()))) {
-        m_imageGraph->SetBitmap(wxBitmap(1,1)); // Usar un bitmap válido pero vacío
-        m_generateGraphStaticText->SetLabel(_("Generated Graph (Image not found): ") + wxString(graphFilenameStr));
+    if (!fs::exists(graphPath) || !image.LoadFile(wxString(graphPath.string()))) {
+        m_imageGraph->SetBitmap(wxBitmap());
+        m_generateGraphStaticText->SetLabel(_("Generated Graph (Image not found): ") + wxString(displayFilename));
+        m_resultsPanel->Layout();
         return;
     }
 
-    m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(graphFilenameStr));
+    m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(displayFilename));
 
     wxSize panelSize = m_imageGraph->GetSize();
-    if (panelSize.GetWidth() == 0 || panelSize.GetHeight() == 0) return;
+    if (panelSize.GetWidth() <= 0 || panelSize.GetHeight() <= 0) {
+        m_resultsPanel->Layout();
+        panelSize = m_imageGraph->GetSize();
+        if(panelSize.GetWidth() <= 0 || panelSize.GetHeight() <= 0) return;
+    }
 
     int imgWidth = image.GetWidth();
     int imgHeight = image.GetHeight();

@@ -10,6 +10,8 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
+constexpr int INTERSECTION_POLY_ORDER = 2;
+
 // --- DEFINICIÓN DE ESTRUCTURAS ---
 struct DynamicRangeResult {
     std::string filename;
@@ -26,12 +28,14 @@ struct PatchAnalysisResult {
 
 struct CurveData {
     std::string name;
+    std::string camera_model;
     std::vector<double> signal_ev;
     std::vector<double> snr_db;
-    cv::Mat poly_coeffs;
+    cv::Mat poly_coeffs;           // El único juego de coeficientes
 };
 
 // --- DECLARACIONES DE FUNCIONES DE ANÁLISIS ---
+std::string GetCameraModel(const std::string& filename);
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double SAFE);
@@ -43,3 +47,6 @@ std::optional<double> ProcessSaturationFrame(const std::string& filename, std::o
 std::optional<double> EstimateMeanBrightness(const std::string& filename, float sample_ratio = 0.1f);
 bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream);
 void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order);
+
+// AÑADIDO: Declaración pública de FindIntersectionEV
+std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
