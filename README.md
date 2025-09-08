@@ -14,4 +14,4 @@ The basic usage will be as follows:
 
 ![measuring-photographic-dynamicrange](/SNRcurvesBLACK254.85.png)
 
-![measuring-photographic-dynamicrange](user_interface/Main_Window_v1.2.png)
+![measuring-photographic-dynamicrange](userinterface/Main_Window_v1.2.png)
