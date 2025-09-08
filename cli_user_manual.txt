@@ -24,8 +24,8 @@ Usage: rango [OPTION]... [FILE]...
 
 --patch-ratio -r <float>
 Definition: relative patch width/height used to compute signal and noise readings (default=0.5)
-Explanation: contamination on signal and noise readings, specially from chart defocusing but also from screen reflections or lens vigneting, will lead to artificially increase noise measurements and hence lowering SNR values. To minimize this the effective area of each patch that will be used can be set. 0.5 means we're using 50% of centred patch width/height, so we're using 25% of the total chart area
-Usage: if this parameter is not specified, both 12 dB and 0dB DR values are calculated. If specified, only the specified threshold is used
+Explanation: contamination on signal and noise readings, specially from chart defocusing but also from screen reflections or lens vigneting, will lead to artificially increase noise measurements and hence lowering SNR values and estimated DR. To minimize this the effective area of each patch that will be used can be set: 0.5 means we're using 50% of centred patch width/height, so we're using 25% of the total chart area. Lower values will be more robust vs chart non uniformity, while higher values will collect more samples providing higher statistical robustness
+Usage: by default 50% of each patch width/height centred is used. You may set any value between 0 and 1 but values far from 0.5 are not recommended
 Examples (first example is default and is equivalent to not specifying the parameter):
 --patch-ratio     (50% of patch width/height centred will be used, 25% of patch area)
 --patch-ratio 0.5 (50% of patch width/height centred will be used, 25% of patch area)
@@ -34,7 +34,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --snrthreshold-db -d <float>
 Definition: SNR threshold in dB for DR calculation (default=12dB (photo DR) and 0dB (engineering DR))
 Explanation: to determine the DR, a SNR threshold must be defined. The DR according to that criteria will be the number of stops between sensor saturation and the point at which the SNR curve falls to the specified SNR threshold. This means each threshold will yield different DR values, and they will all be correct according to that criteria
-Usage: if this parameter is not specified, both 12 dB and 0dB DR values are calculated. If specified, only the specified threshold is used
+Usage: by default the DR for both 12dB and 0dB DR values is calculated. If specified, only the specified threshold is used
 Examples (first example is default and is equivalent to not specifying the parameter):
 --snrthreshold-db     (both 12dB and 0dB threshold are used)
 --snrthreshold-db 12  (only a 12dB threshold is used)
@@ -52,7 +52,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --poly-fit -f <2-3>
 Definition: polynomic order to fit the SNR curve (default=3)
 Explanation: the gathered points of the need to be fitted to estimate the SNR curves. This is done through polynomial least squares fitting. For the problem under study, SNR on a digital image sensor, we found that 3rd order curves are in general preferred for increased accuracy while 2nd order are less prone to overfitting
-Usage: if this parameter is not specified 3rd order (cubic) curves will be used to approximate the SNR response. The alternative is using 2nd order (cuadratic) curves
+Usage: by default 3rd order (cubic) curves will be used to approximate the SNR response. The alternative is using 2nd order (cuadratic) curves
 Examples (first example is default and is equivalent to not specifying the parameter):
 --poly-fit   (3rd order curves are used to fit the SNR curves)
 --poly-fit 2 (2nd order curves are used to fit the SNR curves)
