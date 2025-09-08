@@ -41,12 +41,12 @@ void GenerateSnrPlot(
         bounds["max_ev"] = max_ev_data + 0.5;
     } else {
         bounds["min_ev"] = floor(min_ev_data) - 1.0;
-        bounds["max_ev"] = ceil(max_ev_data) + 1.0;
+        // **CORRECCIÓN**: Ajustar el límite superior del eje X
+        bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
     }
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    // Llama a las funciones de dibujo
     DrawPlotBase(cr, "SNR Curve - " + image_title, bounds);
     std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs}};
     DrawCurvesAndData(cr, single_curve_vec, bounds);
@@ -56,6 +56,7 @@ void GenerateSnrPlot(
     cairo_surface_destroy(surface);
     log_stream << "  - Info: Plot saved to: " << output_filename << std::endl;
 }
+
 
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_dir,
@@ -98,7 +99,8 @@ std::optional<std::string> GenerateSummaryPlot(
         bounds["max_ev"] = max_ev_global + 0.5;
     } else {
         bounds["min_ev"] = floor(min_ev_global) - 1.0;
-        bounds["max_ev"] = ceil(max_ev_global) + 1.0;
+        // **CORRECCIÓN**: Ajustar el límite superior del eje X
+        bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     }
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
@@ -115,7 +117,6 @@ std::optional<std::string> GenerateSummaryPlot(
 
     std::string output_filename = (fs::path(output_dir) / ("DR_summary_plot" + filename_suffix + ".png")).string();
 
-    // Llama a las funciones de dibujo
     DrawPlotBase(cr, title, bounds);
     DrawCurvesAndData(cr, all_curves, bounds);
 

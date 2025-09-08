@@ -121,6 +121,9 @@ void DrawPlotBase(
     cairo_restore(cr);
 }
 
+
+// Fichero: core/graphics/Drawing.cpp
+
 void DrawCurvesAndData(
     cairo_t* cr,
     const std::vector<CurveData>& curves,
@@ -136,6 +139,7 @@ void DrawCurvesAndData(
         return std::make_pair(px, py);
     };
 
+    // **CORRECCIÓN**: Usamos un booleano para alternar, es más simple y robusto.
     bool draw_above_12db = true;
     bool draw_above_0db = true;
 
@@ -189,12 +193,12 @@ void DrawCurvesAndData(
             ss << std::fixed << std::setprecision(2) << *ev12 << "EV";
             auto [px, py] = map_coords(*ev12, 12.0);
             
-            double offset_x = draw_above_12db ? 20.0 : 20.0;
-            double offset_y = draw_above_12db ? -15.0 : 15.0;
+            double offset_x = draw_above_12db ? 25.0 : 15.0;
+            double offset_y = draw_above_12db ? -10.0 : 15.0;
             
             cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
-            draw_above_12db = !draw_above_12db;
+            draw_above_12db = !draw_above_12db; // Alternar para la siguiente curva
         }
 
         auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
@@ -203,12 +207,12 @@ void DrawCurvesAndData(
             ss << std::fixed << std::setprecision(2) << *ev0 << "EV";
             auto [px, py] = map_coords(*ev0, 0.0);
             
-            double offset_x = draw_above_0db ? 20.0 : 20.0;
-            double offset_y = draw_above_0db ? -15.0 : 15.0;
+            double offset_x = draw_above_0db ? 20.0 : 15.0;
+            double offset_y = draw_above_0db ? -10.0 : 15.0;
 
             cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
-            draw_above_0db = !draw_above_0db;
+            draw_above_0db = !draw_above_0db; // Alternar para la siguiente curva
         }
     }
 }
