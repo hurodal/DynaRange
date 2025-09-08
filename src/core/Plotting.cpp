@@ -1,5 +1,6 @@
 // Fichero: core/Plotting.cpp
 #include "Plotting.hpp"
+#include "Analysis.hpp"
 #include <cairo/cairo.h>
 #include <iostream>
 #include <filesystem>
@@ -20,7 +21,6 @@ namespace { // Namespace anónimo para funciones auxiliares
 
 void DrawPlotBase(cairo_t* cr, const std::string& title, const std::map<std::string, double>& bounds);
 void DrawCurvesAndData(cairo_t* cr, const std::vector<CurveData>& curves, const std::map<std::string, double>& bounds);
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db);
 
 void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, double dash_length = 20.0) {
     double dashes[] = {dash_length, dash_length};
@@ -30,17 +30,6 @@ void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, dou
     cairo_line_to(cr, x2, y2);
     cairo_stroke(cr);
     cairo_restore(cr);
-}
-
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db) {
-    if (coeffs.empty() || coeffs.rows - 1 != 2) {
-        return std::nullopt;
-    }
-    double c2 = coeffs.at<double>(0);
-    double c1 = coeffs.at<double>(1);
-    double c0 = coeffs.at<double>(2);
-    double ev_at_target = c2 * pow(target_snr_db, 2) + c1 * target_snr_db + c0;
-    return ev_at_target;
 }
 
 void DrawPlotBase(
@@ -159,6 +148,10 @@ void DrawCurvesAndData(
     for (const auto& curve : curves) {
         if (curve.signal_ev.empty()) continue;
         
+        auto min_max_ev_it = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
+        double local_min_ev = *(min_max_ev_it.first);
+        double local_max_ev = *(min_max_ev_it.second);
+        
         cairo_set_source_rgb(cr, 200.0/255.0, 0.0, 0.0);
         cairo_set_line_width(cr, 2.0);
         double snr_poly_start = 0.0;
@@ -194,26 +187,32 @@ void DrawCurvesAndData(
 
         cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
         cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-        cairo_set_font_size(cr, 16.0);
-        
-        auto ev12 = FindIntersectionEV(curve.intersection_coeffs, 12.0);
+        cairo_set_font_size(cr, 12.0);
+
+        auto ev12 = FindIntersectionEV(curve.poly_coeffs, 12.0, local_min_ev, local_max_ev);
         if (ev12) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << *ev12 << "EV";
             auto [px, py] = map_coords(*ev12, 12.0);
-            double offset_y = draw_above_12db ? -15.0 : 5.0;
-            cairo_move_to(cr, px + 15, py + offset_y);
+            
+            double offset_x = draw_above_12db ? 20.0 : 20.0;
+            double offset_y = draw_above_12db ? -15.0 : 15.0;
+            
+            cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
             draw_above_12db = !draw_above_12db;
         }
 
-        auto ev0 = FindIntersectionEV(curve.intersection_coeffs, 0.0);
+        auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
         if (ev0) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << *ev0 << "EV";
             auto [px, py] = map_coords(*ev0, 0.0);
-            double offset_y = draw_above_0db ? -15.0 : 5.0;
-            cairo_move_to(cr, px + 25, py + offset_y);
+            
+            double offset_x = draw_above_0db ? 20.0 : 20.0;
+            double offset_y = draw_above_0db ? -15.0 : 15.0;
+
+            cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
             draw_above_0db = !draw_above_0db;
         }
@@ -228,18 +227,17 @@ void GenerateSnrPlot(
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
-    const cv::Mat& intersection_coeffs,
     std::ostream& log_stream)
 {
     if (signal_ev.size() < 2) {
-        log_stream << "[WARNING] Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
+        log_stream << "  - Warning: Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
         return;
     }
     
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << "[ERROR] Failed to create cairo context." << std::endl;
+        log_stream << "  - Error: Failed to create cairo context for plot \"" << image_title << "\"." << std::endl;
         cairo_surface_destroy(surface);
         return;
     }
@@ -259,7 +257,7 @@ void GenerateSnrPlot(
     bounds["max_db"] = 25.0;
 
     DrawPlotBase(cr, "SNR Curve - " + image_title, bounds);
-    std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs, intersection_coeffs}};
+    std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs}};
     DrawCurvesAndData(cr, single_curve_vec, bounds);
     
     cairo_surface_write_to_png(surface, output_filename.c_str());
@@ -274,10 +272,15 @@ std::optional<std::string> GenerateSummaryPlot(
     const std::vector<CurveData>& all_curves,
     std::ostream& log_stream)
 {
+    if (all_curves.empty()) {
+        log_stream << "  - Warning: Skipping summary plot due to no curve data." << std::endl;
+        return std::nullopt;
+    }
+
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << "[ERROR] Failed to create cairo context." << std::endl;
+        log_stream << "  - Error: Failed to create cairo context for summary plot." << std::endl;
         cairo_surface_destroy(surface);
         return std::nullopt;
     }
@@ -292,7 +295,7 @@ std::optional<std::string> GenerateSummaryPlot(
         }
     }
     if (!has_data) {
-        log_stream << "[WARNING] Skipping summary plot due to no data points." << std::endl;
+        log_stream << "  - Warning: Skipping summary plot due to no data points." << std::endl;
         cairo_destroy(cr);
         cairo_surface_destroy(surface);
         return std::nullopt;

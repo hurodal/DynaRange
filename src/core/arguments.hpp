@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+// Orden por defecto de los polinomios
+constexpr int DEFAULT_POLY_ORDER = 3;
+
 // La estructura de opciones del programa.
 struct ProgramOptions {
     double dark_value;
@@ -12,7 +15,7 @@ struct ProgramOptions {
     std::string sat_file_path;
     std::string output_filename;
     std::vector<std::string> input_files;
-    int poly_order = 3;
+    int poly_order = DEFAULT_POLY_ORDER;;
     
     // Nuevos miembros para los argumentos de la CLI
     std::string chart_colors;

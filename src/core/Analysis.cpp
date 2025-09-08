@@ -9,13 +9,68 @@
 
 namespace fs = std::filesystem;
 
+std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev) {
+    if (coeffs.empty()) {
+        return std::nullopt;
+    }
+    int order = coeffs.rows - 1;
+
+    // --- Caso para Polinomio de Orden 2 (Cuadrático) ---
+    if (order == 2) {
+        // Resuelve SNR = c2*EV^2 + c1*EV + c0
+        // => c2*EV^2 + c1*EV + (c0 - SNR) = 0
+        double c2 = coeffs.at<double>(0), c1 = coeffs.at<double>(1), c0 = coeffs.at<double>(2);
+        double a = c2, b = c1, c = c0 - target_snr_db;
+        double discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return std::nullopt;
+        double sqrt_d = sqrt(discriminant);
+        double ev1 = (-b + sqrt_d) / (2 * a);
+        double ev2 = (-b - sqrt_d) / (2 * a);
+        // Devuelve la raíz que esté dentro del rango válido de la curva
+        if (ev1 >= min_ev && ev1 <= max_ev) return ev1;
+        if (ev2 >= min_ev && ev2 <= max_ev) return ev2;
+        return std::nullopt;
+    }
+    
+    // --- Caso para Polinomio de Orden 3 (Cúbico) usando Newton-Raphson ---
+    if (order == 3) {
+        // Resuelve f(EV) = c3*EV^3 + c2*EV^2 + c1*EV + c0 - target = 0
+        double c3 = coeffs.at<double>(0);
+        double c2 = coeffs.at<double>(1);
+        double c1 = coeffs.at<double>(2);
+        double c0 = coeffs.at<double>(3) - target_snr_db;
+
+        auto f = [&](double ev) { return c3 * pow(ev, 3) + c2 * pow(ev, 2) + c1 * ev + c0; };
+        auto df = [&](double ev) { return 3 * c3 * pow(ev, 2) + 2 * c2 * ev + c1; };
+
+        double ev_guess = (min_ev + max_ev) / 2.0;
+
+        for (int i = 0; i < 10; ++i) { // 10 iteraciones son más que suficientes
+            double f_val = f(ev_guess);
+            double df_val = df(ev_guess);
+            if (std::abs(df_val) < 1e-7) break;
+            double next_ev = ev_guess - f_val / df_val;
+            if (std::abs(next_ev - ev_guess) < 1e-7) {
+                ev_guess = next_ev;
+                break;
+            }
+            ev_guess = next_ev;
+        }
+
+        if (ev_guess >= min_ev && ev_guess <= max_ev) {
+            return ev_guess;
+        }
+        return std::nullopt;
+    }
+    
+    return std::nullopt;
+}
+
 std::string GetCameraModel(const std::string& filename) {
     LibRaw raw_processor;
     if (raw_processor.open_file(filename.c_str()) != LIBRAW_SUCCESS) {
-        // No se puede abrir, devuelve cadena vacía
         return "";
     }
-    // Devuelve el modelo de la cámara. Si no existe, idata.model es una cadena vacía.
     return std::string(raw_processor.imgdata.idata.model);
 }
 

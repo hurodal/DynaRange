@@ -16,33 +16,17 @@
 
 namespace fs = std::filesystem;
 
-double CalculateDrForThreshold(double threshold, const std::vector<double>& snr_db, const std::vector<double>& signal_ev, int poly_order, std::ostream& log_stream) {
-    const double filter_range = 5.0;
-    std::vector<double> filtered_snr, filtered_signal;
-    for (size_t i = 0; i < snr_db.size(); ++i) {
-        if (snr_db[i] >= (threshold - filter_range) && snr_db[i] <= (threshold + filter_range)) {
-            filtered_snr.push_back(snr_db[i]);
-            filtered_signal.push_back(signal_ev[i]);
-        }
-    }
-    log_stream << "  - Info: For " << threshold << "dB threshold, using " << filtered_snr.size() << " patches." << std::endl;
-    if (filtered_snr.size() < (size_t)poly_order + 1) {
-        log_stream << "  - Warning: Not enough data points for polynomial fit (order " << poly_order << ") at " << threshold << "dB." << std::endl;
+// MODIFICADO: Esta función ahora usa FindIntersectionEV para consistencia total
+double CalculateDrForThreshold(double threshold, const cv::Mat& coeffs, double min_ev, double max_ev, std::ostream& log_stream) {
+    auto ev_opt = FindIntersectionEV(coeffs, threshold, min_ev, max_ev);
+    if (!ev_opt) {
+        log_stream << "  - Warning: Could not calculate intersection at " << threshold << "dB." << std::endl;
         return 0.0;
     }
-    cv::Mat snr_mat(filtered_snr.size(), 1, CV_64F, filtered_snr.data());
-    cv::Mat signal_mat(filtered_signal.size(), 1, CV_64F, filtered_signal.data());
-    cv::Mat coeffs;
-    PolyFit(snr_mat, signal_mat, coeffs, poly_order);
-    double signal_at_threshold = 0.0;
-    for (int i = 0; i < coeffs.rows; ++i) {
-        signal_at_threshold += coeffs.at<double>(i) * std::pow(threshold, coeffs.rows - 1 - i);
-    }
-    return -signal_at_threshold;
+    return -(*ev_opt);
 }
 
 std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
-    // 1. Procesar dark y saturation frames (si se proporcionaron)
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
         if (!dark_val_opt) { log_stream << "Fatal error processing dark frame." << std::endl; return std::nullopt; }
@@ -54,7 +38,6 @@ std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::os
         opts.saturation_value = *sat_val_opt;
     }
 
-    // 2. Imprimir la configuración final
     log_stream << std::fixed << std::setprecision(2);
     log_stream << "\n[FINAL CONFIGURATION]\n";
     log_stream << "Black level: " << opts.dark_value << "\n";
@@ -65,12 +48,10 @@ std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::os
     log_stream << "Patch safe: " << opts.patch_safe << " px\n";
     log_stream << "Output file: " << opts.output_filename << "\n\n";
 
-    // 3. Preparar y ordenar ficheros
     if (!PrepareAndSortFiles(opts, log_stream)) {
         return std::nullopt;
     }
 
-    // 4. Continuar con el análisis principal...
     const int NCOLS = 11, NROWS = 7;
     const double SAFE = static_cast<double>(opts.patch_safe); 
     
@@ -135,21 +116,22 @@ std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::os
         cv::Mat signal_mat_global(signal_ev.size(), 1, CV_64F, signal_ev.data());
         cv::Mat snr_mat_global(snr_db.size(), 1, CV_64F, snr_db.data());
         
-        cv::Mat poly_coeffs_for_drawing;
-        PolyFit(signal_mat_global, snr_mat_global, poly_coeffs_for_drawing, opts.poly_order);
-        
-        cv::Mat poly_coeffs_for_intersection;
-        PolyFit(snr_mat_global, signal_mat_global, poly_coeffs_for_intersection, 2);
+        // Se calcula UN SOLO polinomio, del orden que elija el usuario
+        cv::Mat poly_coeffs;
+        PolyFit(signal_mat_global, snr_mat_global, poly_coeffs, opts.poly_order);
 
         fs::path plot_path = fs::path(opts.output_filename).parent_path() / (fs::path(name).stem().string() + "_snr_plot.png");
         
-        GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs_for_drawing, poly_coeffs_for_intersection, log_stream);
+        // Se pasa el único juego de coeficientes
+        GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs, log_stream);
         
-        double dr_12db = CalculateDrForThreshold(opts.snr_threshold_db, snr_db, signal_ev, 2, log_stream);
-        double dr_0db = CalculateDrForThreshold(0.0, snr_db, signal_ev, 2, log_stream);
+        auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
+        double dr_12db = CalculateDrForThreshold(opts.snr_threshold_db, poly_coeffs, *min_max_ev.first, *min_max_ev.second, log_stream);
+        double dr_0db = CalculateDrForThreshold(0.0, poly_coeffs, *min_max_ev.first, *min_max_ev.second, log_stream);
         all_results.push_back({name, dr_12db, dr_0db, (int)patch_data.signal.size()});
         
-        all_curves_data.push_back({name, camera_model_name, signal_ev, snr_db, poly_coeffs_for_drawing.clone(), poly_coeffs_for_intersection.clone()});
+        // Se guarda el único juego de coeficientes
+        all_curves_data.push_back({name, camera_model_name, signal_ev, snr_db, poly_coeffs.clone()});
     }
 
     std::optional<std::string> summary_plot_path_opt = std::nullopt;
