@@ -10,14 +10,10 @@ Usage: rango [OPTION]... [FILE]...
 --black-file          -B <file>        : Totally dark RAW file (ideally shot at base ISO)
 --saturation-level    -s <float>       : Camera RAW saturation level
 --saturation-file     -S <file>        : Totally clipped RAW file (ideally shot at base ISO)
---snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
---poly-fit            -f <2-3>         : polynomic order (default=3) to fit the SNR curve
---drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
---patch-safe          -p <int>         : Number of border safety pixels around each patch (default=50px)
 --input-files         -i <files>       : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--patch-ratio         -r <float>       : Relative patch width/height used to compute signal and noise readings (default=0.5)
+--snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
+--drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
+--poly-fit            -f <2-3>         : Polynomic order (default=3) to fit the SNR curve
 --output-file         -o <file>        : Output filename with all results (black level, sat level, SNR samples, DR values)
---report-command      -C <boolean>     : If set then add Equivalent command to graphics.
-
-C:\>
-
-
+--plot                -p <boolean>     : If set add equivalent command to graphics

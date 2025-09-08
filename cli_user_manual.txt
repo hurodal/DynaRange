@@ -10,14 +10,56 @@ Usage: rango [OPTION]... [FILE]...
 --black-file          -B <file>        : Totally dark RAW file (ideally shot at base ISO)
 --saturation-level    -s <float>       : Camera RAW saturation level
 --saturation-file     -S <file>        : Totally clipped RAW file (ideally shot at base ISO)
---snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB, Photographic DR)
---poly-fit            -f <2-3>         : polynomic order (default=3) to fit the SNR curve
---drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
---patch-safe          -p <int>         : Number of border safety pixels around each patch (default=50px)
 --input-files         -i <files>       : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--patch-ratio         -r <float>       : Relative patch width/height used to compute signal and noise readings (default=0.5)
+--snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
+--drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
+--poly-fit            -f <2-3>         : Polynomic order (default=3) to fit the SNR curve
 --output-file         -o <file>        : Output filename with all results (black level, sat level, SNR samples, DR values)
---report-command      -C <boolean>     : If set then add Equivalent command to graphics.
+--plot                -p <boolean>     : If set add equivalent command to graphics
 
-C:\>
+
+-----------------------------------------------
+
+
+--patch-ratio -r <float>
+Definition: relative patch width/height used to compute signal and noise readings (default=0.5)
+Explanation: contamination on signal and noise readings, specially from chart defocusing but also from screen reflections or lens vigneting, will lead to artificially increase noise measurements and hence lowering SNR values. To minimize this the effective area of each patch that will be used can be set. 0.5 means we're using 50% of centred patch width/height, so we're using 25% of the total chart area
+Usage: if this parameter is not specified, both 12 dB and 0dB DR values are calculated. If specified, only the specified threshold is used
+Examples (first example is default and is equivalent to not specifying the parameter):
+--patch-ratio     (50% of patch width/height centred will be used, 25% of patch area)
+--patch-ratio 0.5 (50% of patch width/height centred will be used, 25% of patch area)
+--patch-ratio 0.6 (60% of patch width/height centred will be used, 36% of patch area)
+
+--snrthreshold-db -d <float>
+Definition: SNR threshold in dB for DR calculation (default=12dB (photo DR) and 0dB (engineering DR))
+Explanation: to determine the DR, a SNR threshold must be defined. The DR according to that criteria will be the number of stops between sensor saturation and the point at which the SNR curve falls to the specified SNR threshold. This means each threshold will yield different DR values, and they will all be correct according to that criteria
+Usage: if this parameter is not specified, both 12 dB and 0dB DR values are calculated. If specified, only the specified threshold is used
+Examples (first example is default and is equivalent to not specifying the parameter):
+--snrthreshold-db     (both 12dB and 0dB threshold are used)
+--snrthreshold-db 12  (only a 12dB threshold is used)
+--snrthreshold-db 6.5 (only a 6.5dB threshold is used)
+
+--drnormalization-mpx -m <float>
+Definition: number of Mpx for DR normalization (default=8Mpx)
+Explanation: in order to properly and fairly compare different resolution cameras, the SNR values need to be normalized to a given output resolution before calculating the DR. This means DR figures will vary according to this resolution normalization, obtaining higher values the lower the number of Mpx specified
+Usage: by default a 8Mpx based DR is calculated. When no normalization is needed (per-pixel DR) a value of 0 must be set for this parameter
+Examples (first example is default and is equivalent to not specifying the parameter):
+--drnormalization-mpx      (DR normalized to 8Mpx)
+--drnormalization-mpx 21.5 (DR normalized to 21.5Mpx)
+--drnormalization-mpx 0    (no normalization, per-pixel DR)
+
+--poly-fit -f <2-3>
+Definition: polynomic order to fit the SNR curve (default=3)
+Explanation: the gathered points of the need to be fitted to estimate the SNR curves. This is done through polynomial least squares fitting. For the problem under study, SNR on a digital image sensor, we found that 3rd order curves are in general preferred for increased accuracy while 2nd order are less prone to overfitting
+Usage: if this parameter is not specified 3rd order (cubic) curves will be used to approximate the SNR response. The alternative is using 2nd order (cuadratic) curves
+Examples (first example is default and is equivalent to not specifying the parameter):
+--poly-fit   (3rd order curves are used to fit the SNR curves)
+--poly-fit 2 (2nd order curves are used to fit the SNR curves)
+--poly-fit 3 (3rd order curves are used to fit the SNR curves)
+
+
+
+
 
 
