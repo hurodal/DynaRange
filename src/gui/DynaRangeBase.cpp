@@ -101,12 +101,12 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	equivalentCliSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Equivalent CLI Command") ), wxVERTICAL );
 
 	m_equivalentCliTextCtrl = new wxTextCtrl( equivalentCliSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
-	equivalentCliSbSizer->Add( m_equivalentCliTextCtrl, 0, wxALL|wxEXPAND, 5 );
+	equivalentCliSbSizer->Add( m_equivalentCliTextCtrl, 1, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( equivalentCliSbSizer, 0, wxALL|wxEXPAND, 5 );
+	mainPanelSizer->Add( equivalentCliSbSizer, 1, wxALL|wxEXPAND, 5 );
 
-	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
 	mainPanelSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );
 
 
@@ -162,12 +162,11 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_generateGraphStaticText->Wrap( -1 );
 	resultsSizer->Add( m_generateGraphStaticText, 0, wxALL, 5 );
 
-	m_imageGraph = new wxStaticBitmap( m_resultsPanel, wxID_ANY, wxBitmap(1,1), wxDefaultPosition, wxDefaultSize, 0 );
+	m_imageGraph = new wxStaticBitmap( m_resultsPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
 	resultsSizer->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
 
 
 	m_resultsPanel->SetSizer( resultsSizer );
-
 	m_resultsPanel->Layout();
 	resultsSizer->Fit( m_resultsPanel );
 	m_mainNotebook->AddPage( m_resultsPanel, _("Results"), false );

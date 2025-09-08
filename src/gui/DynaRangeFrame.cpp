@@ -174,8 +174,8 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     }
 
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
-    fs::path output_dir = fs::path(std::string(docsPath.mb_str())) / "DynaRange_Results";
-    fs::create_directories(output_dir);
+    fs::path output_dir = fs::path(std::string(docsPath.mb_str())); //   Removed-> / "DynaRange_Results";
+    // Removed -> fs::create_directories(output_dir);
     opts.output_filename = (output_dir / "DR_results.csv").string();
     
     return opts;
