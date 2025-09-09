@@ -1,13 +1,14 @@
-// Fichero: core/Arguments.hpp
+// File: core/Arguments.hpp
 #pragma once
 
 #include <string>
 #include <vector>
+#include <ostream>
 
-// Orden por defecto de los polinomios
+// Default polynomial order
 constexpr int DEFAULT_POLY_ORDER = 3;
 
-// La estructura de opciones del programa.
+// Structure for program options.
 struct ProgramOptions {
     double dark_value;
     double saturation_value;
@@ -17,15 +18,18 @@ struct ProgramOptions {
     std::vector<std::string> input_files;
     int poly_order = DEFAULT_POLY_ORDER;
     
-    // Nuevos miembros para los argumentos de la CLI
+    // New members for CLI arguments
     double snr_threshold_db;
     double dr_normalization_mpx;
     int patch_safe;
 
-    // Flag y cadena para el comando en el reporte
+    // Flag and string for the command in the report
     bool report_command = false;
     std::string generated_command;
 };
 
-// Declaración de la función para parsear argumentos.
+// Function declaration for parsing arguments.
 ProgramOptions ParseArguments(int argc, char* argv[]);
+
+// ADDED: Function declaration to generate the equivalent command line string.
+std::string GenerateCommandString(const ProgramOptions& opts);

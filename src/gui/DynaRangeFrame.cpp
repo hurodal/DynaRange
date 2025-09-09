@@ -234,33 +234,8 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
 
 void DynaRangeFrame::UpdateCommandPreview() {
     ProgramOptions opts = GetProgramOptions();
-    std::stringstream command_ss;
-    command_ss << "dynaRange";
-
-    if (!opts.dark_file_path.empty()) {
-        command_ss << " --black-file \"" << opts.dark_file_path << "\"";
-    } else {
-        command_ss << " --black-level " << opts.dark_value;
-    }
-
-    if (!opts.sat_file_path.empty()) {
-        command_ss << " --saturation-file \"" << opts.sat_file_path << "\"";
-    } else {
-        command_ss << " --saturation-level " << opts.saturation_value;
-    }
-
-    command_ss << " --snrthreshold-db " << std::fixed << std::setprecision(2) << opts.snr_threshold_db;
-    command_ss << " --poly-fit " << opts.poly_order;
-    command_ss << " --drnormalization-mpx " << std::fixed << std::setprecision(2) << opts.dr_normalization_mpx;
-    command_ss << " --patch-safe " << opts.patch_safe;
-    command_ss << " --output-file \"" << opts.output_filename << "\"";
-    
-    command_ss << " --input-files";
-    for (const auto& file : opts.input_files) {
-        command_ss << " \"" << file << "\"";
-    }
-    
-    m_equivalentCliTextCtrl->ChangeValue(command_ss.str());
+    std::string command_string = GenerateCommandString(opts);
+    m_equivalentCliTextCtrl->ChangeValue(command_string);
 }
 
 void DynaRangeFrame::SetExecuteButtonState(bool enabled) {

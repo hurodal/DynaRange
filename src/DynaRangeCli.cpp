@@ -1,4 +1,4 @@
-// Fichero: src/DynaRangeCli.cpp
+// File: src/DynaRangeCli.cpp
 #include "core/Analysis.hpp"
 #include "core/Arguments.hpp"
 #include "core/Engine.hpp"
@@ -17,10 +17,10 @@ int main(int argc, char* argv[]) {
     bindtextdomain("dynrange", "locale");
     textdomain("dynrange");
 
-    // 1. Parsear argumentos
+    // 1. Parse arguments
     ProgramOptions opts = ParseArguments(argc, argv);
     
-    // 2. Llamar al motor con la consola (std::cout) como stream de log
+    // 2. Call the engine with the console (std::cout) as the log stream
     if (!RunDynamicRangeAnalysis(opts, std::cout)) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;
         return 1;

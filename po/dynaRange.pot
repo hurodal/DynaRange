@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-08 20:43+0200\n"
+"POT-Creation-Date: 2025-09-09 16:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,69 +72,69 @@ msgstr ""
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:342
+#: src/gui/DynaRangeFrame.cpp:317
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:347
+#: src/gui/DynaRangeFrame.cpp:322
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/core/Arguments.cpp:17
+#: src/core/Arguments.cpp:20
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/Arguments.cpp:19
+#: src/core/Arguments.cpp:22
 msgid "Options for the black level"
 msgstr ""
 
-#: src/core/Arguments.cpp:20
+#: src/core/Arguments.cpp:23
 msgid "Totally dark RAW file (ideally shot at base ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:21
+#: src/core/Arguments.cpp:24
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/Arguments.cpp:24
+#: src/core/Arguments.cpp:27
 msgid "Options for the saturation point"
 msgstr ""
 
-#: src/core/Arguments.cpp:25
+#: src/core/Arguments.cpp:28
 msgid "Totally clipped RAW file (ideally shot at base ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:26
+#: src/core/Arguments.cpp:29
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/Arguments.cpp:29
+#: src/core/Arguments.cpp:32
 msgid "SNR threshold in dB for DR calculation (default=12dB, Photographic DR)"
 msgstr ""
 
-#: src/core/Arguments.cpp:30
+#: src/core/Arguments.cpp:33
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/Arguments.cpp:31
+#: src/core/Arguments.cpp:34
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/Arguments.cpp:32
+#: src/core/Arguments.cpp:35
 msgid "Number of border safety pixels around each patch (default=50px)"
 msgstr ""
 
-#: src/core/Arguments.cpp:33
+#: src/core/Arguments.cpp:36
 msgid ""
 "Input RAW files shot over the magenta test chart (ideally for every ISO)"
 msgstr ""
 
-#: src/core/Arguments.cpp:34
+#: src/core/Arguments.cpp:37
 msgid ""
 "Output filename with all results (black level, sat level, SNR samples, DR "
 "values)"
 msgstr ""
 
-#: src/core/Arguments.cpp:35
+#: src/core/Arguments.cpp:38
 msgid "If set then add Equivalent command to graphics."
 msgstr ""
