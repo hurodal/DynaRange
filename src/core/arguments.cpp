@@ -1,3 +1,4 @@
+// File: core/Arguments.cpp
 #include "Arguments.hpp"
 #include "Analysis.hpp"
 #include <CLI/CLI.hpp>
@@ -7,6 +8,10 @@
 #include <libintl.h>
 #include <sstream>
 #include <iomanip>
+#include <filesystem> 
+
+// Namespace alias for std::filesystem
+namespace fs = std::filesystem;
 
 #define _(string) gettext(string)
 
@@ -63,29 +68,43 @@ ProgramOptions ParseArguments(int argc, char* argv[]) {
     return opts;
 }
 
-// Generates an equivalent command-line string from a ProgramOptions struct.
-std::string GenerateCommandString(const ProgramOptions& opts) {
+// The function's logic now depends on the 'format' parameter.
+std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat format) {
     std::stringstream command_ss;
-    command_ss << "rango"; // Use the new executable name "rango"
+    command_ss << "rango"; 
 
     // Black level options
     if (!opts.dark_file_path.empty()) {
-        command_ss << " -B \"" << opts.dark_file_path << "\"";
+        command_ss << " -B \"";
+        if (format == CommandFormat::Plot) {
+            command_ss << fs::path(opts.dark_file_path).filename().string();
+        } else {
+            command_ss << opts.dark_file_path;
+        }
+        command_ss << "\"";
     } else {
         command_ss << " -b " << opts.dark_value;
     }
 
     // Saturation level options
     if (!opts.sat_file_path.empty()) {
-        command_ss << " -S \"" << opts.sat_file_path << "\"";
+        command_ss << " -S \"";
+        if (format == CommandFormat::Plot) {
+            command_ss << fs::path(opts.sat_file_path).filename().string();
+        } else {
+            command_ss << opts.sat_file_path;
+        }
+        command_ss << "\"";
     } else {
         command_ss << " -s " << opts.saturation_value;
     }
 
     // Parameter options
-    command_ss << " -o \"" << opts.output_filename << "\"";
+    // The -o option is omitted for the plot format
+    if (format == CommandFormat::Full) {
+        command_ss << " -o \"" << opts.output_filename << "\"";
+    }
 
-    // Only add SNR threshold if it's not the default
     if (opts.snr_thresholds_db.size() == 1) {
         command_ss << " -d " << std::fixed << std::setprecision(2) << opts.snr_thresholds_db[0];
     }
@@ -95,10 +114,12 @@ std::string GenerateCommandString(const ProgramOptions& opts) {
     command_ss << " -r " << std::fixed << std::setprecision(2) << opts.patch_ratio;
     command_ss << " -p " << opts.plot_mode;
 
-    // Input files
-    command_ss << " -i";
-    for (const auto& file : opts.input_files) {
-        command_ss << " \"" << file << "\"";
+    // The input file list is only added for the full format.
+    if (format == CommandFormat::Full) {
+        command_ss << " -i";
+        for (const auto& file : opts.input_files) {
+            command_ss << " \"" << file << "\"";
+        }
     }
     
     return command_ss.str();

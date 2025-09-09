@@ -26,7 +26,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "Black level: " << opts.dark_value << "\n";
     log_stream << "Saturation point: " << opts.saturation_value << "\n";
     
-    // Print all configured SNR thresholds
     log_stream << "SNR threshold(s): ";
     for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
         log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
@@ -35,7 +34,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     log_stream << "DR normalization: " << opts.dr_normalization_mpx << " Mpx\n";
     log_stream << "Polynomic order: " << opts.poly_order << "\n";
-    // Use new patch_ratio argument
     log_stream << "Patch ratio: " << opts.patch_ratio << "\n";
     log_stream << "Output file: " << opts.output_filename << "\n\n";
 
@@ -43,9 +41,9 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         return false;
     }
     
-    // Generate command string if plot_mode is 2, using the centralized function
+    // Generate command string using the specific 'Plot' format.
     if (opts.plot_mode == 2) {
-        opts.generated_command = GenerateCommandString(opts);
+        opts.generated_command = GenerateCommandString(opts, CommandFormat::Plot);
     }
     return true;
 }

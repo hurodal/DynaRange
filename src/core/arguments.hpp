@@ -9,6 +9,12 @@
 // Default polynomial order
 constexpr int DEFAULT_POLY_ORDER = 3;
 
+// Enum to specify the desired command string format
+enum class CommandFormat {
+    Full, // Complete command for the GUI
+    Plot  // Abbreviated command for plots
+};
+
 // Structure for program options.
 struct ProgramOptions {
     double dark_value;
@@ -19,28 +25,20 @@ struct ProgramOptions {
     std::vector<std::string> input_files;
     int poly_order = DEFAULT_POLY_ORDER;
     
-    // MODIFIED: Arguments adapted to new specifications
     double dr_normalization_mpx;
-    std::vector<double> snr_thresholds_db; // Can be {12, 0} by default, or a single user value.
+    std::vector<double> snr_thresholds_db;
 
-    // ADDED: New arguments from the user manual
-    double patch_ratio; // Replaces patch_safe
-    int plot_mode;      // Replaces report_command
+    double patch_ratio;
+    int plot_mode;
 
-    // ADDED: New operating mode for chart creation (functionality not implemented yet)
     bool create_chart_mode = false;
     std::vector<double> chart_params;
 
-    // REMOVED: Obsolete arguments
-    // int patch_safe;
-    // bool report_command;
-
-    // This member is still used internally by the GUI
     std::string generated_command;
 };
 
 // Function declaration for parsing arguments.
 ProgramOptions ParseArguments(int argc, char* argv[]);
 
-// Function declaration to generate the equivalent command line string.
-std::string GenerateCommandString(const ProgramOptions& opts);
+// The function now accepts a CommandFormat enum
+std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat format = CommandFormat::Full);

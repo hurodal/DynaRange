@@ -15,36 +15,39 @@ find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 find_package(wxWidgets REQUIRED)
 
-# Buscar la librería de Cairo
+# Find the Cairo library
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
 
+# --- Definición de la carpeta de salida para el instalador ---
+# Todos los archivos necesarios se copiarán a "build/dynaRangePortable"
+set(PORTABLE_DIR ${CMAKE_BINARY_DIR}/dynaRangePortable)
+
+# Eliminadas las líneas duplicadas de la lista
 set(CORE_SOURCES
     src/core/Analysis.cpp
     src/core/Arguments.cpp
-    src/core/Engine.cpp
     src/core/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
     src/core/graphics/Drawing.cpp
     src/core/graphics/Plotting.cpp
-    src/core/graphics/Plotting.cpp
     src/core/Math.cpp
 )
 
-add_executable(dynaRange
+add_executable(rango
     src/DynaRangeCli.cpp
     ${CORE_SOURCES}
     icono_owl.rc
 )
-target_include_directories(dynaRange PRIVATE 
+target_include_directories(rango PRIVATE 
     ${OpenCV_INCLUDE_DIRS} 
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
 )
-target_link_libraries(dynaRange PRIVATE 
+target_link_libraries(rango PRIVATE 
     ${OpenCV_LIBS} 
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
@@ -77,6 +80,16 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${CAIRO_LIBRARIES}
 )
 
+# --- Establecer el directorio de salida de los ejecutables ---
+set_target_properties(rango dynaRangeGui PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
+)
+
+# --- Copiar archivos de recursos a la carpeta portable ---
+# Asegúrate de que el fichero logo.png está en la raíz del proyecto
+file(COPY "${CMAKE_SOURCE_DIR}/logo.png" DESTINATION "${PORTABLE_DIR}")
+
+
 include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
@@ -93,5 +106,6 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL
 include(InstallRequiredSystemLibraries)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-install(TARGETS dynaRange dynaRangeGui DESTINATION bin)
+# MODIFICADO: Se renombra el target de instalación
+install(TARGETS rango dynaRangeGui DESTINATION bin)
 include(CPack)

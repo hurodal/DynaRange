@@ -1,9 +1,9 @@
-; Incluimos la librería para la Interfaz de Usuario Moderna
 !include MUI2.nsh
 
 ; --- Información Básica del Instalador ---
 Name "DynaRange"
-OutFile "dynaRangeInstaller.exe"
+; MODIFICADO: Nombre del instalador consistente con el CLI
+OutFile "dynaRangeInstaller.exe" 
 InstallDir "$PROGRAMFILES64\DynaRange"
 RequestExecutionLevel admin
 
@@ -15,7 +15,6 @@ VIAddVersionKey "FileDescription" "Dynamic Range Analysis Tool"
 VIAddVersionKey "LegalCopyright" "Hurodal"
 
 ; --- Iconos del Instalador y Desinstalador ---
-; (Asegúrate de tener un archivo "favicon_noise.ico" junto a este script)
 !define MUI_ICON "favicon_noise.ico"
 !define MUI_UNICON "favicon_noise.ico"
 
@@ -38,17 +37,18 @@ Section "Programa Principal"
 
   SetOutPath $INSTDIR
   
-  ; Crea el desinstalador
   WriteUninstaller "$INSTDIR\uninstall.exe"
   
-  ; [cite_start]Copia todos los archivos de tu carpeta portable [cite: 6, 7]
+  ; Copia todos los archivos de tu carpeta portable
   File /r "dynaRangePortable\*.*" 
   
-  ; [cite_start]Crea accesos directos (ahora con icono) [cite: 8]
+  ; Crea accesos directos
   CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
   CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
+  ; AÑADIDO (Opcional): Acceso directo para el CLI en el menú de inicio
+  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange CLI (rango).lnk" "$INSTDIR\rango.exe"
 
-  ; Escribe la información para "Agregar o quitar programas" de Windows
+  ; Escribe la información para "Agregar o quitar programas"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DynaRange" "DisplayName" "DynaRange"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DynaRange" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DynaRange" "NoModify" 1
@@ -59,13 +59,13 @@ SectionEnd
 ; --- Sección de Desinstalación ---
 Section "Uninstall"
 
-  ; Borra los archivos instalados
   Delete "$INSTDIR\uninstall.exe"
-  RMDir /r "$INSTDIR" ; Borra la carpeta de instalación y todo su contenido
+  RMDir /r "$INSTDIR"
 
   ; Borra los accesos directos
   Delete "$DESKTOP\DynaRange GUI.lnk"
   Delete "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk"
+  Delete "$SMPROGRAMS\DynaRange\DynaRange CLI (rango).lnk" ; Limpieza del nuevo acceso directo
   RMDir "$SMPROGRAMS\DynaRange"
 
   ; Borra la información de "Agregar o quitar programas"
