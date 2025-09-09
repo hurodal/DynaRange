@@ -51,7 +51,7 @@ Examples (first example is default and is equivalent to not specifying the param
 
 --poly-fit -f <2-3>
 Definition: polynomic order to fit the SNR curve (default=3)
-Explanation: the gathered points of the need to be fitted to estimate the SNR curves. This is done through polynomial least squares fitting. For the problem under study, SNR on a digital image sensor, we found that 3rd order curves are in general preferred for increased accuracy while 2nd order are less prone to overfitting
+Explanation: the gathered (exposure, SNR) pairs need to be fitted to estimate the SNR curves. This is done through polynomial least squares fitting. For the problem under study, SNR on a digital image sensor, we found that 3rd order curves are in general preferred for increased accuracy while 2nd order are less prone to overfitting
 Usage: by default 3rd order (cubic) curves will be used to approximate the SNR response. The alternative is using 2nd order (cuadratic) curves
 Examples (first example is default and is equivalent to not specifying the parameter):
 --poly-fit   (3rd order curves are used to fit the SNR curves)
