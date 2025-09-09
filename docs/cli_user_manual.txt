@@ -5,22 +5,30 @@ by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (al
 
 Usage: rango [OPTION]... [FILE]...
 
---chart               -c <R G B gamma> : Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma
---black-level         -b <float>       : Camera RAW black level
---black-file          -B <file>        : Totally dark RAW file (ideally shot at base ISO)
---saturation-level    -s <float>       : Camera RAW saturation level
---saturation-file     -S <file>        : Totally clipped RAW file (ideally shot at base ISO)
---input-files         -i <files>       : Input RAW files shot over the magenta test chart (ideally for every ISO)
---patch-ratio         -r <float>       : Relative patch width/height used to compute signal and noise readings (default=0.5)
---snrthreshold-db     -d <float>       : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
---drnormalization-mpx -m <float>       : Number of Mpx for DR normalization (default=8Mpx)
---poly-fit            -f <int 2-3>     : Polynomic order (default=3) to fit the SNR curve
---output-file         -o <file>        : Output filename with all results (black level, sat level, SNR samples, DR values)
---plot                -p <int 0-2>     : Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)
+--chart               -c <R G B invgamma> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+--black-level         -b <float>          : Camera RAW black level
+--black-file          -B <file>           : Totally dark RAW file (ideally shot at base ISO)
+--saturation-level    -s <float>          : Camera RAW saturation level
+--saturation-file     -S <file>           : Totally clipped RAW file (ideally shot at base ISO)
+--input-files         -i <files>          : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
+--snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
+--drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx)
+--poly-fit            -f <int 2-3>        : Polynomic order (default=3) to fit the SNR curve
+--output-file         -o <file>           : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
+--plot                -p <int 0-2>        : Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)
 
 
 -----------------------------------------------
 
+--chart -c <R G B invgamma>
+Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1/1.4)
+Explanation: this option allows to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
+Usage: if the desired colour and gamma are not specified, the default values will produce magenta patches and a gamma suited to optimize patch differentiation in most standard displays
+Examples (first example is default and is equivalent to not specifying the parameter):
+--chart                    (output the default standard magenta patches chart)
+--chart -c 255 101 164 1.4 (output the same default standard magenta patches chart)
+--chart -c 164 101 255 2   (output a bluish patches chart with a strong compression gamma)
 
 --patch-ratio -r <float>
 Definition: relative patch width/height used to compute signal and noise readings (default=0.5)
@@ -58,12 +66,21 @@ Examples (first example is default and is equivalent to not specifying the param
 --poly-fit 2 (2nd order curves are used to fit the SNR curves)
 --poly-fit 3 (3rd order curves are used to fit the SNR curves)
 
+--output-file -o <file> (default="results.csv")
+Definition: output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
+Explanation: in a CSV text file chosen by the user all the relevant variables will be output: black level, sat level, SNR samples, DR values, fitting params
+Usage: by default the data will be output on a "results.csv" file, which the user can change at convenience
+Examples (first example is default and is equivalent to not specifying the parameter):
+--output-file                    (output results to "results.csv")
+--output-file results_ep5.csv    (output results to "results_ep5.csv")
+--output-file results_sonya7.csv (output results to "results_sonya7.csv")
+
 --plot -p <int 0-2> 
 Definition: Export SNR curves plot in PNG format with/without the CLI command that generated them (default=0, don't plot)
 Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows). In order to export these SNR curves in PNG format a 1-2 parameter must be set
 Usage: by default no plot export is performed. 1 will export the SNR curves alone in PNG format, while 2 will add the specific CLI commmand (no filenames) that generated the curves
 Examples (first example is default and is equivalent to not specifying the parameter):
---plot   (no plot export, equivalent to --plot 0)
+--plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format including CLI command)
 
