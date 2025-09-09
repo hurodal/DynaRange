@@ -10,7 +10,7 @@ Usage: rango [OPTION]... [FILE]...
 --black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
 --saturation-file     -S <file>           : Totally clipped RAW file ideally shot at base ISO
---input-files         -i <files>          : Input RAW files shot over the magenta test chart ideally for every ISO
+--input-files         -i <files>          : Input RAW files shot over the test chart ideally for every ISO
 --patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
 --snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
 --drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx)
@@ -21,16 +21,6 @@ Usage: rango [OPTION]... [FILE]...
 
 -----------------------------------------------
 
---black-level -b <float>
---black-file  -B <file>
-Definition: camera RAW black level / totally dark RAW file ideally shot at base ISO (default=black level power of 2 estimation)
-Explanation: setting this parameter is optional but it is VERY recommended since all SNR calculations are very sensitive to it. Knowing the black level is mandatory to linearize all sensor data by subtracting it from the RAW values in order to obtain accurate DR measurements
-Usage: the most reliable way to proceed is to capture a quick darkframe at base ISO ideally with the camera still cold (-B option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise black level (-b option). If none of the options are used, rango by default will calculate the lowest power of 2 value where information is found which can be risky
-Examples (first example is default and is equivalent to not specifying the parameter):
---black-level -b 255       (provide a black level of 255)
---black-level -b 254.85    (provide a more precise black level of 254.85)
---black-level -B black.dng (provide a darkframe RAW file so that rango calculated the black level)
-
 --chart -c <R G B invgamma>
 Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1/1.4)
 Explanation: this option allows to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
@@ -39,6 +29,33 @@ Examples (first example is default and is equivalent to not specifying the param
 --chart                    (output the default standard magenta patches chart)
 --chart -c 255 101 164 1.4 (output the same default standard magenta patches chart)
 --chart -c 164 101 255 2   (output a bluish patches chart with a strong compression gamma)
+
+--black-level -b <float>
+--black-file  -B <file>
+Definition: camera RAW black level / totally dark RAW file ideally shot at base ISO (default=black level power of 2 estimation)
+Explanation: setting this parameter is optional but it is VERY recommended since all SNR calculations are very sensitive to it. Knowing the black level is mandatory to linearize all sensor data by subtracting it from the RAW values in order to obtain accurate DR measurements
+Usage: the most reliable way to proceed is to capture a quick darkframe at base ISO ideally with the camera still cold (-B option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise black level (-b option). If none of the options are used, rango by default will calculate the lowest power of 2 value where information is found which can be risky
+Examples (first example is default and is equivalent to not specifying the parameter):
+--black-level -b 255       (provide a black level of 255 for the Olympus OM-1)
+--black-level -b 254.85    (provide a more precise black level of 254.85 for the Olympus OM-1)
+--black-level -B black.dng (provide a darkframe RAW file so that rango calculates the black level)
+
+--saturation-level -s <float>
+--saturation-file  -S <file>
+Definition: camera RAW saturation level / totally clipped RAW file ideally shot at base ISO (default=saturation level bitdepth scale estimation)
+Explanation: not being as critical as the black level, setting this parameter is also very important to properly locate exposure values with respect to saturation in order to obtain accurate DR measurements
+Usage: the most reliable way to proceed is to capture a completely clipped RAW file ideally at base ISO (-S option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise saturation level (-s option). If none of the options are used, rango by default will calculate the end of the bitdepth scale from the highest ISO RAW file
+Examples (first example is default and is equivalent to not specifying the parameter):
+--saturation-level -s 3692    (provide a saturation level of 3692 for the Canon 5D)
+--saturation-level -s 16383   (provide a saturation level of 16383 for the Sony A7 II)
+--saturation-level -S sat.dng (provide a clipped RAW file so that rango calculates the saturation level)
+
+--input-files -i <files>
+Definition: input RAW files shot over the test chart ideally for every ISO (no default, mandatory parameter)
+Explanation: this is the command to input all the RAW files the user obtained by shooting the test chart, ideally at every ISO. An SNR curve will be calculated for each file, from which the requested DR values are derived
+Usage: the user must supply a list of RAW filenames or a wildcard pattern that represents them
+--input-files -i iso100.dng iso200.dng iso3200.dng (provide a list of RAW files to process)
+--input-files -i *.arw                             (provide a wildcard for a list of Sony RAW files)
 
 --patch-ratio -r <float>
 Definition: relative patch width/height used to compute signal and noise readings (default=0.5)
@@ -76,7 +93,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --poly-fit 2 (2nd order curves are used to fit the SNR curves)
 --poly-fit 3 (3rd order curves are used to fit the SNR curves)
 
---output-file -o <file> (default="results.csv")
+--output-file -o <file>
 Definition: output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
 Explanation: in a CSV text file chosen by the user all the relevant variables will be output: black level, sat level, SNR samples, DR values, fitting params
 Usage: by default the data will be output on a "results.csv" file, which the user can change at convenience
@@ -85,7 +102,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --output-file results_ep5.csv    (output results to "results_ep5.csv")
 --output-file results_sonya7.csv (output results to "results_sonya7.csv")
 
---plot -p <int 0-2> 
+--plot -p <int 0-2>
 Definition: Export SNR curves plot in PNG format with/without the CLI command that generated them (default=0, don't plot)
 Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows). In order to export these SNR curves in PNG format a 1-2 parameter must be set
 Usage: by default no plot export is performed. 1 will export the SNR curves alone in PNG format, while 2 will add the specific CLI commmand (no filenames) that generated the curves
