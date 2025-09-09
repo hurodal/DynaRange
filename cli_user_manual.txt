@@ -63,7 +63,7 @@ Definition: Export SNR curves plot in PNG format with/without the CLI command th
 Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows). In order to export these SNR curves in PNG format a 1-2 parameter must be set
 Usage: by default no plot export is performed. 1 will export the SNR curves alone in PNG format, while 2 will add the specific CLI commmand (no filenames) that generated the curves
 Examples (first example is default and is equivalent to not specifying the parameter):
---plot   (no plot export)
+--plot   (no plot export, equivalent to --plot 0)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format including CLI command)
 
