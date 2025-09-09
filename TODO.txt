@@ -75,7 +75,7 @@ TODO 4: ORDENACIÓN FICHEROS RAW POR EXPOSICIÓN -> (HECHO)
  El RAW MENOS expuesto será el usado para localizar los 4 extremos de la carta
 
 
-TODO 5: INTERNACIONALIZACIÓN -> (HECHO)
+TODO 5: INTERNACIONALIZACIÓN -> (HECHO) Pendiente actualizar nuevas cadenas.
 
     i18n -> Internacionalización -> Que el programa se pueda usar en varios idiomas disponibles.
 
