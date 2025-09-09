@@ -7,10 +7,10 @@ Usage: rango [OPTION]... [FILE]...
 
 --chart               -c <R G B invgamma> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 --black-level         -b <float>          : Camera RAW black level
---black-file          -B <file>           : Totally dark RAW file (ideally shot at base ISO)
+--black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
---saturation-file     -S <file>           : Totally clipped RAW file (ideally shot at base ISO)
---input-files         -i <files>          : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--saturation-file     -S <file>           : Totally clipped RAW file ideally shot at base ISO
+--input-files         -i <files>          : Input RAW files shot over the magenta test chart ideally for every ISO
 --patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
 --snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
 --drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx)

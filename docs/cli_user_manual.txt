@@ -7,10 +7,10 @@ Usage: rango [OPTION]... [FILE]...
 
 --chart               -c <R G B invgamma> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 --black-level         -b <float>          : Camera RAW black level
---black-file          -B <file>           : Totally dark RAW file (ideally shot at base ISO)
+--black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
---saturation-file     -S <file>           : Totally clipped RAW file (ideally shot at base ISO)
---input-files         -i <files>          : Input RAW files shot over the magenta test chart (ideally for every ISO)
+--saturation-file     -S <file>           : Totally clipped RAW file ideally shot at base ISO
+--input-files         -i <files>          : Input RAW files shot over the magenta test chart ideally for every ISO
 --patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
 --snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
 --drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx)
@@ -20,6 +20,16 @@ Usage: rango [OPTION]... [FILE]...
 
 
 -----------------------------------------------
+
+--black-level -b <float>
+--black-file  -B <file>
+Definition: camera RAW black level / totally dark RAW file ideally shot at base ISO (default=black level power of 2 estimation)
+Explanation: setting this parameter is optional but it is VERY recommended since all SNR calculations are very sensitive to it. Knowing the black level is mandatory to linearize all sensor data by subtracting it from the RAW values in order to obtain accurate DR measurements
+Usage: the most reliable way to proceed is to capture a quick darkframe at base ISO ideally with the camera still cold (-B option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise black level (-b option). If none of the options are used, rango by default will calculate the lowest power of 2 value where information is found which can be risky
+Examples (first example is default and is equivalent to not specifying the parameter):
+--black-level -b 255       (provide a black level of 255)
+--black-level -b 254.85    (provide a more precise black level of 254.85)
+--black-level -B black.dng (provide a darkframe RAW file so that rango calculated the black level)
 
 --chart -c <R G B invgamma>
 Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1/1.4)
@@ -82,7 +92,7 @@ Usage: by default no plot export is performed. 1 will export the SNR curves alon
 Examples (first example is default and is equivalent to not specifying the parameter):
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
---plot 2 (plot export of SNR curves in PNG format including CLI command)
+--plot 2 (plot export of SNR curves in PNG format adding CLI command)
 
 
 
