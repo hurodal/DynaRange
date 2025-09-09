@@ -10,7 +10,7 @@ Usage: rango [OPTION]... [FILE]...
 --black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
 --saturation-file     -S <file>           : Totally clipped RAW file ideally shot at base ISO
---input-files         -i <files>          : Input RAW files shot over the magenta test chart ideally for every ISO
+--input-files         -i <files>          : Input RAW files shot over the test chart ideally for every ISO
 --patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
 --snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))
 --drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx)
