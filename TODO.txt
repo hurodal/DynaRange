@@ -125,3 +125,5 @@ TODO 10: USAR LOS 4 CANALES RAW
     Los puntos proporcionados por cada canal son 100% compatibles entre sí, así que pueden aproximarse polinómicamente todos juntos
 
 
+
+
