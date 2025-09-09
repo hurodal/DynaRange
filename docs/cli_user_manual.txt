@@ -61,7 +61,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --drnormalization-mpx -m <float>
 Definition: number of Mpx for DR normalization (default=8Mpx)
 Explanation: in order to properly and fairly compare different resolution cameras, the SNR values need to be normalized to a given output resolution before calculating the DR. This means DR figures will vary according to this resolution normalization, obtaining higher values the lower the number of Mpx specified
-Usage: by default a 8Mpx based DR is calculated. When no normalization is needed (per-pixel DR) a value of 0 must be set for this parameter
+Usage: by default a 8Mpx based DR is calculated. If no normalization is wanted (per-pixel DR) a value of 0 must be set for this parameter
 Examples (first example is default and is equivalent to not specifying the parameter):
 --drnormalization-mpx      (DR normalized to 8Mpx)
 --drnormalization-mpx 21.5 (DR normalized to 21.5Mpx)
