@@ -4,7 +4,7 @@
 #include "gui/DynaRangeFrame.hpp"
 
 
-// Clase principal de la aplicación
+// Main application class
 class MyApp : public wxApp {
 public:
     virtual bool OnInit();
@@ -12,15 +12,15 @@ public:
 
 wxIMPLEMENT_APP(MyApp);
 
-// Esta función se ejecuta al iniciar el programa
+// This function is executed when the program starts
 bool MyApp::OnInit() {
-    // Es importante establecer un locale estándar para la conversión de números
+    // It is important to set a standard locale for number conversion
     std::setlocale(LC_ALL, "C");
 
-    // Inicializa todos los manejadores de formatos de imagen (PNG, JPG, etc.)
+    // Initialize all image format handlers (PNG, JPG, etc.)
     wxInitAllImageHandlers();
     
-    // Crea y muestra la ventana principal
+    // Create and show the main window
     DynaRangeFrame *frame = new DynaRangeFrame(NULL);
     frame->Show(true);
     return true;

@@ -1,4 +1,4 @@
-// Fichero: core/Math.cpp
+// File: core/Math.cpp
 #include "Math.hpp"
 #include <opencv2/opencv.hpp>
 #include <cmath>
@@ -22,7 +22,7 @@ std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_sn
     }
     int order = coeffs.rows - 1;
 
-    // --- Caso para Polinomio de Orden 2 (Cuadrático) ---
+    // --- Case for Order 2 Polynomial (Quadratic) ---
     if (order == 2) {
         double c2 = coeffs.at<double>(0), c1 = coeffs.at<double>(1), c0 = coeffs.at<double>(2);
         double a = c2, b = c1, c = c0 - target_snr_db;
@@ -36,7 +36,7 @@ std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_sn
         return std::nullopt;
     }
     
-    // --- Caso para Polinomio de Orden 3 (Cúbico) usando Newton-Raphson ---
+    // --- Case for Order 3 Polynomial (Cubic) using Newton-Raphson ---
     if (order == 3) {
         double c3 = coeffs.at<double>(0);
         double c2 = coeffs.at<double>(1);

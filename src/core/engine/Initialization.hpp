@@ -1,7 +1,7 @@
-// Fichero: core/engine/Initialization.hpp
+// File: core/engine/Initialization.hpp
 #pragma once
 #include "../Arguments.hpp"
 #include <ostream>
 
-// Prepara el análisis: procesa dark/sat frames, imprime config y ordena ficheros.
+// Prepares the analysis: processes dark/sat frames, prints config, and sorts files.
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream);

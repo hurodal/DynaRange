@@ -1,4 +1,4 @@
-// Fichero: core/graphics/Plotting.hpp
+// File: core/graphics/Plotting.hpp
 #pragma once
 
 #include <string>

@@ -1,4 +1,4 @@
-// Fichero: core/engine/Reporting.cpp
+// File: core/engine/Reporting.cpp
 #include "Reporting.hpp"
 #include "../graphics/Plotting.hpp"
 #include <filesystem>
@@ -8,6 +8,7 @@
 
 namespace fs = std::filesystem;
 
+// Generates the final reports: summary plot, table, and CSV.
 std::optional<std::string> FinalizeAndReport(
     const ProcessingResult& results,
     const ProgramOptions& opts,
@@ -25,7 +26,8 @@ std::optional<std::string> FinalizeAndReport(
 
     log_stream << "\n--- Dynamic Range Results ---\n";
     std::stringstream dr_header_ss;
-    dr_header_ss << "DR(" << std::fixed << std::setprecision(2) << opts.snr_threshold_db << "dB)";
+    // Use the first threshold from the vector for the header
+    dr_header_ss << "DR(" << std::fixed << std::setprecision(2) << opts.snr_thresholds_db[0] << "dB)";
     log_stream << std::left << std::setw(30) << "RAW File" << std::setw(20) << dr_header_ss.str() << std::setw(15) << "DR(0dB)" << "Patches" << std::endl;
     log_stream << std::string(80, '-') << std::endl;
     for (const auto& res : all_results) {
@@ -33,7 +35,8 @@ std::optional<std::string> FinalizeAndReport(
     }
     
     std::ofstream csv_file(opts.output_filename);
-    csv_file << "raw_file,DR_" << opts.snr_threshold_db << "dB,DR_0dB,patches_used\n";
+    // Use the first threshold from the vector for the CSV header
+    csv_file << "raw_file,DR_" << opts.snr_thresholds_db[0] << "dB,DR_0dB,patches_used\n";
     for (const auto& res : all_results) {
         csv_file << fs::path(res.filename).filename().string() << "," << res.dr_12db << "," << res.dr_0db << "," << res.patches_used << "\n";
     }

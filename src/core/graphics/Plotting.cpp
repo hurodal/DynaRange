@@ -1,6 +1,6 @@
-// Fichero: core/Plotting.cpp
+// File: core/graphics/Plotting.cpp
 #include "Plotting.hpp"
-#include "../Analysis.hpp" // Necesario para la estructura CurveData
+#include "../Analysis.hpp" // Needed for CurveData struct
 #include "Drawing.hpp"
 #include <cairo/cairo.h>
 #include <iostream>
@@ -20,6 +20,11 @@ void GenerateSnrPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
+    // Do not generate plot if plot_mode is 0
+    if (opts.plot_mode == 0) {
+        return;
+    }
+
     if (signal_ev.size() < 2) {
         log_stream << "  - Warning: Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
         return;
@@ -37,17 +42,13 @@ void GenerateSnrPlot(
     double min_ev_data = *min_max_ev.first;
     double max_ev_data = *min_max_ev.second;
     std::map<std::string, double> bounds;
-    if (max_ev_data - min_ev_data < 1e-6) {
-        bounds["min_ev"] = min_ev_data - 0.5;
-        bounds["max_ev"] = max_ev_data + 0.5;
-    } else {
-        bounds["min_ev"] = floor(min_ev_data) - 1.0;
-        bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
-    }
+    bounds["min_ev"] = floor(min_ev_data) - 1.0;
+    bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    DrawPlotBase(cr, "SNR Curve - " + image_title, bounds, opts.generated_command);
+    // Pass the SNR thresholds to the drawing function
+    DrawPlotBase(cr, "SNR Curve - " + image_title, bounds, opts.generated_command, opts.snr_thresholds_db);
     std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs, opts.generated_command}};
     DrawCurvesAndData(cr, single_curve_vec, bounds);
     
@@ -64,6 +65,11 @@ std::optional<std::string> GenerateSummaryPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
+    // Do not generate plot if plot_mode is 0
+    if (opts.plot_mode == 0) {
+        return std::nullopt;
+    }
+
     if (all_curves.empty()) {
         log_stream << "  - Warning: Skipping summary plot due to no curve data." << std::endl;
         return std::nullopt;
@@ -78,45 +84,26 @@ std::optional<std::string> GenerateSummaryPlot(
     }
 
     double min_ev_global = 1e6, max_ev_global = -1e6;
-    bool has_data = false;
     for (const auto& curve : all_curves) {
         if (!curve.signal_ev.empty()) {
-            has_data = true;
             min_ev_global = std::min(min_ev_global, *std::min_element(curve.signal_ev.begin(), curve.signal_ev.end()));
             max_ev_global = std::max(max_ev_global, *std::max_element(curve.signal_ev.begin(), curve.signal_ev.end()));
         }
     }
-    if (!has_data) {
-        log_stream << "  - Warning: Skipping summary plot due to no data points." << std::endl;
-        cairo_destroy(cr);
-        cairo_surface_destroy(surface);
-        return std::nullopt;
-    }
 
     std::map<std::string, double> bounds;
-    if (max_ev_global - min_ev_global < 1e-6) {
-        bounds["min_ev"] = min_ev_global - 0.5;
-        bounds["max_ev"] = max_ev_global + 0.5;
-    } else {
-        bounds["min_ev"] = floor(min_ev_global) - 1.0;
-        bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
-    }
+    bounds["min_ev"] = floor(min_ev_global) - 1.0;
+    bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    std::string title = "SNR Curves - Summary";
-    std::string filename_suffix = "";
-    if (!camera_name.empty()) {
-        title += " (" + camera_name + ")";
-        
-        std::string safe_camera_name = camera_name;
-        std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
-        filename_suffix = "_" + safe_camera_name;
-    }
+    std::string title = "SNR Curves - Summary (" + camera_name + ")";
+    std::string safe_camera_name = camera_name;
+    std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
+    std::string output_filename = (fs::path(output_dir) / ("DR_summary_plot_" + safe_camera_name + ".png")).string();
 
-    std::string output_filename = (fs::path(output_dir) / ("DR_summary_plot" + filename_suffix + ".png")).string();
-
-    DrawPlotBase(cr, title, bounds, opts.generated_command);
+    // Pass the SNR thresholds to the drawing function
+    DrawPlotBase(cr, title, bounds, opts.generated_command, opts.snr_thresholds_db);
     DrawCurvesAndData(cr, all_curves, bounds);
 
     cairo_surface_write_to_png(surface, output_filename.c_str());

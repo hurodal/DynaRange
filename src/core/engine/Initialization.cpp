@@ -1,12 +1,14 @@
-// Fichero: core/engine/Initialization.cpp
+// File: core/engine/Initialization.cpp
 #include "Initialization.hpp"
 #include "../Analysis.hpp"
+#include "../Arguments.hpp"
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
+// Prepares the analysis: processes dark/sat frames, prints config, and sorts files.
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
@@ -23,35 +25,27 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "\n[FINAL CONFIGURATION]\n";
     log_stream << "Black level: " << opts.dark_value << "\n";
     log_stream << "Saturation point: " << opts.saturation_value << "\n";
-    log_stream << "SNR threshold: " << opts.snr_threshold_db << " dB\n";
+    
+    // Print all configured SNR thresholds
+    log_stream << "SNR threshold(s): ";
+    for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
+        log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
+    }
+    log_stream << " dB\n";
+
     log_stream << "DR normalization: " << opts.dr_normalization_mpx << " Mpx\n";
     log_stream << "Polynomic order: " << opts.poly_order << "\n";
-    log_stream << "Patch safe: " << opts.patch_safe << " px\n";
+    // Use new patch_ratio argument
+    log_stream << "Patch ratio: " << opts.patch_ratio << "\n";
     log_stream << "Output file: " << opts.output_filename << "\n\n";
 
     if (!PrepareAndSortFiles(opts, log_stream)) {
         return false;
     }
     
-    if (opts.report_command) {
-        std::stringstream command_ss;
-        command_ss << std::fixed << std::setprecision(2);
-        command_ss << "dynaRange --report-command";
-        if (!opts.dark_file_path.empty()) {
-            command_ss << " --black-file \"" << fs::path(opts.dark_file_path).filename().string() << "\"";
-        } else {
-            command_ss << " --black-level " << opts.dark_value;
-        }
-        if (!opts.sat_file_path.empty()) {
-            command_ss << " --saturation-file \"" << fs::path(opts.sat_file_path).filename().string() << "\"";
-        } else {
-            command_ss << " --saturation-level " << opts.saturation_value;
-        }
-        command_ss << " --poly-fit " << opts.poly_order;
-        command_ss << " --patch-safe " << opts.patch_safe;
-        command_ss << " --snrthreshold-db " << opts.snr_threshold_db;
-        command_ss << " --drnormalization-mpx " << opts.dr_normalization_mpx;
-        opts.generated_command = command_ss.str();
+    // Generate command string if plot_mode is 2, using the centralized function
+    if (opts.plot_mode == 2) {
+        opts.generated_command = GenerateCommandString(opts);
     }
     return true;
 }

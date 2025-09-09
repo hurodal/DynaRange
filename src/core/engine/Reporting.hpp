@@ -1,9 +1,9 @@
-// Fichero: core/engine/Reporting.hpp
+// File: core/engine/Reporting.hpp
 #pragma once
-#include "Processing.hpp" // Para ProcessingResult
+#include "Processing.hpp" // For ProcessingResult
 #include <string>
 
-// Genera los informes finales: gráfico resumen, tabla y CSV.
+// Generates the final reports: summary plot, table, and CSV.
 std::optional<std::string> FinalizeAndReport(
     const ProcessingResult& results,
     const ProgramOptions& opts,

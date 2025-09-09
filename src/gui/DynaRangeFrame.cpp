@@ -212,13 +212,12 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     m_darkValueTextCtrl->GetValue().ToDouble(&opts.dark_value);
     m_saturationValueTextCtrl->GetValue().ToDouble(&opts.saturation_value);
     
-    opts.snr_threshold_db = 12.0;
+    // Set GUI defaults according to new argument specifications
+    opts.snr_thresholds_db = {12.0, 0.0}; // Default behavior: calculate for 12dB and 0dB
     opts.dr_normalization_mpx = 8.0;
     opts.poly_order = DEFAULT_POLY_ORDER;
-    opts.patch_safe = 50;
-    
-    // La GUI siempre activa el reporte del comando
-    opts.report_command = true;
+    opts.patch_ratio = 0.5; // New argument, using default value
+    opts.plot_mode = 2;     // The GUI will always generate the plot with the command
     
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
@@ -226,7 +225,6 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
 
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
     fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
-    //fs::create_directories(output_dir);
     opts.output_filename = (output_dir / "DR_results.csv").string();
     
     return opts;

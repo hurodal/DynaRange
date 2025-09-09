@@ -11,9 +11,10 @@ namespace fs = std::filesystem;
 
 namespace { // Funciones auxiliares internas a este fichero
 
-// Declaración adelantada para que ProcessFiles pueda ver esta función
+// Forward declaration so ProcessFiles can see this function
 SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream);
 
+// Analyzes a single RAW file, extracts patches, fits SNR curve, and calculates DR.
 SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream) {
     log_stream << "\nProcessing \"" << fs::path(name).filename().string() << "\"..." << std::endl;
 
@@ -39,7 +40,8 @@ SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOpti
     double xbr = (2515.0 + 2473.0) / 2.0; double ybr = (1687.0 + 1679.0) / 2.0;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
     cv::Mat imgcrop = imgc(crop_area);
-    PatchAnalysisResult patch_data = AnalyzePatches(imgcrop.clone(), 11, 7, static_cast<double>(opts.patch_safe));
+    // MODIFIED: Use opts.patch_ratio instead of opts.patch_safe
+    PatchAnalysisResult patch_data = AnalyzePatches(imgcrop.clone(), 11, 7, opts.patch_ratio);
     
     if (patch_data.signal.empty()) {
         log_stream << "Warning: No valid patches found for " << name << std::endl;
@@ -62,11 +64,12 @@ SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOpti
     GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs, opts, log_stream);
     
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
-    double dr_12db = -(*FindIntersectionEV(poly_coeffs, opts.snr_threshold_db, *min_max_ev.first, *min_max_ev.second));
+    // MODIFIED: Use the first element of the thresholds vector for the primary DR calculation
+    double dr_primary = -(*FindIntersectionEV(poly_coeffs, opts.snr_thresholds_db[0], *min_max_ev.first, *min_max_ev.second));
     double dr_0db = -(*FindIntersectionEV(poly_coeffs, 0.0, *min_max_ev.first, *min_max_ev.second));
     
     return {
-        {name, dr_12db, dr_0db, (int)patch_data.signal.size()},
+        {name, dr_primary, dr_0db, (int)patch_data.signal.size()},
         {name, "", signal_ev, snr_db, poly_coeffs.clone(), opts.generated_command}
     };
 }

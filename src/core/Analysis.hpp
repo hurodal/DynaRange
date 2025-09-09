@@ -1,4 +1,4 @@
-// Fichero: core/Analysis.hpp
+// File: core/Analysis.hpp
 #pragma once
 
 #include <string>
@@ -13,7 +13,7 @@
 
 constexpr int INTERSECTION_POLY_ORDER = 2;
 
-// --- DEFINICIÓN DE ESTRUCTURAS ---
+// --- STRUCTURE DEFINITIONS ---
 struct DynamicRangeResult {
     std::string filename;
     double dr_12db;
@@ -36,11 +36,12 @@ struct CurveData {
     std::string generated_command;
 };
 
-// --- DECLARACIONES DE FUNCIONES DE ANÁLISIS ---
+// --- ANALYSIS FUNCTION DECLARATIONS ---
 std::string GetCameraModel(const std::string& filename);
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
-PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double SAFE);
+// MODIFIED: Renamed the last parameter for clarity
+PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio);
 std::optional<std::vector<double>> ExtractRawPixels(const std::string& filename);
 double CalculateMean(const std::vector<double>& data);
 double CalculateQuantile(std::vector<double>& data, double percentile);

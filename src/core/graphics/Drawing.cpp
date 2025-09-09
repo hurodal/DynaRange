@@ -12,7 +12,8 @@
 
 namespace fs = std::filesystem;
 
-namespace { // Namespace anónimo para funciones auxiliares de este fichero
+// Anonymous namespace for helper functions in this file
+namespace { 
 
 void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, double dash_length = 20.0) {
     double dashes[] = {dash_length, dash_length};
@@ -24,13 +25,14 @@ void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, dou
     cairo_restore(cr);
 }
 
-} // fin del namespace anónimo
+} // end of anonymous namespace
 
 void DrawPlotBase(
     cairo_t* cr,
     const std::string& title,
     const std::map<std::string, double>& bounds,
-    const std::string& command_text)
+    const std::string& command_text,
+    const std::vector<double>& snr_thresholds)
 {
     const int margin_left = 180, margin_bottom = 120, margin_top = 100, margin_right = 100;
     const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
@@ -51,16 +53,12 @@ void DrawPlotBase(
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
         auto [p1x, p1y] = map_coords(ev, bounds.at("min_db"));
         auto [p2x, p2y] = map_coords(ev, bounds.at("max_db"));
-        cairo_move_to(cr, p1x, p1y);
-        cairo_line_to(cr, p2x, p2y);
-        cairo_stroke(cr);
+        cairo_move_to(cr, p1x, p1y); cairo_line_to(cr, p2x, p2y); cairo_stroke(cr);
     }
     for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) {
         auto [p1x, p1y] = map_coords(bounds.at("min_ev"), db);
         auto [p2x, p2y] = map_coords(bounds.at("max_ev"), db);
-        cairo_move_to(cr, p1x, p1y);
-        cairo_line_to(cr, p2x, p2y);
-        cairo_stroke(cr);
+        cairo_move_to(cr, p1x, p1y); cairo_line_to(cr, p2x, p2y); cairo_stroke(cr);
     }
 
     cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
@@ -68,22 +66,22 @@ void DrawPlotBase(
     cairo_rectangle(cr, margin_left, margin_top, plot_area_width, plot_area_height);
     cairo_stroke(cr);
     
+    // Draw a line for each provided SNR threshold
     cairo_set_line_width(cr, 2.0);
-    auto [p12_1x, p12_1y] = map_coords(bounds.at("min_ev"), 12.0);
-    auto [p12_2x, p12_2y] = map_coords(bounds.at("max_ev"), 12.0);
-    DrawDashedLine(cr, p12_1x, p12_1y, p12_2x, p12_2y);
-    
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 16.0);
-    cairo_move_to(cr, p12_1x + 20, p12_1y - 10);
-    cairo_show_text(cr, "Photographic DR (SNR > 12dB)");
-
-    auto [p0_1x, p0_1y] = map_coords(bounds.at("min_ev"), 0.0);
-    auto [p0_2x, p0_2y] = map_coords(bounds.at("max_ev"), 0.0);
-    DrawDashedLine(cr, p0_1x, p0_1y, p0_2x, p0_2y);
-    cairo_move_to(cr, p0_1x + 20, p0_1y - 10);
-    cairo_show_text(cr, "Engineering DR (SNR > 0dB)");
-
+    
+    for(const double threshold : snr_thresholds) {
+        auto [p1x, p1y] = map_coords(bounds.at("min_ev"), threshold);
+        auto [p2x, p2y] = map_coords(bounds.at("max_ev"), threshold);
+        DrawDashedLine(cr, p1x, p1y, p2x, p2y);
+        
+        std::stringstream ss;
+        ss << "SNR > " << std::fixed << std::setprecision(1) << threshold << "dB";
+        cairo_move_to(cr, p1x + 20, p1y - 10);
+        cairo_show_text(cr, ss.str().c_str());
+    }
+    
     cairo_set_font_size(cr, 16.0);
     cairo_text_extents_t extents;
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { 
@@ -127,7 +125,6 @@ void DrawPlotBase(
         cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
         cairo_text_extents_t cmd_extents;
         cairo_text_extents(cr, command_text.c_str(), &cmd_extents);
-        
         cairo_move_to(cr, PLOT_WIDTH - margin_right - cmd_extents.width - 10, PLOT_HEIGHT - 20);
         cairo_show_text(cr, command_text.c_str());
     }
