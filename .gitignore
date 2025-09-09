@@ -1,6 +1,10 @@
-.gitignore
-/.vscode
+# Ignorar la configuración del editor VS Code
+.vscode
+
+# Ignorar ejecutables
 dynaRangePortable/dynaRange.exe
 dynaRangePortable/dynaRangeGui.exe
-/raws
-/build
+
+# Ignorar directorios de datos y de compilación
+raws
+build
