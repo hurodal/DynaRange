@@ -129,7 +129,7 @@ TODO: pequeñas correcciones en el GUI:
 
     - Al clicar para cargar los dark y sat frame, el titulo de la ventana deberia ser "Select a dark frame" y no "select file",
     porque cuando la abres a veces no recuerdas en cual clicaste y tienes que andar cerrando y probando de nuevo
-    - Estaria muy bien poder hacer drag&drop con los ficheros.
+    - (HECHO) Estaria muy bien poder hacer drag&drop con los ficheros.
     - Al crear las graficas, que pregunte en que carpeta te las deja o bien que se puede indicar (idealmente via las preferencias
     cuando tengamos la GUI mas avanzada) . Por defecto, creo que seria mejor en Imagenes/DynaRange en vez de en Mis documentos sin mas..
 
