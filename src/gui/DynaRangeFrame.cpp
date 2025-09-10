@@ -1,8 +1,14 @@
+/**
+ * @file DynaRangeFrame.cpp
+ * @brief Implementation of the DynaRange GUI's main frame.
+ * @author Juanma Font
+ * @date 2025-09-10
+ */
 // Fichero: gui/DynaRangeFrame.cpp
 #include "DynaRangeFrame.hpp"
 #include "../core/Engine.hpp"
 #include "../core/Analysis.hpp" 
-
+#include <libraw/libraw.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/stdpaths.h>
@@ -46,8 +52,27 @@ private:
     std::string m_buffer;
 };
 
-// --- IMPLEMENTACIÓN DE LA VENTANA ---
 
+/**
+ * @brief Called by wxWidgets when files are dropped onto the associated window.
+ * @param x The x-coordinate of the drop point.
+ * @param y The y-coordinate of the drop point.
+ * @param filenames An array of full paths for the dropped files.
+ * @return true to indicate that the drop was successfully handled.
+ */
+bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames)
+{
+    if (m_owner) {
+        m_owner->AddDroppedFiles(filenames);
+    }
+    return true;
+}
+
+// --- MAIN FRAME IMPLEMENTATION ---
+/**
+ * @brief Constructor for the main application frame.
+ * @param parent Parent window, usually NULL for the main frame.
+ */
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
 {
     // --- Conexiones de Eventos (Binding) ---
@@ -60,6 +85,10 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    // --- Drag and Drop Initialization ---
+    m_dropTarget = new FileDropTarget(this);
+    SetDropTarget(m_dropTarget); // Enable the entire frame to accept dropped files.
+
     UpdateCommandPreview();
 
     // Cargar el logotipo al iniciar la aplicación.
@@ -80,9 +109,12 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_resultsPanel->Layout();
 }
 
+/**
+ * @brief Destructor for the main application frame.
+ */
 DynaRangeFrame::~DynaRangeFrame()
 {
-    // Desconectamos los eventos para evitar problemas al cerrar
+    // Unbind events to prevent issues on closing
     m_executeButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Unbind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
     m_cvsGrid->Unbind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
@@ -92,6 +124,10 @@ DynaRangeFrame::~DynaRangeFrame()
     m_saturationFilePicker->Unbind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_darkValueTextCtrl->Unbind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Unbind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+
+    // The SetDropTarget call transfers ownership, so we don't delete m_dropTarget here.
+    // Setting it to null is good practice.
+    SetDropTarget(nullptr);
 }
 
 
@@ -169,15 +205,6 @@ void DynaRangeFrame::OnWorkerCompleted(wxThreadEvent& event) {
         LoadGraphImage(wxString(m_summaryPlotPath));
     }
 }
-
-void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) {
-    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
-    if (openFileDialog.ShowModal() == wxID_CANCEL) return;
-    openFileDialog.GetPaths(m_inputFiles);
-    m_rawFileslistBox->Set(m_inputFiles);
-    UpdateCommandPreview();
-}
-
 
 void DynaRangeFrame::OnGridCellClick(wxGridEvent& event)
 {
@@ -339,4 +366,92 @@ void DynaRangeFrame::LoadGraphImage(const wxString& path_or_raw_name)
     
     m_imageGraph->SetBitmap(wxBitmap(image));
     m_resultsPanel->Layout();
+}
+
+/**
+ * @brief Checks if a given file is a RAW format supported by LibRaw.
+ *
+ * This function attempts to open the file with LibRaw to confirm it is a
+ * valid and supported RAW format, without fully decoding it.
+ * @param filePath The full path to the file.
+ * @return true if the file is a supported RAW, false otherwise.
+ */
+bool DynaRangeFrame::IsSupportedRawFile(const wxString& filePath)
+{
+    LibRaw raw_processor;
+    // Use mb_str() to convert wxString to a standard C-string for LibRaw
+    if (raw_processor.open_file(filePath.mb_str()) == LIBRAW_SUCCESS) {
+        // Success! LibRaw can open it.
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief Filters a list of file paths, adding only valid RAWs to the input list.
+ *
+ * This function iterates through a given list of file paths, checks each one
+ * to see if it's a supported RAW file, and updates the UI. It also informs
+ * the user if any files were rejected.
+ * @param paths An array of file paths to process.
+ */
+void DynaRangeFrame::AddRawFilesToList(const wxArrayString& paths)
+{
+    wxArrayString rejectedFiles;
+    int addedCount = 0;
+
+    for (const auto& file : paths) {
+        if (IsSupportedRawFile(file)) {
+            m_inputFiles.Add(file);
+            addedCount++;
+        } else {
+            rejectedFiles.Add(wxFileName(file).GetFullName());
+        }
+    }
+
+    if (addedCount > 0) {
+        m_rawFileslistBox->Set(m_inputFiles);
+        UpdateCommandPreview();
+    }
+
+    if (!rejectedFiles.IsEmpty()) {
+        wxString message = _("The following files were ignored because they are not recognized as supported RAW formats:\n\n");
+        for (const auto& rejected : rejectedFiles) {
+            message += "- " + rejected + "\n";
+        }
+        wxMessageBox(message, _("Unsupported Files Skipped"), wxOK | wxICON_INFORMATION, this);
+    }
+}
+
+/**
+ * @brief Handles the 'Add RAW Files...' button click event.
+ *
+ * Opens a file dialog to allow the user to select multiple RAW files, then
+ * filters and adds them to the list.
+ * @param event The command event.
+ */
+void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) 
+{
+    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    
+    if (openFileDialog.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+    
+    wxArrayString paths;
+    openFileDialog.GetPaths(paths);
+    AddRawFilesToList(paths); // Use the centralized function
+}
+
+
+/**
+ * @brief Adds a list of files, received from a drop operation, to the input list.
+ *
+ * This function is called by the FileDropTarget class. It filters and adds
+ * the dropped files to the list.
+ * @param filenames An array of full file paths.
+ */
+void DynaRangeFrame::AddDroppedFiles(const wxArrayString& filenames)
+{
+    AddRawFilesToList(filenames); // Use the centralized function
 }
