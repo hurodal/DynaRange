@@ -3,6 +3,7 @@
 
 # Ignorar ejecutables
 dynaRangePortable/dynaRange.exe
+dynaRangePortable/rango.exe
 dynaRangePortable/dynaRangeGui.exe
 
 # Ignorar directorios de datos y de compilación

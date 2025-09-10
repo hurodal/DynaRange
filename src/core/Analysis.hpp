@@ -5,17 +5,21 @@
 #include <vector>
 #include <optional>
 #include <ostream>
+#include <map>
 #include "Arguments.hpp" 
 #include "Math.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
+
 // --- STRUCTURE DEFINITIONS ---
+
+// This structure is now flexible and supports any number of DR values.
 struct DynamicRangeResult {
     std::string filename;
-    double dr_12db;
-    double dr_0db;
+    // Maps an SNR threshold (in dB) to its calculated Dynamic Range value (in EV).
+    std::map<double, double> dr_values_ev; 
     int patches_used;
 };
 
@@ -38,7 +42,6 @@ struct CurveData {
 std::string GetCameraModel(const std::string& filename);
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
-// MODIFIED: Renamed the last parameter for clarity
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio);
 std::optional<std::vector<double>> ExtractRawPixels(const std::string& filename);
 double CalculateMean(const std::vector<double>& data);
