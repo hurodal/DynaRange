@@ -8,11 +8,11 @@ InstallDir "$PROGRAMFILES64\DynaRange"
 RequestExecutionLevel admin
 
 ; --- Información de Versión (para Propiedades del Archivo) ---
-VIProductVersion "1.1.0.0"
-VIAddVersionKey "FileVersion" "1.1.0.0"
+VIProductVersion "1.2.0.0"
+VIAddVersionKey "FileVersion" "1.2.0.0"
 VIAddVersionKey "ProductName" "DynaRange"
 VIAddVersionKey "FileDescription" "Dynamic Range Analysis Tool"
-VIAddVersionKey "LegalCopyright" "Hurodal"
+VIAddVersionKey "LegalCopyright" "Hurodal,JmFont,GLuijk"
 
 ; --- Iconos del Instalador y Desinstalador ---
 !define MUI_ICON "favicon_noise.ico"
@@ -46,7 +46,7 @@ Section "Programa Principal"
   CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
   CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
   ; AÑADIDO (Opcional): Acceso directo para el CLI en el menú de inicio
-  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange CLI (rango).lnk" "$INSTDIR\rango.exe"
+  CreateShortCut "$SMPROGRAMS\DynaRange\rango.lnk" "$INSTDIR\rango.exe"
 
   ; Escribe la información para "Agregar o quitar programas"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DynaRange" "DisplayName" "DynaRange"
@@ -65,7 +65,7 @@ Section "Uninstall"
   ; Borra los accesos directos
   Delete "$DESKTOP\DynaRange GUI.lnk"
   Delete "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk"
-  Delete "$SMPROGRAMS\DynaRange\DynaRange CLI (rango).lnk" ; Limpieza del nuevo acceso directo
+  Delete "$SMPROGRAMS\DynaRange\rango.lnk" ; Limpieza del nuevo acceso directo
   RMDir "$SMPROGRAMS\DynaRange"
 
   ; Borra la información de "Agregar o quitar programas"
