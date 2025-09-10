@@ -133,3 +133,44 @@ TODO: pequeñas correcciones en el GUI:
     - Al crear las graficas, que pregunte en que carpeta te las deja o bien que se puede indicar (idealmente via las preferencias
     cuando tengamos la GUI mas avanzada) . Por defecto, creo que seria mejor en Imagenes/DynaRange en vez de en Mis documentos sin mas..
 
+TODO: añadir la obtencion del metadato de ISO del RAW. Esto es lo que me dice la iA:
+
+C++
+
+#include <libraw/libraw.h>
+#include <iostream>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        std::cerr << "Uso: " << argv[0] << " <archivo_raw>" << std::endl;
+        return 1;
+    }
+
+    LibRaw rawProcessor;
+    int ret = rawProcessor.open_file(argv[1]);
+
+    if (ret != LIBRAW_SUCCESS) {
+        std::cerr << "Error al abrir el archivo: " << libraw_strerror(ret) << std::endl;
+        return 1;
+    }
+
+    ret = rawProcessor.unpack();
+
+    if (ret != LIBRAW_SUCCESS) {
+        std::cerr << "Error al descodificar el archivo: " << libraw_strerror(ret) << std::endl;
+        return 1;
+    }
+
+    // Acceder al valor de ISO
+    float iso_speed = rawProcessor.imgdata.other.iso_speed;
+
+    std::cout << "El valor de ISO es: " << iso_speed << std::endl;
+
+    rawProcessor.recycle();
+
+    return 0;
+}
+
+En este ejemplo, la clave está en rawProcessor.imgdata.other.iso_speed.
+La librería organiza la información en la estructura libraw_processed_image_t y sus subestructuras,
+donde imgdata es un miembro de la clase LibRaw y other es una sub-estructura que contiene datos misceláneos, como la velocidad ISO.
