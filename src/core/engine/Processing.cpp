@@ -1,7 +1,7 @@
 // File: core/engine/Processing.cpp
 #include "Processing.hpp"
 #include "../graphics/Plotting.hpp"
-#include "../RawFile.hpp"
+#include "../RawFile.hpp" 
 #include <Eigen/Dense>
 #include <filesystem>
 #include <iostream>
@@ -12,8 +12,7 @@ namespace fs = std::filesystem;
 // Internal helper functions for this file
 namespace {
 
-// Analyzes a single RAW file, extracts patches, fits SNR curve, and calculates DR.
-// Its sole responsibility is now to perform calculations and return data.
+// This function now calculates DR for all requested thresholds and populates the results map.
 SingleFileResult AnalyzeSingleRawFile(const RawFile& raw_file, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream) {
     log_stream << "\nProcessing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
 
@@ -55,18 +54,26 @@ SingleFileResult AnalyzeSingleRawFile(const RawFile& raw_file, const ProgramOpti
     
     cv::Mat poly_coeffs;
     PolyFit(signal_mat_global, snr_mat_global, poly_coeffs, opts.poly_order);
-
-    // REMOVED: The call to GenerateSnrPlot has been moved to the Reporting module.
-    // This function no longer has the responsibility of creating files.
     
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
-    double dr_primary = -(*FindIntersectionEV(poly_coeffs, opts.snr_thresholds_db[0], *min_max_ev.first, *min_max_ev.second));
-    double dr_0db = -(*FindIntersectionEV(poly_coeffs, 0.0, *min_max_ev.first, *min_max_ev.second));
+
+    // Flexible DR calculation ---
+    DynamicRangeResult dr_result;
+    dr_result.filename = raw_file.GetFilename();
+    dr_result.patches_used = (int)patch_data.signal.size();
+
+    // Calculate DR for each threshold requested in the program options.
+    for (const double threshold_db : opts.snr_thresholds_db) {
+        auto ev_opt = FindIntersectionEV(poly_coeffs, threshold_db, *min_max_ev.first, *min_max_ev.second);
+        if (ev_opt) {
+            // Populate the map with the result
+            dr_result.dr_values_ev[threshold_db] = -(*ev_opt);
+        }
+    }
     
-    return {
-        {raw_file.GetFilename(), dr_primary, dr_0db, (int)patch_data.signal.size()},
-        {raw_file.GetFilename(), "", signal_ev, snr_db, poly_coeffs.clone(), opts.generated_command}
-    };
+    CurveData curve_data = {raw_file.GetFilename(), "", signal_ev, snr_db, poly_coeffs.clone(), opts.generated_command};
+
+    return {dr_result, curve_data};
 }
 
 } // end of anonymous namespace
@@ -74,6 +81,7 @@ SingleFileResult AnalyzeSingleRawFile(const RawFile& raw_file, const ProgramOpti
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream) {
     ProcessingResult result;
     
+    // 1. Load all RAW files into RawFile objects
     std::vector<RawFile> raw_files;
     raw_files.reserve(opts.input_files.size());
     for(const auto& filename : opts.input_files) {
@@ -96,6 +104,7 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         camera_model_name = raw_files[0].GetCameraModel();
     }
 
+    // 2. Process each RawFile object
     for (const auto& raw_file : raw_files) {
         if (!raw_file.IsLoaded()) continue;
 
