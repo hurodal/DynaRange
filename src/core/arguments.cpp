@@ -1,3 +1,9 @@
+/**
+ * @file Arguments.cpp
+ * @brief Implementation of the command-line argument parser and generator.
+ * @author (Your Name)
+ * @date 2025-09-10
+ */
 // File: core/Arguments.cpp
 #include "Arguments.hpp"
 #include "Analysis.hpp"
@@ -68,14 +74,19 @@ ProgramOptions ParseArguments(int argc, char* argv[]) {
     return opts;
 }
 
-// The function's logic now depends on the 'format' parameter.
+/**
+ * @brief Generates an equivalent command-line string from a ProgramOptions struct.
+ * @param opts The populated ProgramOptions struct.
+ * @param format The desired output format (Full for GUI, Plot for graphics).
+ * @return The generated command-line string.
+ */
 std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat format) {
     std::stringstream command_ss;
     command_ss << "rango"; 
-
+    
     // Black level options
     if (!opts.dark_file_path.empty()) {
-        command_ss << " -B \"";
+        command_ss << (format == CommandFormat::Plot ? " --black-file \"" : " -B \"");
         if (format == CommandFormat::Plot) {
             command_ss << fs::path(opts.dark_file_path).filename().string();
         } else {
@@ -83,12 +94,12 @@ std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat form
         }
         command_ss << "\"";
     } else {
-        command_ss << " -b " << opts.dark_value;
+        command_ss << (format == CommandFormat::Plot ? " --black-level " : " -b ") << opts.dark_value;
     }
 
     // Saturation level options
     if (!opts.sat_file_path.empty()) {
-        command_ss << " -S \"";
+        command_ss << (format == CommandFormat::Plot ? " --saturation-file \"" : " -S \"");
         if (format == CommandFormat::Plot) {
             command_ss << fs::path(opts.sat_file_path).filename().string();
         } else {
@@ -96,23 +107,25 @@ std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat form
         }
         command_ss << "\"";
     } else {
-        command_ss << " -s " << opts.saturation_value;
+        command_ss << (format == CommandFormat::Plot ? " --saturation-level " : " -s ") << opts.saturation_value;
     }
 
     // Parameter options
-    // The -o option is omitted for the plot format
     if (format == CommandFormat::Full) {
         command_ss << " -o \"" << opts.output_filename << "\"";
     }
 
     if (opts.snr_thresholds_db.size() == 1) {
-        command_ss << " -d " << std::fixed << std::setprecision(2) << opts.snr_thresholds_db[0];
+        command_ss << (format == CommandFormat::Plot ? " --snrthreshold-db " : " -d ") 
+                   << std::fixed << std::setprecision(2) << opts.snr_thresholds_db[0];
     }
     
-    command_ss << " -m " << std::fixed << std::setprecision(2) << opts.dr_normalization_mpx;
-    command_ss << " -f " << opts.poly_order;
-    command_ss << " -r " << std::fixed << std::setprecision(2) << opts.patch_ratio;
-    command_ss << " -p " << opts.plot_mode;
+    command_ss << (format == CommandFormat::Plot ? " --drnormalization-mpx " : " -m ") 
+               << std::fixed << std::setprecision(2) << opts.dr_normalization_mpx;
+    command_ss << (format == CommandFormat::Plot ? " --poly-fit " : " -f ") << opts.poly_order;
+    command_ss << (format == CommandFormat::Plot ? " --patch-ratio " : " -r ") 
+               << std::fixed << std::setprecision(2) << opts.patch_ratio;
+    command_ss << (format == CommandFormat::Plot ? " --plot " : " -p ") << opts.plot_mode;
 
     // The input file list is only added for the full format.
     if (format == CommandFormat::Full) {
