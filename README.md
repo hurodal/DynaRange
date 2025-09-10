@@ -10,8 +10,8 @@ The basic usage will be as follows:
 6) Load all RAW files into DynaRange
 7) Get the measurements
 
-![measuring-photographic-dynamicrange](/cropwithpatches_iso51200.jpg)
-
 ![measuring-photographic-dynamicrange](/SNRcurvesBLACK254.85.png)
+
+![measuring-photographic-dynamicrange](/SNRcurvesBLACK254.85_8Mpx.png)
 
 ![measuring-photographic-dynamicrange](/userInterface/Main_Window_v1.2.png)
