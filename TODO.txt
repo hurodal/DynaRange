@@ -125,7 +125,7 @@ TODO 10: USAR LOS 4 CANALES RAW
     Los puntos proporcionados por cada canal son 100% compatibles entre sí, así que pueden aproximarse polinómicamente todos juntos
 
 
-TODO: pequeñas correcciones en el GUI:
+TODO 11: pequeñas correcciones en el GUI:
 
     - Al clicar para cargar los dark y sat frame, el titulo de la ventana deberia ser "Select a dark frame" y no "select file",
     porque cuando la abres a veces no recuerdas en cual clicaste y tienes que andar cerrando y probando de nuevo
@@ -133,7 +133,7 @@ TODO: pequeñas correcciones en el GUI:
     - Al crear las graficas, que pregunte en que carpeta te las deja o bien que se puede indicar (idealmente via las preferencias
     cuando tengamos la GUI mas avanzada) . Por defecto, creo que seria mejor en Imagenes/DynaRange en vez de en Mis documentos sin mas..
 
-TODO: añadir la obtencion del metadato de ISO del RAW. Esto es lo que me dice la iA:
+TODO 12: añadir la obtencion del metadato de ISO del RAW. Esto es lo que me dice la iA:
 
 C++
 
