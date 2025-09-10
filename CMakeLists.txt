@@ -20,10 +20,9 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
 
 # --- Definición de la carpeta de salida para el instalador ---
-# Todos los archivos necesarios se copiarán a "build/dynaRangePortable"
-set(PORTABLE_DIR ${CMAKE_BINARY_DIR}/dynaRangePortable)
+# Todos los archivos necesarios se copiarán a "build"
+set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 
-# Eliminadas las líneas duplicadas de la lista
 set(CORE_SOURCES
     src/core/Analysis.cpp
     src/core/Arguments.cpp
@@ -34,6 +33,7 @@ set(CORE_SOURCES
     src/core/graphics/Drawing.cpp
     src/core/graphics/Plotting.cpp
     src/core/Math.cpp
+    src/core/RawFile.cpp
 )
 
 add_executable(rango

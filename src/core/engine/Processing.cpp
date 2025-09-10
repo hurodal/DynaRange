@@ -1,34 +1,31 @@
-// Fichero: core/engine/Processing.cpp
+// File: core/engine/Processing.cpp
 #include "Processing.hpp"
 #include "../graphics/Plotting.hpp"
-#include <libraw/libraw.h>
+#include "../RawFile.hpp"
 #include <Eigen/Dense>
 #include <filesystem>
 #include <iostream>
-#include <algorithm> // Para std::minmax_element
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
-namespace { // Funciones auxiliares internas a este fichero
-
-// Forward declaration so ProcessFiles can see this function
-SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream);
+// Internal helper functions for this file
+namespace {
 
 // Analyzes a single RAW file, extracts patches, fits SNR curve, and calculates DR.
-SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream) {
-    log_stream << "\nProcessing \"" << fs::path(name).filename().string() << "\"..." << std::endl;
+// Its sole responsibility is now to perform calculations and return data.
+SingleFileResult AnalyzeSingleRawFile(const RawFile& raw_file, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream) {
+    log_stream << "\nProcessing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
 
-    LibRaw raw_processor;
-    if (raw_processor.open_file(name.c_str()) != LIBRAW_SUCCESS || raw_processor.unpack() != LIBRAW_SUCCESS) {
-        log_stream << "Error: Could not open/decode RAW file: " << name << std::endl;
+    cv::Mat img_float = raw_file.GetNormalizedImage(opts.dark_value, opts.saturation_value);
+    if(img_float.empty()){
+        log_stream << "Error: Could not get normalized image for: " << raw_file.GetFilename() << std::endl;
         return {};
     }
+
     log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
-    cv::Mat raw_image(raw_processor.imgdata.sizes.raw_height, raw_processor.imgdata.sizes.raw_width, CV_16U, raw_processor.imgdata.rawdata.raw_image);
-    cv::Mat img_float;
-    raw_image.convertTo(img_float, CV_32F);
-    img_float = (img_float - opts.dark_value) / (opts.saturation_value - opts.dark_value);
-    cv::Mat imgBayer(raw_processor.imgdata.sizes.raw_height / 2, raw_processor.imgdata.sizes.raw_width / 2, CV_32FC1);
+
+    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     for (int r = 0; r < imgBayer.rows; ++r) {
         for (int c = 0; c < imgBayer.cols; ++c) {
             imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
@@ -40,11 +37,10 @@ SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOpti
     double xbr = (2515.0 + 2473.0) / 2.0; double ybr = (1687.0 + 1679.0) / 2.0;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
     cv::Mat imgcrop = imgc(crop_area);
-    // MODIFIED: Use opts.patch_ratio instead of opts.patch_safe
     PatchAnalysisResult patch_data = AnalyzePatches(imgcrop.clone(), 11, 7, opts.patch_ratio);
     
     if (patch_data.signal.empty()) {
-        log_stream << "Warning: No valid patches found for " << name << std::endl;
+        log_stream << "Warning: No valid patches found for " << raw_file.GetFilename() << std::endl;
         return {};
     }
 
@@ -60,25 +56,32 @@ SingleFileResult AnalyzeSingleRawFile(const std::string& name, const ProgramOpti
     cv::Mat poly_coeffs;
     PolyFit(signal_mat_global, snr_mat_global, poly_coeffs, opts.poly_order);
 
-    fs::path plot_path = fs::path(opts.output_filename).parent_path() / (fs::path(name).stem().string() + "_snr_plot.png");
-    GenerateSnrPlot(plot_path.string(), fs::path(name).filename().string(), signal_ev, snr_db, poly_coeffs, opts, log_stream);
+    // REMOVED: The call to GenerateSnrPlot has been moved to the Reporting module.
+    // This function no longer has the responsibility of creating files.
     
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
-    // MODIFIED: Use the first element of the thresholds vector for the primary DR calculation
     double dr_primary = -(*FindIntersectionEV(poly_coeffs, opts.snr_thresholds_db[0], *min_max_ev.first, *min_max_ev.second));
     double dr_0db = -(*FindIntersectionEV(poly_coeffs, 0.0, *min_max_ev.first, *min_max_ev.second));
     
     return {
-        {name, dr_primary, dr_0db, (int)patch_data.signal.size()},
-        {name, "", signal_ev, snr_db, poly_coeffs.clone(), opts.generated_command}
+        {raw_file.GetFilename(), dr_primary, dr_0db, (int)patch_data.signal.size()},
+        {raw_file.GetFilename(), "", signal_ev, snr_db, poly_coeffs.clone(), opts.generated_command}
     };
 }
 
-} // fin del namespace anónimo
+} // end of anonymous namespace
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream) {
     ProcessingResult result;
-    const auto& filenames = opts.input_files;
+    
+    std::vector<RawFile> raw_files;
+    raw_files.reserve(opts.input_files.size());
+    for(const auto& filename : opts.input_files) {
+        raw_files.emplace_back(filename);
+        if (!raw_files.back().Load()) {
+            log_stream << "Error: Could not load RAW file: " << filename << std::endl;
+        }
+    }
     
     log_stream << "  - Calculating Keystone parameters..." << std::endl;
     std::vector<cv::Point2d> xu = {{119, 170}, {99, 1687}, {2515, 1679}, {2473, 158}};
@@ -88,10 +91,15 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     Eigen::VectorXd k = CalculateKeystoneParams(xu, xd);
     log_stream << "  - Keystone parameters calculated." << std::endl;
     
-    std::string camera_model_name = GetCameraModel(filenames[0]);
+    std::string camera_model_name;
+    if(!raw_files.empty() && raw_files[0].IsLoaded()){
+        camera_model_name = raw_files[0].GetCameraModel();
+    }
 
-    for (const auto& name : filenames) {
-        auto file_result = AnalyzeSingleRawFile(name, opts, k, log_stream);
+    for (const auto& raw_file : raw_files) {
+        if (!raw_file.IsLoaded()) continue;
+
+        auto file_result = AnalyzeSingleRawFile(raw_file, opts, k, log_stream);
         if (!file_result.dr_result.filename.empty()) {
             file_result.curve_data.camera_model = camera_model_name;
             result.dr_results.push_back(file_result.dr_result);

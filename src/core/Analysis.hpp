@@ -11,8 +11,6 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
-constexpr int INTERSECTION_POLY_ORDER = 2;
-
 // --- STRUCTURE DEFINITIONS ---
 struct DynamicRangeResult {
     std::string filename;
