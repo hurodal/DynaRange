@@ -37,7 +37,7 @@ set(CORE_SOURCES
 )
 
 add_executable(rango
-    src/DynaRangeCli.cpp
+    src/rango.cpp
     ${CORE_SOURCES}
     icono_owl.rc
 )
@@ -94,7 +94,7 @@ include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 set(I18N_SOURCES
-    src/DynaRangeCli.cpp
+    src/rango.cpp
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
@@ -106,6 +106,5 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL
 include(InstallRequiredSystemLibraries)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-# MODIFICADO: Se renombra el target de instalación
 install(TARGETS rango dynaRangeGui DESTINATION bin)
 include(CPack)

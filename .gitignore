@@ -2,9 +2,9 @@
 .vscode
 
 # Ignorar ejecutables
-dynaRangePortable/dynaRange.exe
-dynaRangePortable/rango.exe
-dynaRangePortable/dynaRangeGui.exe
+dynaRange.exe
+rango.exe
+dynaRangeGui.exe
 
 # Ignorar directorios de datos y de compilación
 raws
