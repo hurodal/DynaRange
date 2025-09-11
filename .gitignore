@@ -1,5 +1,6 @@
-# Ignorar la configuración del editor VS Code
+# Ignorar la configuración del editor VS Code y Geany
 .vscode
+DynRange.geany
 
 # Ignorar ejecutables
 dynaRange.exe
