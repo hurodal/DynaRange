@@ -88,7 +88,7 @@ con muchos Mpx. Te pasaré la formula, es sencilla.
 
 La corrección se hace sobre los valores obtenidos de SNR, ANTES de ajustarlos a curvas, según la fórmula:
 
-SNRnorm dB = SNRpor píxel dB + 20 * log10 (Mpx / 12,7)^(1/2)
+SNRnorm dB = SNRpor píxel dB + 20 * log10[(Mpx / 12,7)^(1/2)]
 
 
 TODO 7: CÁLCULO ESQUINAS CARTA MAGENTA PARA CORRECCIÓN GEOMÉTRICA -> (HECHO)
@@ -109,10 +109,9 @@ TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA
     SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
 
 
-TODO 9: PARAMETRIZAR EL NÚMERO DE PÍXELES DE SEGURIDAD EN CADA PARCHE
+TODO 9: PARAMETRIZAR LOS PÍXELES DE SEGURIDAD EN CADA PARCHE
 
-    Por defecto SAFE=50 -> habrá 100 píxeles entre cada área evaluada y sus vecinos
-
+    Con un valor relativo: patch-ratio=0.5 -> solo el recorte central de alto y ancho la mitad del parche se usa
 
 TODO 10: USAR LOS 4 CANALES RAW
 
