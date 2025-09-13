@@ -6,8 +6,6 @@
 
 #include <string>
 #include <vector>
-#include <ostream>
-#include <optional>
 
 /// @brief Default polynomial order for curve fitting.
 constexpr int DEFAULT_POLY_ORDER = 3;

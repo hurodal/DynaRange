@@ -1,5 +1,4 @@
 // File: src/rango.cpp
-#include "core/Analysis.hpp"
 #include "core/Arguments.hpp"
 #include "core/Engine.hpp"
 #include <iostream>

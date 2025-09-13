@@ -3,7 +3,6 @@
  * @brief Implementation of the command-line argument parser and generator.
  */
 #include "Arguments.hpp"
-#include "Analysis.hpp"
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <limits>

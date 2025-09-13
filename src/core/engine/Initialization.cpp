@@ -6,10 +6,6 @@
 #include "../Analysis.hpp"
 #include "../Arguments.hpp"
 #include <iomanip>
-#include <sstream>
-#include <filesystem>
-
-namespace fs = std::filesystem;
 
 // Prepares the analysis: processes dark/sat frames, prints config, and sorts files.
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {

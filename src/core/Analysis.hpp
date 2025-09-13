@@ -4,14 +4,13 @@
  */
 #pragma once
 
-#include "Arguments.hpp" 
-#include "ImageProcessing.hpp"
 #include <string>
 #include <vector>
 #include <optional>
 #include <ostream>
 #include <map>
 #include <opencv2/core.hpp>
+#include "Arguments.hpp"
 
 // --- STRUCTURE DEFINITIONS ---
 

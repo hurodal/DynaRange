@@ -4,8 +4,8 @@
  */
 #include "Processing.hpp"
 #include "../Math.hpp"
-#include "../graphics/Plotting.hpp"
 #include "../RawFile.hpp" 
+#include "../ImageProcessing.hpp"
 #include <Eigen/Dense>
 #include <filesystem>
 #include <iostream>

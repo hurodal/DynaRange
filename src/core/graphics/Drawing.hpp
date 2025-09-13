@@ -4,11 +4,11 @@
  */
 #pragma once
 
-#include "../Analysis.hpp"
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
 #include <map>
+#include "../Analysis.hpp"
 
 /// @brief The width of the generated plot images in pixels.
 constexpr int PLOT_WIDTH = 1920;
