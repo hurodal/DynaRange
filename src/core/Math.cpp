@@ -1,4 +1,7 @@
-// File: core/Math.cpp
+/**
+ * @file core/Math.cpp
+ * @brief Implements mathematical and statistical utility functions.
+ */
 #include "Math.hpp"
 #include <opencv2/opencv.hpp>
 #include <cmath>

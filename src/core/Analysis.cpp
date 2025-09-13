@@ -1,4 +1,7 @@
-// File: core/Analysis.cpp
+/**
+ * @file core/Analysis.cpp
+ * @brief Implements high-level analysis functions like patch analysis and frame processing.
+ */
 #include "Analysis.hpp"
 #include "RawFile.hpp"
 #include "Math.hpp"
@@ -10,14 +13,6 @@
 
 namespace fs = std::filesystem;
 
-/**
- * @brief Analyzes the grid of patches in a chart image to extract signal and noise data.
- * @param imgcrop A cv::Mat containing the cropped image of the test chart.
- * @param NCOLS Number of columns in the patch grid.
- * @param NROWS Number of rows in the patch grid.
- * @param patch_ratio The relative inner area of each patch to use for analysis (0.0 to 1.0).
- * @return A PatchAnalysisResult struct containing signal, noise, and a debug image.
- */
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio) {
     std::vector<double> signal_vec, noise_vec;
     const double patch_width = (double)imgcrop.cols / NCOLS;
@@ -52,12 +47,6 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
     return {signal_vec, noise_vec, imgcrop};
 }
 
-/**
- * @brief Calculates the black level from a dark frame.
- * @param filename Path to the dark frame RAW file.
- * @param log_stream Stream for logging output.
- * @return An optional containing the calculated black level.
- */
 std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream& log_stream) {
     log_stream << "[INFO] Calculating black level from: " << filename << "..." << std::endl;
     RawFile dark_file(filename);
@@ -76,12 +65,6 @@ std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream
     return mean_value;
 }
 
-/**
- * @brief Calculates the saturation point from a clipped frame.
- * @param filename Path to the saturated RAW file.
- * @param log_stream Stream for logging output.
- * @return An optional containing the calculated saturation point.
- */
 std::optional<double> ProcessSaturationFrame(const std::string& filename, std::ostream& log_stream) {
     log_stream << "[INFO] Calculating saturation point from: " << filename << "..." << std::endl;
     RawFile sat_file(filename);
@@ -100,12 +83,6 @@ std::optional<double> ProcessSaturationFrame(const std::string& filename, std::o
     return quantile_value;
 }
 
-/**
- * @brief Pre-analyzes and sorts input files based on their estimated brightness.
- * @param opts ProgramOptions struct containing the list of input files. This list will be sorted in place.
- * @param log_stream Stream for logging output.
- * @return True if successful, false otherwise.
- */
 bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream) {
     struct FileExposureInfo {
         std::string filename;

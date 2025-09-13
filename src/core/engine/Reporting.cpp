@@ -1,4 +1,7 @@
-// File: core/engine/Reporting.cpp
+/**
+ * @file core/engine/Reporting.cpp
+ * @brief Implements the report generation logic.
+ */
 #include "Reporting.hpp"
 #include "../graphics/Plotting.hpp"
 #include <filesystem>
@@ -8,7 +11,6 @@
 
 namespace fs = std::filesystem;
 
-// Generates the final reports: summary plot, individual plots, table, and CSV.
 // This function now dynamically builds the results table based on the calculated DR values.
 std::optional<std::string> FinalizeAndReport(
     const ProcessingResult& results,

@@ -1,4 +1,7 @@
-// File: core/ImageProcessing.cpp
+/**
+ * @file core/ImageProcessing.cpp
+ * @brief Implements geometric image processing functions.
+ */
 #include "ImageProcessing.hpp"
 
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points) {

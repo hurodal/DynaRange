@@ -1,4 +1,7 @@
-// File: core/RawFile.cpp
+/**
+ * @file core/RawFile.cpp
+ * @brief Implements the RawFile class for handling RAW image files.
+ */
 #include "RawFile.hpp"
 #include <opencv2/imgproc.hpp>
 
