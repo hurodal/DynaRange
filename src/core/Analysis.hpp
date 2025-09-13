@@ -1,21 +1,22 @@
 // File: core/Analysis.hpp
 #pragma once
 
+#include "Arguments.hpp" 
+#include "ImageProcessing.hpp"
 #include <string>
 #include <vector>
 #include <optional>
 #include <ostream>
 #include <map>
-#include "Arguments.hpp" 
-#include "Math.hpp"
+#include <opencv2/core.hpp>
 
-#include <opencv2/opencv.hpp>
-#include <Eigen/Dense>
-
+/**
+ * @file Analysis.hpp
+ * @brief Declares high-level structures and functions for the dynamic range analysis application.
+ */
 
 // --- STRUCTURE DEFINITIONS ---
 
-// This structure is now flexible and supports any number of DR values.
 struct DynamicRangeResult {
     std::string filename;
     // Maps an SNR threshold (in dB) to its calculated Dynamic Range value (in EV).
@@ -30,7 +31,7 @@ struct PatchAnalysisResult {
 };
 
 struct CurveData {
-    std::string name;
+    std::string filename;
     std::string camera_model;
     std::vector<double> signal_ev;
     std::vector<double> snr_db;
@@ -38,15 +39,9 @@ struct CurveData {
     std::string generated_command;
 };
 
-// --- ANALYSIS FUNCTION DECLARATIONS ---
-std::string GetCameraModel(const std::string& filename);
-Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
-cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
+// --- HIGH-LEVEL ANALYSIS FUNCTION DECLARATIONS ---
+
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio);
-std::optional<std::vector<double>> ExtractRawPixels(const std::string& filename);
-double CalculateMean(const std::vector<double>& data);
-double CalculateQuantile(std::vector<double>& data, double percentile);
 std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream& log_stream);
 std::optional<double> ProcessSaturationFrame(const std::string& filename, std::ostream& log_stream);
-std::optional<double> EstimateMeanBrightness(const std::string& filename, float sample_ratio = 0.1f);
 bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream);

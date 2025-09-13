@@ -21,8 +21,8 @@ std::optional<std::string> FinalizeAndReport(
     
     log_stream << "\nGenerating individual SNR plots..." << std::endl;
     for (const auto& curve : all_curves_data) {
-        fs::path plot_path = output_dir_path / (fs::path(curve.name).stem().string() + "_snr_plot.png");
-        GenerateSnrPlot(plot_path.string(), fs::path(curve.name).filename().string(), curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
+        fs::path plot_path = output_dir_path / (fs::path(curve.filename).stem().string() + "_snr_plot.png");
+        GenerateSnrPlot(plot_path.string(), fs::path(curve.filename).filename().string(), curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
     }
     
     std::optional<std::string> summary_plot_path_opt = std::nullopt;

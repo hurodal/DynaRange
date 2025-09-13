@@ -2,6 +2,8 @@
 #include "Math.hpp"
 #include <opencv2/opencv.hpp>
 #include <cmath>
+#include <numeric>
+#include <algorithm>
 
 void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order) {
     CV_Assert(src_x.rows > 0 && src_y.rows > 0 && src_x.total() == src_y.total() && src_x.rows >= order + 1);
@@ -67,4 +69,17 @@ std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_sn
     }
     
     return std::nullopt;
+}
+
+double CalculateMean(const std::vector<double>& data) {
+    if (data.empty()) return 0.0;
+    return std::accumulate(data.begin(), data.end(), 0.0) / data.size();
+}
+
+double CalculateQuantile(std::vector<double>& data, double percentile) {
+    if (data.empty()) return 0.0;
+    size_t n = static_cast<size_t>(data.size() * percentile);
+    n = std::min(n, data.size() - 1);
+    std::nth_element(data.begin(), data.begin() + n, data.end());
+    return data[n];
 }

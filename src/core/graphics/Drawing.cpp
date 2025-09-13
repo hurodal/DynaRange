@@ -1,5 +1,6 @@
 // Fichero: core/Drawing.cpp
 #include "Drawing.hpp"
+#include "../Math.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iomanip>
@@ -181,7 +182,7 @@ void DrawCurvesAndData(
             cairo_fill(cr);
         }
 
-        std::string label = fs::path(curve.name).stem().string();
+        std::string label = fs::path(curve.filename).stem().string();
         auto [label_x, label_y] = map_coords(curve.signal_ev.back(), curve.snr_db.back());
         cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
         cairo_set_font_size(cr, 14.0);

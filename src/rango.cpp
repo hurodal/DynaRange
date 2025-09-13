@@ -1,12 +1,8 @@
-// File: src/DynaRangeCli.cpp
+// File: src/rango.cpp
 #include "core/Analysis.hpp"
 #include "core/Arguments.hpp"
 #include "core/Engine.hpp"
-
 #include <iostream>
-#include <vector>
-#include <string>
-
 #include <libintl.h>
 #include <locale.h>
 

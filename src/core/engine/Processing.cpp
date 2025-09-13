@@ -1,5 +1,6 @@
 // File: core/engine/Processing.cpp
 #include "Processing.hpp"
+#include "../Math.hpp"
 #include "../graphics/Plotting.hpp"
 #include "../RawFile.hpp" 
 #include <Eigen/Dense>
