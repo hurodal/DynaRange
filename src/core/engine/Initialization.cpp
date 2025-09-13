@@ -1,4 +1,7 @@
-// File: core/engine/Initialization.cpp
+/**
+ * @file core/engine/Initialization.cpp
+ * @brief Implementation of the analysis initialization process.
+ */
 #include "Initialization.hpp"
 #include "../Analysis.hpp"
 #include "../Arguments.hpp"

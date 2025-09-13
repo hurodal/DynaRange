@@ -1,4 +1,7 @@
-// Fichero: core/Drawing.cpp
+/**
+ * @file core/graphics/Drawing.cpp
+ * @brief Implements the low-level Cairo drawing functions.
+ */
 #include "Drawing.hpp"
 #include "../Math.hpp"
 #include <cmath>
@@ -16,6 +19,15 @@ namespace fs = std::filesystem;
 // Anonymous namespace for helper functions in this file
 namespace { 
 
+/**
+ * @brief Draws a dashed line on the cairo context.
+ * @param cr The cairo drawing context.
+ * @param x1 Starting x-coordinate.
+ * @param y1 Starting y-coordinate.
+ * @param x2 Ending x-coordinate.
+ * @param y2 Ending y-coordinate.
+ * @param dash_length The length of each dash segment.
+ */
 void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, double dash_length = 20.0) {
     double dashes[] = {dash_length, dash_length};
     cairo_save(cr);
@@ -146,7 +158,7 @@ void DrawCurvesAndData(
         return std::make_pair(px, py);
     };
 
-    // **CORRECCIÓN**: Usamos un booleano para alternar, es más simple y robusto.
+    // NOTE: Using a boolean to alternate is simpler and more robust.
     bool draw_above_12db = true;
     bool draw_above_0db = true;
 
@@ -205,7 +217,7 @@ void DrawCurvesAndData(
             
             cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
-            draw_above_12db = !draw_above_12db; // Alternar para la siguiente curva
+            draw_above_12db = !draw_above_12db; // Alternate for the next curve
         }
 
         auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
@@ -219,7 +231,7 @@ void DrawCurvesAndData(
 
             cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
-            draw_above_0db = !draw_above_0db; // Alternar para la siguiente curva
+            draw_above_0db = !draw_above_0db; // Alternate for the next curve
         }
     }
 }

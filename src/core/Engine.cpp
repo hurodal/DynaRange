@@ -1,9 +1,13 @@
-// File: core/Engine.cpp
+/**
+ * @file core/Engine.cpp
+ * @brief Implements the main orchestrator for the analysis workflow.
+ */
 #include "Engine.hpp"
 #include "engine/Initialization.hpp"
 #include "engine/Processing.hpp"
 #include "engine/Reporting.hpp"
 
+// Accepts opts by reference (&) to allow modifications
 std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     // Phase 1: Preparation
     if (!InitializeAnalysis(opts, log_stream)) {

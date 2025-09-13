@@ -1,10 +1,7 @@
 /**
- * @file Arguments.cpp
+ * @file core/Arguments.cpp
  * @brief Implementation of the command-line argument parser and generator.
- * @author (Your Name)
- * @date 2025-09-10
  */
-// File: core/Arguments.cpp
 #include "Arguments.hpp"
 #include "Analysis.hpp"
 #include <CLI/CLI.hpp>
@@ -21,7 +18,6 @@ namespace fs = std::filesystem;
 
 #define _(string) gettext(string)
 
-// Parses command-line arguments and returns a structure with the options.
 ProgramOptions ParseArguments(int argc, char* argv[]) {
     char* current_locale = setlocale(LC_NUMERIC, nullptr);
     setlocale(LC_NUMERIC, "C");
@@ -74,12 +70,6 @@ ProgramOptions ParseArguments(int argc, char* argv[]) {
     return opts;
 }
 
-/**
- * @brief Generates an equivalent command-line string from a ProgramOptions struct.
- * @param opts The populated ProgramOptions struct.
- * @param format The desired output format (Full for GUI, Plot for graphics).
- * @return The generated command-line string.
- */
 std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat format) {
     std::stringstream command_ss;
     command_ss << "rango"; 
