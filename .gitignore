@@ -1,6 +1,7 @@
-# Ignorar la configuración del editor VS Code y Geany
+# Ignorar la configuración del editor VS Code, Geany, Sublime-text
 .vscode
 DynRange.geany
+rango.sublime-workspace
 
 # Ignorar ejecutables
 dynaRange.exe
@@ -10,3 +11,4 @@ dynaRangeGui.exe
 # Ignorar directorios de datos y de compilación
 raws
 build
+.cache
