@@ -49,8 +49,8 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	NOTAS SOBRE LA NORMALIZACIÓN:
 
 	Al normalizar todas las curvas se desplazan (hacia arriba si normalizamos por menos Mpx de los que tenemos). Eso significa que para determinada normalización podemos quedarnos sin datos suficientes para obtener el RD, porque no quede ningún punto por debajo de la curva. Tanto si se normaliza como si no, para cada curva ISO hay que asegurar que:
-	* La muestra (parche) de menor relación S/N de esa curva, una vez normalizada (corregida), está por debajo del umbral de dB con el que calculamos el RD
-	* La muestra (parche) de mayor relación S/N, una vez normalizada (corregida) está por encima del umbral de dB con el que calculamos el RD
+	- La muestra (parche) de menor relación S/N de esa curva, una vez normalizada (corregida), está por debajo del umbral de dB con el que calculamos el RD
+	- La muestra (parche) de mayor relación S/N, una vez normalizada (corregida) está por encima del umbral de dB con el que calculamos el RD
 
 	En caso contrario para ese ISO no se calcula el RD y el programa emite un mensaje tipo "Warning: insufficient data to calculate 12dB dynamic range at 8Mpx normalization, test chart was subexposed/underexposed". Lo meto hoy en el código porque es muy importante, no solo para la normalización sino para detectar cartas mal expuestas. Las de Hugo estaban muy bien expuestas pero aquí es fácil que un usuario meta la pata.
 	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
@@ -60,9 +60,9 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 	Sobre el canal G* del RAW de la toma menos expuesta (menor ISO), se busca en cada cuadrante de la imagen (canal G del RAW) el 0,05% de píxeles de mayor nivel. Obtenidos, el centro del círculo del cuadrante será la mediana de las coordenadas X e Y de todos los píxeles que entran en ese grupo del 0,05% más brillante. Comprobar que los parches magenta más luminosos no compiten en luminosidad con los testigos. Si diera problemas podemos "capar" la luminosidad máxima de esos parches.
 
-*NOTA: localizar el canal G del RAW puede hacerse de 2 modos:
-	* Metadatos: si LibRAW nos da la estructura RG/GB, GB/RG,... del RAW
-	* Analizando qué posición de la matriz de Bayer adquiere más niveles (serán los 2 canales G, da igual uno que otro)
+	*NOTA: localizar el canal G del RAW puede hacerse de 2 modos:
+	- Metadatos: si LibRAW nos da la estructura RG/GB, GB/RG,... del RAW
+	- Analizando qué posición de la matriz de Bayer adquiere más niveles (serán los 2 canales G, da igual uno que otro)
 
 	DIMX=ncol(chart)
 	DIMY=nrow(chart)
@@ -95,6 +95,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
 
 
