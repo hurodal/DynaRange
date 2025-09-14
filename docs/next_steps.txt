@@ -114,16 +114,3 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
-
-
-
-
-
-
-
-
-
-
-
-
-
