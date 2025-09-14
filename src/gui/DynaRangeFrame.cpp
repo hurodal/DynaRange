@@ -21,7 +21,7 @@
 
 namespace fs = std::filesystem;
 
-// --- LÓGICA DE LOGGING Y EVENTOS ---
+// --- LOGGING AND EVENT LOGIC ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxThreadEvent);
 
@@ -186,14 +186,18 @@ void DynaRangeFrame::OnGridCellClick(wxGridEvent& event)
 {
     int row = event.GetRow();
 
-    if (row < 1) { 
+    // La fila 0 es ahora la cabecera "falsa" para el gráfico de resumen
+    if (row == 0) { 
         if (!m_summaryPlotPath.empty()) {
             LoadGraphImage(wxString(m_summaryPlotPath));
         }
-    } else { 
+    } 
+    // Las filas de datos ahora empiezan en el índice 1
+    else if (row >= 1) { 
         wxString rawFilenameGrid = m_cvsGrid->GetCellValue(row, 0);
         if (!rawFilenameGrid.IsEmpty()) {
             std::string rawFilenameToShow;
+            // Busca el nombre de fichero completo que corresponde a la celda
             for(const auto& path_str : m_lastRunOptions.input_files){
                 if (fs::path(path_str).filename().string() == std::string(rawFilenameGrid.mb_str())) {
                     rawFilenameToShow = path_str;
@@ -207,11 +211,64 @@ void DynaRangeFrame::OnGridCellClick(wxGridEvent& event)
             }
         }
     }
+    // Clics en las cabeceras nativas (-1) no hacen nada.
+    
     event.Skip();
 }
 
 void DynaRangeFrame::OnInputChanged(wxEvent& event) {
     UpdateCommandPreview();
+}
+
+void DynaRangeFrame::LoadResults(const ProgramOptions& opts)
+{
+    std::ifstream file(opts.output_filename);
+    if (!file) { return; }
+
+    // Limpieza completa del grid
+    if (m_cvsGrid->GetNumberRows() > 0) m_cvsGrid->DeleteRows(0, m_cvsGrid->GetNumberRows());
+    if (m_cvsGrid->GetNumberCols() > 0) m_cvsGrid->DeleteCols(0, m_cvsGrid->GetNumberCols());
+
+    std::string line;
+    bool is_header_line = true;
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string cell;
+        int col = 0;
+
+        if (is_header_line) {
+            int num_cols = std::count(line.begin(), line.end(), ',') + 1;
+            m_cvsGrid->AppendCols(num_cols);
+
+            // Poner las cabeceras nativas (grises) en blanco
+            for(int i = 0; i < num_cols; ++i) {
+                m_cvsGrid->SetColLabelValue(i, "");
+            }
+            
+            m_cvsGrid->SetColLabelSize(WXGRID_DEFAULT_COL_LABEL_HEIGHT);
+
+            // La fila 0 contiene ahora los títulos
+            m_cvsGrid->AppendRows(1); 
+            while (std::getline(ss, cell, ',')) {
+                m_cvsGrid->SetCellValue(0, col, cell); // Escribir títulos en la fila 0
+                m_cvsGrid->SetReadOnly(0, col, true);
+                col++;
+            }
+            is_header_line = false;
+        } else {
+            m_cvsGrid->AppendRows(1);
+            int grid_row = m_cvsGrid->GetNumberRows() - 1; // Fila de datos actual
+            while (std::getline(ss, cell, ',')) {
+                m_cvsGrid->SetCellValue(grid_row, col, cell);
+                m_cvsGrid->SetReadOnly(grid_row, col, true);
+                col++;
+            }
+        }
+    }
+
+    m_cvsGrid->AutoSize();
+    m_resultsPanel->Layout();
 }
 
 ProgramOptions DynaRangeFrame::GetProgramOptions() {
@@ -220,21 +277,17 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
     opts.sat_file_path = std::string(m_saturationFilePicker->GetPath().mb_str());
     m_darkValueTextCtrl->GetValue().ToDouble(&opts.dark_value);
     m_saturationValueTextCtrl->GetValue().ToDouble(&opts.saturation_value);
-    
     opts.snr_thresholds_db = {12.0, 0.0};
     opts.dr_normalization_mpx = 8.0;
     opts.poly_order = 3;
     opts.patch_ratio = 0.5;
     opts.plot_mode = 2;
-    
     for (const wxString& file : m_inputFiles) {
         opts.input_files.push_back(std::string(file.mb_str()));
     }
-
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
     fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
     opts.output_filename = (output_dir / "DR_results.csv").string();
-    
     return opts;
 }
 
@@ -256,49 +309,11 @@ void DynaRangeFrame::AppendLog(const wxString& text) {
     m_logOutputTextCtrl->AppendText(text);
 }
 
-void DynaRangeFrame::LoadResults(const ProgramOptions& opts) {
-    std::ifstream file(opts.output_filename);
-    if (!file) { return; }
-    
-    if (m_cvsGrid->GetNumberRows() > 0) m_cvsGrid->DeleteRows(0, m_cvsGrid->GetNumberRows());
-    if (m_cvsGrid->GetNumberCols() > 0) m_cvsGrid->DeleteCols(0, m_cvsGrid->GetNumberCols());
-
-    std::string line;
-    int csv_row_index = 0;
-    
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string cell;
-        int col = 0;
-
-        if (csv_row_index == 0) {
-            m_cvsGrid->AppendCols(std::count(line.begin(), line.end(), ',') + 1);
-            while (std::getline(ss, cell, ',')) {
-                m_cvsGrid->SetColLabelValue(col, cell);
-                col++;
-            }
-        } else {
-            m_cvsGrid->AppendRows(1);
-            int grid_row = m_cvsGrid->GetNumberRows() - 1;
-            while (std::getline(ss, cell, ',')) {
-                m_cvsGrid->SetCellValue(grid_row, col, cell);
-                col++;
-            }
-        }
-        csv_row_index++;
-    }
-
-    m_cvsGrid->AutoSize();
-    m_resultsPanel->Layout();
-}
-
 void DynaRangeFrame::LoadGraphImage(const wxString& path_or_raw_name)
 {
     if (path_or_raw_name.IsEmpty() || !m_imageGraph) { return; }
-
     fs::path graphPath(std::string(path_or_raw_name.mb_str()));
     std::string displayFilename = graphPath.filename().string();
-
     wxImage image;
     if (!fs::exists(graphPath) || !image.LoadFile(wxString(graphPath.string()))) {
         m_imageGraph->SetBitmap(wxBitmap());
@@ -306,27 +321,21 @@ void DynaRangeFrame::LoadGraphImage(const wxString& path_or_raw_name)
         m_resultsPanel->Layout();
         return;
     }
-
     m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(displayFilename));
-
     wxSize panelSize = m_imageGraph->GetSize();
     if (panelSize.GetWidth() <= 0 || panelSize.GetHeight() <= 0) {
         m_resultsPanel->Layout();
         panelSize = m_imageGraph->GetSize();
         if(panelSize.GetWidth() <= 0 || panelSize.GetHeight() <= 0) return;
     }
-
     int imgWidth = image.GetWidth();
     int imgHeight = image.GetHeight();
-
     double hScale = (double)panelSize.GetWidth() / imgWidth;
     double vScale = (double)panelSize.GetHeight() / imgHeight;
     double scale = std::min(hScale, vScale);
-
     if (scale < 1.0) {
         image.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
     }
-    
     m_imageGraph->SetBitmap(wxBitmap(image));
     m_resultsPanel->Layout();
 }
@@ -344,7 +353,6 @@ void DynaRangeFrame::AddRawFilesToList(const wxArrayString& paths)
 {
     wxArrayString rejectedFiles;
     int addedCount = 0;
-
     for (const auto& file : paths) {
         if (IsSupportedRawFile(file)) {
             m_inputFiles.Add(file);
@@ -353,12 +361,10 @@ void DynaRangeFrame::AddRawFilesToList(const wxArrayString& paths)
             rejectedFiles.Add(wxFileName(file).GetFullName());
         }
     }
-
     if (addedCount > 0) {
         m_rawFileslistBox->Set(m_inputFiles);
         UpdateCommandPreview();
     }
-
     if (!rejectedFiles.IsEmpty()) {
         wxString message = _("The following files were ignored because they are not recognized as supported RAW formats:\n\n");
         for (const auto& rejected : rejectedFiles) {
@@ -371,11 +377,9 @@ void DynaRangeFrame::AddRawFilesToList(const wxArrayString& paths)
 void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) 
 {
     wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
-    
     if (openFileDialog.ShowModal() == wxID_CANCEL) {
         return;
     }
-    
     wxArrayString paths;
     openFileDialog.GetPaths(paths);
     AddRawFilesToList(paths);
@@ -391,15 +395,12 @@ void DynaRangeFrame::SetResultsPanelState(bool processing)
     m_csvOutputStaticText->Show(!processing);
     m_cvsGrid->Show(!processing);
     m_processingGauge->Show(processing);
-
     if (processing) {
         m_gaugeTimer->Start(100);
-        
         wxString exePath = wxStandardPaths::Get().GetExecutablePath();
         wxFileName fn(exePath);
         wxString appDir = fn.GetPath();
         wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
-        
         wxImage logoImage;
         if (logoImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
             m_imageGraph->SetBitmap(wxBitmap(logoImage));
@@ -407,11 +408,9 @@ void DynaRangeFrame::SetResultsPanelState(bool processing)
             m_imageGraph->SetBitmap(wxBitmap());
         }
         m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
-
     } else {
         m_gaugeTimer->Stop();
     }
-    
     m_resultsPanel->Layout();
 }
 

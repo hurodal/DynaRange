@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-14 20:10+0200\n"
+"POT-Creation-Date: 2025-09-14 21:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,30 +60,30 @@ msgid ""
 "Execution finished successfully."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:305
+#: src/gui/DynaRangeFrame.cpp:320
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:310
+#: src/gui/DynaRangeFrame.cpp:324
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:363
+#: src/gui/DynaRangeFrame.cpp:369
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:367
+#: src/gui/DynaRangeFrame.cpp:373
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:373
+#: src/gui/DynaRangeFrame.cpp:379
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:409
+#: src/gui/DynaRangeFrame.cpp:410
 msgid "Processing... Please wait."
 msgstr ""
 
