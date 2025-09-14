@@ -58,7 +58,11 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 2:	DETECCIÓN ESQUINAS CARTA MAGENTA
 
-	Sobre la toma menos expuesta (menor ISO), se busca en cada cuadrante de la imagen (canal G del RAW) el 0,05% de píxeles de mayor nivel. Obtenidos, el centro del círculo del cuadrante será la mediana de las coordenadas X e Y de todos los píxeles que entran en ese grupo del 0,05% más brillante. Comprobar que los parches magenta más luminosos no compiten en luminosidad con los testigos. Si diera problemas podemos "capar" la luminosidad máxima de esos parches.
+	Sobre el canal G* del RAW de la toma menos expuesta (menor ISO), se busca en cada cuadrante de la imagen (canal G del RAW) el 0,05% de píxeles de mayor nivel. Obtenidos, el centro del círculo del cuadrante será la mediana de las coordenadas X e Y de todos los píxeles que entran en ese grupo del 0,05% más brillante. Comprobar que los parches magenta más luminosos no compiten en luminosidad con los testigos. Si diera problemas podemos "capar" la luminosidad máxima de esos parches.
+
+*NOTA: localizar el canal G del RAW puede hacerse de 2 modos:
+	* Metadatos: si LibRAW nos da la estructura RG/GB, GB/RG,... del RAW
+	* Analizando qué posición de la matriz de Bayer adquiere más niveles (serán los 2 canales G, da igual uno que otro)
 
 	DIMX=ncol(chart)
 	DIMY=nrow(chart)
@@ -91,6 +95,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
 
 
