@@ -82,6 +82,7 @@ pkg_check_modules(CAIRO REQUIRED cairo)
 set(CORE_SOURCES
     src/core/Analysis.cpp
     src/core/Arguments.cpp
+    src/core/ChartProfile.cpp
     src/core/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp

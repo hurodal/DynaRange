@@ -13,6 +13,73 @@
 
 namespace fs = std::filesystem;
 
+namespace { // Anonymous namespace for internal helpers
+
+/**
+ * @brief Calculates SNR and EV values from patch data and fits a polynomial curve.
+ * @param patch_data The result of the patch analysis.
+ * @param poly_order The order of the polynomial to fit.
+ * @return An SnrCurve struct containing the calculated curve data.
+ */
+SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, int poly_order) {
+    SnrCurve curve;
+    for (size_t j = 0; j < patch_data.signal.size(); ++j) {
+        curve.snr_db.push_back(20 * log10(patch_data.signal[j] / patch_data.noise[j]));
+        curve.signal_ev.push_back(log2(patch_data.signal[j]));
+    }
+
+    cv::Mat signal_mat_global(curve.signal_ev.size(), 1, CV_64F, curve.signal_ev.data());
+    cv::Mat snr_mat_global(curve.snr_db.size(), 1, CV_64F, curve.snr_db.data());
+    
+    PolyFit(signal_mat_global, snr_mat_global, curve.poly_coeffs, poly_order);
+    return curve;
+}
+
+/**
+ * @brief Calculates the dynamic range values for a set of thresholds.
+ * @param snr_curve The calculated SNR curve.
+ * @param thresholds_db The vector of SNR thresholds in dB.
+ * @return A map of threshold to calculated dynamic range in EV.
+ */
+std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const std::vector<double>& thresholds_db) {
+    std::map<double, double> dr_values_ev;
+    if (snr_curve.signal_ev.empty()) {
+        return dr_values_ev;
+    }
+
+    auto min_max_ev = std::minmax_element(snr_curve.signal_ev.begin(), snr_curve.signal_ev.end());
+
+    for (const double threshold_db : thresholds_db) {
+        auto ev_opt = FindIntersectionEV(snr_curve.poly_coeffs, threshold_db, *min_max_ev.first, *min_max_ev.second);
+        if (ev_opt) {
+            dr_values_ev[threshold_db] = -(*ev_opt);
+        }
+    }
+    return dr_values_ev;
+}
+} // end anonymous namespace
+
+
+std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, const std::string& filename) {
+    SnrCurve snr_curve = CalculateSnrCurve(patch_data, opts.poly_order);
+    
+    DynamicRangeResult dr_result;
+    dr_result.filename = filename;
+    dr_result.patches_used = (int)patch_data.signal.size();
+    dr_result.dr_values_ev = CalculateDynamicRange(snr_curve, opts.snr_thresholds_db);
+    
+    CurveData curve_data = {
+        filename, 
+        "", // camera_model is set later in the main loop
+        snr_curve.signal_ev, 
+        snr_curve.snr_db, 
+        snr_curve.poly_coeffs.clone(), 
+        opts.generated_command
+    };
+
+    return {dr_result, curve_data};
+}
+
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio) {
     std::vector<double> signal_vec, noise_vec;
     const double patch_width = (double)imgcrop.cols / NCOLS;

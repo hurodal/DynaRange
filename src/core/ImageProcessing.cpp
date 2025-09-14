@@ -35,3 +35,28 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     }
     return imgCorrected;
 }
+
+
+cv::Mat PrepareChartImage(const RawFile& raw_file, const ProgramOptions& opts, const ChartProfile& chart, std::ostream& log_stream) {
+    cv::Mat img_float = raw_file.GetNormalizedImage(opts.dark_value, opts.saturation_value);
+    if(img_float.empty()){
+        log_stream << "Error: Could not get normalized image for: " << raw_file.GetFilename() << std::endl;
+        return {};
+    }
+    log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
+
+    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
+    for (int r = 0; r < imgBayer.rows; ++r) {
+        for (int c = 0; c < imgBayer.cols; ++c) {
+            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
+        }
+    }
+    
+    log_stream << "  - Calculating and applying Keystone correction..." << std::endl;
+    Eigen::VectorXd k = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
+    cv::Mat img_corrected = UndoKeystone(imgBayer, k);
+    
+    const auto& dst_pts = chart.GetDestinationPoints();
+    cv::Rect crop_area(round(dst_pts[0].x), round(dst_pts[0].y), round(dst_pts[2].x - dst_pts[0].x), round(dst_pts[2].y - dst_pts[0].y));
+    return img_corrected(crop_area);
+}
