@@ -41,13 +41,14 @@ struct PatchAnalysisResult {
  * @brief Contains all necessary data to plot an SNR curve for a single file.
  */
 struct CurveData {
-    std::string filename; ///< The name of the processed file.
-    std::string plot_label; ///< The label for this curve on the plot (e.g., "ISO 200" or filename).
-    std::string camera_model; ///< The camera model name, extracted from metadata.
+    std::string filename;          ///< The name of the processed file.
+    std::string plot_label;        ///< The label for this curve on the plot (e.g., "ISO 200" or filename).
+    std::string camera_model;      ///< The camera model name, extracted from metadata.
     std::vector<double> signal_ev; ///< The signal values converted to EV.
     std::vector<double> snr_db;    ///< The SNR values in dB.
     cv::Mat poly_coeffs;           ///< The coefficients of the fitted polynomial curve.
     std::string generated_command; ///< The command string used to generate the plot.
+    float iso_speed = 0.0f;        ///< The ISO speed from EXIF, used for individual plot titles.
 };
 
 /**

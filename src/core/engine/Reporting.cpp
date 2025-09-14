@@ -24,12 +24,28 @@ std::optional<std::string> FinalizeAndReport(
     log_stream << "\nGenerating individual SNR plots..." << std::endl;
     for (const auto& curve : all_curves_data) {
         fs::path plot_path = output_dir_path / (fs::path(curve.filename).stem().string() + "_snr_plot.png");
-        GenerateSnrPlot(plot_path.string(), fs::path(curve.filename).filename().string(), curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
+        
+        // Construir el título dinámico para gráficos individuales
+        std::stringstream title_ss;
+        title_ss << fs::path(curve.filename).filename().string(); // Nombre del fichero
+        
+        // Añadir modelo de cámara y, si está disponible, el ISO
+        if (!curve.camera_model.empty()) {
+            title_ss << " (" << curve.camera_model;
+            if (curve.iso_speed > 0) {
+                title_ss << ", ISO " << static_cast<int>(curve.iso_speed);
+            }
+            title_ss << ")";
+        }
+
+        // CORRECCIÓN: Llamar a la función de ploteo con el título y la etiqueta por separado
+        GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
     }
     
     std::optional<std::string> summary_plot_path_opt = std::nullopt;
     if (!all_curves_data.empty()) {
         std::string camera_name = all_curves_data[0].camera_model;
+        // El título del gráfico de resumen no se modifica
         summary_plot_path_opt = GenerateSummaryPlot(output_dir_path.string(), camera_name, all_curves_data, opts, log_stream);
     }
 

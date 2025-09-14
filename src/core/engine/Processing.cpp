@@ -95,17 +95,19 @@ SingleFileResult AnalyzeSingleRawFile(
     // 3. Call Analysis module to perform calculations, now passing the camera resolution
     auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
 
-    // 4. MODIFICATION: Assign the correct plot label from the map populated in PrepareAndSortFiles
+    // 4. Assign the correct plot label from the map populated in PrepareAndSortFiles
     if(opts.plot_labels.count(raw_file.GetFilename())) {
         curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
     } else {
         // Fallback in case something goes wrong
         curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
     }
+    
+    // 5. MODIFICACIÓN: Store the numeric ISO speed for the individual plot title
+    curve_data.iso_speed = raw_file.GetIsoSpeed();
 
     return {dr_result, curve_data};
 }
-
 } // end of anonymous namespace
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream) {

@@ -16,7 +16,8 @@ namespace fs = std::filesystem;
 
 void GenerateSnrPlot(
     const std::string& output_filename,
-    const std::string& image_title,
+    const std::string& plot_title,
+    const std::string& curve_label,
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
@@ -29,14 +30,14 @@ void GenerateSnrPlot(
     }
 
     if (signal_ev.size() < 2) {
-        log_stream << "  - Warning: Skipping plot for \"" << image_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
+        log_stream << "  - Warning: Skipping plot for \"" << plot_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
         return;
     }
     
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << "  - Error: Failed to create cairo context for plot \"" << image_title << "\"." << std::endl;
+        log_stream << "  - Error: Failed to create cairo context for plot \"" << plot_title << "\"." << std::endl;
         cairo_surface_destroy(surface);
         return;
     }
@@ -50,13 +51,14 @@ void GenerateSnrPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    // Pass the SNR thresholds to the drawing function
-    DrawPlotBase(cr, "SNR Curve - " + image_title, bounds, opts.generated_command, opts.snr_thresholds_db);
+    // Usar el nuevo 'plot_title' para el título principal
+    DrawPlotBase(cr, "SNR Curve - " + plot_title, bounds, opts.generated_command, opts.snr_thresholds_db);
     
+    // Usar el nuevo 'curve_label' para la etiqueta de la curva
     std::vector<CurveData> single_curve_vec = {{
-        image_title,        // filename
-        image_title,        // plot_label
-        "",                 // camera_model (not needed for single plot)
+        plot_title,         // filename (usamos el título aquí, es temporal)
+        curve_label,        // plot_label (la etiqueta simple correcta)
+        "",                 // camera_model
         signal_ev,          // signal_ev
         snr_db,             // snr_db
         poly_coeffs,        // poly_coeffs

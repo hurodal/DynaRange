@@ -8,16 +8,15 @@
 #include <vector>
 #include <optional>
 #include <ostream>
+#include "../Arguments.hpp"
+#include "../Analysis.hpp"
 
-#include "Drawing.hpp"
 
 /**
  * @brief Generates and saves a single SNR plot for one RAW file.
- * @details This function orchestrates the plot creation: it sets up a cairo surface,
- * calculates plot boundaries, calls the low-level drawing functions, and saves
- * the result to a PNG file.
  * @param output_filename The full path for the output PNG file.
- * @param image_title The title for the specific image being plotted.
+ * @param plot_title The main title for the plot (e.g., "iso00200.dng (OM-1, ISO 200)").
+ * @param curve_label The simple label to draw on the curve itself (e.g., "ISO 200").
  * @param signal_ev A vector of signal values in EV.
  * @param snr_db A vector of SNR values in dB.
  * @param poly_coeffs The coefficients of the fitted polynomial curve.
@@ -26,7 +25,8 @@
  */
 void GenerateSnrPlot(
     const std::string& output_filename,
-    const std::string& image_title,
+    const std::string& plot_title,
+    const std::string& curve_label,
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
