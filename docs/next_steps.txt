@@ -47,3 +47,28 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	En caso contrario para ese ISO no se calcula el RD y el programa emite un mensaje tipo "Warning: insufficient data to calculate 12dB dynamic range at 8Mpx normalization, test chart was subexposed/underexposed". Lo meto hoy en el código porque es muy importante, no solo para la normalización sino para detectar cartas mal expuestas. Las de Hugo estaban muy bien expuestas pero aquí es fácil que un usuario meta la pata.
 
 	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
+
+
+2:	DETECCIÓN ESQUINAS CARTA MAGENTA
+
+	DIMX=ncol(chart)
+	DIMY=nrow(chart)
+	
+	for (sector in 1:4) {
+	    if (sector==1) img=chart[1:(DIMY/2), 1:(DIMX/2)]
+	    if (sector==2) img=chart[1:(DIMY/2), (DIMX/2+1):DIMX]
+	    if (sector==3) img=chart[(DIMY/2+1):DIMY, (DIMX/2+1):DIMX]
+	    if (sector==4) img=chart[(DIMY/2+1):DIMY, 1:(DIMX/2)]
+	    
+	    # 1. Threshold for top 0.05% brightest pixels
+	    q <- quantile(img, probs = 0.9995)
+	    
+	    # 2. Coordinates of pixels above threshold
+	    coords <- which(img >= q, arr.ind = TRUE)
+	    img[coords]=1-img[coords]
+	    
+	    # 3. Median coordinates, rounded
+	    center_y <- round(median(coords[, 1]))
+	    center_x <- round(median(coords[, 2]))
+	}
+
