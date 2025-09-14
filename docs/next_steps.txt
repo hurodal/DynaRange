@@ -56,7 +56,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
 
 
-2:	NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
+2:	PARAMETRIZACIÓN DE --patch-ratio -r
 
 	Implementar la opción --patch-ratio -r <float>. Ahora mismo está hard coded como SAFE=50 píxeles. patch_ratio indica el tanto por 1 de píxeles a usar en cada eje (p.ej. 0.5 significa que se usan la mitad). Lo tienes implementado en el código "dynamicrange_V2_Sony.R", función analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS, double patch_ratio, double MIN_SNR_dB):
 
@@ -112,6 +112,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
 
 
