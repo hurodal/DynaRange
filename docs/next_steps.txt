@@ -56,7 +56,24 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
 
 
-2:	DETECCIÓN ESQUINAS CARTA MAGENTA
+2:	NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
+
+	Implementar la opción --patch-ratio -r <float>. Ahora mismo está hard coded como SAFE=50 píxeles. patch_ratio indica el tanto por 1 de píxeles a usar en cada eje (p.ej. 0.5 significa que se usan la mitad). Lo tienes implementado en el código "dynamicrange_V2_Sony.R", función analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS, double patch_ratio, double MIN_SNR_dB):
+
+      double x1 = (i - 1) * DIMX / NCOLS;
+      double x2 = i * DIMX / NCOLS;
+      double EMPTYX = (x2 - x1) * (1 - patch_ratio) / 2;
+      x1 = round((i - 1) * DIMX / NCOLS + EMPTYX);
+      x2 = round(i * DIMX / NCOLS - EMPTYX);
+      
+      double y1 = (j - 1) * DIMY / NROWS;
+      double y2 = j * DIMY / NROWS;
+      double EMPTYY = (y2 - y1) * (1 - patch_ratio) / 2;    
+      y1 = round((j - 1) * DIMY / NROWS + EMPTYY);
+      y2 = round(j * DIMY / NROWS - EMPTYY); 
+
+
+3:	DETECCIÓN ESQUINAS CARTA MAGENTA
 
 	Sobre el canal G* del RAW de la toma menos expuesta (menor ISO), se busca en cada cuadrante de la imagen (canal G del RAW) el 0,05% de píxeles de mayor nivel. Obtenidos, el centro del círculo del cuadrante será la mediana de las coordenadas X e Y de todos los píxeles que entran en ese grupo del 0,05% más brillante. Comprobar que los parches magenta más luminosos no compiten en luminosidad con los testigos. Si diera problemas podemos "capar" la luminosidad máxima de esos parches.
 
@@ -95,6 +112,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
 
 
