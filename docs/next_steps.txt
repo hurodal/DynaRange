@@ -11,37 +11,39 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	--drnormalization-mpx 21.5 (DR normalized to 21.5Mpx)
 	--drnormalization-mpx 0    (no normalization, per-pixel DR)
 
-	Cambios en el código (dynamicrange_V2.R):
+	Cambios en el código (dynamicrange_V2_Sony.R):
 
 	################################
 	# RANGO PARAMETERS
 
+	# --patch-ratio -r <float>
+	patch_ratio=0.1  # portion of width/height used on each patch
+
 	# --drnormalization-mpx -m <float>
-	normalize=TRUE
-	drnormalization_mpx=8
-	camresolution_mpx=nrow(img)*ncol(img)/1e6
+	normalize=FALSE  # TRUE
+	drnormalization_mpx=8  # 8Mpx normalization
+
+	# Number of patches in test chart
+	NCOLS=11
+	NROWS=7
 
 	MIN_SNR_dB = -10
 	if (normalize) MIN_SNR_dB = MIN_SNR_dB - 20*log10((camresolution_mpx / drnormalization_mpx)^(1/2))
-	calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, SAFE=50, MIN_SNR_dB)  # SAFE=80
+	calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, patch_ratio, MIN_SNR_dB)  # SAFE=80
 	Signal=calc$Signal
 	Noise=calc$Noise
 	SNR=Signal/Noise
 	# SNR normalization to drnormalization_mpx Mpx
 	# Linear: SNR_norm = SNR_perpixel * (Mpx / 8)^(1/2)
 	# Log:    SNR_norm dB = SNR_perpixel dB + 20 * log10[(Mpx / 8)^(1/2)]
-	if (normalize) SNR=SNR * (camresolution_mpx / drnormalization_mpx)^(1/2)
+	if (normalize) SNR = SNR * (camresolution_mpx / drnormalization_mpx)^(1/2)
 
-NOTAS SOBRE LA NORMALIZACIÓN:
+	NOTAS SOBRE LA NORMALIZACIÓN:
 
-Verás que al normalizar todas las curvas se desplazan (hacia arriba si normalizamos por menos Mpx de los que tenemos). Eso significa que para determinada normalización podemos quedarnos sin datos suficientes para obtener el RD, porque no quede ningún punto por debajo de la curva.
+	Al normalizar todas las curvas se desplazan (hacia arriba si normalizamos por menos Mpx de los que tenemos). Eso significa que para determinada normalización podemos quedarnos sin datos suficientes para obtener el RD, porque no quede ningún punto por debajo de la curva. Tanto si se normaliza como si no, para cada curva ISO hay que asegurar que:
+	* La muestra (parche) de menor relación S/N de esa curva, una vez normalizada (corregida), está por debajo del umbral de dB con el que calculamos el RD
+	* La muestra (parche) de mayor relación S/N, una vez normalizada (corregida) está por encima del umbral de dB con el que calculamos el RD
 
-Esto se arregla haciendo una comprobación potente de si tenemos datos para cada ISO y sino se emita un mensaje de "Warning: insufficient data to calculate DR for 8Mpx normalization at ISO1600" por ejemplo
+	En caso contrario para ese ISO no se calcula el RD y el programa emite un mensaje tipo "Warning: insufficient data to calculate 12dB dynamic range at 8Mpx normalization, test chart was subexposed/underexposed". Lo meto hoy en el código porque es muy importante, no solo para la normalización sino para detectar cartas mal expuestas. Las de Hugo estaban muy bien expuestas pero aquí es fácil que un usuario meta la pata.
 
-Hay que aprovechar ahora para meter esas comprobaciones que comentaba. Es decir tanto si se normaliza como si no, para cada curva ISO hay que asegurar que:
-* La muestra (parche) de menor relación S/N de esa curva, una vez normalizada (corregida), está por debajo del umbral de dB con el que calculamos el RD
-* La muestra (parche) de mayor relación S/N, una vez normalizada (corregida) está por encima del umbral de dB con el que calculamos el RD
-
-En caso contrario para ese ISO no se calcula el RD y el programa emite un mensaje tipo "Warning: insufficient data to calculate 12dB dynamic range at 8Mpx normalization, test chart was subexposed/underexposed".
-
-Lo meto hoy en el código porque es muy importante, no solo para la normalización sino para detectar cartas mal expuestas. Las de Hugo estaban muy bien expuestas pero aquí es fácil que un usuario meta la pata.
+	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
