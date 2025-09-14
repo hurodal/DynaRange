@@ -3,9 +3,9 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 0: PARA PENSAR SOBRE ELLO (ONLY GUILLERMO'S EYES)
 	- Modo "Caracterización de sensor" con múltiples exposiciones al mismo ISO
 	- Simplificar el parámetro umbral --snrthreshold-db (que no saque 0dB y 12dB por defecto, sino solo 12dB)
-	- Creación de carta de MxN parches parametrizables (NOTA: puede crear confusión, la carta por defecto debe estar muy claramente escogida)
-	- Mejora algoritmo "4 esquinas" buscando máximo relativo de luminosidad por diagonales
-	- Detalle cosmético: intercambiar nombres de parámetros black/sat -b/-B y -s/-S, y acortar nombres: --sat-level, --sat-file, --drnorm-mpx
+	- Creación de carta de MxN parches parametrizable (NOTA: puede crear confusión, las dimensiones de la carta por defecto deben estar claramente escogidas)
+	- Mejora algoritmo "4 esquinas" buscando máximo relativo de luminosidad por diagonales (buscando desde las esquinas)
+	- Detalle cosmético: intercambiar nombres de parámetros: -b/-B y -s/-S, y acortar algunos nombres: --sat-level, --sat-file, --drnorm-mpx
 
 
 1:	NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
@@ -79,6 +79,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	    center_y <- round(median(coords[, 1]))
 	    center_x <- round(median(coords[, 2]))
 	}
+
 
 
 
