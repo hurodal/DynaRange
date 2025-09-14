@@ -59,7 +59,7 @@ Usage: the user must supply a list of RAW filenames or a wildcard pattern that r
 
 --patch-ratio -r <float>
 Definition: relative patch width/height used to compute signal and noise readings (default=0.5)
-Explanation: contamination on signal and noise readings, specially from chart blur but also from screen reflections or lens vigneting, will lead to artificially increase noise measurements and hence lowering SNR values and estimated DR. To minimize this the effective area of each patch that will be used can be set: 0.5 means we're using 50% of centred patch width/height, so we're using 25% of the total chart area. Lower values will be more robust vs chart lighting non uniformity, while higher values will collect more samples providing higher statistical robustness
+Explanation: contamination on signal and noise readings, specially from chart blur and lens distortion, but also from screen reflections or lens vigneting, will lead to artificially increase noise measurements and hence lowering SNR values and estimated DR. To minimize this the effective area of each patch that will be used can be set: 0.5 means we're using 50% of centred patch width/height, so we're using 25% of the total chart area. Lower values will be more robust vs chart lighting non uniformity, while higher values will collect more samples providing higher statistical robustness
 Usage: by default 50% of each patch width/height centred is used. You may set any value between 0 and 1 but values far from 0.5 are not recommended
 Examples (first example is default and is equivalent to not specifying the parameter):
 --patch-ratio     (50% of patch width/height centred will be used, 25% of patch area)
@@ -110,6 +110,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format adding CLI command)
+
 
 
 
