@@ -3,7 +3,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 0: PARA PENSAR SOBRE ELLO (ONLY GUILLERMO'S EYES)
 	- Modo "Caracterización de sensor" con múltiples exposiciones al mismo ISO
 	- Simplificar el parámetro umbral --snrthreshold-db: que no saque 0dB y 12dB por defecto, sino solo 12dB. O polo opuesto: poder especificar una lista de umbrales
-	- Creación de carta de MxN parches parametrizable (NOTA: puede crear confusión, las dimensiones de la carta por defecto deben estar claramente escogidas)
+	- Creación de carta de MxN parches parametrizable (NOTA: puede crear confusión, las dimensiones de la carta por defecto 7x11 deben estar claramente escogidas)
 	- Mejora algoritmo "4 esquinas" buscando máximo relativo de luminosidad por diagonales (buscando desde las esquinas)
 	- Detalle cosmético: intercambiar nombres de parámetros: -b/-B y -s/-S, y acortar algunos nombres: --sat-level, --sat-file, --drnorm-mpx
 
@@ -114,4 +114,5 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
