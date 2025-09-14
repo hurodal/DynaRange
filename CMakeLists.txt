@@ -89,9 +89,10 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/graphics/Drawing.cpp
     src/core/graphics/Plotting.cpp
+    src/core/ImageProcessing.cpp
     src/core/Math.cpp
     src/core/RawFile.cpp
-    src/core/ImageProcessing.cpp
+    src/core/utils/PathManager.cpp
 )
 
 
@@ -180,7 +181,7 @@ set_target_properties(rango dynaRangeGui PROPERTIES
 
 # Copia los recursos adicionales al directorio de salida.
 file(COPY "${CMAKE_SOURCE_DIR}/logo.png" DESTINATION "${PORTABLE_DIR}")
-
+file(COPY "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION "${PORTABLE_DIR}")
 
 # =============================================================================
 # 7. INTERNACIONALIZACIÓN (Traducciones con Gettext)

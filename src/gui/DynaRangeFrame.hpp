@@ -1,5 +1,5 @@
 /**
- * @file DynaRangeFrame.hpp
+ * @file gui/DynaRangeFrame.hpp
  * @brief Main frame of the DynaRange GUI application.
  * @author Juanma Font
  * @date 2025-09-10
@@ -10,14 +10,15 @@
 #include "../core/Arguments.hpp"
 #include <wx/arrstr.h>
 #include <wx/dnd.h>
+#include <wx/timer.h> // AÑADIDO: Cabecera para el wxTimer
 #include <string>
+#include <map>
 
 // Custom event declarations for the worker thread
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxThreadEvent);
 
-// ADDED: Forward declaration to solve the 'FileDropTarget does not name a type' error.
-// This tells the compiler that FileDropTarget is a class before it is fully defined.
+// Forward declaration
 class FileDropTarget;
 
 /**
@@ -30,10 +31,6 @@ public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
 
-    /**
-     * @brief Adds a list of files, received from a drop operation, to the input list.
-     * @param filenames An array of full file paths.
-     */
     void AddDroppedFiles(const wxArrayString& filenames);
 
 protected:
@@ -46,6 +43,12 @@ protected:
     // Worker thread event handlers
     void OnWorkerUpdate(wxThreadEvent& event);
     void OnWorkerCompleted(wxThreadEvent& event);
+    
+    /**
+     * @brief Event handler for the gauge animation timer.
+     * @param event The timer event.
+     */
+    void OnGaugeTimer(wxTimerEvent& event); // Handler para el temporizador
 
 private:
     // Logic functions
@@ -56,25 +59,23 @@ private:
     void LoadGraphImage(const wxString& path_or_raw_name);
     ProgramOptions GetProgramOptions();
     void SetExecuteButtonState(bool enabled);
-
-    /**
-     * @brief Checks if a given file is a RAW format supported by LibRaw.
-     * @param filePath The full path to the file.
-     * @return true if the file is a supported RAW, false otherwise.
-     */
     bool IsSupportedRawFile(const wxString& filePath);
+    void AddRawFilesToList(const wxArrayString& paths);
 
     /**
-     * @brief Filters a list of file paths, adding only valid RAWs to the input list.
-     * @param paths An array of file paths to process.
+     * @brief Manages the UI state of the results panel.
+     * @param processing true to enter 'processing' state, false to enter 'results' state.
      */
-    void AddRawFilesToList(const wxArrayString& paths);
+    void SetResultsPanelState(bool processing);
 
     // Member variables
     ProgramOptions m_lastRunOptions;
     wxArrayString m_inputFiles;
     std::string m_summaryPlotPath;
+    std::map<std::string, std::string> m_individualPlotPaths;
     FileDropTarget* m_dropTarget;
+    
+    wxTimer* m_gaugeTimer; // Puntero al temporizador
 };
 
 /**

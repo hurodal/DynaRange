@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-14 17:00+0200\n"
+"POT-Creation-Date: 2025-09-14 20:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,78 +17,74 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/rango.cpp:32
+#: src/rango.cpp:30
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:104
+#: src/gui/DynaRangeFrame.cpp:101
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:107
+#: src/gui/DynaRangeFrame.cpp:104
 msgid "Welcome (logo.png not found)"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:138
+#: src/gui/DynaRangeFrame.cpp:130
 msgid "Please select at least one input RAW file."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:138 src/gui/DynaRangeFrame.cpp:199
+#: src/gui/DynaRangeFrame.cpp:130 src/gui/DynaRangeFrame.cpp:175
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:157
-msgid "Processing... Please wait."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:160
-msgid "Processing..."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:198
+#: src/gui/DynaRangeFrame.cpp:174
 msgid ""
 "\n"
 "---\n"
 "Execution failed. Please check the log for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:199
+#: src/gui/DynaRangeFrame.cpp:175
 msgid ""
 "An error occurred during processing. Please check the log tab for details."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:200
+#: src/gui/DynaRangeFrame.cpp:176
 msgid "Error during processing. Check log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:202
+#: src/gui/DynaRangeFrame.cpp:178
 msgid ""
 "\n"
 "---\n"
 "Execution finished successfully."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:342
+#: src/gui/DynaRangeFrame.cpp:305
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:347
+#: src/gui/DynaRangeFrame.cpp:310
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:418
+#: src/gui/DynaRangeFrame.cpp:363
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:422
+#: src/gui/DynaRangeFrame.cpp:367
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:435
+#: src/gui/DynaRangeFrame.cpp:373
 msgid "Select RAW files"
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:409
+msgid "Processing... Please wait."
 msgstr ""
 
 #: src/core/Arguments.cpp:25

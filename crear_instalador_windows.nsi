@@ -43,8 +43,9 @@ Section "Programa Principal"
   File /r "dynaRangePortable\*.*" 
   
   ; Crea accesos directos
-  CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
-  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "favicon_noise.ico"
+  ; El icono ahora se extrae del propio .exe (índice 0, el primero)
+  CreateShortCut "$DESKTOP\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "$INSTDIR\dynaRangeGui.exe" 0
+  CreateShortCut "$SMPROGRAMS\DynaRange\DynaRange GUI.lnk" "$INSTDIR\dynaRangeGui.exe" "" "$INSTDIR\dynaRangeGui.exe" 0  
   ; AÑADIDO (Opcional): Acceso directo para el CLI en el menú de inicio
   CreateShortCut "$SMPROGRAMS\DynaRange\rango.lnk" "$INSTDIR\rango.exe"
 

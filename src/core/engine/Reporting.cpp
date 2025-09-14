@@ -4,6 +4,7 @@
  */
 #include "Reporting.hpp"
 #include "../graphics/Plotting.hpp"
+#include "../utils/PathManager.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -11,48 +12,26 @@
 
 namespace fs = std::filesystem;
 
-// This function now dynamically builds the results table based on the calculated DR values.
-std::optional<std::string> FinalizeAndReport(
-    const ProcessingResult& results,
+namespace { // Anonymous namespace for internal helper functions
+
+/**
+ * @brief Generates all individual SNR plot images.
+ */
+std::map<std::string, std::string> GenerateIndividualPlots(
+    const std::vector<CurveData>& all_curves_data,
     const ProgramOptions& opts,
+    const PathManager& paths,
     std::ostream& log_stream)
 {
-    const auto& all_results = results.dr_results;
-    const auto& all_curves_data = results.curve_data;
-    fs::path output_dir_path = fs::path(opts.output_filename).parent_path();
-    
+    std::map<std::string, std::string> plot_paths_map;
     log_stream << "\nGenerating individual SNR plots..." << std::endl;
     for (const auto& curve : all_curves_data) {
-        
-        // --- INICIO DE LA MODIFICACIÓN: Construcción del nuevo nombre de fichero ---
-        std::stringstream new_filename_ss;
-        new_filename_ss << fs::path(curve.filename).stem().string();
+        fs::path plot_path = paths.GetIndividualPlotPath(curve);
+        plot_paths_map[curve.filename] = plot_path.string();
 
-        // Añadir el ISO si está disponible
-        if (curve.iso_speed > 0) {
-            new_filename_ss << "_ISO" << static_cast<int>(curve.iso_speed);
-        }
-
-        new_filename_ss << "_snr_plot";
-
-        // Añadir el modelo de cámara si está disponible (reemplazando espacios)
-        if (!curve.camera_model.empty()) {
-            std::string safe_model = curve.camera_model;
-            std::replace(safe_model.begin(), safe_model.end(), ' ', '_');
-            new_filename_ss << "_" << safe_model;
-        }
-
-        new_filename_ss << ".png";
-        
-        fs::path plot_path = output_dir_path / new_filename_ss.str();
-        // --- FIN DE LA MODIFICACIÓN ---
-
-
-        // Construir el título dinámico para gráficos individuales
         std::stringstream title_ss;
-        title_ss << fs::path(curve.filename).filename().string(); // Nombre del fichero
+        title_ss << fs::path(curve.filename).filename().string();
         
-        // Añadir modelo de cámara y, si está disponible, el ISO
         if (!curve.camera_model.empty()) {
             title_ss << " (" << curve.camera_model;
             if (curve.iso_speed > 0) {
@@ -61,25 +40,45 @@ std::optional<std::string> FinalizeAndReport(
             title_ss << ")";
         }
 
-        // Llamar a la función de ploteo con el título y la etiqueta por separado
         GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
     }
-    
-    std::optional<std::string> summary_plot_path_opt = std::nullopt;
-    if (!all_curves_data.empty()) {
-        std::string camera_name = all_curves_data[0].camera_model;
-        // El título del gráfico de resumen no se modifica
-        summary_plot_path_opt = GenerateSummaryPlot(output_dir_path.string(), camera_name, all_curves_data, opts, log_stream);
-    }
+    return plot_paths_map;
+}
 
-    // --- Dynamic report generation ---
+/**
+ * @brief Generates the summary plot image.
+ */
+std::optional<std::string> GenerateSummaryPlotReport(
+    const std::vector<CurveData>& all_curves_data,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream)
+{
+    if (all_curves_data.empty()) {
+        return std::nullopt;
+    }
+    std::string camera_name = all_curves_data[0].camera_model;
+    fs::path summary_plot_path = paths.GetSummaryPlotPath(camera_name);
+    
+    // The GenerateSummaryPlot from Plotting.cpp returns the path, so we return it upwards.
+    return GenerateSummaryPlot(summary_plot_path.string(), camera_name, all_curves_data, opts, log_stream);
+}
+
+/**
+ * @brief Generates the CSV file and the log table report.
+ */
+void GenerateCsvAndLogReport(
+    const std::vector<DynamicRangeResult>& all_results,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream)
+{
     log_stream << "\n--- Dynamic Range Results ---\n";
     
-    // 1. Build headers dynamically from the requested thresholds
     std::stringstream header_log, header_csv;
     header_log << std::left << std::setw(30) << "RAW File";
     header_csv << "raw_file";
-    // The columns will be ordered as they appear in the options vector
+    
     for (const double threshold : opts.snr_thresholds_db) {
         std::stringstream col_name_ss;
         col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
@@ -92,16 +91,13 @@ std::optional<std::string> FinalizeAndReport(
     log_stream << header_log.str() << std::endl;
     log_stream << std::string(header_log.str().length(), '-') << std::endl;
     
-    std::ofstream csv_file(opts.output_filename);
+    std::ofstream csv_file(paths.GetCsvOutputPath());
     csv_file << header_csv.str() << "\n";
 
-    // 2. Populate rows dynamically from the results map
     for (const auto& res : all_results) {
         log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string();
         csv_file << fs::path(res.filename).filename().string();
-        // Iterate in the same order to match the headers
         for (const double threshold : opts.snr_thresholds_db) {
-            // Find the value in the map; default to 0.0 if not found
             double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
             log_stream << std::fixed << std::setprecision(4) << std::setw(20) << value;
             csv_file << "," << value;
@@ -111,7 +107,25 @@ std::optional<std::string> FinalizeAndReport(
     }
 
     csv_file.close();
-    log_stream << "\nResults saved to " << opts.output_filename << std::endl;
+    log_stream << "\nResults saved to " << paths.GetCsvOutputPath().string() << std::endl;
+}
+
+} // end anonymous namespace
+
+
+ReportOutput FinalizeAndReport(
+    const ProcessingResult& results,
+    const ProgramOptions& opts,
+    std::ostream& log_stream)
+{
+    PathManager paths(opts);
+    ReportOutput output;
+
+    output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     
-    return summary_plot_path_opt;
+    GenerateCsvAndLogReport(results.dr_results, opts, paths, log_stream);
+
+    output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
+
+    return output;
 }

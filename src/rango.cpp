@@ -12,23 +12,21 @@
 
 /**
  * @brief The main function for the dynaRange CLI tool.
- * @details Initializes localization, parses command-line arguments,
- * runs the core analysis engine, and reports errors.
  * @param argc The number of command-line arguments.
  * @param argv An array of command-line argument strings.
  * @return 0 on success, 1 on failure.
  */
 int main(int argc, char* argv[]) {
-    // Initialize localization settings for gettext
     setlocale(LC_ALL, "");
     bindtextdomain("dynaRange", "locale");
     textdomain("dynaRange");
 
-    // 1. Parse arguments
     ProgramOptions opts = ParseArguments(argc, argv);
     
-    // 2. Call the engine with the console (std::cout) as the log stream
-    if (!RunDynamicRangeAnalysis(opts, std::cout)) {
+    ReportOutput report = RunDynamicRangeAnalysis(opts, std::cout);
+
+    // Check for failure by seeing if the summary plot path was generated.
+    if (!report.summary_plot_path.has_value()) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;
         return 1;
     }

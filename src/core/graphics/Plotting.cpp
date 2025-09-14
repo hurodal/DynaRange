@@ -74,7 +74,7 @@ void GenerateSnrPlot(
 }
 
 std::optional<std::string> GenerateSummaryPlot(
-    const std::string& output_dir,
+    const std::string& output_filename,
     const std::string& camera_name,
     const std::vector<CurveData>& all_curves,
     const ProgramOptions& opts,
@@ -113,14 +113,12 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["max_db"] = 25.0;
 
     std::string title = "SNR Curves - Summary (" + camera_name + ")";
-    std::string safe_camera_name = camera_name;
-    std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
-    std::string output_filename = (fs::path(output_dir) / ("DR_summary_plot_" + safe_camera_name + ".png")).string();
-
+    
     // Pass the SNR thresholds to the drawing function
     DrawPlotBase(cr, title, bounds, opts.generated_command, opts.snr_thresholds_db);
     DrawCurvesAndData(cr, all_curves, bounds);
 
+    // La variable 'output_filename' ahora viene completa desde PathManager.
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);

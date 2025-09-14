@@ -162,6 +162,12 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_generateGraphStaticText->Wrap( -1 );
 	resultsSizer->Add( m_generateGraphStaticText, 0, wxALL, 5 );
 
+	m_processingGauge = new wxGauge( m_resultsPanel, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
+	m_processingGauge->SetValue( 0 );
+	m_processingGauge->Hide();
+
+	resultsSizer->Add( m_processingGauge, 0, wxALL|wxEXPAND, 5 );
+
 	m_imageGraph = new wxStaticBitmap( m_resultsPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
 	resultsSizer->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
 

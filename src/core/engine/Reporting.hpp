@@ -3,21 +3,31 @@
  * @brief Defines the functionality for generating final reports and plots.
  */
 #pragma once
-#include "Processing.hpp"
+#include "Processing.hpp" // For ProcessingResult
 #include <string>
 #include <optional>
+#include <map>
+
+/**
+ * @struct ReportOutput
+ * @brief Contains the results of the reporting phase, primarily file paths.
+ */
+struct ReportOutput {
+    /// @brief Path to the main summary plot image. Empty if not generated.
+    std::optional<std::string> summary_plot_path; 
+    
+    /// @brief Maps each source RAW filename to the path of its generated individual plot.
+    std::map<std::string, std::string> individual_plot_paths; 
+};
 
 /**
  * @brief Generates all final output reports from the processing results.
- * @details This includes a summary plot of all curves, individual SNR plots,
- * a results table printed to the log, and a CSV output file.
  * @param results The aggregated results from the ProcessFiles function.
  * @param opts The program options.
  * @param log_stream The output stream for logging messages.
- * @return An optional string containing the path to the generated summary plot,
- * or std::nullopt if no plot was created.
+ * @return A ReportOutput struct containing paths to the generated plots.
  */
-std::optional<std::string> FinalizeAndReport(
+ReportOutput FinalizeAndReport(
     const ProcessingResult& results,
     const ProgramOptions& opts,
     std::ostream& log_stream);

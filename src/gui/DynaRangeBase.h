@@ -27,6 +27,7 @@
 #include <wx/icon.h>
 #include <wx/panel.h>
 #include <wx/grid.h>
+#include <wx/gauge.h>
 #include <wx/statbmp.h>
 #include <wx/notebook.h>
 #include <wx/frame.h>
@@ -61,6 +62,7 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_csvOutputStaticText;
 		wxGrid* m_cvsGrid;
 		wxStaticText* m_generateGraphStaticText;
+		wxGauge* m_processingGauge;
 		wxStaticBitmap* m_imageGraph;
 
 	public:

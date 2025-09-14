@@ -7,11 +7,10 @@
 #include "engine/Processing.hpp"
 #include "engine/Reporting.hpp"
 
-// Accepts opts by reference (&) to allow modifications
-std::optional<std::string> RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
+ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     // Phase 1: Preparation
     if (!InitializeAnalysis(opts, log_stream)) {
-        return std::nullopt;
+        return {}; // Return an empty ReportOutput on failure
     }
     
     // Phase 2: Processing of all files
