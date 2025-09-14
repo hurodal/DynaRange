@@ -82,6 +82,17 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	    center_x <- round(median(coords[, 2]))
 	}
 
+	La función quantile() se puede implementar en C++ con:
+
+        cppFunction('
+                    double quantilecpp(Rcpp::NumericVector xx, double perc) {
+                    Rcpp::NumericVector x = Rcpp::clone(xx);
+                    std::size_t n = x.size() * perc;
+                    std::nth_element(x.begin(), x.begin() + n, x.end());
+                    return x[n]; 
+                    }
+                    ')
+
 
 
 
