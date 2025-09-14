@@ -7,6 +7,10 @@ rango.sublime-workspace
 dynaRange.exe
 rango.exe
 dynaRangeGui.exe
+dynaRangePortable/dynaRange.exe
+dynaRangePortable/rango.exe
+dynaRangePortable/dynaRange
+dynaRangePortable/rango
 
 # Ignorar directorios de datos y de compilación
 raws
