@@ -23,8 +23,31 @@ std::optional<std::string> FinalizeAndReport(
     
     log_stream << "\nGenerating individual SNR plots..." << std::endl;
     for (const auto& curve : all_curves_data) {
-        fs::path plot_path = output_dir_path / (fs::path(curve.filename).stem().string() + "_snr_plot.png");
         
+        // --- INICIO DE LA MODIFICACIÓN: Construcción del nuevo nombre de fichero ---
+        std::stringstream new_filename_ss;
+        new_filename_ss << fs::path(curve.filename).stem().string();
+
+        // Añadir el ISO si está disponible
+        if (curve.iso_speed > 0) {
+            new_filename_ss << "_ISO" << static_cast<int>(curve.iso_speed);
+        }
+
+        new_filename_ss << "_snr_plot";
+
+        // Añadir el modelo de cámara si está disponible (reemplazando espacios)
+        if (!curve.camera_model.empty()) {
+            std::string safe_model = curve.camera_model;
+            std::replace(safe_model.begin(), safe_model.end(), ' ', '_');
+            new_filename_ss << "_" << safe_model;
+        }
+
+        new_filename_ss << ".png";
+        
+        fs::path plot_path = output_dir_path / new_filename_ss.str();
+        // --- FIN DE LA MODIFICACIÓN ---
+
+
         // Construir el título dinámico para gráficos individuales
         std::stringstream title_ss;
         title_ss << fs::path(curve.filename).filename().string(); // Nombre del fichero
@@ -38,7 +61,7 @@ std::optional<std::string> FinalizeAndReport(
             title_ss << ")";
         }
 
-        // CORRECCIÓN: Llamar a la función de ploteo con el título y la etiqueta por separado
+        // Llamar a la función de ploteo con el título y la etiqueta por separado
         GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
     }
     
