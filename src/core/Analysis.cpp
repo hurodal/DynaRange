@@ -246,28 +246,33 @@ bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream) {
             log_stream << "\n[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders." << std::endl;
         }
     } else {
-        log_stream << "\n[WARNING] Cannot sort by ISO. EXIF data not available in all files. Using brightness sorting." << std::endl;
+        log_stream << "\n[WARNING] Cannot use EXIF data. ISO not available in all files. Using brightness sorting." << std::endl;
     }
 
-    // Choose which list to use and populate ProgramOptions
+    // --- SELECCIÓN DE ORDENACIÓN ---
     const std::vector<FileInfo>* final_sorted_list = &list_a; // Default to brightness sort
-    bool using_exif_sort = false;
     if (USE_EXIF_SORT_DEFAULT && exif_sort_possible) {
         final_sorted_list = &list_b;
-        using_exif_sort = true;
+        log_stream << "[INFO] Using final file order from: EXIF ISO (List B)" << std::endl;
+    } else {
+        log_stream << "[INFO] Using final file order from: Image Brightness (List A)" << std::endl;
     }
-
-    log_stream << "[INFO] Using final file order from: " << (using_exif_sort ? "EXIF ISO (List B)" : "Image Brightness (List A)") << std::endl;
     
+    // --- LÓGICA DE ETIQUETADO (CORREGIDA) ---
+    // La elección de la etiqueta ahora es independiente de la ordenación.
+    // Se basa únicamente en si los datos EXIF están disponibles para TODOS los ficheros.
     opts.input_files.clear();
     opts.plot_labels.clear();
     for (const auto& info : *final_sorted_list) {
         opts.input_files.push_back(info.filename);
-        if (using_exif_sort) {
+        
+        if (exif_sort_possible) {
+            // Si es posible usar EXIF, las etiquetas SIEMPRE serán el ISO.
             std::stringstream label_ss;
             label_ss << "ISO " << static_cast<int>(info.iso_speed);
             opts.plot_labels[info.filename] = label_ss.str();
         } else {
+            // Si EXIF falla para CUALQUIER fichero, se usa el nombre de fichero para TODOS.
             opts.plot_labels[info.filename] = fs::path(info.filename).stem().string();
         }
     }
