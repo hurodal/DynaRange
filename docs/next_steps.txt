@@ -59,7 +59,8 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 2:	PARAMETRIZACIÓN DE --patch-ratio -r
 
 	Implementar la opción --patch-ratio -r <float>: relative patch width/height used to compute signal and noise readings (default=0.5)
-	Ahora mismo creo que aún la tienes hard coded como SAFE=50 píxeles. patch_ratio indica el tanto por 1 de píxeles a usar en cada eje (p.ej. 0.5 significa que se usan la mitad). Lo tienes implementado en el código "dynamicrange_V2_Sony.R", función analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS, double patch_ratio, double MIN_SNR_dB):
+	Ahora mismo creo que aún la tienes hard coded como SAFE=50 píxeles. patch_ratio indica el tanto por 1 de píxeles a usar en cada eje (p.ej. 0.5 significa que se usan la mitad en cada eje, 25% en superficie).
+	Lo tienes implementado en el código "dynamicrange_V2_Sony.R", función analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS, double patch_ratio, double MIN_SNR_dB):
 
       double x1 = (i - 1) * DIMX / NCOLS;
       double x2 = i * DIMX / NCOLS;
@@ -113,6 +114,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
 
 
