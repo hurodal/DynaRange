@@ -20,7 +20,7 @@ for (sector in 1:4) {
     if (sector==3) img=chart[(DIMY/2+1):DIMY, (DIMX/2+1):DIMX]
     if (sector==4) img=chart[(DIMY/2+1):DIMY, 1:(DIMX/2)]
     
-    # 1. Threshold for top 0.5% brightest pixels
+    # 1. Threshold for top 0.05% brightest pixels
     q <- quantile(img, probs = 0.9995)
     
     # 2. Coordinates of pixels above threshold
