@@ -60,6 +60,16 @@ std::string RawFile::GetCameraModel() const {
     return m_camera_model_cache;
 }
 
+float RawFile::GetIsoSpeed() const {
+    if (!m_is_loaded) return 0.0f;
+    if (m_iso_speed_cache > 0.0f) {
+        return m_iso_speed_cache; // Use cached value
+    }
+    
+    m_iso_speed_cache = m_raw_processor.imgdata.other.iso_speed;
+    return m_iso_speed_cache;
+}
+
 int RawFile::GetWidth() const {
     return m_is_loaded ? m_raw_processor.imgdata.sizes.raw_width : 0;
 }

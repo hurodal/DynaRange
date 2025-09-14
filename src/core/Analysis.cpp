@@ -16,24 +16,46 @@ namespace fs = std::filesystem;
 namespace { // Anonymous namespace for internal helpers
 
 /**
- * @brief Calculates SNR and EV values from patch data and fits a polynomial curve.
+ * @brief Calculates SNR and EV values, applies normalization, and fits a polynomial curve.
  * @param patch_data The result of the patch analysis.
- * @param poly_order The order of the polynomial to fit.
+ * @param opts The program options, used for normalization settings and polynomial order.
+ * @param camera_resolution_mpx The camera's actual resolution in megapixels.
  * @return An SnrCurve struct containing the calculated curve data.
  */
-SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, int poly_order) {
+SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx) {
     SnrCurve curve;
-    for (size_t j = 0; j < patch_data.signal.size(); ++j) {
-        curve.snr_db.push_back(20 * log10(patch_data.signal[j] / patch_data.noise[j]));
-        curve.signal_ev.push_back(log2(patch_data.signal[j]));
+    
+    // 1. Calculate linear SNR values first
+    std::vector<double> snr_linear;
+    snr_linear.reserve(patch_data.signal.size());
+    for (size_t i = 0; i < patch_data.signal.size(); ++i) {
+        if (patch_data.noise[i] > 0) {
+            snr_linear.push_back(patch_data.signal[i] / patch_data.noise[i]);
+        }
     }
 
+    // 2. Apply normalization factor if requested by the user
+    if (opts.dr_normalization_mpx > 0 && camera_resolution_mpx > 0) {
+        double norm_factor = sqrt(camera_resolution_mpx / opts.dr_normalization_mpx);
+        for (double& snr : snr_linear) {
+            snr *= norm_factor;
+        }
+    }
+
+    // 3. Convert final linear SNR to dB and calculate EV
+    for (size_t i = 0; i < snr_linear.size(); ++i) {
+        curve.snr_db.push_back(20 * log10(snr_linear[i]));
+        curve.signal_ev.push_back(log2(patch_data.signal[i]));
+    }
+
+    // 4. Fit polynomial to the final data
     cv::Mat signal_mat_global(curve.signal_ev.size(), 1, CV_64F, curve.signal_ev.data());
     cv::Mat snr_mat_global(curve.snr_db.size(), 1, CV_64F, curve.snr_db.data());
     
-    PolyFit(signal_mat_global, snr_mat_global, curve.poly_coeffs, poly_order);
+    PolyFit(signal_mat_global, snr_mat_global, curve.poly_coeffs, opts.poly_order);
     return curve;
 }
+
 
 /**
  * @brief Calculates the dynamic range values for a set of thresholds.
@@ -59,9 +81,14 @@ std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const 
 }
 } // end anonymous namespace
 
-
-std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, const std::string& filename) {
-    SnrCurve snr_curve = CalculateSnrCurve(patch_data, opts.poly_order);
+std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
+    const PatchAnalysisResult& patch_data, 
+    const ProgramOptions& opts, 
+    const std::string& filename,
+    double camera_resolution_mpx) 
+{
+    // Pass all necessary info to the curve calculation function
+    SnrCurve snr_curve = CalculateSnrCurve(patch_data, opts, camera_resolution_mpx);
     
     DynamicRangeResult dr_result;
     dr_result.filename = filename;
@@ -70,7 +97,8 @@ std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(const Patch
     
     CurveData curve_data = {
         filename, 
-        "", // camera_model is set later in the main loop
+        "", // plot_label (se rellenará en Processing.cpp)
+        "", // camera_model (se rellenará en Processing.cpp)
         snr_curve.signal_ev, 
         snr_curve.snr_db, 
         snr_curve.poly_coeffs.clone(), 
@@ -151,41 +179,97 @@ std::optional<double> ProcessSaturationFrame(const std::string& filename, std::o
 }
 
 bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream) {
-    struct FileExposureInfo {
+    // A simple constant to easily switch the default sorting method
+    constexpr bool USE_EXIF_SORT_DEFAULT = false;
+
+    struct FileInfo {
         std::string filename;
-        double mean_brightness;
+        double mean_brightness = 0.0;
+        float iso_speed = 0.0f;
     };
-    std::vector<FileExposureInfo> exposure_data;
-    log_stream << "Pre-analyzing files to sort by exposure (using fast sampling)..." << std::endl;
+
+    std::vector<FileInfo> file_info_list;
+    bool exif_sort_possible = true;
+
+    log_stream << "Pre-analyzing files to determine sorting order..." << std::endl;
     
     for (const std::string& name : opts.input_files) {
         RawFile raw_file(name);
         if (!raw_file.Load()) continue;
 
-        cv::Mat raw_img = raw_file.GetRawImage();
-        if (raw_img.empty()) continue;
-        
-        // Use cv::mean for efficient brightness estimation
-        cv::Scalar mean_scalar = cv::mean(raw_img);
-        double mean_val = mean_scalar[0];
+        FileInfo info;
+        info.filename = name;
 
-        exposure_data.push_back({name, mean_val});
+        // Method A: Brightness sampling
+        cv::Mat raw_img = raw_file.GetRawImage();
+        if (!raw_img.empty()) {
+            info.mean_brightness = cv::mean(raw_img)[0];
+        }
+
+        // Method B: EXIF ISO speed
+        info.iso_speed = raw_file.GetIsoSpeed();
+        if (info.iso_speed <= 0) {
+            exif_sort_possible = false; // Mark EXIF sort as impossible if any file lacks ISO data
+        }
+
+        file_info_list.push_back(info);
         log_stream << "  - File: " << fs::path(name).filename().string() 
-                   << ", Estimated brightness: " << std::fixed << std::setprecision(2) << mean_val << std::endl;
+                   << ", Brightness: " << std::fixed << std::setprecision(2) << info.mean_brightness
+                   << ", ISO: " << info.iso_speed << std::endl;
     }
 
-    if (exposure_data.empty()) {
+    if (file_info_list.empty()) {
         log_stream << "Error: None of the input files could be processed." << std::endl;
         return false;
     }
 
-    std::sort(exposure_data.begin(), exposure_data.end(), [](const FileExposureInfo& a, const FileExposureInfo& b) {
+    // LIST A: Sort by mean brightness
+    std::vector<FileInfo> list_a = file_info_list;
+    std::sort(list_a.begin(), list_a.end(), [](const FileInfo& a, const FileInfo& b) {
         return a.mean_brightness < b.mean_brightness;
     });
+
+    // LIST B: Sort by ISO speed (if possible)
+    std::vector<FileInfo> list_b;
+    if (exif_sort_possible) {
+        list_b = file_info_list;
+        std::sort(list_b.begin(), list_b.end(), [](const FileInfo& a, const FileInfo& b) {
+            return a.iso_speed < b.iso_speed;
+        });
+
+        // Compare the two lists
+        bool lists_match = std::equal(list_a.begin(), list_a.end(), list_b.begin(), 
+                                      [](const FileInfo& a, const FileInfo& b){ return a.filename == b.filename; });
+        if (lists_match) {
+            log_stream << "\n[INFO] Sorting by brightness and by ISO produce the same file order." << std::endl;
+        } else {
+            log_stream << "\n[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders." << std::endl;
+        }
+    } else {
+        log_stream << "\n[WARNING] Cannot sort by ISO. EXIF data not available in all files. Using brightness sorting." << std::endl;
+    }
+
+    // Choose which list to use and populate ProgramOptions
+    const std::vector<FileInfo>* final_sorted_list = &list_a; // Default to brightness sort
+    bool using_exif_sort = false;
+    if (USE_EXIF_SORT_DEFAULT && exif_sort_possible) {
+        final_sorted_list = &list_b;
+        using_exif_sort = true;
+    }
+
+    log_stream << "[INFO] Using final file order from: " << (using_exif_sort ? "EXIF ISO (List B)" : "Image Brightness (List A)") << std::endl;
     
     opts.input_files.clear();
-    for (const auto& info : exposure_data) {
+    opts.plot_labels.clear();
+    for (const auto& info : *final_sorted_list) {
         opts.input_files.push_back(info.filename);
+        if (using_exif_sort) {
+            std::stringstream label_ss;
+            label_ss << "ISO " << static_cast<int>(info.iso_speed);
+            opts.plot_labels[info.filename] = label_ss.str();
+        } else {
+            opts.plot_labels[info.filename] = fs::path(info.filename).stem().string();
+        }
     }
 
     log_stream << "Sorting finished. Starting Dynamic Range calculation process..." << std::endl;

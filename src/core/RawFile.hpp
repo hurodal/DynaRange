@@ -83,6 +83,12 @@ public:
      */
     bool IsLoaded() const;
 
+    /**
+     * @brief Gets the ISO speed from the file's metadata.
+     * @return The ISO speed as a float. Returns 0.0 if not available.
+     */
+    float GetIsoSpeed() const;
+
 private:
     std::string m_filename;      ///< Path to the RAW file.
     bool m_is_loaded = false;    ///< Flag indicating if Load() was successful.
@@ -94,4 +100,5 @@ private:
     // --- Cached data ---
     mutable cv::Mat m_raw_image_cache; ///< Cached raw image Mat to avoid reprocessing.
     mutable std::string m_camera_model_cache; ///< Cached camera model string.
+    mutable float m_iso_speed_cache = 0.0f; ///< Cached ISO speed value.
 };

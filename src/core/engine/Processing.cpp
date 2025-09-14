@@ -63,8 +63,20 @@ cv::Mat PrepareImageForAnalysis(const RawFile& raw_file, const ProgramOptions& o
 
 /**
  * @brief (Orchestrator) Analyzes a single RAW file by calling the appropriate modules.
+ * @param raw_file The RawFile object to be analyzed.
+ * @param opts The program options.
+ * @param chart The chart profile defining the geometry.
+ * @param log_stream The output stream for logging.
+ * @param camera_resolution_mpx The resolution of the camera sensor in megapixels.
+ * @return A SingleFileResult struct containing the analysis results.
  */
-SingleFileResult AnalyzeSingleRawFile(const RawFile& raw_file, const ProgramOptions& opts, const ChartProfile& chart, std::ostream& log_stream) {
+SingleFileResult AnalyzeSingleRawFile(
+    const RawFile& raw_file, 
+    const ProgramOptions& opts, 
+    const ChartProfile& chart, 
+    std::ostream& log_stream,
+    double camera_resolution_mpx)
+{
     log_stream << "\nProcessing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
 
     // 1. Call ImageProcessing module to prepare the image
@@ -80,14 +92,21 @@ SingleFileResult AnalyzeSingleRawFile(const RawFile& raw_file, const ProgramOpti
         return {};
     }
 
-    // 3. Call Analysis module to perform calculations
-    auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename());
+    // 3. Call Analysis module to perform calculations, now passing the camera resolution
+    auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
+
+    // 4. MODIFICATION: Assign the correct plot label from the map populated in PrepareAndSortFiles
+    if(opts.plot_labels.count(raw_file.GetFilename())) {
+        curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
+    } else {
+        // Fallback in case something goes wrong
+        curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
+    }
 
     return {dr_result, curve_data};
 }
 
 } // end of anonymous namespace
-
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream) {
     ProcessingResult result;
@@ -107,7 +126,11 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     for (const auto& raw_file : raw_files) {
         if (!raw_file.IsLoaded()) continue;
 
-        auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, log_stream);
+        // Calculate the camera's resolution in Mpx for this specific file
+        double cam_mpx = (static_cast<double>(raw_file.GetWidth()) * raw_file.GetHeight()) / 1e6;
+
+        // Pass the resolution down to the analysis function
+        auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, log_stream, cam_mpx);
         
         // Aggregate valid results
         if (!file_result.dr_result.filename.empty()) {

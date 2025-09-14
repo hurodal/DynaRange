@@ -4,13 +4,14 @@
  */
 #pragma once
 
+#include "Arguments.hpp"
 #include <string>
 #include <vector>
 #include <optional>
 #include <ostream>
 #include <map>
 #include <opencv2/core.hpp>
-#include "Arguments.hpp"
+
 
 // --- STRUCTURE DEFINITIONS ---
 
@@ -41,6 +42,7 @@ struct PatchAnalysisResult {
  */
 struct CurveData {
     std::string filename; ///< The name of the processed file.
+    std::string plot_label; ///< The label for this curve on the plot (e.g., "ISO 200" or filename).
     std::string camera_model; ///< The camera model name, extracted from metadata.
     std::vector<double> signal_ev; ///< The signal values converted to EV.
     std::vector<double> snr_db;    ///< The SNR values in dB.
@@ -74,13 +76,19 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
 /**
  * @brief Orchestrates the mathematical analysis from patch data to final results.
  * @details Takes the raw patch data and performs all calculation steps:
- * SNR/EV conversion, polynomial fitting, and DR calculation for all thresholds.
+ * SNR/EV conversion, normalization, polynomial fitting, and DR calculation.
  * @param patch_data The result from AnalyzePatches.
- * @param opts The program options (for poly_order, thresholds, etc.).
+ * @param opts The program options (for poly_order, thresholds, normalization, etc.).
  * @param filename The original filename for populating result structures.
+ * @param camera_resolution_mpx The actual resolution of the camera's sensor in megapixels.
  * @return A pair containing the final DynamicRangeResult and CurveData.
  */
-std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, const std::string& filename);
+std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
+    const PatchAnalysisResult& patch_data, 
+    const ProgramOptions& opts, 
+    const std::string& filename,
+    double camera_resolution_mpx
+);
 
 /**
  * @brief Processes a dark frame to determine the camera's black level.

@@ -52,7 +52,17 @@ void GenerateSnrPlot(
 
     // Pass the SNR thresholds to the drawing function
     DrawPlotBase(cr, "SNR Curve - " + image_title, bounds, opts.generated_command, opts.snr_thresholds_db);
-    std::vector<CurveData> single_curve_vec = {{image_title, "", signal_ev, snr_db, poly_coeffs, opts.generated_command}};
+    
+    std::vector<CurveData> single_curve_vec = {{
+        image_title,        // filename
+        image_title,        // plot_label
+        "",                 // camera_model (not needed for single plot)
+        signal_ev,          // signal_ev
+        snr_db,             // snr_db
+        poly_coeffs,        // poly_coeffs
+        opts.generated_command // generated_command
+    }};
+
     DrawCurvesAndData(cr, single_curve_vec, bounds);
     
     cairo_surface_write_to_png(surface, output_filename.c_str());

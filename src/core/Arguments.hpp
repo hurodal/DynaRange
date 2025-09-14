@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <map> 
 
 /// @brief Default polynomial order for curve fitting.
 constexpr int DEFAULT_POLY_ORDER = 3;
@@ -44,6 +45,7 @@ struct ProgramOptions {
     bool create_chart_mode = false;                ///< Flag to activate chart creation mode.
     std::vector<double> chart_params;              ///< Parameters for chart creation (R, G, B, gamma).
     std::string generated_command;                 ///< Stores the generated command string for plots.
+    std::map<std::string, std::string> plot_labels; ///< Maps a filename to its desired plot label (e.g., "ISO 100").
 };
 
 ProgramOptions ParseArguments(int argc, char* argv[]);
