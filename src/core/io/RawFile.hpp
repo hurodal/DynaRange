@@ -1,5 +1,6 @@
+// File: src/core/io/RawFile.hpp
 /**
- * @file core/RawFile.hpp
+ * @file src/core/io/RawFile.hpp
  * @brief Defines the RawFile class for handling RAW image files.
  */
 #pragma once
@@ -50,7 +51,7 @@ public:
      * @return A 16-bit unsigned cv::Mat. Returns an empty Mat on failure.
      */
     cv::Mat GetRawImage() const;
-    
+
     // --- Metadata Getters ---
 
     /**
@@ -92,7 +93,7 @@ public:
 private:
     std::string m_filename;      ///< Path to the RAW file.
     bool m_is_loaded = false;    ///< Flag indicating if Load() was successful.
-    
+
     // --- LibRaw data structures ---
     LibRaw m_raw_processor;      ///< The LibRaw processing object.
     libraw_processed_image_t* m_decoded_image = nullptr; ///< Pointer for decoded image data (if used).

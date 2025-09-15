@@ -1,5 +1,6 @@
+// File: src/core/math/Math.cpp
 /**
- * @file core/Math.cpp
+ * @file src/core/math/Math.cpp
  * @brief Implements mathematical and statistical utility functions.
  */
 #include "Math.hpp"

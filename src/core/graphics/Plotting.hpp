@@ -1,5 +1,6 @@
+// File: src/core/graphics/Plotting.hpp
 /**
- * @file core/graphics/Plotting.hpp
+ * @file src/core/graphics/Plotting.hpp
  * @brief Declares high-level functions for generating complete plot images.
  */
 #pragma once
@@ -8,8 +9,8 @@
 #include <vector>
 #include <optional>
 #include <ostream>
-#include "../Arguments.hpp"
-#include "../Analysis.hpp"
+#include "../arguments/Arguments.hpp"
+#include "../analysis/Analysis.hpp"
 
 
 /**

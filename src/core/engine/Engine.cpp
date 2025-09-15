@@ -3,9 +3,9 @@
  * @brief Implements the main orchestrator for the analysis workflow.
  */
 #include "Engine.hpp"
-#include "engine/Initialization.hpp"
-#include "engine/Processing.hpp"
-#include "engine/Reporting.hpp"
+#include "Initialization.hpp"
+#include "Processing.hpp"
+#include "Reporting.hpp"
 
 ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     // Phase 1: Preparation

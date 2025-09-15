@@ -23,7 +23,7 @@ add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Directorio de salida para los ejecutables y recursos.
-# CMake_BINARY_DIR es el directorio 'build' que creamos.
+# CMAKE_BINARY_DIR es el directorio 'build' que creamos.
 set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 
 
@@ -80,21 +80,26 @@ pkg_check_modules(CAIRO REQUIRED cairo)
 # Lista de ficheros fuente que son compartidos entre la versión CLI y la GUI.
 # Esto evita duplicación y asegura que todos los componentes centrales se compilen.
 set(CORE_SOURCES
-    src/core/Analysis.cpp
-    src/core/Arguments.cpp
-    src/core/ChartProfile.cpp
-    src/core/Engine.cpp
+    src/core/arguments/Arguments.cpp
+    src/core/arguments/CommandLineParser.cpp
+    src/core/arguments/CommandGenerator.cpp
+    src/core/analysis/Analysis.cpp
+    src/core/analysis/CurveCalculator.cpp
+    src/core/analysis/FilePreparer.cpp
+    src/core/analysis/ImageAnalyzer.cpp
+    src/core/analysis/RawProcessor.cpp
+    src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
     src/core/graphics/Drawing.cpp
+    src/core/graphics/ImageProcessing.cpp
     src/core/graphics/Plotting.cpp
-    src/core/ImageProcessing.cpp
-    src/core/Math.cpp
-    src/core/RawFile.cpp
+    src/core/io/RawFile.cpp
+    src/core/math/Math.cpp
     src/core/utils/PathManager.cpp
+    src/core/ChartProfile.cpp
 )
-
 
 # =============================================================================
 # 5. DEFINICIÓN DE LOS EJECUTABLES (TARGETS)
@@ -117,6 +122,11 @@ target_include_directories(rango PRIVATE
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
 # Define las librerías con las que el ejecutable 'rango' debe enlazarse.
@@ -149,6 +159,11 @@ target_include_directories(dynaRangeGui PRIVATE
     ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
 # Definiciones de compilador específicas para wxWidgets.

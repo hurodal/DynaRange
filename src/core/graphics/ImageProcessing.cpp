@@ -1,3 +1,4 @@
+// File: src/core/graphics/ImageProcessing.cpp
 /**
  * @file core/ImageProcessing.cpp
  * @brief Implements geometric image processing functions.

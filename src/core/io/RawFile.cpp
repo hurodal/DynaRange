@@ -1,5 +1,6 @@
+// File: src/core/io/RawFile.cpp
 /**
- * @file core/RawFile.cpp
+ * @file src/core/io/RawFile.cpp
  * @brief Implements the RawFile class for handling RAW image files.
  */
 #include "RawFile.hpp"
@@ -42,7 +43,7 @@ cv::Mat RawFile::GetRawImage() const {
 
 cv::Mat RawFile::GetNormalizedImage(double black_level, double sat_level) const {
     if (!m_is_loaded) return {};
-    
+
     cv::Mat raw_img = GetRawImage();
     cv::Mat float_img;
     raw_img.convertTo(float_img, CV_32F);
@@ -55,7 +56,7 @@ cv::Mat RawFile::GetNormalizedImage(double black_level, double sat_level) const 
 std::string RawFile::GetCameraModel() const {
     if (!m_is_loaded) return "";
     if (!m_camera_model_cache.empty()) return m_camera_model_cache;
-    
+
     m_camera_model_cache = std::string(m_raw_processor.imgdata.idata.model);
     return m_camera_model_cache;
 }
@@ -65,7 +66,7 @@ float RawFile::GetIsoSpeed() const {
     if (m_iso_speed_cache > 0.0f) {
         return m_iso_speed_cache; // Use cached value
     }
-    
+
     m_iso_speed_cache = m_raw_processor.imgdata.other.iso_speed;
     return m_iso_speed_cache;
 }

@@ -1,3 +1,4 @@
+// File: src/core/engine/Reporting.hpp
 /**
  * @file core/engine/Reporting.hpp
  * @brief Defines the functionality for generating final reports and plots.

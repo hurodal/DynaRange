@@ -1,5 +1,6 @@
+// File: src/core/analysis/Analysis.hpp
 /**
- * @file core/Analysis.hpp
+ * @file src/core/analysis/Analysis.hpp
  * @brief Declares high-level structures and functions for the dynamic range analysis application.
  */
 #pragma once
@@ -12,7 +13,6 @@
 #include <map>
 #include <opencv2/core.hpp>
 
-
 // --- STRUCTURE DEFINITIONS ---
 
 /**
@@ -22,7 +22,7 @@
 struct DynamicRangeResult {
     std::string filename; ///< The name of the processed file.
     /// @brief Maps an SNR threshold (in dB) to its calculated Dynamic Range value (in EV).
-    std::map<double, double> dr_values_ev; 
+    std::map<double, double> dr_values_ev;
     int patches_used; ///< The number of valid patches found and used in the analysis.
 };
 
@@ -61,18 +61,7 @@ struct SnrCurve {
     cv::Mat poly_coeffs;           ///< Coefficients of the polynomial fit.
 };
 
-
 // --- HIGH-LEVEL ANALYSIS FUNCTION DECLARATIONS ---
-
-/**
- * @brief Analyzes a cropped chart image to find patches and measure their signal and noise.
- * @param imgcrop The input image, corrected for geometry and cropped to the chart area.
- * @param NCOLS The number of columns in the patch grid.
- * @param NROWS The number of rows in the patch grid.
- * @param patch_ratio The relative area of the center of each patch to sample.
- * @return A PatchAnalysisResult struct containing the signal and noise vectors.
- */
-PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio);
 
 /**
  * @brief Orchestrates the mathematical analysis from patch data to final results.
@@ -85,34 +74,8 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
  * @return A pair containing the final DynamicRangeResult and CurveData.
  */
 std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
-    const PatchAnalysisResult& patch_data, 
-    const ProgramOptions& opts, 
+    const PatchAnalysisResult& patch_data,
+    const ProgramOptions& opts,
     const std::string& filename,
     double camera_resolution_mpx
 );
-
-/**
- * @brief Processes a dark frame to determine the camera's black level.
- * @param filename Path to the dark frame RAW file.
- * @param log_stream Stream for logging messages.
- * @return An optional containing the calculated black level, or std::nullopt on failure.
- */
-std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream& log_stream);
-
-/**
- * @brief Processes a saturated frame to determine the camera's saturation point.
- * @param filename Path to the saturated (white) frame RAW file.
- * @param log_stream Stream for logging messages.
- * @return An optional containing the calculated saturation level, or std::nullopt on failure.
- */
-std::optional<double> ProcessSaturationFrame(const std::string& filename, std::ostream& log_stream);
-
-/**
- * @brief Pre-analyzes input files to sort them by brightness.
- * @details This ensures that files are processed in order of exposure, which can
- * be important for some analyses. The file list within 'opts' is modified in place.
- * @param opts Program options, passed by reference to modify the input file list.
- * @param log_stream Stream for logging messages.
- * @return true if successful, false if no files could be processed.
- */
-bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream);

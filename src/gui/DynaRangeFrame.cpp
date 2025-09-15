@@ -5,7 +5,7 @@
  * @date 2025-09-10
  */
 #include "DynaRangeFrame.hpp"
-#include "../core/Engine.hpp"
+#include "../core/engine/Engine.hpp"
 #include <libraw/libraw.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>

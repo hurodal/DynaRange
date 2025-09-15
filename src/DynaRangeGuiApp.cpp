@@ -1,6 +1,6 @@
 // File: src/DynaRangeGuiApp.cpp
 /**
- * @file DynaRangeGuiApp.cpp
+ * @file src/DynaRangeGuiApp.cpp
  * @brief Main entry point for the wxWidgets GUI version of the dynaRange application.
  */
 #include "gui/DynaRangeFrame.hpp"

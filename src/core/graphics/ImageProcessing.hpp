@@ -1,11 +1,12 @@
+// File: src/core/graphics/ImageProcessing.hpp
 /**
- * @file core/ImageProcessing.hpp
+ * @file src/core/graphics/ImageProcessing.hpp
  * @brief Declares functions for geometric image processing tasks.
  */
 #pragma once
 
 #include "RawFile.hpp"
-#include "ChartProfile.hpp"
+#include "../ChartProfile.hpp"
 #include "Arguments.hpp"
 #include <vector>
 #include <opencv2/core.hpp>

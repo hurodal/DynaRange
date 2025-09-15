@@ -1,3 +1,4 @@
+// File: src/core/graphics/Drawing.hpp
 /**
  * @file core/graphics/Drawing.hpp
  * @brief Declares low-level Cairo drawing functions for creating plots.
@@ -8,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "../Analysis.hpp"
+#include "../analysis/Analysis.hpp"
 
 /// @brief The width of the generated plot images in pixels.
 constexpr int PLOT_WIDTH = 1920;

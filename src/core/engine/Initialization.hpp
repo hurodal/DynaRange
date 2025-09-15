@@ -1,9 +1,10 @@
+// File: src/core/engine/Initialization.hpp
 /**
- * @file core/engine/Initialization.hpp
- * @brief Handles the initial setup and preparation for the analysis process.
+ * @file src/core/engine/Initialization.hpp
+ * @brief Declares the function to initialize the analysis environment.
  */
 #pragma once
-#include "../Arguments.hpp"
+#include "../arguments/Arguments.hpp"
 #include <ostream>
 
 /**

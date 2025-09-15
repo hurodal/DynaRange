@@ -1,10 +1,13 @@
+// File: src/core/engine/Processing.cpp
 /**
  * @file core/engine/Processing.cpp
  * @brief Implements the core logic for processing and analyzing RAW files.
  */
 #include "Processing.hpp"
-#include "../RawFile.hpp" 
-#include "../ImageProcessing.hpp"
+#include "../io/RawFile.hpp"
+#include "../graphics/ImageProcessing.hpp"
+#include "../ChartProfile.hpp"
+#include "../analysis/ImageAnalyzer.hpp"
 #include <filesystem>
 #include <iostream>
 

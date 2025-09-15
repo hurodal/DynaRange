@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "../Arguments.hpp"
-#include "../Analysis.hpp"
+#include "../arguments/Arguments.hpp"
+#include "../analysis/Analysis.hpp"
 #include <filesystem>
 
 namespace fs = std::filesystem;

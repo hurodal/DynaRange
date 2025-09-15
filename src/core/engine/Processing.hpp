@@ -1,9 +1,10 @@
+// File: src/core/engine/Processing.hpp
 /**
- * @file core/engine/Processing.hpp
+ * @file src/core/engine/Processing.hpp
  * @brief Defines the core file processing logic and data structures for results.
  */
 #pragma once
-#include "../Analysis.hpp"
+#include "../analysis/Analysis.hpp" 
 #include <vector>
 
 /**

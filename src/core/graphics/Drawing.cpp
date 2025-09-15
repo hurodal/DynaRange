@@ -1,9 +1,10 @@
+// File: src/core/graphics/Drawing.cpp
 /**
  * @file core/graphics/Drawing.cpp
  * @brief Implements the low-level Cairo drawing functions.
  */
 #include "Drawing.hpp"
-#include "../Math.hpp"
+#include "../math/Math.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iomanip>

@@ -4,7 +4,7 @@
  */
 #pragma once
 #include "Arguments.hpp"
-#include "engine/Reporting.hpp" // Needed for ReportOutput struct
+#include "Reporting.hpp" // Needed for ReportOutput struct
 #include <ostream>
 
 /**

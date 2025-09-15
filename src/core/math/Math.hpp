@@ -1,5 +1,6 @@
+// File: src/core/math/Math.hpp
 /**
- * @file core/Math.hpp
+ * @file src/core/math/Math.hpp
  * @brief Declares standalone mathematical and statistical utility functions.
  */
 #pragma once

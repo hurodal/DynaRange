@@ -1,3 +1,4 @@
+// File: src/core/engine/Reporting.cpp
 /**
  * @file core/engine/Reporting.cpp
  * @brief Implements the report generation logic.

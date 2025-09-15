@@ -1,9 +1,10 @@
+// File: src/core/graphics/Plotting.cpp
 /**
  * @file core/graphics/Plotting.cpp
  * @brief Implements the high-level plot generation logic.
  */
 #include "Plotting.hpp"
-#include "../Analysis.hpp" // Needed for CurveData struct
+#include "../analysis/Analysis.hpp" // Needed for CurveData struct
 #include "Drawing.hpp"
 #include <cairo/cairo.h>
 #include <iostream>

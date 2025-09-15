@@ -1,12 +1,13 @@
+// File: src/core/arguments/Arguments.hpp
 /**
- * @file core/Arguments.hpp
+ * @file src/core/arguments/Arguments.hpp
  * @brief Defines the structures and functions for command-line argument management.
  */
 #pragma once
 
 #include <string>
 #include <vector>
-#include <map> 
+#include <map>
 
 /// @brief Default polynomial order for curve fitting.
 constexpr int DEFAULT_POLY_ORDER = 3;
@@ -17,13 +18,13 @@ constexpr int DEFAULT_POLY_ORDER = 3;
  */
 enum class CommandFormat {
     Full, ///< Complete command with all paths and arguments, for the GUI.
-    
+
     /**
      * @brief Abbreviated command for plots.
      * @note Uses long argument names (--param) for clarity, shortens paths,
      * and omits irrelevant arguments like output and input files.
      */
-    Plot  
+    Plot
 };
 
 /**

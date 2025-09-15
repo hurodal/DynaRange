@@ -1,9 +1,10 @@
+// File: src/rango.cpp
 /**
  * @file src/rango.cpp
  * @brief Main entry point for the command-line (CLI) version of the application.
  */
-#include "core/Arguments.hpp"
-#include "core/Engine.hpp"
+#include "core/arguments/Arguments.hpp"  
+#include "core/engine/Engine.hpp"      
 #include <iostream>
 #include <libintl.h>
 #include <locale.h>

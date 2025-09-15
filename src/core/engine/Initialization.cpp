@@ -1,10 +1,11 @@
+// File: src/core/engine/Initialization.cpp
 /**
- * @file core/engine/Initialization.cpp
+ * @file src/core/engine/Initialization.cpp
  * @brief Implementation of the analysis initialization process.
  */
 #include "Initialization.hpp"
-#include "../Analysis.hpp"
-#include "../Arguments.hpp"
+#include "../analysis/RawProcessor.hpp"
+#include "../analysis/FilePreparer.hpp"
 #include <iomanip>
 
 // Prepares the analysis: processes dark/sat frames, prints config, and sorts files.
