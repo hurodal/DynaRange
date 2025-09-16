@@ -132,7 +132,8 @@ TODO 11: pequeñas correcciones en el GUI:
     - Al crear las graficas, que pregunte en que carpeta te las deja o bien que se puede indicar (idealmente via las preferencias
     cuando tengamos la GUI mas avanzada) . Por defecto, creo que seria mejor en Imagenes/DynaRange en vez de en Mis documentos sin mas..
 
-TODO 12: añadir la obtencion del metadato de ISO del RAW. Esto es lo que me dice la iA:
+
+TODO 12: añadir la obtencion del metadato de ISO del RAW. Esto es lo que me dice la IA:
 
 C++
 
@@ -173,3 +174,13 @@ int main(int argc, char *argv[]) {
 En este ejemplo, la clave está en rawProcessor.imgdata.other.iso_speed.
 La librería organiza la información en la estructura libraw_processed_image_t y sus subestructuras,
 donde imgdata es un miembro de la clase LibRaw y other es una sub-estructura que contiene datos misceláneos, como la velocidad ISO.
+
+
+TODO 13: estudiar bien cómo lidiar bien con la falta de datos/Normalización del umbral inferior (-10dB)
+         Decidir si antes la falta de datos se EXTRAPOLA o se emite un aviso de insuficiencia de datos (se puede incluso sugerir la sobreexposición/subexposición requerida)
+
+
+TODO 14: Creación/Uso de carta con número de parches MxN parametrizables.
+
+
+TODO 15: Posibilidad de meterle coordenadas y número de parches MxN ad-hoc para usar cualquier carta rectangular
