@@ -90,6 +90,13 @@ public:
      */
     float GetIsoSpeed() const;
 
+    /**
+     * @brief Gets the sensor resolution in megapixels from the RAW file's metadata.
+     * @return The sensor resolution in Mpx (e.g., 16.0 for Olympus OM-1). 
+     *         Returns 0.0 if unavailable or invalid.
+     */
+    double GetSensorResolutionMPx() const;
+
 private:
     std::string m_filename;      ///< Path to the RAW file.
     bool m_is_loaded = false;    ///< Flag indicating if Load() was successful.

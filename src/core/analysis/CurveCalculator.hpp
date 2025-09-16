@@ -17,7 +17,7 @@ namespace CurveCalculator {
  * @param camera_resolution_mpx The camera's actual resolution in megapixels.
  * @return An SnrCurve struct containing the calculated curve data.
  */
-SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx);
+SnrCurve CalculateSnrCurve(PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx);
 
 /**
  * @brief Calculates dynamic range values for a set of SNR thresholds.

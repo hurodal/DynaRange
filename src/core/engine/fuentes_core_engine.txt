@@ -1,0 +1,639 @@
+// File: src/core/engine/Engine.hpp
+/**
+ * @file src/core/engine/Engine.hpp
+ * @brief Declares the main orchestrator function for the dynamic range analysis.
+ */
+#pragma once
+
+#include "../arguments/Arguments.hpp"
+#include "Reporting.hpp"
+#include <ostream>
+
+namespace DynaRange {
+
+    ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream);
+
+} // namespace DynaRange
+
+=======================
+
+// File: src/core/engine/Initialization.hpp
+/**
+ * @file src/core/engine/Initialization.hpp
+ * @brief Declares the function to initialize the analysis environment.
+ */
+#pragma once
+#include "../arguments/Arguments.hpp"
+#include <ostream>
+
+/**
+ * @brief Prepares the analysis environment.
+ * @details This function processes dark and saturation frames if provided,
+ * prints the final configuration to the log, sorts the input files,
+ * and generates a command string for plotting purposes.
+ * @param opts A reference to the program options, which will be updated.
+ * @param log_stream The output stream for logging messages.
+ * @return true if initialization is successful, false otherwise.
+ */
+bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream);
+
+=======================
+
+// File: src/core/engine/Normalization.hpp
+/**
+ * @file src/core/engine/Normalization.hpp
+ * @brief Declares functions for SNR normalization and validation before DR calculation.
+ */
+#pragma once
+
+#include "../arguments/Arguments.hpp"
+#include "../engine/Processing.hpp" 
+#include <ostream>
+
+namespace DynaRange {
+
+    /**
+     * @brief Validates that each ISO's SNR data is sufficient for DR calculation at the target normalization,
+     *        and applies SNR normalization based on sensor resolution and target Mpx.
+     *
+     * This function:
+     * - Computes min/max linear SNR per ISO from signal and noise vectors.
+     * - Checks if the normalized SNR range spans across the 12dB threshold (required for DR calculation).
+     * - If insufficient data, marks the ISO as invalid and logs a warning.
+     * - Normalizes all SNR values using: 
+     *   `SNR_normalized = SNR_per_pixel * sqrt(sensor_mpx / target_mpx)`
+     *   and reconstructs the signal vector accordingly.
+     *
+     * @param results The processing results containing signal and noise vectors per ISO.
+     * @param opts The program options including sensor_resolution_mpx and dr_normalization_mpx.
+     * @param log_stream Output stream for warnings and messages.
+     */
+    void NormalizeAndValidateSNR(ProcessingResult& results, const ProgramOptions& opts, std::ostream& log_stream);
+
+} // namespace DynaRange
+
+=======================
+
+// File: src/core/engine/Processing.hpp
+/**
+ * @file src/core/engine/Processing.hpp
+ * @brief Defines the core file processing logic and data structures for results.
+ */
+#pragma once
+#include "../analysis/Analysis.hpp" 
+#include <vector>
+
+/**
+ * @struct SingleFileResult
+ * @brief Holds the analysis results for a single RAW file.
+ */
+struct SingleFileResult {
+    DynamicRangeResult dr_result; ///< The calculated dynamic range values.
+    CurveData curve_data;         ///< The data required to plot the SNR curve.
+};
+
+/**
+ * @struct ProcessingResult
+ * @brief Aggregates the analysis results from all processed files.
+ */
+struct ProcessingResult {
+    std::vector<DynamicRangeResult> dr_results; ///< Collection of DR results for each file.
+    std::vector<CurveData> curve_data;         ///< Collection of curve data for each file.
+};
+
+/**
+ * @brief Processes a list of RAW files to analyze their dynamic range.
+ * @param opts The program options containing all configuration settings.
+ * @param log_stream The output stream for logging messages.
+ * @return A ProcessingResult struct containing the aggregated results.
+ */
+ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream);
+
+=======================
+
+// File: src/core/engine/Reporting.hpp
+/**
+ * @file core/engine/Reporting.hpp
+ * @brief Defines the functionality for generating final reports and plots.
+ */
+#pragma once
+#include "Processing.hpp" // For ProcessingResult
+#include <string>
+#include <optional>
+#include <map>
+
+/**
+ * @struct ReportOutput
+ * @brief Contains the results of the reporting phase, primarily file paths.
+ */
+struct ReportOutput {
+    /// @brief Path to the main summary plot image. Empty if not generated.
+    std::optional<std::string> summary_plot_path; 
+    
+    /// @brief Maps each source RAW filename to the path of its generated individual plot.
+    std::map<std::string, std::string> individual_plot_paths; 
+};
+
+/**
+ * @brief Generates all final output reports from the processing results.
+ * @param results The aggregated results from the ProcessFiles function.
+ * @param opts The program options.
+ * @param log_stream The output stream for logging messages.
+ * @return A ReportOutput struct containing paths to the generated plots.
+ */
+ReportOutput FinalizeAndReport(
+    const ProcessingResult& results,
+    const ProgramOptions& opts,
+    std::ostream& log_stream);
+
+=======================
+
+// File: src/core/Engine.cpp
+/**
+ * @file src/core/Engine.cpp
+ * @brief Implements the main orchestrator for the analysis workflow.
+ */
+#include "Engine.hpp"
+#include "Initialization.hpp"
+#include "Processing.hpp"
+#include "Reporting.hpp"
+#include "Normalization.hpp"
+
+namespace DynaRange {
+
+ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
+    // Phase 1: Preparation
+    if (!InitializeAnalysis(opts, log_stream)) {
+        return {}; // Return an empty ReportOutput on failure
+    }
+    
+    // Phase 2: Processing of all files
+    ProcessingResult results = ProcessFiles(opts, log_stream);
+
+    // Phase 3: Normalize and validate SNR data before DR calculation
+    NormalizeAndValidateSNR(results, opts, log_stream);
+
+    // Phase 4: Generation of final reports
+    return FinalizeAndReport(results, opts, log_stream);
+}
+
+} // namespace DynaRange
+
+=======================
+
+// File: src/core/engine/Initialization.cpp
+/**
+ * @file src/core/engine/Initialization.cpp
+ * @brief Implementation of the analysis initialization process.
+ */
+#include "Initialization.hpp"
+#include "../analysis/RawProcessor.hpp"
+#include "../analysis/FilePreparer.hpp"
+#include <iomanip>
+
+// Prepares the analysis: processes dark/sat frames, prints config, and sorts files.
+bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
+    if (!opts.dark_file_path.empty()) {
+        auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
+        if (!dark_val_opt) { log_stream << "Fatal error processing dark frame." << std::endl; return false; }
+        opts.dark_value = *dark_val_opt;
+    }
+    if (!opts.sat_file_path.empty()) {
+        auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
+        if (!sat_val_opt) { log_stream << "Fatal error processing saturation frame." << std::endl; return false; }
+        opts.saturation_value = *sat_val_opt;
+    }
+
+    log_stream << std::fixed << std::setprecision(2);
+    log_stream << "\n[FINAL CONFIGURATION]\n";
+    log_stream << "Black level: " << opts.dark_value << "\n";
+    log_stream << "Saturation point: " << opts.saturation_value << "\n";
+    
+    log_stream << "SNR threshold(s): ";
+    for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
+        log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
+    }
+    log_stream << " dB\n";
+
+    log_stream << "DR normalization: " << opts.dr_normalization_mpx << " Mpx\n";
+    log_stream << "Polynomic order: " << opts.poly_order << "\n";
+    log_stream << "Patch ratio: " << opts.patch_ratio << "\n";
+    log_stream << "Output file: " << opts.output_filename << "\n\n";
+
+    if (!PrepareAndSortFiles(opts, log_stream)) {
+        return false;
+    }
+    
+    // Generate command string using the specific 'Plot' format.
+    if (opts.plot_mode == 2) {
+        opts.generated_command = GenerateCommandString(opts, CommandFormat::Plot);
+    }
+    return true;
+}
+
+=======================
+
+// File: src/core/engine/Normalization.cpp
+/**
+ * @file src/core/engine/Normalization.cpp
+ * @brief Implements SNR normalization and validation logic for dynamic range analysis.
+ */
+#include "Normalization.hpp"
+#include "../normalization/Normalizer.hpp"
+#include <cmath>
+
+// Helper to read environment variable as integer
+static bool IsDebugEnabled() {
+    const char* env = std::getenv("DYNA_RANGE_DEBUG");
+    return env != nullptr && std::string(env) == "1";
+}
+
+namespace DynaRange {
+
+    void OriginalNormalizeAndValidateSNR(ProcessingResult& results, const ProgramOptions& opts, std::ostream& log_stream) {
+        const double THRESHOLD_DB = 12.0; // Fixed by spec for photo DR
+
+        for (auto& curve : results.curve_data) {
+            // Skip if no data
+            if (curve.snr_db.empty()) {
+                continue;
+            }
+
+            // Find min/max SNR in dB (already in dB, no need to convert)
+            double max_snr_db = *std::max_element(curve.snr_db.begin(), curve.snr_db.end());
+            double min_snr_db = *std::min_element(curve.snr_db.begin(), curve.snr_db.end());
+
+            // Validate sufficiency of data for DR calculation at target normalization
+            if (!DynaRange::HasSufficientDataForDR(max_snr_db, min_snr_db,
+                                                   opts.sensor_resolution_mpx,
+                                                   opts.dr_normalization_mpx,
+                                                   THRESHOLD_DB)) {
+                log_stream << "Warning: insufficient data to calculate "
+                           << THRESHOLD_DB << "dB dynamic range at "
+                           << opts.dr_normalization_mpx << "Mpx normalization. "
+                           << "Test chart was subexposed/underexposed.\n";
+                // Mark as invalid: we assume this is tracked via curve.valid or similar
+                // Since CurveData doesn't have 'valid', we don't modify it — but the warning is logged
+                continue;
+            }
+
+            // Normalize SNR values using the formula:
+            // SNR_norm_dB = SNR_per_pixel_dB + 20 * log10(sqrt(sensor_mpx / target_mpx))
+            const double offset_db = 10.0 * std::log10(opts.sensor_resolution_mpx / opts.dr_normalization_mpx);
+
+            for (double& snr_db : curve.snr_db) {
+                snr_db += offset_db;
+            }
+        }
+    }
+
+void NormalizeAndValidateSNR(ProcessingResult& results, const ProgramOptions& opts, std::ostream& log_stream) {
+    const double THRESHOLD_DB = 12.0; // Fixed by spec for photo DR
+
+    for (auto& curve : results.curve_data) {
+        // Skip if no data
+        if (curve.snr_db.empty()) {
+            continue;
+        }
+
+        // Find min/max SNR in dB (already in dB, no need to convert)
+        double max_snr_db = *std::max_element(curve.snr_db.begin(), curve.snr_db.end());
+        double min_snr_db = *std::min_element(curve.snr_db.begin(), curve.snr_db.end());
+
+        // --- DEBUG: Log raw values before normalization ---
+        if (IsDebugEnabled()) {
+            log_stream << "DEBUG: ISO=" << curve.iso_speed
+                       << " | min_snr_db=" << min_snr_db
+                       << " | max_snr_db=" << max_snr_db
+                       << " | cam_res_mpx=" << opts.sensor_resolution_mpx
+                       << " | target_mpx=" << opts.dr_normalization_mpx
+                       << "\n";
+        }
+
+        // Calculate normalization offset
+        const double offset_db = 10.0 * std::log10(opts.sensor_resolution_mpx / opts.dr_normalization_mpx);
+
+        // Apply normalization
+        double min_snr_normalized_db = min_snr_db + offset_db;
+        double max_snr_normalized_db = max_snr_db + offset_db;
+
+        // --- DEBUG: Log normalized values ---
+        if (IsDebugEnabled()) {
+            log_stream << "DEBUG:   offset_db=" << offset_db
+                       << " | min_norm_db=" << min_snr_normalized_db
+                       << " | max_norm_db=" << max_snr_normalized_db
+                       << " | threshold=" << THRESHOLD_DB
+                       << "\n";
+        }
+
+        // Validate sufficiency of data
+        bool sufficient = (min_snr_normalized_db < THRESHOLD_DB && max_snr_normalized_db > THRESHOLD_DB);
+
+        if (!sufficient) {
+            if (IsDebugEnabled()) {
+                log_stream << "DEBUG:   VALIDATION FAILED: min_norm_db=" << min_snr_normalized_db
+                           << " < " << THRESHOLD_DB << " ? " << (min_snr_normalized_db < THRESHOLD_DB)
+                           << " | max_norm_db=" << max_snr_normalized_db
+                           << " > " << THRESHOLD_DB << " ? " << (max_snr_normalized_db > THRESHOLD_DB)
+                           << "\n";
+            }
+            log_stream << "Warning: insufficient data to calculate "
+                       << THRESHOLD_DB << "dB dynamic range at "
+                       << opts.dr_normalization_mpx << "Mpx normalization. "
+                       << "Test chart was subexposed/underexposed.\n";
+            continue;
+        }
+
+        // Normalize SNR values for fitting
+        for (double& snr_db : curve.snr_db) {
+            snr_db += offset_db;
+        }
+    }
+}
+} // namespace DynaRange
+
+=======================
+
+// File: src/core/engine/Processing.cpp
+/**
+ * @file core/engine/Processing.cpp
+ * @brief Implements the core logic for processing and analyzing RAW files.
+ */
+#include "Processing.hpp"
+#include "../io/RawFile.hpp"
+#include "../graphics/ImageProcessing.hpp"
+#include "../ChartProfile.hpp"
+#include "../analysis/ImageAnalyzer.hpp"
+#include <filesystem>
+#include <iostream>
+
+namespace fs = std::filesystem;
+
+// Anonymous namespace for internal helper functions.
+namespace {
+
+/**
+ * @brief Loads a list of RAW file paths into RawFile objects.
+ * @param input_files Vector of file paths.
+ * @param log_stream Stream for logging messages.
+ * @return A vector of loaded RawFile objects.
+ */
+std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, std::ostream& log_stream) {
+    std::vector<RawFile> raw_files;
+    raw_files.reserve(input_files.size());
+    for(const auto& filename : input_files) {
+        raw_files.emplace_back(filename);
+        if (!raw_files.back().Load()) {
+            log_stream << "Error: Could not load RAW file: " << filename << std::endl;
+        }
+    }
+    return raw_files;
+}
+
+/**
+ * @brief Prepares an image for analysis by normalizing, correcting, and cropping it.
+ * @param raw_file The source RawFile object.
+ * @param opts The program options.
+ * @param k The keystone correction parameters.
+ * @param log_stream Stream for logging messages.
+ * @return The prepared cv::Mat image, ready for patch analysis.
+ */
+cv::Mat PrepareImageForAnalysis(const RawFile& raw_file, const ProgramOptions& opts, const Eigen::VectorXd& k, std::ostream& log_stream) {
+    cv::Mat img_float = raw_file.GetNormalizedImage(opts.dark_value, opts.saturation_value);
+    if(img_float.empty()){
+        log_stream << "Error: Could not get normalized image for: " << raw_file.GetFilename() << std::endl;
+        return {};
+    }
+    log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
+
+    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
+    for (int r = 0; r < imgBayer.rows; ++r) {
+        for (int c = 0; c < imgBayer.cols; ++c) {
+            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
+        }
+    }
+    
+    cv::Mat imgc = UndoKeystone(imgBayer, k);
+    double xtl = (119.0 + 99.0) / 2.0; double ytl = (170.0 + 158.0) / 2.0;
+    double xbr = (2515.0 + 2473.0) / 2.0; double ybr = (1687.0 + 1679.0) / 2.0;
+    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
+    return imgc(crop_area);
+}
+
+/**
+ * @brief (Orchestrator) Analyzes a single RAW file by calling the appropriate modules.
+ * @param raw_file The RawFile object to be analyzed.
+ * @param opts The program options.
+ * @param chart The chart profile defining the geometry.
+ * @param log_stream The output stream for logging.
+ * @param camera_resolution_mpx The resolution of the camera sensor in megapixels.
+ * @return A SingleFileResult struct containing the analysis results.
+ */
+SingleFileResult AnalyzeSingleRawFile(
+    const RawFile& raw_file, 
+    const ProgramOptions& opts, 
+    const ChartProfile& chart, 
+    std::ostream& log_stream,
+    double camera_resolution_mpx)
+{
+    log_stream << "\nProcessing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
+
+    // 1. Call ImageProcessing module to prepare the image
+    cv::Mat img_prepared = PrepareChartImage(raw_file, opts, chart, log_stream);
+    if (img_prepared.empty()) {
+        return {};
+    }
+
+    // 2. Call Analysis module to find patches
+    PatchAnalysisResult patch_data = AnalyzePatches(img_prepared.clone(), chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
+    if (patch_data.signal.empty()) {
+        log_stream << "Warning: No valid patches found for " << raw_file.GetFilename() << std::endl;
+        return {};
+    }
+
+    // 3. Call Analysis module to perform calculations, now passing the camera resolution
+    auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
+
+    // 4. Assign the correct plot label from the map populated in PrepareAndSortFiles
+    if(opts.plot_labels.count(raw_file.GetFilename())) {
+        curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
+    } else {
+        // Fallback in case something goes wrong
+        curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
+    }
+    
+    // 5. MODIFICACIÓN: Store the numeric ISO speed for the individual plot title
+    curve_data.iso_speed = raw_file.GetIsoSpeed();
+
+    return {dr_result, curve_data};
+}
+} // end of anonymous namespace
+
+ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream) {
+    ProcessingResult result;
+    
+    // 1. Load files (I/O Responsibility)
+    std::vector<RawFile> raw_files = LoadRawFiles(opts.input_files, log_stream);
+    
+    // 2. Define the context for the analysis (e.g., which chart to use)
+    ChartProfile chart; // The analysis will use the default chart profile.
+    
+    std::string camera_model_name;
+    if(!raw_files.empty() && raw_files[0].IsLoaded()){
+        camera_model_name = raw_files[0].GetCameraModel();
+    }
+
+    // 3. Orchestrate analysis for each file
+    for (const auto& raw_file : raw_files) {
+        if (!raw_file.IsLoaded()) continue;
+
+        // Calculate the camera's resolution in Mpx for this specific file
+        double cam_mpx = (static_cast<double>(raw_file.GetWidth()) * raw_file.GetHeight()) / 1e6;
+
+        // Pass the resolution down to the analysis function
+        auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, log_stream, cam_mpx);
+        
+        // Aggregate valid results
+        if (!file_result.dr_result.filename.empty()) {
+            file_result.curve_data.camera_model = camera_model_name;
+            result.dr_results.push_back(file_result.dr_result);
+            result.curve_data.push_back(file_result.curve_data);
+        }
+    }
+    return result;
+}
+
+=======================
+
+// File: src/core/engine/Reporting.cpp
+/**
+ * @file core/engine/Reporting.cpp
+ * @brief Implements the report generation logic.
+ */
+#include "Reporting.hpp"
+#include "../graphics/Plotting.hpp"
+#include "../utils/PathManager.hpp"
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+
+namespace fs = std::filesystem;
+
+namespace { // Anonymous namespace for internal helper functions
+
+/**
+ * @brief Generates all individual SNR plot images.
+ */
+std::map<std::string, std::string> GenerateIndividualPlots(
+    const std::vector<CurveData>& all_curves_data,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream)
+{
+    std::map<std::string, std::string> plot_paths_map;
+    log_stream << "\nGenerating individual SNR plots..." << std::endl;
+    for (const auto& curve : all_curves_data) {
+        fs::path plot_path = paths.GetIndividualPlotPath(curve);
+        plot_paths_map[curve.filename] = plot_path.string();
+
+        std::stringstream title_ss;
+        title_ss << fs::path(curve.filename).filename().string();
+        
+        if (!curve.camera_model.empty()) {
+            title_ss << " (" << curve.camera_model;
+            if (curve.iso_speed > 0) {
+                title_ss << ", ISO " << static_cast<int>(curve.iso_speed);
+            }
+            title_ss << ")";
+        }
+
+        GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
+    }
+    return plot_paths_map;
+}
+
+/**
+ * @brief Generates the summary plot image.
+ */
+std::optional<std::string> GenerateSummaryPlotReport(
+    const std::vector<CurveData>& all_curves_data,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream)
+{
+    if (all_curves_data.empty()) {
+        return std::nullopt;
+    }
+    std::string camera_name = all_curves_data[0].camera_model;
+    fs::path summary_plot_path = paths.GetSummaryPlotPath(camera_name);
+    
+    // The GenerateSummaryPlot from Plotting.cpp returns the path, so we return it upwards.
+    return GenerateSummaryPlot(summary_plot_path.string(), camera_name, all_curves_data, opts, log_stream);
+}
+
+/**
+ * @brief Generates the CSV file and the log table report.
+ */
+void GenerateCsvAndLogReport(
+    const std::vector<DynamicRangeResult>& all_results,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream)
+{
+    log_stream << "\n--- Dynamic Range Results ---\n";
+    
+    std::stringstream header_log, header_csv;
+    header_log << std::left << std::setw(30) << "RAW File";
+    header_csv << "raw_file";
+    
+    for (const double threshold : opts.snr_thresholds_db) {
+        std::stringstream col_name_ss;
+        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
+        header_log << std::setw(20) << col_name_ss.str();
+        header_csv << "," << col_name_ss.str();
+    }
+    header_log << "Patches";
+    header_csv << ",patches_used";
+
+    log_stream << header_log.str() << std::endl;
+    log_stream << std::string(header_log.str().length(), '-') << std::endl;
+    
+    std::ofstream csv_file(paths.GetCsvOutputPath());
+    csv_file << header_csv.str() << "\n";
+
+    for (const auto& res : all_results) {
+        log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string();
+        csv_file << fs::path(res.filename).filename().string();
+        for (const double threshold : opts.snr_thresholds_db) {
+            double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
+            log_stream << std::fixed << std::setprecision(4) << std::setw(20) << value;
+            csv_file << "," << value;
+        }
+        log_stream << res.patches_used << std::endl;
+        csv_file << "," << res.patches_used << "\n";
+    }
+
+    csv_file.close();
+    log_stream << "\nResults saved to " << paths.GetCsvOutputPath().string() << std::endl;
+}
+
+} // end anonymous namespace
+
+
+ReportOutput FinalizeAndReport(
+    const ProcessingResult& results,
+    const ProgramOptions& opts,
+    std::ostream& log_stream)
+{
+    PathManager paths(opts);
+    ReportOutput output;
+
+    output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
+    
+    GenerateCsvAndLogReport(results.dr_results, opts, paths, log_stream);
+
+    output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
+
+    return output;
+}

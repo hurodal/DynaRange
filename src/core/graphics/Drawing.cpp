@@ -144,7 +144,7 @@ void DrawPlotBase(
     }
 }
 
-void DrawCurvesAndData(
+void OldDrawCurvesAndData(
     cairo_t* cr,
     const std::vector<CurveData>& curves,
     const std::map<std::string, double>& bounds)
@@ -232,6 +232,87 @@ void DrawCurvesAndData(
             double offset_x = draw_above_0db ? 20.0 : 15.0;
             double offset_y = draw_above_0db ? -10.0 : 15.0;
 
+            cairo_move_to(cr, px + offset_x, py + offset_y);
+            cairo_show_text(cr, ss.str().c_str());
+            draw_above_0db = !draw_above_0db; // Alternate for the next curve
+        }
+    }
+}
+
+void DrawCurvesAndData(
+    cairo_t* cr,
+    const std::vector<CurveData>& curves,
+    const std::map<std::string, double>& bounds)
+{
+    const int margin_left = 180, margin_bottom = 120, margin_top = 100, margin_right = 100;
+    const int plot_area_width = PLOT_WIDTH - margin_left - margin_right;
+    const int plot_area_height = PLOT_HEIGHT - margin_top - margin_bottom;
+    auto map_coords = [&](double ev, double db) {
+        double px = margin_left + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width;
+        double py = (PLOT_HEIGHT - margin_bottom) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height;
+        return std::make_pair(px, py);
+    };
+    // Using a boolean to alternate is simpler and more robust.
+    bool draw_above_12db = true;
+    bool draw_above_0db = true;
+    for (const auto& curve : curves) {
+        if (curve.signal_ev.empty()) continue;
+        auto min_max_ev_it = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
+        double local_min_ev = *(min_max_ev_it.first);
+        double local_max_ev = *(min_max_ev_it.second);
+        cairo_set_source_rgb(cr, 200.0/255.0, 0.0, 0.0);
+        cairo_set_line_width(cr, 2.0);
+        double snr_poly_start = 0.0;
+        for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
+            snr_poly_start += curve.poly_coeffs.at<double>(j) * std::pow(curve.signal_ev.front(), curve.poly_coeffs.rows - 1 - j);
+        }
+        auto [start_x, start_y] = map_coords(curve.signal_ev.front(), snr_poly_start);
+        cairo_move_to(cr, start_x, start_y);
+        // Evaluar el polinomio solo en el rango de los datos reales
+        for (double ev = local_min_ev; ev <= local_max_ev; ev += 0.05) {
+            double snr_poly = 0.0;
+            for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
+                snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(ev, curve.poly_coeffs.rows - 1 - j);
+            }
+            auto [px, py] = map_coords(ev, snr_poly);
+            cairo_line_to(cr, px, py);
+        }
+        cairo_stroke(cr);
+        cairo_set_source_rgb(cr, 0.0, 0.0, 200.0/255.0);
+        for(size_t j = 0; j < curve.signal_ev.size(); ++j) {
+            auto [px, py] = map_coords(curve.signal_ev[j], curve.snr_db[j]);
+            cairo_arc(cr, px, py, 2.5, 0, 2 * M_PI);
+            cairo_fill(cr);
+        }
+        // Use the new plot_label field for the text on the curve
+        std::string label = curve.plot_label;
+        auto [label_x, label_y] = map_coords(curve.signal_ev.back(), curve.snr_db.back());
+        cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+        cairo_set_font_size(cr, 14.0);
+        cairo_set_source_rgb(cr, 200.0/255.0, 0.0, 0.0);
+        cairo_move_to(cr, label_x - 40, label_y - 30);
+        cairo_show_text(cr, label.c_str());
+        cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+        cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(cr, 12.0);
+        auto ev12 = FindIntersectionEV(curve.poly_coeffs, 12.0, local_min_ev, local_max_ev);
+        if (ev12) {
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2) << *ev12 << "EV";
+            auto [px, py] = map_coords(*ev12, 12.0);
+            double offset_x = draw_above_12db ? 25.0 : 15.0;
+            double offset_y = draw_above_12db ? -10.0 : 15.0;
+            cairo_move_to(cr, px + offset_x, py + offset_y);
+            cairo_show_text(cr, ss.str().c_str());
+            draw_above_12db = !draw_above_12db; // Alternate for the next curve
+        }
+        auto ev0 = FindIntersectionEV(curve.poly_coeffs, 0.0, local_min_ev, local_max_ev);
+        if (ev0) {
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2) << *ev0 << "EV";
+            auto [px, py] = map_coords(*ev0, 0.0);
+            double offset_x = draw_above_0db ? 20.0 : 15.0;
+            double offset_y = draw_above_0db ? -10.0 : 15.0;
             cairo_move_to(cr, px + offset_x, py + offset_y);
             cairo_show_text(cr, ss.str().c_str());
             draw_above_0db = !draw_above_0db; // Alternate for the next curve

@@ -92,6 +92,8 @@ set(CORE_SOURCES
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
+    src/core/engine/Normalization.cpp
+    src/core/normalization/Normalizer.cpp
     src/core/graphics/Drawing.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/Plotting.cpp

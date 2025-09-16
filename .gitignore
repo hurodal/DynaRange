@@ -15,4 +15,5 @@ dynaRangePortable/rango
 # Ignorar directorios de datos y de compilación
 raws
 build
+sources
 .cache

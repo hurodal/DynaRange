@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 11:19+0200\n"
+"POT-Creation-Date: 2025-09-16 17:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -88,71 +88,75 @@ msgid "Processing... Please wait."
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:26
-#: src/core/arguments/CommandLineParser.cpp:27
+#: src/core/arguments/CommandLineParser.cpp:20
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:31
-#: src/core/arguments/CommandLineParser.cpp:32
+#: src/core/arguments/CommandLineParser.cpp:25
 msgid ""
 "Create a test chart in PNG format ranging colours from (0,0,0) to (R,G,B) "
 "with gamma"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:34
-#: src/core/arguments/CommandLineParser.cpp:35
+#: src/core/arguments/CommandLineParser.cpp:28
 msgid "Totally dark RAW file (ideally shot at base ISO)"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:35
-#: src/core/arguments/CommandLineParser.cpp:36
+#: src/core/arguments/CommandLineParser.cpp:29
 msgid "Camera RAW black level"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:36
-#: src/core/arguments/CommandLineParser.cpp:37
+#: src/core/arguments/CommandLineParser.cpp:30
 msgid "Totally clipped RAW file (ideally shot at base ISO)"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:37
-#: src/core/arguments/CommandLineParser.cpp:38
+#: src/core/arguments/CommandLineParser.cpp:31
 msgid "Camera RAW saturation level"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:39
-#: src/core/arguments/CommandLineParser.cpp:40
+#: src/core/arguments/CommandLineParser.cpp:33
 msgid ""
 "Input RAW files shot over the magenta test chart (ideally for every ISO)"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:40
-#: src/core/arguments/CommandLineParser.cpp:41
+#: src/core/arguments/CommandLineParser.cpp:34
 msgid ""
 "Output filename with all results (black level, sat level, SNR samples, DR "
 "values)"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:44
-#: src/core/arguments/CommandLineParser.cpp:45
+#: src/core/arguments/CommandLineParser.cpp:38
 msgid "SNR threshold in dB for DR calculation (default=12dB and 0dB)"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:45
-#: src/core/arguments/CommandLineParser.cpp:46
+#: src/core/arguments/CommandLineParser.cpp:39
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:46
-#: src/core/arguments/CommandLineParser.cpp:47
+#: src/core/arguments/CommandLineParser.cpp:41
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:47
-#: src/core/arguments/CommandLineParser.cpp:48
+#: src/core/arguments/CommandLineParser.cpp:42
 msgid "Relative patch width/height used to compute signal and noise readings"
 msgstr ""
 
 #: src/core/arguments/Arguments.cpp:48
-#: src/core/arguments/CommandLineParser.cpp:49
+#: src/core/arguments/CommandLineParser.cpp:43
 msgid "Export SNR curves in PNG format (0=no, 1=plot, 2=plot+command)"
+msgstr ""
+
+#: src/core/arguments/CommandLineParser.cpp:40
+msgid "Sensor resolution in megapixels (if unknown, set to 0 to auto-detect)"
 msgstr ""

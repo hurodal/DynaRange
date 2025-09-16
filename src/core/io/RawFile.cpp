@@ -5,6 +5,7 @@
  */
 #include "RawFile.hpp"
 #include <opencv2/imgproc.hpp>
+#include <cmath>
 
 RawFile::RawFile(std::string filename) : m_filename(std::move(filename)) {}
 
@@ -85,4 +86,22 @@ const std::string& RawFile::GetFilename() const {
 
 bool RawFile::IsLoaded() const {
     return m_is_loaded;
+}
+
+/**
+ * @brief Gets the sensor resolution in megapixels from the RAW file's metadata.
+ * @return The sensor resolution in Mpx (e.g., 16.0 for Olympus OM-1). 
+ *         Returns 0.0 if unavailable or invalid.
+ */
+double RawFile::GetSensorResolutionMPx() const {
+    if (!m_is_loaded) return 0.0;
+
+    int width = m_raw_processor.imgdata.sizes.raw_width;
+    int height = m_raw_processor.imgdata.sizes.raw_height;
+
+    if (width <= 0 || height <= 0) return 0.0;
+
+    // Calculate total pixels in megapixels
+    double total_pixels = static_cast<double>(width) * height;
+    return total_pixels / 1000000.0; // Convert to Mpx
 }

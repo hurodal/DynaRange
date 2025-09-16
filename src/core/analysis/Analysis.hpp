@@ -29,6 +29,10 @@ struct DynamicRangeResult {
 /**
  * @struct PatchAnalysisResult
  * @brief Holds the raw signal and noise data extracted from the chart patches.
+ * @details The 'signal' and 'noise' vectors are non-const to allow for normalization
+ *          based on sensor resolution and target Mpx before curve fitting.
+ *          This ensures consistency between the EV axis (based on normalized signal)
+ *          and the SNR values (also normalized).
  */
 struct PatchAnalysisResult {
     std::vector<double> signal; ///< A vector of mean signal values from each patch.
@@ -74,7 +78,7 @@ struct SnrCurve {
  * @return A pair containing the final DynamicRangeResult and CurveData.
  */
 std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
-    const PatchAnalysisResult& patch_data,
+    PatchAnalysisResult& patch_data,
     const ProgramOptions& opts,
     const std::string& filename,
     double camera_resolution_mpx

@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
     ProgramOptions opts = ParseArguments(argc, argv);
     
-    ReportOutput report = RunDynamicRangeAnalysis(opts, std::cout);
+    ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout);
 
     // Check for failure by seeing if the summary plot path was generated.
     if (!report.summary_plot_path.has_value()) {
