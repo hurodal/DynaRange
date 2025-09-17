@@ -49,6 +49,26 @@ bool PrepareAndSortFiles(ProgramOptions& opts, std::ostream& log_stream) {
             exif_sort_possible = false; // Mark EXIF sort as impossible if any file lacks ISO data
         }
 
+        // Read sensor resolution from RAW metadata or fallback to image dimensions ---
+        if (info.iso_speed > 0) {
+            double sensor_res_from_metadata = raw_file.GetSensorResolutionMPx();
+            if (sensor_res_from_metadata > 0.0 && opts.sensor_resolution_mpx == 0.0) {
+                opts.sensor_resolution_mpx = sensor_res_from_metadata;    
+            } else if (opts.sensor_resolution_mpx == 0.0) {
+                // PLAN B: Fallback to raw image dimensions if metadata is missing or invalid
+                int width = raw_file.GetWidth();
+                int height = raw_file.GetHeight();
+                if (width > 0 && height > 0) {
+                    double sensor_res_from_dims = static_cast<double>(width * height) / 1000000.0;
+                    if (sensor_res_from_dims > 0.1) { // Evitar valores absurdos (ej: 0.001 Mpx)
+                        opts.sensor_resolution_mpx = sensor_res_from_dims;
+                        log_stream << "[INFO] Sensor resolution inferred from RAW dimensions: "
+                           << std::fixed << std::setprecision(1) << sensor_res_from_dims << " Mpx\n";
+                    }
+                }
+            }
+        }
+
         file_info_list.push_back(info);
         log_stream << "  - File: " << fs::path(name).filename().string()
                    << ", Brightness: " << std::fixed << std::setprecision(2) << info.mean_brightness

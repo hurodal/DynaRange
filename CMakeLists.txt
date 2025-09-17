@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.16)
 
 # Define el proyecto, su nombre y el lenguaje principal (C++).
 project(dynaRange CXX)
+set(PROJECT_VERSION "1.0.0")
 
 # --- Opciones y variables globales del compilador ---
 # Establece el estándar C++ a C++17 y asegura que es requerido.
@@ -80,26 +81,27 @@ pkg_check_modules(CAIRO REQUIRED cairo)
 # Lista de ficheros fuente que son compartidos entre la versión CLI y la GUI.
 # Esto evita duplicación y asegura que todos los componentes centrales se compilen.
 set(CORE_SOURCES
+    src/core/arguments/Arguments.cpp
+    src/core/arguments/CommandLineParser.cpp
+    src/core/arguments/CommandGenerator.cpp
     src/core/analysis/Analysis.cpp
     src/core/analysis/CurveCalculator.cpp
     src/core/analysis/FilePreparer.cpp
     src/core/analysis/ImageAnalyzer.cpp
     src/core/analysis/RawProcessor.cpp
-    src/core/arguments/Arguments.cpp
-    src/core/arguments/CommandGenerator.cpp
-    src/core/arguments/CommandLineParser.cpp
-    src/core/ChartProfile.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
+    src/core/engine/Normalization.cpp
+    src/core/normalization/Normalizer.cpp
+    src/core/graphics/Drawing.cpp
     src/core/graphics/ImageProcessing.cpp
-    src/core/graphics/PlotBase.cpp
-    src/core/graphics/PlotData.cpp
     src/core/graphics/Plotting.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
     src/core/utils/PathManager.cpp
+    src/core/ChartProfile.cpp
 )
 
 # =============================================================================

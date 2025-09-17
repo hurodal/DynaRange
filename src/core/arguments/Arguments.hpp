@@ -46,7 +46,8 @@ struct ProgramOptions {
     bool create_chart_mode = false;                ///< Flag to activate chart creation mode.
     std::vector<double> chart_params;              ///< Parameters for chart creation (R, G, B, gamma).
     std::string generated_command;                 ///< Stores the generated command string for plots.
-    std::map<std::string, std::string> plot_labels; ///< Maps a filename to its desired plot label (e.g., "ISO 100").
+    std::map<std::string, std::string> plot_labels;///< Maps a filename to its desired plot label (e.g., "ISO 100").
+    double sensor_resolution_mpx = 0.0;            ///< If 0, try to auto-detect from RAW metadata
 };
 
 ProgramOptions ParseArguments(int argc, char* argv[]);

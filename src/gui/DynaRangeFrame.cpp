@@ -149,7 +149,7 @@ void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event)
         m_summaryPlotPath.clear();
         m_individualPlotPaths.clear();
 
-        ReportOutput report = RunDynamicRangeAnalysis(opts, log_stream);
+        ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, log_stream); // ← CORREGIDO
         
         if(report.summary_plot_path) {
             m_summaryPlotPath = *report.summary_plot_path;

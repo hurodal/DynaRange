@@ -1,0 +1,55 @@
+name: Build Windows Installer (Manual)
+
+on:
+  workflow_dispatch:  # 👈 ¡Solo se ejecuta cuando tú lo pulses manualmente!
+  # No hay 'push' ni 'pull_request' → así evitas compilaciones automáticas
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install MSVC via Visual Studio Build Tools
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure CMake (Visual Studio Generator)
+        run: |
+          cmake -B ${{runner.workspace}}/build `
+                -G "Visual Studio 17 2022" `
+                -A x64 `
+                -DCMAKE_BUILD_TYPE=Release `
+                -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install
+
+      - name: Build (Release)
+        run: |
+          cmake --build ${{runner.workspace}}/build `
+                --config Release `
+                --parallel
+
+      - name: Create installer with CPack (NSIS)
+        run: |
+          cpack -G NSIS -C Release -B ${{runner.workspace}}/install
+
+      - name: Copy executables and installer to output folder
+        run: |
+          mkdir ${{runner.workspace}}/output
+          copy ${{runner.workspace}}\build\Release\rango.exe ${{runner.workspace}}\output\
+          copy ${{runner.workspace}}\build\Release\dynaRangeGui.exe ${{runner.workspace}}\output\
+          copy ${{runner.workspace}}\build\logo.png ${{runner.workspace}}\output\
+          copy ${{runner.workspace}}\build\favicon_noise.ico ${{runner.workspace}}\output\
+          copy ${{runner.workspace}}\build\favicon_owl.ico ${{runner.workspace}}\output\
+          # Copia el instalador generado por CPack (se crea en el directorio actual)
+          # CPack genera un archivo con nombre: dynaRange-<version>-Win64.exe
+          # Buscamos el .exe generado por CPack y lo copiamos
+          dir ${{runner.workspace}}\build\*.exe | findstr /i "dynarange"
+          # Si hay más de uno, asumimos que es el instalador
+          copy ${{runner.workspace}}\build\*.exe ${{runner.workspace}}\output\
+
+      - name: Upload artifacts (executables + installer)
+        uses: actions/upload-artifact@v4
+        with:
+          name: win64-binaries-and-installer
+          path: ${{runner.workspace}}/output/*

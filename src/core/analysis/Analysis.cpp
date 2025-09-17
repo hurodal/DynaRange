@@ -4,14 +4,11 @@
  * @brief Implements the main orchestration function for dynamic range analysis.
  */
 #include "Analysis.hpp"
-#include "ImageAnalyzer.hpp"
 #include "CurveCalculator.hpp"
-#include "RawProcessor.hpp"
-#include "FilePreparer.hpp"
 #include <opencv2/core.hpp>
 
 std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
-    const PatchAnalysisResult& patch_data,
+    PatchAnalysisResult& patch_data,
     const ProgramOptions& opts,
     const std::string& filename,
     double camera_resolution_mpx)
