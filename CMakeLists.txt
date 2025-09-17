@@ -95,9 +95,10 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/engine/Normalization.cpp
     src/core/normalization/Normalizer.cpp
-    src/core/graphics/Drawing.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/Plotting.cpp
+    src/core/graphics/PlotData.cpp
+    src/core/graphics/PlotBase.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
     src/core/utils/PathManager.cpp
