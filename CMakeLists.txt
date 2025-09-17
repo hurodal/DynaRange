@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.16)
 
 # Define el proyecto, su nombre y el lenguaje principal (C++).
 project(dynaRange CXX)
+set(PROJECT_VERSION "1.0.0")
 
 # --- Opciones y variables globales del compilador ---
 # Establece el estándar C++ a C++17 y asegura que es requerido.
