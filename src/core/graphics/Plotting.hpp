@@ -12,7 +12,6 @@
 #include "../arguments/Arguments.hpp"
 #include "../analysis/Analysis.hpp"
 
-
 /**
  * @brief Generates and saves a single SNR plot for one RAW file.
  * @param output_filename The full path for the output PNG file.

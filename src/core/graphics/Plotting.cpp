@@ -21,8 +21,6 @@
 #include <iomanip>
 #include <sstream>
 
-namespace fs = std::filesystem;
-
 /**
  * @brief Generates and saves a single SNR plot for one RAW file.
  *
