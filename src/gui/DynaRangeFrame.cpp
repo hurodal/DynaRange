@@ -60,6 +60,22 @@ bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& file
     return true;
 }
 
+void DynaRangeFrame::LoadLogoImage() {
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    wxFileName fn(exePath);
+    wxString appDir = fn.GetPath();
+    wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
+    wxImage logoImage;
+    if (logoImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
+        m_imageGraph->SetBitmap(wxBitmap(logoImage));
+        m_generateGraphStaticText->SetLabel(_("Welcome to Dynamic Range Calculator"));
+    } else {
+        m_imageGraph->SetBitmap(wxBitmap());
+        m_generateGraphStaticText->SetLabel(_("Welcome (logo.png not found)"));
+    }
+    m_resultsPanel->Layout();
+}
+
 // --- MAIN FRAME IMPLEMENTATION ---
 
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
@@ -95,16 +111,11 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
 
     UpdateCommandPreview();
 
-    wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
-    wxImage logoImage;
-    if (logoImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
-        m_imageGraph->SetBitmap(wxBitmap(logoImage));
-        m_generateGraphStaticText->SetLabel(_("Welcome to Dynamic Range Calculator"));
-    } else {
-        m_imageGraph->SetBitmap(wxBitmap());
-        m_generateGraphStaticText->SetLabel(_("Welcome (logo.png not found)"));
-    }
-    m_resultsPanel->Layout();
+    // Oculta el grid de datos hasta que tenga datos.
+    m_cvsGrid->Show(false);
+    m_csvOutputStaticText->Show(false);
+    
+    LoadLogoImage(); // Carga el logo y texto de bienvenida
 }
 
 DynaRangeFrame::~DynaRangeFrame()
@@ -394,20 +405,11 @@ void DynaRangeFrame::AddDroppedFiles(const wxArrayString& filenames)
 void DynaRangeFrame::SetResultsPanelState(bool processing)
 {
     m_csvOutputStaticText->Show(!processing);
-    m_cvsGrid->Show(!processing);
+    m_cvsGrid->Show(!processing); // Mostrar/ocultar el grid según el estado
     m_processingGauge->Show(processing);
     if (processing) {
         m_gaugeTimer->Start(100);
-        wxString exePath = wxStandardPaths::Get().GetExecutablePath();
-        wxFileName fn(exePath);
-        wxString appDir = fn.GetPath();
-        wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
-        wxImage logoImage;
-        if (logoImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
-            m_imageGraph->SetBitmap(wxBitmap(logoImage));
-        } else {
-            m_imageGraph->SetBitmap(wxBitmap());
-        }
+        LoadLogoImage(); // Carga el logo y texto de procesamiento
         m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
     } else {
         m_gaugeTimer->Stop();

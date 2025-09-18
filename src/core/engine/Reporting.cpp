@@ -66,6 +66,41 @@ std::optional<std::string> GenerateSummaryPlotReport(
 }
 
 /**
+ * @brief Generates a single data row as a formatted string for either log or CSV.
+ * @param res The DynamicRangeResult for the row.
+ * @param opts The program options (for SNR thresholds).
+ * @param for_log If true, formats for console log (with setw). If false, formats for CSV (comma-separated).
+ * @return A string containing the formatted row.
+ */
+std::string GenerateDataRow(const DynamicRangeResult& res, const ProgramOptions& opts, bool for_log) {
+    std::stringstream row_ss;
+    std::string filename = fs::path(res.filename).filename().string();
+
+    if (for_log) {
+        row_ss << std::left << std::setw(30) << filename;
+    } else {
+        row_ss << filename;
+    }
+
+    for (const double threshold : opts.snr_thresholds_db) {
+        double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
+        if (for_log) {
+            row_ss << std::fixed << std::setprecision(4) << std::setw(20) << value;
+        } else {
+            row_ss << "," << value;
+        }
+    }
+
+    if (for_log) {
+        row_ss << res.patches_used;
+    } else {
+        row_ss << "," << res.patches_used;
+    }
+
+    return row_ss.str();
+}
+
+/**
  * @brief Generates the CSV file and the log table report.
  */
 void GenerateCsvAndLogReport(
@@ -76,6 +111,7 @@ void GenerateCsvAndLogReport(
 {
     log_stream << "\n--- Dynamic Range Results ---\n";
     
+    // --- Generar Cabeceras ---
     std::stringstream header_log, header_csv;
     header_log << std::left << std::setw(30) << "RAW File";
     header_csv << "raw_file";
@@ -89,22 +125,23 @@ void GenerateCsvAndLogReport(
     header_log << "Patches";
     header_csv << ",patches_used";
 
+    // --- Imprimir cabeceras en el log ---
     log_stream << header_log.str() << std::endl;
     log_stream << std::string(header_log.str().length(), '-') << std::endl;
     
+    // --- Abrir archivo CSV y escribir cabecera ---
     std::ofstream csv_file(paths.GetCsvOutputPath());
     csv_file << header_csv.str() << "\n";
 
+    // --- Generar e imprimir filas de datos ---
     for (const auto& res : all_results) {
-        log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string();
-        csv_file << fs::path(res.filename).filename().string();
-        for (const double threshold : opts.snr_thresholds_db) {
-            double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
-            log_stream << std::fixed << std::setprecision(4) << std::setw(20) << value;
-            csv_file << "," << value;
-        }
-        log_stream << res.patches_used << std::endl;
-        csv_file << "," << res.patches_used << "\n";
+        // Para el log
+        std::string log_row = GenerateDataRow(res, opts, true);
+        log_stream << log_row << std::endl;
+        
+        // Para el CSV
+        std::string csv_row = GenerateDataRow(res, opts, false);
+        csv_file << csv_row << "\n";
     }
 
     csv_file.close();

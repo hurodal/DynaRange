@@ -67,7 +67,14 @@ private:
      * @param processing true to enter 'processing' state, false to enter 'results' state.
      */
     void SetResultsPanelState(bool processing);
-
+    /**
+     * @brief Loads and displays the application's logo image in the results panel.
+     * @details This function is called during initialization and when entering the
+     *          'processing' state to reset the display. It finds the logo.png file
+     *          relative to the executable and updates the wxStaticBitmap.
+     */
+    void LoadLogoImage();
+    
     // Member variables
     ProgramOptions m_lastRunOptions;
     wxArrayString m_inputFiles;
