@@ -2,9 +2,11 @@
 /**
  * @file src/core/arguments/CommandLineParser.cpp
  * @brief Implements the command-line argument parser using CLI++.
+ * @details This is the sole implementation of the parsing logic. It depends
+ *          on CLI11 and the ProgramOptions definition. It has no knowledge
+ *          of how commands are generated.
  */
 #include "CommandLineParser.hpp"
-#include "Arguments.hpp" // Include to reuse ProgramOptions and dependencies
 #include <CLI/CLI.hpp>
 #include <limits>
 #include <clocale>
@@ -15,7 +17,6 @@
 ProgramOptions ParseCommandLine(int argc, char* argv[]) {
     char* current_locale = setlocale(LC_NUMERIC, nullptr);
     setlocale(LC_NUMERIC, "C");
-
     ProgramOptions opts{};
     CLI::App app{_("Calculates the dynamic range from a series of RAW images.")};
     app.allow_extras(); // Allow positional file arguments
@@ -29,7 +30,6 @@ ProgramOptions ParseCommandLine(int argc, char* argv[]) {
     app.add_option("-b,--black-level", opts.dark_value, _("Camera RAW black level"))->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
     app.add_option("-S,--saturation-file", opts.sat_file_path, _("Totally clipped RAW file (ideally shot at base ISO)"))->check(CLI::ExistingFile);
     app.add_option("-s,--saturation-level", opts.saturation_value, _("Camera RAW saturation level"))->check(CLI::Range(0.0, std::numeric_limits<double>::max()));
-
     app.add_option("-i,--input-files", opts.input_files, _("Input RAW files shot over the magenta test chart (ideally for every ISO)"))->required();
     app.add_option("-o,--output-file", opts.output_filename, _("Output filename with all results (black level, sat level, SNR samples, DR values)"))->default_val("DR_results.csv");
 
@@ -54,7 +54,6 @@ ProgramOptions ParseCommandLine(int argc, char* argv[]) {
         opts.create_chart_mode = true;
         opts.chart_params = chart_params;
     }
-
     if (snr_opt->count() > 0) {
         opts.snr_thresholds_db.push_back(snr_val);
     } else {

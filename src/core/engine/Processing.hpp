@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "../analysis/Analysis.hpp" 
+#include "../arguments/ProgramOptions.hpp"
 #include <vector>
 
 /**

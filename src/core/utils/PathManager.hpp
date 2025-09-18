@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "../arguments/Arguments.hpp"
+#include "../arguments/ProgramOptions.hpp"
 #include "../analysis/Analysis.hpp"
 #include <filesystem>
 

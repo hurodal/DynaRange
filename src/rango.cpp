@@ -3,7 +3,7 @@
  * @file src/rango.cpp
  * @brief Main entry point for the command-line (CLI) version of the application.
  */
-#include "core/arguments/Arguments.hpp"  
+#include "core/arguments/CommandLineParser.hpp"  
 #include "core/engine/Engine.hpp"      
 #include <iostream>
 #include <libintl.h>
@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     bindtextdomain("dynaRange", "locale");
     textdomain("dynaRange");
 
-    ProgramOptions opts = ParseArguments(argc, argv);
+    ProgramOptions opts = ParseCommandLine(argc, argv);
     
     ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout);
 

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "DynaRangeBase.h"
-#include "../core/arguments/Arguments.hpp"
+#include "../core/arguments/ProgramOptions.hpp"
 #include <wx/arrstr.h>
 #include <wx/dnd.h>
 #include <wx/timer.h> // AÑADIDO: Cabecera para el wxTimer

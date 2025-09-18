@@ -6,7 +6,7 @@
 #pragma once
 
 #include "Analysis.hpp"
-#include "Arguments.hpp"
+#include "../arguments/ProgramOptions.hpp"
 
 namespace CurveCalculator {
 

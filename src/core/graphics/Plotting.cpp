@@ -1,3 +1,4 @@
+// File: src/core/graphics/Plotting.cpp
 /**
  * @file src/core/graphics/Plotting.cpp
  * @brief Implements the high-level plot generation logic for SNR curves.
@@ -21,27 +22,46 @@
 #include <iomanip>
 #include <sstream>
 
+namespace { // Anonymous namespace for private helper functions
+
 /**
- * @brief Generates and saves a single SNR plot for one RAW file.
- *
- * This function creates a complete PNG image containing:
- * - A styled plot base with axes, grid, title, and thresholds.
- * - The fitted polynomial curve and data points for the given curve.
- * - A label on the curve (e.g., "ISO 200").
- * - An optional command-line string showing how the plot was generated.
- *
- * Additionally, it adds a timestamp in the bottom-left corner indicating when
- * the plot was generated.
- *
- * @param output_filename The full path where the output PNG file will be saved.
- * @param plot_title The main title of the plot (e.g., "iso00200.dng (OM-1, ISO 200)").
- * @param curve_label The simple label to draw on the curve itself (e.g., "ISO 200").
- * @param signal_ev A vector of signal values converted to EV (logarithmic scale).
- * @param snr_db A vector of corresponding SNR values in dB.
- * @param poly_coeffs The coefficients of the polynomial fit used to draw the curve.
- * @param opts The program options, including plot_mode and generated_command.
- * @param log_stream The output stream for logging messages.
+ * @brief Draws a "Generated at" timestamp in the bottom-left corner of the plot.
+ * @details This function retrieves the current system time, formats it, and
+ * draws it using a standard style and position.
+ * @param cr The cairo drawing context.
  */
+void DrawGeneratedTimestamp(cairo_t* cr) {
+    // Get current date/time as formatted string
+    auto now = std::chrono::system_clock::now();
+    std::time_t time_now = std::chrono::system_clock::to_time_t(now);
+    std::tm local_tm;
+#ifdef _WIN32
+    localtime_s(&local_tm, &time_now);
+#else
+    localtime_r(&time_now, &local_tm);
+#endif
+    std::ostringstream timestamp_ss;
+    timestamp_ss << std::put_time(&local_tm, "Generated at %Y-%m-%d %H:%M:%S");
+    std::string generated_at_text = timestamp_ss.str();
+
+    // Draw timestamp in bottom-left corner
+    cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 12.0);
+    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4); // Same gray as command text
+
+    cairo_text_extents_t ext;
+    cairo_text_extents(cr, generated_at_text.c_str(), &ext);
+
+    // Position: bottom-left, 20px from left and 20px from bottom
+    double x = 20;
+    double y = PLOT_HEIGHT - 20;
+
+    cairo_move_to(cr, x, y);
+    cairo_show_text(cr, generated_at_text.c_str());
+}
+
+} // end anonymous namespace
+
 void GenerateSnrPlot(
     const std::string& output_filename,
     const std::string& plot_title,
@@ -96,34 +116,8 @@ void GenerateSnrPlot(
     }};
     DrawCurvesAndData(cr, single_curve_vec, bounds);
 
-    // --- NEW: Add "Generated at" timestamp ---
-    // Get current date/time as formatted string
-    auto now = std::chrono::system_clock::now();
-    std::time_t time_now = std::chrono::system_clock::to_time_t(now);
-    std::tm local_tm;
-#ifdef _WIN32
-    localtime_s(&local_tm, &time_now);
-#else
-    localtime_r(&time_now, &local_tm);
-#endif
-    std::ostringstream timestamp_ss;
-    timestamp_ss << std::put_time(&local_tm, "Generated at %Y-%m-%d %H:%M:%S");
-    std::string generated_at_text = timestamp_ss.str();
-
     // Draw timestamp in bottom-left corner
-    cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12.0);
-    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4); // Same gray as command text
-
-    cairo_text_extents_t ext;
-    cairo_text_extents(cr, generated_at_text.c_str(), &ext);
-
-    // Position: bottom-left, 20px from left and 20px from bottom
-    double x = 20;
-    double y = PLOT_HEIGHT - 20;
-
-    cairo_move_to(cr, x, y);
-    cairo_show_text(cr, generated_at_text.c_str());
+    DrawGeneratedTimestamp(cr);
 
     // Write PNG and clean up
     cairo_surface_write_to_png(surface, output_filename.c_str());
@@ -133,22 +127,6 @@ void GenerateSnrPlot(
     log_stream << "  - Info: Plot saved to: " << output_filename << std::endl;
 }
 
-/**
- * @brief Generates and saves a summary plot containing all SNR curves.
- *
- * This function creates a comprehensive overview plot comparing all processed
- * ISO files. It uses the same styling and layout as individual plots but overlays
- * multiple curves on the same axes.
- *
- * It also includes the "Generated at" timestamp in the bottom-left corner.
- *
- * @param output_filename The full path where the summary plot PNG will be saved.
- * @param camera_name The name of the camera model (used in the plot title).
- * @param all_curves A vector of CurveData objects, each representing an ISO curve.
- * @param opts The program options, including plot_mode and generated_command.
- * @param log_stream The output stream for logging messages.
- * @return An optional string containing the path to the generated plot, or std::nullopt if skipped.
- */
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_filename,
     const std::string& camera_name,
@@ -197,31 +175,8 @@ std::optional<std::string> GenerateSummaryPlot(
     // Draw all curves dynamically
     DrawCurvesAndData(cr, all_curves, bounds);
 
-    // --- NEW: Add "Generated at" timestamp ---
-    auto now = std::chrono::system_clock::now();
-    std::time_t time_now = std::chrono::system_clock::to_time_t(now);
-    std::tm local_tm;
-#ifdef _WIN32
-    localtime_s(&local_tm, &time_now);
-#else
-    localtime_r(&time_now, &local_tm);
-#endif
-    std::ostringstream timestamp_ss;
-    timestamp_ss << std::put_time(&local_tm, "Generated at %Y-%m-%d %H:%M:%S");
-    std::string generated_at_text = timestamp_ss.str();
-
-    cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12.0);
-    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
-
-    cairo_text_extents_t ext;
-    cairo_text_extents(cr, generated_at_text.c_str(), &ext);
-
-    double x = 20;
-    double y = PLOT_HEIGHT - 20;
-
-    cairo_move_to(cr, x, y);
-    cairo_show_text(cr, generated_at_text.c_str());
+    // Draw timestamp in bottom-left corner
+    DrawGeneratedTimestamp(cr);
 
     // Write PNG and clean up
     cairo_surface_write_to_png(surface, output_filename.c_str());

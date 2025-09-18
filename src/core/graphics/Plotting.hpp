@@ -2,6 +2,9 @@
 /**
  * @file src/core/graphics/Plotting.hpp
  * @brief Declares high-level functions for generating complete plot images.
+ * @details This module provides functions to create, style, and save SNR curve plots
+ * as PNG images. It orchestrates lower-level drawing functions from PlotBase and
+ * PlotData to produce the final output.
  */
 #pragma once
 
@@ -9,11 +12,14 @@
 #include <vector>
 #include <optional>
 #include <ostream>
-#include "../arguments/Arguments.hpp"
+#include "../arguments/ProgramOptions.hpp"
 #include "../analysis/Analysis.hpp"
 
 /**
  * @brief Generates and saves a single SNR plot for one RAW file.
+ * @details This function creates a complete PNG image containing a styled plot base,
+ * the fitted polynomial curve, the raw data points, a curve label, and a timestamp.
+ * An optional command-line string can also be displayed.
  * @param output_filename The full path for the output PNG file.
  * @param plot_title The main title for the plot (e.g., "iso00200.dng (OM-1, ISO 200)").
  * @param curve_label The simple label to draw on the curve itself (e.g., "ISO 200").
@@ -36,6 +42,9 @@ void GenerateSnrPlot(
 
 /**
  * @brief Generates and saves a summary plot containing all SNR curves.
+ * @details Creates a comprehensive overview plot comparing all processed RAW files.
+ * It uses the same styling as individual plots but overlays multiple curves on
+ * the same axes and includes a timestamp.
  * @param output_filename The full path where the summary plot PNG will be saved.
  * @param camera_name The name of the camera, used in the plot title.
  * @param all_curves A vector containing the CurveData for all processed files.

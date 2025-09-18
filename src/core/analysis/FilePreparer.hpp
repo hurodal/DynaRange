@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "Arguments.hpp"
+#include "../arguments/ProgramOptions.hpp"
 #include <ostream>
 
 /**

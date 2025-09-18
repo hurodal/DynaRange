@@ -6,6 +6,7 @@
  */
 #include "DynaRangeFrame.hpp"
 #include "../core/engine/Engine.hpp"
+#include "../core/arguments/CommandGenerator.hpp"
 #include <libraw/libraw.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
@@ -293,7 +294,7 @@ ProgramOptions DynaRangeFrame::GetProgramOptions() {
 
 void DynaRangeFrame::UpdateCommandPreview() {
     ProgramOptions opts = GetProgramOptions();
-    std::string command_string = GenerateCommandString(opts);
+    std::string command_string = GenerateCommand(opts);
     m_equivalentCliTextCtrl->ChangeValue(command_string);
 }
 

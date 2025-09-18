@@ -2,10 +2,12 @@
 /**
  * @file src/core/arguments/CommandGenerator.hpp
  * @brief Declares the function to generate a command-line string from ProgramOptions.
+ * @details This file has a single responsibility: to convert a ProgramOptions
+ *          struct into a human-readable or machine-executable command string.
+ *          It contains no logic for parsing argc/argv.
  */
 #pragma once
-
-#include "Arguments.hpp"
+#include "ProgramOptions.hpp"
 
 /**
  * @brief Generates a formatted command-line string representation of the given options.

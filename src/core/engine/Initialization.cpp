@@ -4,6 +4,7 @@
  * @brief Implementation of the analysis initialization process.
  */
 #include "Initialization.hpp"
+#include "../arguments/CommandGenerator.hpp"
 #include "../analysis/RawProcessor.hpp"
 #include "../analysis/FilePreparer.hpp"
 #include <iomanip>
@@ -43,7 +44,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     
     // Generate command string using the specific 'Plot' format.
     if (opts.plot_mode == 2) {
-        opts.generated_command = GenerateCommandString(opts, CommandFormat::Plot);
+        opts.generated_command = GenerateCommand(opts, CommandFormat::Plot);
     }
     return true;
 }
