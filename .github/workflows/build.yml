@@ -1,45 +1,45 @@
 # .github/workflows/build.yml
-name: Build dynaRange for Windows and Linux (Static Binaries + Installer)
+name: Build dynaRange for Windows (Static Binaries + Installer)
 
 on:
   workflow_dispatch: # Solo se ejecuta manualmente desde la web de GitHub
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          cmake \
-          libopencv-dev \
-          libraw-dev \
-          libeigen3-dev \
-          libcairo2-dev \
-          libwxgtk3.2-dev \
-          gettext \
-          libgettextpo-dev \
-          pkg-config
-
-    - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build
-      run: cmake --build build --config Release -j $(nproc)
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: dynaRange-Linux
-        path: |
-          build/rango
-          build/dynaRangeGui
-          build/logo.png
-          build/favicon_noise.ico
+#  build-linux:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Install Dependencies
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get install -y \
+#          build-essential \
+#          cmake \
+#          libopencv-dev \
+#          libraw-dev \
+#          libeigen3-dev \
+#          libcairo2-dev \
+#          libwxgtk3.2-dev \
+#          gettext \
+#          libgettextpo-dev \
+#          pkg-config
+#
+#    - name: Configure CMake
+#      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+#
+#    - name: Build
+#      run: cmake --build build --config Release -j $(nproc)
+#
+#    - name: Upload Artifacts
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: dynaRange-Linux
+#        path: |
+#          build/rango
+#          build/dynaRangeGui
+#          build/logo.png
+#          build/favicon_noise.ico
 
   build-windows-static:
     runs-on: windows-latest
@@ -61,7 +61,7 @@ jobs:
           mingw-w64-x86_64-cli11
           mingw-w64-x86_64-gettext
           mingw-w64-x86_64-cairo
-          mingw-w64-x86_64-wxWidgets
+          mingw-w64-x86_64-wxwidgets-gtk3
 
     - name: Configure CMake for Static Build
       run: |
@@ -74,7 +74,7 @@ jobs:
 
     - name: Build
       run: |
-        cmake --build build --config Release -j $(nproc)
+        cmake --build build --config Release
       shell: msys2 {0}
 
     - name: Verify Static Linking
@@ -100,8 +100,8 @@ jobs:
 
     - name: Build Windows Installer with NSIS
       run: |
-        cd dynaRangePortable
-        makensis ../crear_instalador_windows.nsi
+        # Asumiendo que crear_instalador_windows.nsi existe en el repo
+        makensis crear_instalador_windows.nsi
       shell: bash
 
     - name: Upload Artifacts
@@ -109,14 +109,10 @@ jobs:
       with:
         name: dynaRange-Windows-Static-Portable
         path: |
-          dynaRangePortable/rango.exe
-          dynaRangePortable/dynaRangeGui.exe
-          dynaRangePortable/logo.png
-          dynaRangePortable/favicon_owl.ico
-          dynaRangePortable/favicon_noise.ico
+          dynaRangePortable/
 
     - name: Upload Windows Installer
       uses: actions/upload-artifact@v4
       with:
         name: dynaRange-Windows-Installer
-        path: dynaRangePortable/dynaRangeInstaller.exe
+        path: dynaRangeInstaller.exe
