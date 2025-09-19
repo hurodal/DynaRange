@@ -45,46 +45,32 @@ endif()
 # =============================================================================
 # 3. BÚSQUEDA DE DEPENDENCIAS
 # =============================================================================
+# Todas las librerías externas que el proyecto necesita.
+# 'REQUIRED' significa que si no se encuentran, CMake falla.
+
 find_package(PkgConfig REQUIRED)
+
+# --- Librerías principales ---
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(CLI11 REQUIRED)
 
+# Para Gettext, necesitamos una lógica condicional para el enlazado de 'intl'
 find_package(Gettext REQUIRED)
+# Define una variable para las librerías adicionales de Gettext.
+# En Windows, añadiremos 'intl' aquí. En Linux, esta variable quedará vacía.
 set(GETTEXT_EXTRA_LIBS)
 if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
 
-# --- Lógica ESPECÍFICA para wxWidgets ---
-# Si estamos en Windows Y en un entorno MSYS (como en GitHub Actions)...
-if(WIN32 AND ENV{MSYSTEM})
-    message(STATUS "MSYS environment detected. Using wx-config for wxWidgets flags.")
-    # Busca el ejecutable wx-config
-    find_program(WX_CONFIG_EXECUTABLE wx-config)
-    if(NOT WX_CONFIG_EXECUTABLE)
-        message(FATAL_ERROR "wx-config not found! Make sure wxWidgets is installed.")
-    endif()
-    # Ejecuta wx-config para obtener los flags de compilación
-    execute_process(
-        COMMAND ${WX_CONFIG_EXECUTABLE} --cxxflags
-        OUTPUT_VARIABLE WX_CXXFLAGS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    # Ejecuta wx-config para obtener los flags de enlazado
-    execute_process(
-        COMMAND ${WX_CONFIG_EXECUTABLE} --libs all
-        OUTPUT_VARIABLE WX_LIBS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-else()
-    # Si no, estamos en un entorno normal, usamos el método estándar
-    message(STATUS "Standard environment detected. Using find_package for wxWidgets.")
-    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
-endif()
+# wxWidgets: se especifican los componentes para una detección robusta.
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
+# Cairo: para capacidades gráficas.
 pkg_check_modules(CAIRO REQUIRED cairo)
+
 
 # =============================================================================
 # 4. AGRUPACIÓN DE FICHEROS FUENTE
@@ -159,34 +145,48 @@ target_link_libraries(rango PRIVATE
 )
 
 # --- Target 2: Ejecutable con interfaz gráfica (GUI) ---
+# Crea el ejecutable 'dynaRangeGui'.
+# 'WIN32' en Windows oculta la consola de comandos al ejecutar la GUI. Ignorado en Linux.
 add_executable(dynaRangeGui WIN32
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     src/gui/GuiPresenter.cpp    
     ${CORE_SOURCES}
+    # Fichero de recursos para el icono y metadatos en Windows.
     icono_noise.rc
 )
 
-# Aplicar las configuraciones de wxWidgets según el entorno
-if(WIN32 AND ENV{MSYSTEM})
-    # MSYS: Aplicamos los flags obtenidos de wx-config
-    target_compile_options(dynaRangeGui PRIVATE ${WX_CXXFLAGS})
-    target_link_libraries(dynaRangeGui PRIVATE ${WX_LIBS})
-else()
-    # Estándar: Usamos las variables de find_package
-    target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
-    target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
-    target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
-endif()
+# Directorios de inclusión para el ejecutable GUI.
+target_include_directories(dynaRangeGui PRIVATE 
+    ${OpenCV_INCLUDE_DIRS}
+    ${LIBRAW_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
+    ${wxWidgets_INCLUDE_DIRS}
+    ${CAIRO_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup    
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+)
 
-# Enlazar el resto de librerías comunes (esto no cambia)
+# Definiciones de compilador específicas para wxWidgets.
+# ${wxWidgets_DEFINITIONS} contiene flags como -D__WXGTK__ o -D__WXMSW__
+# que son cruciales para que las cabeceras de wxWidgets se compilen correctamente.
+target_compile_definitions(dynaRangeGui PRIVATE 
+    ${wxWidgets_DEFINITIONS}
+)
+
+# Librerías con las que el ejecutable GUI debe enlazarse.
 target_link_libraries(dynaRangeGui PRIVATE
+    ${wxWidgets_LIBRARIES} # Contiene todas las librerías base de wxWidgets
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
-    ${GETTEXT_EXTRA_LIBS}
+    ${GETTEXT_EXTRA_LIBS} # Nuestra variable condicional para 'intl'
     ${CAIRO_LIBRARIES}
 )
 
