@@ -5,26 +5,14 @@ cmake_minimum_required(VERSION 3.16)
 project(dynaRange CXX)
 set(PROJECT_VERSION "1.0.0")
 
-# --- Opciones y variables globales del compilador ---
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
-
-# --- Rutas y directorios ---
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 
 
 # =============================================================================
-# 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAForma
-# =============================================================================
-if(WIN32)
-    list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
-endif()
-
-
-# =============================================================================
-# 3. BÚSQUEDA DE DEPENDENCIAS
+# 2. BÚSQUEDA DE DEPENDENCIAS
 # =============================================================================
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBRAW REQUIRED libraw)
@@ -38,14 +26,9 @@ if(WIN32)
 endif()
 pkg_check_modules(CAIRO REQUIRED cairo)
 
-# --- CAMBIO: La búsqueda de wxWidgets ahora es condicional ---
-# Si NO estamos en un entorno de CI (como GitHub Actions), usamos el método estándar.
-if(NOT ENV{CI})
-    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
-endif()
 
 # =============================================================================
-# 4. AGRUPACIÓN DE FICHEROS FUENTE
+# 3. AGRUPACIÓN DE FICHEROS FUENTE
 # =============================================================================
 set(CORE_SOURCES
     src/core/analysis/Analysis.cpp
@@ -75,25 +58,15 @@ set(CORE_SOURCES
 )
 
 # =============================================================================
-# 5. DEFINICIÓN DE LOS EJECUTABLES (TARGETS)
+# 4. DEFINICIÓN DE LOS EJECUTABLES (TARGETS)
 # =============================================================================
 
 # --- Target 1: Ejecutable de línea de comandos (CLI) ---
 add_executable(rango src/rango.cpp ${CORE_SOURCES} icono_owl.rc)
-target_include_directories(rango PRIVATE
-    ${OpenCV_INCLUDE_DIRS} 
-    ${LIBRAW_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
-    ${CAIRO_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
-)
+target_include_directories(rango PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(rango PRIVATE 
-    ${OpenCV_LIBS} 
-    ${LIBRAW_LIBRARIES}
-    CLI11::CLI11
-    ${GETTEXT_LIBRARIES}
-    ${GETTEXT_EXTRA_LIBS}
-    ${CAIRO_LIBRARIES}
+    ${OpenCV_LIBS} ${LIBRAW_LIBRARIES} CLI11::CLI11
+    ${GETTEXT_LIBRARIES} ${GETTEXT_EXTRA_LIBS} ${CAIRO_LIBRARIES}
 )
 
 # --- Target 2: Ejecutable con interfaz gráfica (GUI) ---
@@ -105,46 +78,57 @@ add_executable(dynaRangeGui WIN32
     ${CORE_SOURCES}
     icono_noise.rc
 )
-target_include_directories(dynaRangeGui PRIVATE 
-    ${OpenCV_INCLUDE_DIRS}
-    ${LIBRAW_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
-    ${CAIRO_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
-)
+target_include_directories(dynaRangeGui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# --- CAMBIO: Lógica condicional para enlazar wxWidgets ---
-if(ENV{CI})
-    # En el workflow, usamos las variables de entorno que nos da wx-config
-    target_compile_options(dynaRangeGui PRIVATE "$ENV{WX_CXXFLAGS}")
-    target_link_libraries(dynaRangeGui PRIVATE "$ENV{WX_LIBS}")
+# --- Lógica de enlazado para wxWidgets ---
+# Si estamos en Windows Y en un entorno MSYS (como en GitHub Actions)...
+if(WIN32 AND ENV{MSYSTEM})
+    message(STATUS "MSYS environment detected. Using wx-config for wxWidgets flags.")
+    # Busca el ejecutable wx-config
+    find_program(WX_CONFIG_EXECUTABLE wx-config)
+    if(NOT WX_CONFIG_EXECUTABLE)
+        message(FATAL_ERROR "wx-config not found!")
+    endif()
+
+    # Ejecuta wx-config para obtener los flags de compilación y quita el salto de línea
+    execute_process(
+        COMMAND ${WX_CONFIG_EXECUTABLE} --cxxflags
+        OUTPUT_VARIABLE WX_CXXFLAGS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # Ejecuta wx-config para obtener los flags de enlazado y quita el salto de línea
+    execute_process(
+        COMMAND ${WX_CONFIG_EXECUTABLE} --libs all
+        OUTPUT_VARIABLE WX_LIBS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # Aplica los flags al target
+    target_compile_options(dynaRangeGui PRIVATE ${WX_CXXFLAGS})
+    target_link_libraries(dynaRangeGui PRIVATE ${WX_LIBS})
 else()
-    # En local, usamos las variables que nos da find_package
+    # Si no, estamos en un entorno normal (como tu Linux local), usamos el método estándar
+    message(STATUS "Standard environment detected. Using find_package for wxWidgets.")
+    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
     target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
     target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
     target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
 endif()
 
-# Enlazar el resto de librerías
+# Enlazar el resto de librerías comunes
 target_link_libraries(dynaRangeGui PRIVATE
-    ${OpenCV_LIBS}
-    ${LIBRAW_LIBRARIES}
-    CLI11::CLI11
-    ${GETTEXT_LIBRARIES}
-    ${GETTEXT_EXTRA_LIBS}
-    ${CAIRO_LIBRARIES}
+    ${OpenCV_LIBS} ${LIBRAW_LIBRARIES} CLI11::CLI11
+    ${GETTEXT_LIBRARIES} ${GETTEXT_EXTRA_LIBS} ${CAIRO_LIBRARIES}
 )
 
-
 # =============================================================================
-# 6. CONFIGURACIÓN POST-COMPILACIÓN Y RECURSOS
+# 5. CONFIGURACIÓN POST-COMPILACIÓN Y RECURSOS
 # =============================================================================
 set_target_properties(rango dynaRangeGui PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}")
 file(COPY "${CMAKE_SOURCE_DIR}/logo.png" DESTINATION "${PORTABLE_DIR}")
 file(COPY "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION "${PORTABLE_DIR}")
 
 # =============================================================================
-# 7. INTERNACIONALIZACIÓN (Traducciones con Gettext)
+# 6. INTERNACIONALIZACIÓN Y EMPAQUETADO
 # =============================================================================
 include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
@@ -153,11 +137,6 @@ set(I18N_SOURCES src/rango.cpp src/DynaRangeGuiApp.cpp src/gui/DynaRangeFrame.cp
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
-
-
-# =============================================================================
-# 8. INSTALACIÓN Y EMPAQUETADO (CPack)
-# =============================================================================
 include(InstallRequiredSystemLibraries)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
