@@ -97,7 +97,6 @@ set(CORE_SOURCES
     src/core/graphics/Plotting.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
-    src/core/normalization/Normalizer.cpp
     src/core/setup/FileSorter.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
