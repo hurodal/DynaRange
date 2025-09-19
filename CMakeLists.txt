@@ -1,38 +1,24 @@
 # =============================================================================
 # 1. CONFIGURACIÓN INICIAL DEL PROYECTO
 # =============================================================================
-# Requiere una versión mínima de CMake (3.16 es una buena base moderna).
 cmake_minimum_required(VERSION 3.16)
-
-# Define el proyecto, su nombre y el lenguaje principal (C++).
 project(dynaRange CXX)
 set(PROJECT_VERSION "1.0.0")
 
 # --- Opciones y variables globales del compilador ---
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Añade definiciones globales para compatibilidad, especialmente en Windows.
-# -DNOMINMAX es útil para evitar conflictos con min/max en <windows.h>
-# -D_USE_MATH_DEFINES asegura que constantes como M_PI estén disponibles.
 add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 
 # --- Rutas y directorios ---
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-# Directorio de salida para los ejecutables y recursos.
-# CMAKE_BINARY_DIR es el directorio 'build' que creamos.
 set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 
 
 # =============================================================================
-# 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA (ANTES DE BUSCAR LIBRERÍAS)
+# 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAForma
 # =============================================================================
-# Configuración específica para Windows (MSYS2/MinGW)
 if(WIN32)
-    # CMAKE_PREFIX_PATH es CRUCIAL en MSYS2 para que CMake encuentre las librerías
-    # instaladas por pacman (como wxWidgets, Gettext, etc.)
-    # NOTA: Esta línea es para compilación local. El workflow la sobreescribe.
     list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
 endif()
 
@@ -40,38 +26,27 @@ endif()
 # =============================================================================
 # 3. BÚSQUEDA DE DEPENDENCIAS
 # =============================================================================
-# Todas las librerías externas que el proyecto necesita.
-# 'REQUIRED' significa que si no se encuentran, CMake falla.
 find_package(PkgConfig REQUIRED)
-
-# --- Librerías principales ---
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(CLI11 REQUIRED)
-
-# Para Gettext, necesitamos una lógica condicional para el enlazado de 'intl'
 find_package(Gettext REQUIRED)
-# Define una variable para las librerías adicionales de Gettext.
-# En Windows, añadiremos 'intl' aquí. En Linux, esta variable quedará vacía.
 set(GETTEXT_EXTRA_LIBS)
 if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
-
-# --- CAMBIO: La búsqueda de wxWidgets se deshabilita ---
-# CMake ya no buscará wxWidgets. Los flags se pasarán desde el workflow.
-# find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
-
-# Cairo: para capacidades gráficas.
 pkg_check_modules(CAIRO REQUIRED cairo)
 
+# --- CAMBIO: La búsqueda de wxWidgets ahora es condicional ---
+# Si NO estamos en un entorno de CI (como GitHub Actions), usamos el método estándar.
+if(NOT ENV{CI})
+    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
+endif()
 
 # =============================================================================
 # 4. AGRUPACIÓN DE FICHEROS FUENTE
 # =============================================================================
-# Lista de ficheros fuente que son compartidos entre la versión CLI y la GUI.
-# Esto evita duplicación y asegura que todos los componentes centrales se compilen.
 set(CORE_SOURCES
     src/core/analysis/Analysis.cpp
     src/core/analysis/CurveCalculator.cpp
@@ -104,76 +79,54 @@ set(CORE_SOURCES
 # =============================================================================
 
 # --- Target 1: Ejecutable de línea de comandos (CLI) ---
-# Crea el ejecutable 'rango'.
-add_executable(rango
-    src/rango.cpp
-    ${CORE_SOURCES}
-    # Fichero de recursos para el icono y metadatos en Windows.
-    # Esto se ignora en Linux.
-    icono_owl.rc
-)
-
-# Define los directorios de inclusión (headers) para el compilador.
-# 'PRIVATE' significa que solo el target 'rango' necesita estas rutas para compilarse.
+add_executable(rango src/rango.cpp ${CORE_SOURCES} icono_owl.rc)
 target_include_directories(rango PRIVATE
     ${OpenCV_INCLUDE_DIRS} 
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
 )
-
-# Define las librerías con las que el ejecutable 'rango' debe enlazarse.
-# 'PRIVATE' significa que estas librerías solo son necesarias para el enlazado de 'rango'.
 target_link_libraries(rango PRIVATE 
     ${OpenCV_LIBS} 
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
-    ${GETTEXT_EXTRA_LIBS} # Nuestra variable condicional para 'intl'
+    ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
 )
 
 # --- Target 2: Ejecutable con interfaz gráfica (GUI) ---
-# Crea el ejecutable 'dynaRangeGui'.
-# 'WIN32' en Windows oculta la consola de comandos al ejecutar la GUI. Ignorado en Linux.
 add_executable(dynaRangeGui WIN32
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     src/gui/GuiPresenter.cpp    
     ${CORE_SOURCES}
-    # Fichero de recursos para el icono y metadatos en Windows.
     icono_noise.rc
 )
-
-# Directorios de inclusión para el ejecutable GUI.
 target_include_directories(dynaRangeGui PRIVATE 
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
-    # ${wxWidgets_INCLUDE_DIRS} # <-- CAMBIO: Ya no se necesita
     ${CAIRO_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup    
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
 )
 
-# --- CAMBIO: Usamos las variables que nos pasará el workflow ---
-# Estas variables contendrán todos los includes (-I) y definiciones (-D) necesarios
-target_compile_options(dynaRangeGui PRIVATE "$ENV{WX_CXXFLAGS}")
+# --- CAMBIO: Lógica condicional para enlazar wxWidgets ---
+if(ENV{CI})
+    # En el workflow, usamos las variables de entorno que nos da wx-config
+    target_compile_options(dynaRangeGui PRIVATE "$ENV{WX_CXXFLAGS}")
+    target_link_libraries(dynaRangeGui PRIVATE "$ENV{WX_LIBS}")
+else()
+    # En local, usamos las variables que nos da find_package
+    target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
+    target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
+    target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
+endif()
 
-# Librerías con las que el ejecutable GUI debe enlazarse.
+# Enlazar el resto de librerías
 target_link_libraries(dynaRangeGui PRIVATE
-    "$ENV{WX_LIBS}" # <-- CAMBIO: Usamos la variable con todas las librerías
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
@@ -186,58 +139,27 @@ target_link_libraries(dynaRangeGui PRIVATE
 # =============================================================================
 # 6. CONFIGURACIÓN POST-COMPILACIÓN Y RECURSOS
 # =============================================================================
-# Establece el directorio de salida para los ejecutables de ambos targets.
-# Esto hará que 'rango.exe' y 'dynaRangeGui.exe' aparezcan directamente en la carpeta 'build'.
-set_target_properties(rango dynaRangeGui PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
-)
-
-# Copia los recursos adicionales al directorio de salida.
+set_target_properties(rango dynaRangeGui PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}")
 file(COPY "${CMAKE_SOURCE_DIR}/logo.png" DESTINATION "${PORTABLE_DIR}")
 file(COPY "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION "${PORTABLE_DIR}")
 
 # =============================================================================
 # 7. INTERNACIONALIZACIÓN (Traducciones con Gettext)
 # =============================================================================
-# Incluye el módulo de CMake para manejar Gettext.
 include(UseGettext)
-
-# Define los flags para xgettext, asegurando la codificación UTF-8.
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
-
-# Define los idiomas que se van a traducir.
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
-
-# Lista de ficheros fuente que contienen cadenas traducibles.
-set(I18N_SOURCES
-    src/rango.cpp
-    src/DynaRangeGuiApp.cpp
-    src/gui/DynaRangeFrame.cpp
-    ${CORE_SOURCES} # Incluye los ficheros comunes también
-)
-
-# Genera el fichero .pot (Portable Object Template).
+set(I18N_SOURCES src/rango.cpp src/DynaRangeGuiApp.cpp src/gui/DynaRangeFrame.cpp ${CORE_SOURCES})
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
-
-# Añade los ficheros .po (Portable Object) para cada idioma.
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
-
-# Procesa los ficheros .po y los instala en la ubicación estándar de locales.
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
 
 
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-# Incluye las librerías del sistema necesarias para el instalador (Windows).
 include(InstallRequiredSystemLibraries)
-
-# Define el nombre y la versión del proyecto para CPack.
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-
-# Instala los ejecutables en el directorio 'bin' del destino de instalación.
 install(TARGETS rango dynaRangeGui DESTINATION bin)
-
-# Incluye CPack para generar paquetes de instalación.
 include(CPack)
