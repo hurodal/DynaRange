@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-19 11:29+0200\n"
+"POT-Creation-Date: 2025-09-19 12:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,70 +21,43 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:71
-msgid "Welcome to Dynamic Range Calculator"
+#: src/gui/DynaRangeFrame.cpp:92
+msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:74
-msgid "Welcome (logo.png not found)"
+#: src/gui/DynaRangeFrame.cpp:131
+msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:142
-msgid "Please select at least one input RAW file."
+#: src/gui/DynaRangeFrame.cpp:218
+msgid "Processing... Please wait."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:142 src/gui/DynaRangeFrame.cpp:187
-msgid "Error"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:186
-msgid ""
-"\n"
-"---\n"
-"Execution failed. Please check the log for details."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:187
-msgid ""
-"An error occurred during processing. Please check the log tab for details."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:188
-msgid "Error during processing. Check log."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:190
-msgid ""
-"\n"
-"---\n"
-"Execution finished successfully."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:332
-msgid "Generated Graph (Image not found): "
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:336
-msgid "Generated Graph: "
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:381
+#: src/gui/DynaRangeFrame.cpp:267
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:385
+#: src/gui/DynaRangeFrame.cpp:269
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:391
-msgid "Select RAW files"
+#: src/gui/DynaRangeFrame.cpp:286
+msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:413
-msgid "Processing... Please wait."
+#: src/gui/DynaRangeFrame.cpp:288
+msgid "Generated Graph: "
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:317
+msgid "Welcome to Dynamic Range Calculator"
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:320
+msgid "Welcome (logo.png not found)"
 msgstr ""
 
 #: src/core/arguments/CommandLineParser.cpp:21

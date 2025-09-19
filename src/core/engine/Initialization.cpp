@@ -6,10 +6,10 @@
 #include "Initialization.hpp"
 #include "../arguments/CommandGenerator.hpp"
 #include "../analysis/RawProcessor.hpp"
-#include "../analysis/setup/MetadataExtractor.hpp"
-#include "../analysis//setup/SensorResolution.hpp"
-#include "../analysis//setup/FileSorter.hpp"
-#include "../analysis//setup/PlotLabelGenerator.hpp"
+#include "../setup/MetadataExtractor.hpp"
+#include "../setup/SensorResolution.hpp"
+#include "../setup/FileSorter.hpp"
+#include "../setup/PlotLabelGenerator.hpp"
 #include <iomanip>
 
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {

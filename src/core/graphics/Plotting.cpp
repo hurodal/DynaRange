@@ -102,17 +102,17 @@ void GenerateSnrPlot(
     bounds["max_db"] = 25.0;
 
     // Draw the static plot base (axes, grid, labels, thresholds)
-    DrawPlotBase(cr, "SNR Curve - " + plot_title, bounds, opts.generated_command, opts.snr_thresholds_db);
+    DrawPlotBase(cr, "SNR Curve - " + plot_title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
 
     // Draw the dynamic data (curve, points, label)
     std::vector<CurveData> single_curve_vec = {{
-        plot_title,         // filename (temporary placeholder)
-        curve_label,        // plot_label (the actual label to display)
-        "",                 // camera_model (not needed here)
-        signal_ev,          // signal_ev
-        snr_db,             // snr_db
-        poly_coeffs,        // poly_coeffs
-        opts.generated_command // generated_command
+        plot_title,
+        curve_label,
+        "",
+        signal_ev,
+        snr_db,
+        poly_coeffs,
+        opts.generated_command
     }};
     DrawCurvesAndData(cr, single_curve_vec, bounds);
 
@@ -170,7 +170,7 @@ std::optional<std::string> GenerateSummaryPlot(
 
     // Draw the static plot base
     std::string title = "SNR Curves - Summary (" + camera_name + ")";
-    DrawPlotBase(cr, title, bounds, opts.generated_command, opts.snr_thresholds_db);
+    DrawPlotBase(cr, title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
 
     // Draw all curves dynamically
     DrawCurvesAndData(cr, all_curves, bounds);

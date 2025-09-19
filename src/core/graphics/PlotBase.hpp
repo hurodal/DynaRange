@@ -4,6 +4,7 @@
  * @brief Declares the function to draw the static base of a plot (axes, grid, titles, etc.).
  */
 #pragma once
+#include "../arguments/ProgramOptions.hpp"
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
@@ -40,6 +41,7 @@ inline std::pair<double, double> MapToPixelCoords(double ev, double db, const st
  * @brief Draws the static base of a plot (axes, grid, titles, threshold lines).
  * @param cr The cairo drawing context.
  * @param title The main title of the plot.
+ * @param opts The program options, used to display calibration values. // <-- AÑADIDO
  * @param bounds A map containing the plot boundaries (min_ev, max_ev, min_db, max_db).
  * @param command_text The command-line text to display at the bottom of the plot.
  * @param snr_thresholds A vector of SNR thresholds to draw as horizontal dashed lines.
@@ -47,6 +49,7 @@ inline std::pair<double, double> MapToPixelCoords(double ev, double db, const st
 void DrawPlotBase(
     cairo_t* cr,
     const std::string& title,
+    const ProgramOptions& opts,
     const std::map<std::string, double>& bounds,
     const std::string& command_text,
     const std::vector<double>& snr_thresholds);
