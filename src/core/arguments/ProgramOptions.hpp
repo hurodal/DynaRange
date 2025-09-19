@@ -1,10 +1,12 @@
-// File: src/core/arguments/Arguments.hpp
+// File: src/core/arguments/ProgramOptions.hpp
 /**
- * @file src/core/arguments/Arguments.hpp
- * @brief Defines the structures and functions for command-line argument management.
+ * @file src/core/arguments/ProgramOptions.hpp
+ * @brief Defines the data structure and types for program configuration.
+ * @details This file has a single responsibility: to define the structure
+ *          that holds all user-configurable options for the application.
+ *          It contains no logic for parsing or generating commands.
  */
 #pragma once
-
 #include <string>
 #include <vector>
 #include <map>
@@ -18,7 +20,6 @@ constexpr int DEFAULT_POLY_ORDER = 3;
  */
 enum class CommandFormat {
     Full, ///< Complete command with all paths and arguments, for the GUI.
-
     /**
      * @brief Abbreviated command for plots.
      * @note Uses long argument names (--param) for clarity, shortens paths,
@@ -30,6 +31,8 @@ enum class CommandFormat {
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
+ * @details This is a pure data structure (POD-like). It should be populated
+ *          by a parser and consumed by a generator or the core engine.
  */
 struct ProgramOptions {
     double dark_value = 0.0;                       ///< Manual or calculated black level value.
@@ -47,8 +50,5 @@ struct ProgramOptions {
     std::vector<double> chart_params;              ///< Parameters for chart creation (R, G, B, gamma).
     std::string generated_command;                 ///< Stores the generated command string for plots.
     std::map<std::string, std::string> plot_labels;///< Maps a filename to its desired plot label (e.g., "ISO 100").
-    double sensor_resolution_mpx = 0.0;            ///< If 0, try to auto-detect from RAW metadata
+    double sensor_resolution_mpx = 0.0;            ///< If 0, try to auto-detect from RAW metadata.
 };
-
-ProgramOptions ParseArguments(int argc, char* argv[]);
-std::string GenerateCommandString(const ProgramOptions& opts, CommandFormat format = CommandFormat::Full);

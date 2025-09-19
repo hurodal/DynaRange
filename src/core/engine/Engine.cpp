@@ -7,7 +7,7 @@
 #include "Initialization.hpp"
 #include "Processing.hpp"
 #include "Reporting.hpp"
-#include "Normalization.hpp"
+#include "Validation.hpp"
 
 namespace DynaRange {
 
@@ -20,8 +20,8 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
     // Phase 2: Processing of all files
     ProcessingResult results = ProcessFiles(opts, log_stream);
 
-    // Phase 3: Normalize and validate SNR data before DR calculation
-    NormalizeAndValidateSNR(results, opts, log_stream);
+    // Phase 3: Validate SNR data before final reporting
+    ValidateSnrResults(results, opts, log_stream);
 
     // Phase 4: Generation of final reports
     return FinalizeAndReport(results, opts, log_stream);

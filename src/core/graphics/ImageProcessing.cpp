@@ -4,12 +4,14 @@
  * @brief Implements geometric image processing functions.
  */
 #include "ImageProcessing.hpp"
+#include "../io/RawFile.hpp"
 
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points) {
     Eigen::Matrix<double, 8, 8> A;
     Eigen::Vector<double, 8> b;
     for (int i = 0; i < 4; ++i) {
-        const auto& xu = src_points[i].x; const auto& yu = src_points[i].y;
+        const auto& xu = src_points[i].x;
+        const auto& yu = src_points[i].y;
         const auto& xd = dst_points[i].x; const auto& yd = dst_points[i].y;
         A.row(2 * i)     << xd, yd, 1, 0,  0,  0, -xd * xu, -yd * xu;
         A.row(2 * i + 1) << 0,  0,  0, xd, yd, 1, -xd * yu, -yd * yu;
@@ -37,15 +39,19 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     return imgCorrected;
 }
 
-
-cv::Mat PrepareChartImage(const RawFile& raw_file, const ProgramOptions& opts, const ChartProfile& chart, std::ostream& log_stream) {
+cv::Mat PrepareChartImage(
+    const RawFile& raw_file, 
+    const ProgramOptions& opts, 
+    const Eigen::VectorXd& keystone_params,
+    const ChartProfile& chart, 
+    std::ostream& log_stream) 
+{
     cv::Mat img_float = raw_file.GetNormalizedImage(opts.dark_value, opts.saturation_value);
     if(img_float.empty()){
         log_stream << "Error: Could not get normalized image for: " << raw_file.GetFilename() << std::endl;
         return {};
     }
     log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
-
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     for (int r = 0; r < imgBayer.rows; ++r) {
         for (int c = 0; c < imgBayer.cols; ++c) {
@@ -53,11 +59,19 @@ cv::Mat PrepareChartImage(const RawFile& raw_file, const ProgramOptions& opts, c
         }
     }
     
-    log_stream << "  - Calculating and applying Keystone correction..." << std::endl;
-    Eigen::VectorXd k = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
-    cv::Mat img_corrected = UndoKeystone(imgBayer, k);
+    log_stream << "  - Applying Keystone correction..." << std::endl;
+    // Se usa el parámetro pre-calculado 'keystone_params'
+    cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
     
     const auto& dst_pts = chart.GetDestinationPoints();
     cv::Rect crop_area(round(dst_pts[0].x), round(dst_pts[0].y), round(dst_pts[2].x - dst_pts[0].x), round(dst_pts[2].y - dst_pts[0].y));
+    
+    if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
+        crop_area.x + crop_area.width > img_corrected.cols ||
+        crop_area.y + crop_area.height > img_corrected.rows) {
+        log_stream << "Error: Invalid crop area calculated for keystone correction." << std::endl;
+        return {};
+    }
+
     return img_corrected(crop_area);
 }

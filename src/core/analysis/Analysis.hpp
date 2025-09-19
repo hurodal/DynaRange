@@ -5,11 +5,9 @@
  */
 #pragma once
 
-#include "Arguments.hpp"
+#include "../arguments/ProgramOptions.hpp"
 #include <string>
 #include <vector>
-#include <optional>
-#include <ostream>
 #include <map>
 #include <opencv2/core.hpp>
 

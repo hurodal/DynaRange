@@ -9,7 +9,6 @@ project(dynaRange CXX)
 set(PROJECT_VERSION "1.0.0")
 
 # --- Opciones y variables globales del compilador ---
-# Establece el estándar C++ a C++17 y asegura que es requerido.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -19,8 +18,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 
 # --- Rutas y directorios ---
-# Añade la carpeta /cmake local para módulos personalizados de CMake si los hubiera.
-# (Actualmente no tienes, pero es buena práctica mantenerlo si se añaden en el futuro)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Directorio de salida para los ejecutables y recursos.
@@ -81,27 +78,31 @@ pkg_check_modules(CAIRO REQUIRED cairo)
 # Lista de ficheros fuente que son compartidos entre la versión CLI y la GUI.
 # Esto evita duplicación y asegura que todos los componentes centrales se compilen.
 set(CORE_SOURCES
-    src/core/arguments/Arguments.cpp
-    src/core/arguments/CommandLineParser.cpp
-    src/core/arguments/CommandGenerator.cpp
     src/core/analysis/Analysis.cpp
     src/core/analysis/CurveCalculator.cpp
-    src/core/analysis/FilePreparer.cpp
     src/core/analysis/ImageAnalyzer.cpp
     src/core/analysis/RawProcessor.cpp
+    src/core/arguments/CommandGenerator.cpp
+    src/core/arguments/CommandLineParser.cpp
+    src/core/ChartProfile.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
-    src/core/engine/Normalization.cpp
-    src/core/normalization/Normalizer.cpp
-    src/core/graphics/Drawing.cpp
+    src/core/engine/Validation.cpp 
     src/core/graphics/ImageProcessing.cpp
+    src/core/graphics/PlotBase.cpp
+    src/core/graphics/PlotData.cpp
+    src/core/graphics/PlotInfoBox.cpp    
     src/core/graphics/Plotting.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
+    src/core/normalization/Normalizer.cpp
+    src/core/setup/FileSorter.cpp
+    src/core/setup/MetadataExtractor.cpp
+    src/core/setup/PlotLabelGenerator.cpp
+    src/core/setup/SensorResolution.cpp
     src/core/utils/PathManager.cpp
-    src/core/ChartProfile.cpp
 )
 
 # =============================================================================
@@ -127,6 +128,7 @@ target_include_directories(rango PRIVATE
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
@@ -150,6 +152,7 @@ add_executable(dynaRangeGui WIN32
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
+    src/gui/GuiPresenter.cpp    
     ${CORE_SOURCES}
     # Fichero de recursos para el icono y metadatos en Windows.
     icono_noise.rc
@@ -164,6 +167,7 @@ target_include_directories(dynaRangeGui PRIVATE
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
@@ -239,8 +243,7 @@ include(InstallRequiredSystemLibraries)
 
 # Define el nombre y la versión del proyecto para CPack.
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION}) # Asumiendo que PROJECT_VERSION está definido en otro lugar o se definirá.
-                                              # Si no, podrías usar una versión fija aquí, ej. "1.0.0"
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 # Instala los ejecutables en el directorio 'bin' del destino de instalación.
 install(TARGETS rango dynaRangeGui DESTINATION bin)

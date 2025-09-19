@@ -1,29 +1,31 @@
+// File: gui/DynaRangeFrame.hpp
 /**
  * @file gui/DynaRangeFrame.hpp
- * @brief Main frame of the DynaRange GUI application.
+ * @brief Main frame of the DynaRange GUI application (The View).
  * @author Juanma Font
  * @date 2025-09-10
  */
 #pragma once
 
 #include "DynaRangeBase.h"
-#include "../core/arguments/Arguments.hpp"
+#include "GuiPresenter.hpp" // Include the presenter
 #include <wx/arrstr.h>
 #include <wx/dnd.h>
-#include <wx/timer.h> // AÑADIDO: Cabecera para el wxTimer
+#include <wx/timer.h>
 #include <string>
-#include <map>
+#include <memory> // For std::unique_ptr
 
-// Custom event declarations for the worker thread
+// Custom event declarations for thread communication
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
-wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxThreadEvent);
+wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 
-// Forward declaration
 class FileDropTarget;
 
 /**
  * @class DynaRangeFrame
- * @brief Implements the application's main window, handling user interaction and events.
+ * @brief Implements the application's main window (the View).
+ * @details This class is responsible only for UI elements and events. It delegates
+ * all application logic to a GuiPresenter instance.
  */
 class DynaRangeFrame : public MyFrameBase
 {
@@ -31,78 +33,57 @@ public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
 
+    // --- Methods called by external classes (e.g., FileDropTarget) ---
     void AddDroppedFiles(const wxArrayString& filenames);
 
+    // --- Methods called by the Presenter to update the View ---
+    void UpdateInputFileList(const std::vector<std::string>& files);
+    void UpdateCommandPreview(const std::string& command);
+    void DisplayResults(const std::string& csv_path);
+    void ShowError(const std::string& title, const std::string& message);
+    void SetUiState(bool is_processing);
+    void PostLogUpdate(const std::string& text);
+    void PostAnalysisComplete();
+    void LoadGraphImage(const std::string& image_path);
+
+    // --- Methods for the Presenter to get data from the View ---
+    std::string GetDarkFilePath() const;
+    std::string GetSaturationFilePath() const;
+    double GetDarkValue() const;
+    double GetSaturationValue() const;
+    double GetPatchRatio() const;
+    
 protected:
-    // Event Handlers
+    // Event Handlers that delegate to the Presenter
     void OnExecuteClick(wxCommandEvent& event);
     void OnAddFilesClick(wxCommandEvent& event);
     void OnGridCellClick(wxGridEvent& event);
     void OnInputChanged(wxEvent& event);
+    void OnGaugeTimer(wxTimerEvent& event);
+    void OnPatchRatioSliderChanged(wxScrollEvent& event);
 
     // Worker thread event handlers
     void OnWorkerUpdate(wxThreadEvent& event);
-    void OnWorkerCompleted(wxThreadEvent& event);
+    void OnWorkerCompleted(wxCommandEvent& event);
     
-    /**
-     * @brief Event handler for the gauge animation timer.
-     * @param event The timer event.
-     */
-    void OnGaugeTimer(wxTimerEvent& event); // Handler para el temporizador
-
 private:
-    // Logic functions
-    void UpdateCommandPreview();
+    // Private UI helper functions
     void ClearLog();
     void AppendLog(const wxString& text);
-    void LoadResults(const ProgramOptions& opts);
-    void LoadGraphImage(const wxString& path_or_raw_name);
-    ProgramOptions GetProgramOptions();
-    void SetExecuteButtonState(bool enabled);
     bool IsSupportedRawFile(const wxString& filePath);
-    void AddRawFilesToList(const wxArrayString& paths);
-
-    /**
-     * @brief Manages the UI state of the results panel.
-     * @param processing true to enter 'processing' state, false to enter 'results' state.
-     */
-    void SetResultsPanelState(bool processing);
-
-    // Member variables
-    ProgramOptions m_lastRunOptions;
-    wxArrayString m_inputFiles;
-    std::string m_summaryPlotPath;
-    std::map<std::string, std::string> m_individualPlotPaths;
-    FileDropTarget* m_dropTarget;
+    void LoadLogoImage();
     
-    wxTimer* m_gaugeTimer; // Puntero al temporizador
+    // Member variables
+    std::unique_ptr<GuiPresenter> m_presenter;
+    FileDropTarget* m_dropTarget;
+    wxTimer* m_gaugeTimer;
 };
 
-/**
- * @class FileDropTarget
- * @brief A wxFileDropTarget implementation to handle files dragged onto the frame.
- *
- * This class has the single responsibility of receiving file drop events and
- * forwarding the file paths to the main application frame.
- */
 class FileDropTarget : public wxFileDropTarget
 {
 public:
-    /**
-     * @brief Constructs the drop target.
-     * @param owner A pointer to the DynaRangeFrame that will process the files.
-     */
     FileDropTarget(DynaRangeFrame* owner) : m_owner(owner) {}
-
-    /**
-     * @brief Called by wxWidgets when files are dropped onto the associated window.
-     * @param x The x-coordinate of the drop point.
-     * @param y The y-coordinate of the drop point.
-     * @param filenames An array of full paths for the dropped files.
-     * @return true to indicate that the drop was successfully handled.
-     */
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) override;
-
 private:
     DynaRangeFrame* m_owner;
 };

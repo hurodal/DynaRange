@@ -5,7 +5,22 @@
  */
 #pragma once
 #include "../analysis/Analysis.hpp" 
+#include "../arguments/ProgramOptions.hpp"
 #include <vector>
+#include <Eigen/Dense>
+
+namespace DynaRange {
+namespace EngineConfig {
+    /**
+     * @brief Compile-time switch to control keystone calculation optimization.
+     * @details If true, keystone parameters are calculated only once from the first image
+     * and then reused for all subsequent images in the series. This is faster.
+     * If false, parameters are recalculated for every image, which can be useful
+     * for debugging but is less efficient.
+     */
+    constexpr bool OPTIMIZE_KEYSTONE_CALCULATION = true;
+}
+}
 
 /**
  * @struct SingleFileResult
@@ -22,7 +37,7 @@ struct SingleFileResult {
  */
 struct ProcessingResult {
     std::vector<DynamicRangeResult> dr_results; ///< Collection of DR results for each file.
-    std::vector<CurveData> curve_data;         ///< Collection of curve data for each file.
+    std::vector<CurveData> curve_data;          ///< Collection of curve data for each file.
 };
 
 /**

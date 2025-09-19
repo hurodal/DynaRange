@@ -4,11 +4,14 @@
  * @brief Implementation of the analysis initialization process.
  */
 #include "Initialization.hpp"
+#include "../arguments/CommandGenerator.hpp"
 #include "../analysis/RawProcessor.hpp"
-#include "../analysis/FilePreparer.hpp"
+#include "../setup/MetadataExtractor.hpp"
+#include "../setup/SensorResolution.hpp"
+#include "../setup/FileSorter.hpp"
+#include "../setup/PlotLabelGenerator.hpp"
 #include <iomanip>
 
-// Prepares the analysis: processes dark/sat frames, prints config, and sorts files.
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
@@ -37,13 +40,39 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "Patch ratio: " << opts.patch_ratio << "\n";
     log_stream << "Output file: " << opts.output_filename << "\n\n";
 
-    if (!PrepareAndSortFiles(opts, log_stream)) {
+    // --- SETUP PROCESS ORCHESTRATION ---
+    
+    // Step 1: Extract metadata from all files.
+    auto file_info = ExtractFileInfo(opts.input_files, log_stream);
+    if (file_info.empty()) {
+        log_stream << "Error: None of the input files could be processed." << std::endl;
         return false;
     }
     
+    // Step 2: Detect sensor resolution if not provided by the user.
+    if (opts.sensor_resolution_mpx == 0.0) {
+        opts.sensor_resolution_mpx = DetectSensorResolution(opts.input_files, log_stream);
+    }
+
+    // Step 3: Determine the final processing order of the files.
+    FileOrderResult order = DetermineFileOrder(file_info, log_stream);
+
+    // Step 4: Generate the plot labels based on the sorting outcome.
+    std::map<std::string, std::string> labels = GeneratePlotLabels(
+        order.sorted_filenames,
+        file_info,
+        order.was_exif_sort_possible
+    );
+
+    // Step 5: Update the program options with the setup results.
+    opts.input_files = order.sorted_filenames;
+    opts.plot_labels = labels;
+    
+    log_stream << "Sorting finished. Starting Dynamic Range calculation process..." << std::endl;
+    
     // Generate command string using the specific 'Plot' format.
     if (opts.plot_mode == 2) {
-        opts.generated_command = GenerateCommandString(opts, CommandFormat::Plot);
+        opts.generated_command = GenerateCommand(opts, CommandFormat::Plot);
     }
     return true;
 }

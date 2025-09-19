@@ -2,9 +2,11 @@
 /**
  * @file src/core/arguments/CommandGenerator.cpp
  * @brief Implements the generation of command-line strings from ProgramOptions.
+ * @details This is the sole implementation of the command generation logic.
+ *          It depends only on the ProgramOptions definition and the filesystem
+ *          for path manipulation. It has no knowledge of CLI11 or argument parsing.
  */
 #include "CommandGenerator.hpp"
-#include "Arguments.hpp"
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
@@ -46,12 +48,10 @@ std::string GenerateCommand(const ProgramOptions& opts, CommandFormat format) {
     if (format == CommandFormat::Full) {
         command_ss << " -o \"" << opts.output_filename << "\"";
     }
-
     if (opts.snr_thresholds_db.size() == 1) {
         command_ss << (format == CommandFormat::Plot ? " --snrthreshold-db " : " -d ")
                    << std::fixed << std::setprecision(2) << opts.snr_thresholds_db[0];
     }
-
     command_ss << (format == CommandFormat::Plot ? " --drnormalization-mpx " : " -m ")
                << std::fixed << std::setprecision(2) << opts.dr_normalization_mpx;
     command_ss << (format == CommandFormat::Plot ? " --poly-fit " : " -f ") << opts.poly_order;

@@ -1,0 +1,122 @@
+# .github/workflows/build.yml
+name: Build dynaRange for Windows and Linux (Static Binaries + Installer)
+
+on:
+  workflow_dispatch: # Solo se ejecuta manualmente desde la web de GitHub
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libopencv-dev \
+          libraw-dev \
+          libeigen3-dev \
+          libcairo2-dev \
+          libwxgtk3.2-dev \
+          gettext \
+          libgettextpo-dev \
+          pkg-config
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release -j $(nproc)
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dynaRange-Linux
+        path: |
+          build/rango
+          build/dynaRangeGui
+          build/logo.png
+          build/favicon_noise.ico
+
+  build-windows-static:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install MSYS2 and Static Dependencies
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-pkg-config
+          mingw-w64-x86_64-opencv
+          mingw-w64-x86_64-libraw
+          mingw-w64-x86_64-eigen3
+          mingw-w64-x86_64-cli11
+          mingw-w64-x86_64-gettext
+          mingw-w64-x86_64-cairo
+          mingw-w64-x86_64-wxWidgets
+
+    - name: Configure CMake for Static Build
+      run: |
+        cmake -B build \
+          -G "MinGW Makefiles" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
+      shell: msys2 {0}
+
+    - name: Build
+      run: |
+        cmake --build build --config Release -j $(nproc)
+      shell: msys2 {0}
+
+    - name: Verify Static Linking
+      run: |
+        ldd build/rango.exe || echo "rango.exe is statically linked (no dynamic deps found)"
+        ldd build/dynaRangeGui.exe || echo "dynaRangeGui.exe is statically linked (no dynamic deps found)"
+      shell: msys2 {0}
+
+    - name: Create Portable Folder Structure
+      run: |
+        mkdir dynaRangePortable
+        cp build/rango.exe dynaRangePortable/
+        cp build/dynaRangeGui.exe dynaRangePortable/
+        cp build/logo.png dynaRangePortable/
+        cp favicon_owl.ico dynaRangePortable/ # <-- Icono para rango.exe
+        cp favicon_noise.ico dynaRangePortable/ # <-- Icono para dynaRangeGui.exe
+      shell: bash
+
+    - name: Install NSIS
+      run: |
+        choco install nsis -y
+        echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Build Windows Installer with NSIS
+      run: |
+        cd dynaRangePortable
+        makensis ../crear_instalador_windows.nsi
+      shell: bash
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dynaRange-Windows-Static-Portable
+        path: |
+          dynaRangePortable/rango.exe
+          dynaRangePortable/dynaRangeGui.exe
+          dynaRangePortable/logo.png
+          dynaRangePortable/favicon_owl.ico
+          dynaRangePortable/favicon_noise.ico
+
+    - name: Upload Windows Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: dynaRange-Windows-Installer
+        path: dynaRangePortable/dynaRangeInstaller.exe

@@ -66,45 +66,102 @@ std::optional<std::string> GenerateSummaryPlotReport(
 }
 
 /**
- * @brief Generates the CSV file and the log table report.
+ * @brief Generates a single data row as a formatted string for either log or CSV.
+ * @param res The DynamicRangeResult for the row.
+ * @param opts The program options (for SNR thresholds).
+ * @param for_log If true, formats for console log (with setw). If false, formats for CSV (comma-separated).
+ * @return A string containing the formatted row.
  */
-void GenerateCsvAndLogReport(
+std::string GenerateDataRow(const DynamicRangeResult& res, const ProgramOptions& opts, bool for_log) {
+    std::stringstream row_ss;
+    std::string filename = fs::path(res.filename).filename().string();
+
+    if (for_log) {
+        row_ss << std::left << std::setw(30) << filename;
+    } else {
+        row_ss << filename;
+    }
+
+    for (const double threshold : opts.snr_thresholds_db) {
+        double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
+        if (for_log) {
+            row_ss << std::fixed << std::setprecision(4) << std::setw(20) << value;
+        } else {
+            row_ss << "," << value;
+        }
+    }
+
+    if (for_log) {
+        row_ss << res.patches_used;
+    } else {
+        row_ss << "," << res.patches_used;
+    }
+
+    return row_ss.str();
+}
+
+/**
+ * @brief (SRP) Generates a formatted table of results for the console log.
+ */
+void GenerateLogReport(
     const std::vector<DynamicRangeResult>& all_results,
     const ProgramOptions& opts,
-    const PathManager& paths,
     std::ostream& log_stream)
 {
     log_stream << "\n--- Dynamic Range Results ---\n";
     
-    std::stringstream header_log, header_csv;
+    // --- Generate Header for Log ---
+    std::stringstream header_log;
     header_log << std::left << std::setw(30) << "RAW File";
-    header_csv << "raw_file";
     
     for (const double threshold : opts.snr_thresholds_db) {
         std::stringstream col_name_ss;
         col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
         header_log << std::setw(20) << col_name_ss.str();
-        header_csv << "," << col_name_ss.str();
     }
     header_log << "Patches";
-    header_csv << ",patches_used";
 
+    // --- Print Header and Rows to Log ---
     log_stream << header_log.str() << std::endl;
     log_stream << std::string(header_log.str().length(), '-') << std::endl;
     
+    for (const auto& res : all_results) {
+        log_stream << GenerateDataRow(res, opts, true) << std::endl;
+    }
+}
+
+/**
+ * @brief (SRP) Generates a CSV file with the analysis results.
+ */
+void GenerateCsvReport(
+    const std::vector<DynamicRangeResult>& all_results,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream)
+{
+    // --- Open CSV file ---
     std::ofstream csv_file(paths.GetCsvOutputPath());
+    if (!csv_file.is_open()) {
+        log_stream << "\nError: Could not open CSV file for writing: " << paths.GetCsvOutputPath() << std::endl;
+        return;
+    }
+
+    // --- Generate Header for CSV ---
+    std::stringstream header_csv;
+    header_csv << "raw_file";
+    
+    for (const double threshold : opts.snr_thresholds_db) {
+        std::stringstream col_name_ss;
+        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
+        header_csv << "," << col_name_ss.str();
+    }
+    header_csv << ",patches_used";
+
+    // --- Write Header and Rows to CSV ---
     csv_file << header_csv.str() << "\n";
 
     for (const auto& res : all_results) {
-        log_stream << std::left << std::setw(30) << fs::path(res.filename).filename().string();
-        csv_file << fs::path(res.filename).filename().string();
-        for (const double threshold : opts.snr_thresholds_db) {
-            double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
-            log_stream << std::fixed << std::setprecision(4) << std::setw(20) << value;
-            csv_file << "," << value;
-        }
-        log_stream << res.patches_used << std::endl;
-        csv_file << "," << res.patches_used << "\n";
+        csv_file << GenerateDataRow(res, opts, false) << "\n";
     }
 
     csv_file.close();
@@ -112,7 +169,6 @@ void GenerateCsvAndLogReport(
 }
 
 } // end anonymous namespace
-
 
 ReportOutput FinalizeAndReport(
     const ProcessingResult& results,
@@ -124,7 +180,9 @@ ReportOutput FinalizeAndReport(
 
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     
-    GenerateCsvAndLogReport(results.dr_results, opts, paths, log_stream);
+    // Call the two new, single-responsibility functions
+    GenerateLogReport(results.dr_results, opts, log_stream);
+    GenerateCsvReport(results.dr_results, opts, paths, log_stream);
 
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
 
