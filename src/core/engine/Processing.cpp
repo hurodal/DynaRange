@@ -39,6 +39,7 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
  * @param raw_file The RawFile object to be analyzed.
  * @param opts The program options.
  * @param chart The chart profile defining the geometry.
+ * @param keystone_params The pre-calculated keystone transformation parameters.
  * @param log_stream The output stream for logging.
  * @param camera_resolution_mpx The resolution of the camera sensor in megapixels.
  * @return A SingleFileResult struct containing the analysis results.
@@ -47,13 +48,14 @@ SingleFileResult AnalyzeSingleRawFile(
     const RawFile& raw_file, 
     const ProgramOptions& opts, 
     const ChartProfile& chart, 
+    const Eigen::VectorXd& keystone_params,
     std::ostream& log_stream,
     double camera_resolution_mpx)
 {
     log_stream << "\nProcessing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
     
     // 1. Call ImageProcessing module to prepare the image
-    cv::Mat img_prepared = PrepareChartImage(raw_file, opts, chart, log_stream);
+    cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
     if (img_prepared.empty()) {
         return {};
     }
@@ -99,19 +101,45 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         camera_model_name = raw_files[0].GetCameraModel();
     }
 
-    // 3. Orchestrate analysis for each file
-    for (const auto& raw_file : raw_files) {
-        if (!raw_file.IsLoaded()) continue;
-
-        // Note: Using sensor_resolution_mpx from opts which was detected in the setup phase.
-        auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, log_stream, opts.sensor_resolution_mpx);
+    // --- CAMBIO: Lógica condicional basada en la nueva constante de Processing.hpp ---
+    if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
+        // --- RUTA OPTIMIZADA Solo se calcula el keystone para el primer fotograma ---
+        log_stream << "[INFO] Using optimized keystone: calculating parameters once for the series..." << std::endl;
+        // El cálculo pesado se hace aquí, una única vez
+        Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
         
-        // Aggregate valid results
-        if (!file_result.dr_result.filename.empty()) {
-            file_result.curve_data.camera_model = camera_model_name;
-            result.dr_results.push_back(file_result.dr_result);
-            result.curve_data.push_back(file_result.curve_data);
+        // 3. Orchestrate analysis for each file
+        for (const auto& raw_file : raw_files) {
+            if (!raw_file.IsLoaded()) continue;
+            // Se pasan los parámetros pre-calculados a cada llamada
+            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
+            
+            // Aggregate valid results
+            if (!file_result.dr_result.filename.empty()) {
+                file_result.curve_data.camera_model = camera_model_name;
+                result.dr_results.push_back(file_result.dr_result);
+                result.curve_data.push_back(file_result.curve_data);
+            }
+        }
+    } else {
+        // --- RUTA NO OPTIMIZADA Se calcula el keystone para cada fotograma ---
+        log_stream << "[INFO] Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
+        // 3. Orchestrate analysis for each file
+        for (const auto& raw_file : raw_files) {
+            if (!raw_file.IsLoaded()) continue;
+
+            // El cálculo pesado se realiza dentro del bucle, en cada iteración
+            Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
+            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
+            
+            // Aggregate valid results
+            if (!file_result.dr_result.filename.empty()) {
+                file_result.curve_data.camera_model = camera_model_name;
+                result.dr_results.push_back(file_result.dr_result);
+                result.curve_data.push_back(file_result.curve_data);
+            }
         }
     }
+
     return result;
 }

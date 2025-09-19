@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "RawFile.hpp"
+#include "../io/RawFile.hpp"
 #include "../ChartProfile.hpp"
 #include "../arguments/ProgramOptions.hpp"
 #include <vector>
@@ -34,8 +34,14 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
  * keystone correction, and cropping based on a chart profile.
  * @param raw_file The source RawFile object.
  * @param opts The program options (for black/saturation levels).
+ * @param keystone_params The pre-calculated keystone transformation parameters.
  * @param chart The chart profile defining the geometry.
  * @param log_stream Stream for logging messages.
  * @return A prepared cv::Mat, ready for patch analysis. Returns empty Mat on failure.
  */
-cv::Mat PrepareChartImage(const RawFile& raw_file, const ProgramOptions& opts, const ChartProfile& chart, std::ostream& log_stream);
+cv::Mat PrepareChartImage(
+    const RawFile& raw_file, 
+    const ProgramOptions& opts, 
+    const Eigen::VectorXd& keystone_params,
+    const ChartProfile& chart, 
+    std::ostream& log_stream);
