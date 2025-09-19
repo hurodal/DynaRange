@@ -239,5 +239,4 @@ void DrawPlotBase(
     DrawXAxisLabels(cr, bounds);
     DrawYAxisLabels(cr, bounds);
     DrawPlotAnnotations(cr, title, command_text);
-    DrawCalibrationInfo(cr, opts);
 }

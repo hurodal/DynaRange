@@ -93,6 +93,7 @@ set(CORE_SOURCES
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
+    src/core/graphics/PlotInfoBox.cpp    
     src/core/graphics/Plotting.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp

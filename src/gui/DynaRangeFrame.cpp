@@ -57,7 +57,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    
+    m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
+
     // Thread communication events
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
@@ -103,6 +104,17 @@ void DynaRangeFrame::OnGridCellClick(wxGridEvent& event) {
 }
 
 void DynaRangeFrame::OnInputChanged(wxEvent& event) {
+    m_presenter->UpdateCommandPreview();
+}
+
+void DynaRangeFrame::OnPatchRatioSliderChanged(wxScrollEvent& event) {
+    // 1. Obtiene el valor actual del slider (que es un float 0.0-1.0)
+    double value = GetPatchRatio();
+
+    // 2. Actualiza la etiqueta de texto al lado del slider
+    m_patchRatioValueText->SetLabel(wxString::Format("%.2f", value));
+
+    // 3. Notifica al Presenter para que actualice el command preview
     m_presenter->UpdateCommandPreview();
 }
 
@@ -239,6 +251,11 @@ double DynaRangeFrame::GetSaturationValue() const {
     double val;
     m_saturationValueTextCtrl->GetValue().ToDouble(&val);
     return val;
+}
+
+double DynaRangeFrame::GetPatchRatio() const {
+    // Lee el valor entero del slider (0-100) y lo convierte a un flotante (0.0-1.0)
+    return static_cast<double>(m_patchRatioSlider->GetValue()) / 100.0;
 }
 
 // --- Other UI and Helper Functions ---

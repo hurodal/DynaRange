@@ -51,6 +51,7 @@ public:
     std::string GetSaturationFilePath() const;
     double GetDarkValue() const;
     double GetSaturationValue() const;
+    double GetPatchRatio() const;
     
 protected:
     // Event Handlers that delegate to the Presenter
@@ -59,6 +60,7 @@ protected:
     void OnGridCellClick(wxGridEvent& event);
     void OnInputChanged(wxEvent& event);
     void OnGaugeTimer(wxTimerEvent& event);
+    void OnPatchRatioSliderChanged(wxScrollEvent& event);
 
     // Worker thread event handlers
     void OnWorkerUpdate(wxThreadEvent& event);

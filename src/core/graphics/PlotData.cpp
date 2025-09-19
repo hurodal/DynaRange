@@ -137,9 +137,13 @@ void DrawThresholdIntersection(
 // ================== PUBLIC FUNCTION ==================
 void DrawCurvesAndData(
     cairo_t* cr,
+    const PlotInfoBox& info_box,
     const std::vector<CurveData>& curves,
     const std::map<std::string, double>& bounds)
 {
+    // Dibuja la caja de información primero
+    info_box.Draw(cr);
+    
     // Using a boolean to alternate is simpler and more robust.
     bool draw_above_12db = true;
     bool draw_above_0db = true;

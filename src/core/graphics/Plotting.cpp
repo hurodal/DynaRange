@@ -9,9 +9,9 @@
  */
 
 #include "Plotting.hpp"
-#include "../analysis/Analysis.hpp" // Needed for CurveData struct
 #include "PlotBase.hpp"
 #include "PlotData.hpp"
+#include "PlotInfoBox.hpp"
 #include <cairo/cairo.h>
 #include <iostream>
 #include <algorithm>
@@ -101,10 +101,20 @@ void GenerateSnrPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
+    // --- CAMBIO: Crear y poblar el PlotInfoBox ---
+    PlotInfoBox info_box;
+    std::stringstream black_ss, sat_ss, patch_ss;
+    black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
+    sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
+    patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
+    info_box.AddItem("Black", black_ss.str());
+    info_box.AddItem("Saturation", sat_ss.str());
+    info_box.AddItem("Patch Ratio", patch_ss.str());
+
     // Draw the static plot base (axes, grid, labels, thresholds)
     DrawPlotBase(cr, "SNR Curve - " + plot_title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
-
-    // Draw the dynamic data (curve, points, label)
+    
+    // Prepare the data for a single curve
     std::vector<CurveData> single_curve_vec = {{
         plot_title,
         curve_label,
@@ -114,16 +124,17 @@ void GenerateSnrPlot(
         poly_coeffs,
         opts.generated_command
     }};
-    DrawCurvesAndData(cr, single_curve_vec, bounds);
+
+    // --- CAMBIO: Pasar el info_box a la función de dibujo de datos ---
+    DrawCurvesAndData(cr, info_box, single_curve_vec, bounds);
 
     // Draw timestamp in bottom-left corner
     DrawGeneratedTimestamp(cr);
-
+    
     // Write PNG and clean up
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-
     log_stream << "  - Info: Plot saved to: " << output_filename << std::endl;
 }
 
@@ -168,21 +179,30 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
+    // Crear y poblar el PlotInfoBox ---
+    PlotInfoBox info_box;
+    std::stringstream black_ss, sat_ss, patch_ss;
+    black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
+    sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
+    //patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
+    info_box.AddItem("Black", black_ss.str());
+    info_box.AddItem("Saturation", sat_ss.str());
+    //info_box.AddItem("Patch Ratio", patch_ss.str());
+
     // Draw the static plot base
     std::string title = "SNR Curves - Summary (" + camera_name + ")";
     DrawPlotBase(cr, title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
 
-    // Draw all curves dynamically
-    DrawCurvesAndData(cr, all_curves, bounds);
+    // --- CAMBIO: Pasar el info_box a la función de dibujo de datos ---
+    DrawCurvesAndData(cr, info_box, all_curves, bounds);
 
     // Draw timestamp in bottom-left corner
     DrawGeneratedTimestamp(cr);
-
+    
     // Write PNG and clean up
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-
     log_stream << "  - Info: Summary Plot saved to: " << output_filename << std::endl;
 
     return output_filename;

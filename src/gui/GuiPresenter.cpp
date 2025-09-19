@@ -89,7 +89,7 @@ ProgramOptions GuiPresenter::BuildProgramOptions() {
     opts.snr_thresholds_db = {12.0, 0.0};
     opts.dr_normalization_mpx = 8.0;
     opts.poly_order = 3;
-    opts.patch_ratio = 0.5;
+    opts.patch_ratio = m_view->GetPatchRatio();
     opts.plot_mode = 2; // Always generate plots and command for the GUI
     
     wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();

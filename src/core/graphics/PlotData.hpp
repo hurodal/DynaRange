@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include "../analysis/Analysis.hpp"
+#include "PlotInfoBox.hpp"
 
 /**
  * @brief Draws the dynamic data onto the plot (data points, curves, labels).
@@ -18,5 +19,6 @@
  */
 void DrawCurvesAndData(
     cairo_t* cr,
+    const PlotInfoBox& info_box,
     const std::vector<CurveData>& curves,
     const std::map<std::string, double>& bounds);
