@@ -87,9 +87,9 @@ set(CORE_SOURCES
     src/core/ChartProfile.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
-    src/core/engine/Normalization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
+    src/core/engine/Validation.cpp 
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
