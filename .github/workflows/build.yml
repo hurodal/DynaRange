@@ -1,5 +1,5 @@
 # .github/workflows/build.yml
-name: Build dynaRange for Windows (Static Binaries + Installer)
+name: Build dynaRange for Windows Fixed (Static Binaries + Installer)
 
 on:
   workflow_dispatch: # Solo se ejecuta manualmente desde la web de GitHub
