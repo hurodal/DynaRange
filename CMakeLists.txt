@@ -168,14 +168,43 @@ add_executable(dynaRangeGui WIN32
     icono_noise.rc
 )
 
-# Aplicar las configuraciones de wxWidgets según el entorno
+# --- Lógica de enlazado para wxWidgets ---
 if(WIN32 AND ENV{MSYSTEM})
-    # MSYS: Aplicamos los flags obtenidos de wx-config
+    message(STATUS "MSYS environment detected. Using wx-config for wxWidgets flags.")
+    find_program(WX_CONFIG_EXECUTABLE wx-config)
+    if(NOT WX_CONFIG_EXECUTABLE)
+        message(FATAL_ERROR "wx-config not found!")
+    endif()
+    execute_process(
+        COMMAND ${WX_CONFIG_EXECUTABLE} --cxxflags
+        OUTPUT_VARIABLE WX_CXXFLAGS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+        COMMAND ${WX_CONFIG_EXECUTABLE} --libs all
+        OUTPUT_VARIABLE WX_LIBS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
     target_compile_options(dynaRangeGui PRIVATE ${WX_CXXFLAGS})
     target_link_libraries(dynaRangeGui PRIVATE ${WX_LIBS})
 else()
-    # Estándar: Usamos las variables de find_package
-    target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
+    message(STATUS "Standard environment detected. Using find_package for wxWidgets.")
+    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
+    # --- ¡¡¡CORRECCIÓN AQUÍ!!! ---
+    # Asegúrate de incluir EIGEN3 en los directorios de inclusión
+    target_include_directories(dynaRangeGui PRIVATE
+        ${OpenCV_INCLUDE_DIRS}
+        ${LIBRAW_INCLUDE_DIRS}
+        ${EIGEN3_INCLUDE_DIR} # <-- ¡ESTA LÍNEA FALTABA!
+        ${wxWidgets_INCLUDE_DIRS}
+        ${CAIRO_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    )
     target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
     target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
 endif()
@@ -189,7 +218,6 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
 )
-
 
 # =============================================================================
 # 6. CONFIGURACIÓN POST-COMPILACIÓN Y RECURSOS
