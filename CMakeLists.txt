@@ -83,9 +83,12 @@ pkg_check_modules(CAIRO REQUIRED cairo)
 set(CORE_SOURCES
     src/core/analysis/Analysis.cpp
     src/core/analysis/CurveCalculator.cpp
-    src/core/analysis/FilePreparer.cpp
     src/core/analysis/ImageAnalyzer.cpp
     src/core/analysis/RawProcessor.cpp
+    src/core/analysis/setup/FileSorter.cpp
+    src/core/analysis/setup/MetadataExtractor.cpp
+    src/core/analysis/setup/PlotLabelGenerator.cpp
+    src/core/analysis/setup/SensorResolution.cpp
     src/core/arguments/CommandGenerator.cpp
     src/core/arguments/CommandLineParser.cpp
     src/core/ChartProfile.cpp
