@@ -41,7 +41,6 @@ if(WIN32)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-
 # =============================================================================
 # 3. BÚSQUEDA DE DEPENDENCIAS
 # =============================================================================
@@ -58,14 +57,11 @@ if(WIN32)
 endif()
 
 # --- Lógica ESPECÍFICA para wxWidgets ---
-# Si estamos en Windows Y en un entorno MSYS (como en GitHub Actions)...
-if(WIN32 AND ENV{MSYSTEM})
-    message(STATUS "MSYS environment detected. Using wx-config for wxWidgets flags.")
-    # Busca el ejecutable wx-config
-    find_program(WX_CONFIG_EXECUTABLE wx-config)
-    if(NOT WX_CONFIG_EXECUTABLE)
-        message(FATAL_ERROR "wx-config not found! Make sure wxWidgets is installed.")
-    endif()
+# Detectamos si estamos en un entorno MSYS2 (local o GitHub Actions)
+# Buscamos el ejecutable 'wx-config', que es la señal definitiva.
+find_program(WX_CONFIG_EXECUTABLE wx-config)
+if(WX_CONFIG_EXECUTABLE)
+    message(STATUS "wx-config found at: ${WX_CONFIG_EXECUTABLE}. Using it for wxWidgets configuration.")
     # Ejecuta wx-config para obtener los flags de compilación
     execute_process(
         COMMAND ${WX_CONFIG_EXECUTABLE} --cxxflags
@@ -79,8 +75,8 @@ if(WIN32 AND ENV{MSYSTEM})
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 else()
-    # Si no, estamos en un entorno normal, usamos el método estándar
-    message(STATUS "Standard environment detected. Using find_package for wxWidgets.")
+    # Si no se encuentra wx-config, intentamos el método estándar (Linux, macOS, etc.)
+    message(STATUS "wx-config not found. Falling back to find_package(wxWidgets...).")
     find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 endif()
 
@@ -168,43 +164,14 @@ add_executable(dynaRangeGui WIN32
     icono_noise.rc
 )
 
-# --- Lógica de enlazado para wxWidgets ---
-if(WIN32 AND ENV{MSYSTEM})
-    message(STATUS "MSYS environment detected. Using wx-config for wxWidgets flags.")
-    find_program(WX_CONFIG_EXECUTABLE wx-config)
-    if(NOT WX_CONFIG_EXECUTABLE)
-        message(FATAL_ERROR "wx-config not found!")
-    endif()
-    execute_process(
-        COMMAND ${WX_CONFIG_EXECUTABLE} --cxxflags
-        OUTPUT_VARIABLE WX_CXXFLAGS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-        COMMAND ${WX_CONFIG_EXECUTABLE} --libs all
-        OUTPUT_VARIABLE WX_LIBS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+# Aplicar las configuraciones de wxWidgets según el método usado
+if(WX_CONFIG_EXECUTABLE)
+    # Usamos los flags obtenidos de wx-config
     target_compile_options(dynaRangeGui PRIVATE ${WX_CXXFLAGS})
     target_link_libraries(dynaRangeGui PRIVATE ${WX_LIBS})
 else()
-    message(STATUS "Standard environment detected. Using find_package for wxWidgets.")
-    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
-    # --- ¡¡¡CORRECCIÓN AQUÍ!!! ---
-    # Asegúrate de incluir EIGEN3 en los directorios de inclusión
-    target_include_directories(dynaRangeGui PRIVATE
-        ${OpenCV_INCLUDE_DIRS}
-        ${LIBRAW_INCLUDE_DIRS}
-        ${EIGEN3_INCLUDE_DIR} # <-- ¡ESTA LÍNEA FALTABA!
-        ${wxWidgets_INCLUDE_DIRS}
-        ${CAIRO_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
-    )
+    # Usamos las variables de find_package
+    target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
     target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
     target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
 endif()
