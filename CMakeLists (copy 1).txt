@@ -32,8 +32,13 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 if(WIN32)
     # CMAKE_PREFIX_PATH es CRUCIAL en MSYS2 para que CMake encuentre las librerías
     # instaladas por pacman (como wxWidgets, Gettext, etc.)
-    # NOTA: Esta línea es para compilación local. El workflow la sobreescribe.
     list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
+
+    # CMake en Windows puede tener problemas con la detección de algunas funcionalidades
+    # si no se establecen ciertas definiciones explícitamente.
+    # Por ejemplo, para OpenMP, aunque OpenCV ya lo usa, a veces es necesario.
+    # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
 
@@ -42,6 +47,7 @@ endif()
 # =============================================================================
 # Todas las librerías externas que el proyecto necesita.
 # 'REQUIRED' significa que si no se encuentran, CMake falla.
+
 find_package(PkgConfig REQUIRED)
 
 # --- Librerías principales ---
@@ -59,9 +65,8 @@ if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
 
-# --- CAMBIO: La búsqueda de wxWidgets se deshabilita ---
-# CMake ya no buscará wxWidgets. Los flags se pasarán desde el workflow.
-# find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
+# wxWidgets: se especifican los componentes para una detección robusta.
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 # Cairo: para capacidades gráficas.
 pkg_check_modules(CAIRO REQUIRED cairo)
@@ -157,7 +162,7 @@ target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
-    # ${wxWidgets_INCLUDE_DIRS} # <-- CAMBIO: Ya no se necesita
+    ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
@@ -167,18 +172,21 @@ target_include_directories(dynaRangeGui PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
-# --- CAMBIO: Usamos las variables que nos pasará el workflow ---
-# Estas variables contendrán todos los includes (-I) y definiciones (-D) necesarios
-target_compile_options(dynaRangeGui PRIVATE "$ENV{WX_CXXFLAGS}")
+# Definiciones de compilador específicas para wxWidgets.
+# ${wxWidgets_DEFINITIONS} contiene flags como -D__WXGTK__ o -D__WXMSW__
+# que son cruciales para que las cabeceras de wxWidgets se compilen correctamente.
+target_compile_definitions(dynaRangeGui PRIVATE 
+    ${wxWidgets_DEFINITIONS}
+)
 
 # Librerías con las que el ejecutable GUI debe enlazarse.
 target_link_libraries(dynaRangeGui PRIVATE
-    "$ENV{WX_LIBS}" # <-- CAMBIO: Usamos la variable con todas las librerías
+    ${wxWidgets_LIBRARIES} # Contiene todas las librerías base de wxWidgets
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
-    ${GETTEXT_EXTRA_LIBS}
+    ${GETTEXT_EXTRA_LIBS} # Nuestra variable condicional para 'intl'
     ${CAIRO_LIBRARIES}
 )
 
