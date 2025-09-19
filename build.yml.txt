@@ -29,6 +29,11 @@ jobs:
 
       - name: Configure CMake for Static Build
         run: |
+          # 1. Capturar los flags de wxWidgets en variables de entorno
+          export WX_CXXFLAGS=$(wx-config --cxxflags)
+          export WX_LIBS=$(wx-config --libs all)
+
+          # 2. Ejecutar CMake
           cmake -B build `
             -G "MinGW Makefiles" `
             -DCMAKE_BUILD_TYPE=Release `
