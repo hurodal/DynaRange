@@ -64,6 +64,9 @@ jobs:
           mingw-w64-x86_64-wxwidgets-gtk3
 
     - name: Configure CMake for Static Build
+      env:
+        # Pasa la variable de entorno del setup al script
+        MSYS2_PREFIX: ${{ env.MSYS2_PREFIX }}
       run: |
         cmake -B build \
           -G "MinGW Makefiles" \
