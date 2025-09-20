@@ -1,4 +1,4 @@
-name: Build Windows Portable Installer
+name: Build Windows Installer
 
 on:
   workflow_dispatch:   # solo manual
