@@ -1,5 +1,5 @@
 # =============================================================================
-# 1. CONFIGURACIÓN INICIAL DEL PROYECTO (Llega al enlazado)
+# 1. CONFIGURACIÓN INICIAL DEL PROYECTO
 # =============================================================================
 cmake_minimum_required(VERSION 3.16)
 
@@ -38,8 +38,11 @@ if(WIN32)
 endif()
 
 # --- wxWidgets ---
-# Esta es la versión que funcionaba, porque las pistas se las da el build.yml
-find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
+# CAMBIO 1: AÑADIMOS PISTAS explícitas ANTES de find_package para asegurar
+# que encuentre la versión correcta y estática, eliminando los errores "__imp_...".
+set(wxBUILD_MONOLITHIC ON)
+set(wxBUILD_SHARED OFF)
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED STATIC)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
 
@@ -124,19 +127,19 @@ target_compile_definitions(dynaRangeGui PRIVATE
 
 # --- ENLAZADO DE LIBRERÍAS ---
 if(WIN32)
-    # Lista completa de dependencias basada en los errores "undefined reference" del log
+    # CAMBIO 2: Lista exhaustiva de dependencias basada en TODOS los errores del log.
     set(WIN_STATIC_LIBS 
         # Dependencias de imágenes (wxWidgets, cairo, libraw)
         png jpeg tiff z
         # Dependencias de fuentes y texto (cairo)
-        fontconfig freetype expat bz2 graphite2 harfbuzz
+        fontconfig freetype expat bz2 graphite2 harfbuzz pixman-1
         # Dependencias de gettext
         iconv
         # Dependencia de OpenMP (OpenCV)
         gomp
         # Librerías del sistema Windows (API)
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
-        version comctl32 uxtheme oleacc advapi32 winmm
+        version comctl32 uxtheme oleacc advapi32 winmm rpcrt4
     )
 endif()
 
