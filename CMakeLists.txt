@@ -191,19 +191,15 @@ install(TARGETS rango dynaRangeGui
 )
 
 # --- Instalar las DLLs necesarias ---
-# Este comando personalizado se ejecuta DURANTE LA INSTALACIÓN (no en la configuración).
-# Lista todos los .dll en el directorio de compilación y los instala.
-install(CODE "
-    file(GLOB DLL_FILES \"\${CMAKE_INSTALL_PREFIX}/bin/*.dll\")
-    foreach(dll \${DLL_FILES})
-        # Solo copia si el archivo existe y es un archivo regular (no un directorio)
-        if(EXISTS \"\${dll}\" AND NOT IS_DIRECTORY \"\${dll}\")
-            message(STATUS \"Instalando DLL: \${dll}\")
-            file(INSTALL \"\${dll}\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\")
-        endif()
-    endforeach()
-" COMPONENT Applications)
+# Busca todos los ficheros .dll en el directorio de compilación (build)
+# y los añade a la lista de ficheros que se instalarán.
+file(GLOB DLLS "${CMAKE_BINARY_DIR}/*.dll")
 
+# Instala los ficheros .dll encontrados en el directorio 'bin' del instalador.
+install(FILES ${DLLS}
+    DESTINATION bin
+    COMPONENT Applications
+)
 
 # --- Instalar otros archivos (iconos, etc.) ---
 install(FILES
