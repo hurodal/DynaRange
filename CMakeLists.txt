@@ -185,14 +185,11 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
 
-# --- Instalar los ejecutables y las traducciones ---
+# --- Instalar los ejecutables ---
 install(TARGETS rango dynaRangeGui
     RUNTIME DESTINATION bin
     COMPONENT Applications
 )
-
-# Las traducciones se instalan automáticamente gracias a la función
-# GETTEXT_PROCESS_PO_FILES de la sección 7.
 
 # --- Instalar las DLLs necesarias ---
 # Este script se ejecuta en el MOMENTO DE LA INSTALACIÓN (con cpack),
@@ -201,11 +198,10 @@ install(CODE "
     message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
     file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
     if(DLL_FILES)
-        message(STATUS \"DLLs encontradas, instalando: \${DLL_FILES}\")
-        install(FILES \${DLL_FILES}
-            DESTINATION bin
-            COMPONENT Applications
-        )
+        message(STATUS \"DLLs encontradas, instalando en el directorio bin del paquete.\")
+        # --- ESTA ES LA CORRECCIÓN CLAVE ---
+        # Usa file(INSTALL ...) para copiar los ficheros al destino de instalación.
+        file(INSTALL \${DLL_FILES} DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\")
     else()
         message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
     endif()
@@ -217,21 +213,16 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VENDOR "DynaRange Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 
-# --- SOLUCIÓN: Nombre de la carpeta de instalación y del fichero ---
-# 1. Define el nombre exacto de la carpeta en "Archivos de Programa".
+# --- Nombre de la carpeta de instalación y del fichero ---
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-# 2. Define el nombre del fichero .msi sin la versión.
 set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-win64-installer")
-
 
 # --- Configuración Específica para WiX (Instalador de Windows) ---
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
-set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541") # GUID fijo para tu proyecto
+set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
 
-# --- SOLUCIÓN: Añadir la aplicación al PATH del sistema ---
-# Se ha cambiado el GUID por uno generado automáticamente (*) para evitar conflictos
-# y asegurar que el componente se registre correctamente.
+# --- Añadir la aplicación al PATH del sistema ---
 set(CPACK_WIX_EXTRA_FEATURES
 [[
 <Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
