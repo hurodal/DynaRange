@@ -1,4 +1,4 @@
-name: Build dynaRange for Windows (A) (Static Binaries + Installer)
+name: Build dynaRange for Windows (B) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
@@ -29,10 +29,11 @@ jobs:
 
       - name: Configure CMake for Static Build
         run: |
-          cmake -B build `
-            -G "MinGW Makefiles" `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DBUILD_SHARED_LIBS=OFF `
+          cmake -B build \
+            -G "MinGW Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DwxWidgets_STATIC=ON \
             -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
         shell: msys2 {0}
 
