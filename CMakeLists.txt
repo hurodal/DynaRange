@@ -28,18 +28,8 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA (ANTES DE BUSCAR LIBRERÍAS)
 # =============================================================================
-# Configuración específica para Windows (MSYS2/MinGW)
-if(WIN32)
-    # Detecta automáticamente la ruta de MSYS2 si estamos en un entorno
-    # que la define (como GitHub Actions) o usa una ruta por defecto.
-    if(DEFINED ENV{MSYS2_ROOT})
-        message(STATUS "MSYS2 environment detected at $ENV{MSYS2_ROOT}")
-        list(APPEND CMAKE_PREFIX_PATH "$ENV{MSYS2_ROOT}/mingw64")
-    else()
-        message(STATUS "MSYS2_ROOT not defined. Falling back to default C:/msys64/mingw64")
-        list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
-    endif()
-endif()
+# (Sección eliminada. La ruta de MSYS2 se pasará desde el workflow)
+
 
 # =============================================================================
 # 3. BÚSQUEDA DE DEPENDENCIAS
@@ -57,8 +47,8 @@ if(WIN32)
 endif()
 
 # --- Lógica para wxWidgets (simplificada) ---
-# Usamos el método estándar de CMake. En Windows con MSYS2, CMAKE_PREFIX_PATH
-# asegura que encuentre la versión instalada por pacman.
+# Usamos el método estándar de CMake. La ruta de búsqueda (CMAKE_PREFIX_PATH)
+# se la proporcionará el workflow de GitHub Actions directamente.
 find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)

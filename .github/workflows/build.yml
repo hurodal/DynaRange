@@ -1,4 +1,4 @@
-name: Build dynaRange for Windows (D) (Static Binaries + Installer)
+name: Build dynaRange for Windows (E) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
@@ -12,6 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install MSYS2 and Dependencies
+        id: setup_msys2
         uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -31,6 +32,7 @@ jobs:
         run: |
           cmake -B build \
             -G "MinGW Makefiles" \
+            -DCMAKE_PREFIX_PATH="${{ steps.setup_msys2.outputs.msys2-root }}/mingw64" \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=OFF \
             -DwxWidgets_STATIC=ON \
