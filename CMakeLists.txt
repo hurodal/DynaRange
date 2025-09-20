@@ -6,26 +6,24 @@ cmake_minimum_required(VERSION 3.16)
 project(dynaRange CXX)
 set(PROJECT_VERSION "1.0.0")
 
-# --- Opciones y variables globales del compilador ---
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 
-# --- Rutas y directorios ---
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 
 # =============================================================================
-# 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA (ANTES DE BUSCAR LIBRERÍAS)
+# 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
 # =============================================================================
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
 endif()
 
 # =============================================================================
-# 3. BÚSQUEDA DE DEPENDENCIAS
+# 3. DEPENDENCIAS
 # =============================================================================
 find_package(PkgConfig REQUIRED)
 
@@ -40,16 +38,15 @@ if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
 
-# --- wxWidgets: monolítico + estático ---
+# --- wxWidgets monolítico y estático ---
 set(wxBUILD_MONOLITHIC ON CACHE BOOL "" FORCE)
 set(wxBUILD_SHARED OFF CACHE BOOL "" FORCE)
-
 find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
 
 # =============================================================================
-# 4. AGRUPACIÓN DE FICHEROS FUENTE
+# 4. FUENTES
 # =============================================================================
 set(CORE_SOURCES
     src/core/analysis/Analysis.cpp
@@ -79,7 +76,7 @@ set(CORE_SOURCES
 )
 
 # =============================================================================
-# 5. DEFINICIÓN DE LOS EJECUTABLES (TARGETS)
+# 5. TARGETS
 # =============================================================================
 add_executable(rango
     src/rango.cpp
@@ -147,7 +144,7 @@ target_link_libraries(dynaRangeGui PRIVATE
 )
 
 # =============================================================================
-# 6. CONFIGURACIÓN POST-COMPILACIÓN Y RECURSOS
+# 6. POST-BUILD
 # =============================================================================
 set_target_properties(rango dynaRangeGui PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
@@ -157,7 +154,7 @@ file(COPY "${CMAKE_SOURCE_DIR}/logo.png" DESTINATION "${PORTABLE_DIR}")
 file(COPY "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION "${PORTABLE_DIR}")
 
 # =============================================================================
-# 7. INTERNACIONALIZACIÓN (Traducciones con Gettext)
+# 7. INTERNACIONALIZACIÓN
 # =============================================================================
 include(UseGettext)
 
@@ -176,7 +173,7 @@ GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
 
 # =============================================================================
-# 8. INSTALACIÓN Y EMPAQUETADO (CPack)
+# 8. INSTALACIÓN Y EMPAQUETADO
 # =============================================================================
 include(InstallRequiredSystemLibraries)
 

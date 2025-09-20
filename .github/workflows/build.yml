@@ -1,10 +1,7 @@
-name: Build Windows Static
+name: Build Windows Static 2
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:   # solo manual
 
 jobs:
   build-windows-static:
@@ -27,7 +24,8 @@ jobs:
             mingw-w64-x86_64-cli11
             mingw-w64-x86_64-gettext
             mingw-w64-x86_64-cairo
-            mingw-w64-x86_64-wxwidgets-static
+            mingw-w64-x86_64-wxwidgets3.2-msw
+            mingw-w64-x86_64-wxwidgets3.2-common
 
       - name: Configure (CMake)
         shell: msys2 {0}
