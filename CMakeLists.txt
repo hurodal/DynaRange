@@ -123,7 +123,6 @@ target_compile_definitions(dynaRangeGui PRIVATE
 
 # --- ENLAZADO DE LIBRERÍAS (CON LA SOLUCIÓN DEL LOG) ---
 if(WIN32)
-    # Esta es la lista completa basada en los errores de "undefined reference" del log
     set(WIN_STATIC_LIBS
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
         version comctl32 uxtheme oleacc advapi32
@@ -179,8 +178,6 @@ set(I18N_SOURCES
 
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
-
-#  Usamos una ruta relativa para la instalación de los archivos de idioma ---
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" ${LANGUAGES})
 
 
@@ -193,11 +190,8 @@ install(TARGETS rango dynaRangeGui
     COMPONENT Applications
 )
 
-# --- Instalar las DLLs de forma eficiente para evitar el cuelgue ---
-# 1. Creamos una lista con todas las DLLs que el workflow copió al directorio de compilación.
+# --- Instalar las DLLs de forma eficiente ---
 file(GLOB DLL_FILES "${CMAKE_BINARY_DIR}/*.dll")
-
-# 2. Le decimos a CPack que instale ESA LISTA específica de archivos.
 if(DLL_FILES)
     install(FILES ${DLL_FILES}
         DESTINATION bin
@@ -224,19 +218,21 @@ set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 # --- Lógica para añadir la carpeta 'bin' al PATH del sistema ---
 set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs")
 
+# --- ¡¡¡CORRECCIÓN AQUÍ!!! Se añade el envoltorio <CPackWiXPatch> que CPack necesita ---
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs"
-[[<?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Fragment>
+[[<?xml version="1.0" encoding="UTF-8"?>
+<CPackWiXPatch>
+    <CPackWiXFragment Id="Wix/Product">
         <DirectoryRef Id="INSTALLDIR">
             <Component Id="AddToPath" Guid="{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F67890}" KeyPath="yes">
                 <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
             </Component>
         </DirectoryRef>
-    </Fragment>
-</Wix>]]
+    </CPackWiXFragment>
+</CPackWiXPatch>]]
 )
 
+# Esta parte sigue siendo necesaria para incluir el componente en el instalador
 set(CPACK_WIX_EXTRA_FEATURES
 [[<Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
     <ComponentRef Id="AddToPath"/>
