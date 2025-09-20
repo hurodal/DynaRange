@@ -1,4 +1,4 @@
-name: Build dynaRange for Windows (9) (Static Binaries + Installer)
+name: Build dynaRange for Windows (A) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
@@ -6,24 +6,17 @@ on:
 jobs:
   build-windows-static:
     runs-on: windows-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install MSYS2 and Static Dependencies
+      - name: Install MSYS2 and Dependencies
         uses: msys2/setup-msys2@v2
         with:
           update: true
           install: >-
-            mingw-w64-x86_64-binutils
-            mingw-w64-x86_64-crt-git
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gdb
-            mingw-w64-x86_64-gdb-multiarch
-            mingw-w64-x86_64-headers-git
-            mingw-w64-x86_64-libmangle-git
-            mingw-w64-x86_64-libwinpthread
-            mingw-w64-x86_64-make
+            mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-opencv
@@ -34,60 +27,16 @@ jobs:
             mingw-w64-x86_64-cairo
             mingw-w64-x86_64-wxwidgets-gtk3
 
-      - name: Buscar wx-config en todo el sistema
-        run: |
-          find / -type f -name "wx-config" 2>/dev/null || true
-        shell: msys2 {0}
-
-      - name: Find wx-config anywhere
-        run: |
-          find / -name wx-config
-        shell: msys2 {0}
-
-      # Añadir MSYS2 bin al PATH global del job (para máxima compatibilidad)
-      - name: Add MSYS2 mingw64 to Global PATH
-        run: |
-          echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
-          echo "C:/msys64/usr/bin" >> $GITHUB_PATH
-        shell: bash
-
-      - name: Install wxWidgets (MSYS2)
-        run: |
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm mingw-w64-x86_64-wxWidgets
-
-      - name: Add wx-config to PATH
-        run: |
-          echo "/mingw64/bin" >> $GITHUB_PATH
-
-      # Debug: Verificar que wx-config está presente
-      - name: Debug PATH and wx-config presence
-        run: |
-          echo "=== Current PATH ==="
-          echo $PATH
-          echo "=== Files in /mingw64/bin related to wx ==="
-          ls /mingw64/bin | grep -i wx
-        shell: msys2 {0}
-
-      # Comprobar wx-config antes de CMake
-      - name: Check wx-config
-        run: |
-          which wx-config
-          wx-config --version
-          wx-config --cxxflags
-        shell: msys2 {0}
-
       - name: Configure CMake for Static Build
         run: |
-          export PATH="/mingw64/bin:$PATH"
-          cmake -B build \
-            -G "MinGW Makefiles" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_SHARED_LIBS=OFF \
+          cmake -B build `
+            -G "MinGW Makefiles" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_SHARED_LIBS=OFF `
             -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
         shell: msys2 {0}
 
-      - name: Build
+      - name: Build Project
         run: cmake --build build --config Release
         shell: msys2 {0}
 

@@ -56,29 +56,10 @@ if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
 
-# --- Lógica ESPECÍFICA para wxWidgets ---
-# Detectamos si estamos en un entorno MSYS2 (local o GitHub Actions)
-# Buscamos el ejecutable 'wx-config', que es la señal definitiva.
-find_program(WX_CONFIG_EXECUTABLE wx-config)
-if(WX_CONFIG_EXECUTABLE)
-    message(STATUS "wx-config found at: ${WX_CONFIG_EXECUTABLE}. Using it for wxWidgets configuration.")
-    # Ejecuta wx-config para obtener los flags de compilación
-    execute_process(
-        COMMAND ${WX_CONFIG_EXECUTABLE} --cxxflags
-        OUTPUT_VARIABLE WX_CXXFLAGS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    # Ejecuta wx-config para obtener los flags de enlazado
-    execute_process(
-        COMMAND ${WX_CONFIG_EXECUTABLE} --libs all
-        OUTPUT_VARIABLE WX_LIBS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-else()
-    # Si no se encuentra wx-config, intentamos el método estándar (Linux, macOS, etc.)
-    message(STATUS "wx-config not found. Falling back to find_package(wxWidgets...).")
-    find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
-endif()
+# --- Lógica para wxWidgets (simplificada) ---
+# Usamos el método estándar de CMake. En Windows con MSYS2, CMAKE_PREFIX_PATH
+# asegura que encuentre la versión instalada por pacman.
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
 
@@ -86,7 +67,6 @@ pkg_check_modules(CAIRO REQUIRED cairo)
 # 4. AGRUPACIÓN DE FICHEROS FUENTE
 # =============================================================================
 # Lista de ficheros fuente que son compartidos entre la versión CLI y la GUI.
-# Esto evita duplicación y asegura que todos los componentes centrales se compilen.
 set(CORE_SOURCES
     src/core/analysis/Analysis.cpp
     src/core/analysis/CurveCalculator.cpp
@@ -99,11 +79,11 @@ set(CORE_SOURCES
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
-    src/core/engine/Validation.cpp 
+    src/core/engine/Validation.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
-    src/core/graphics/PlotInfoBox.cpp    
+    src/core/graphics/PlotInfoBox.cpp
     src/core/graphics/Plotting.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
@@ -119,19 +99,16 @@ set(CORE_SOURCES
 # =============================================================================
 
 # --- Target 1: Ejecutable de línea de comandos (CLI) ---
-# Crea el ejecutable 'rango'.
 add_executable(rango
     src/rango.cpp
     ${CORE_SOURCES}
     # Fichero de recursos para el icono y metadatos en Windows.
-    # Esto se ignora en Linux.
     icono_owl.rc
 )
 
 # Define los directorios de inclusión (headers) para el compilador.
-# 'PRIVATE' significa que solo el target 'rango' necesita estas rutas para compilarse.
 target_include_directories(rango PRIVATE
-    ${OpenCV_INCLUDE_DIRS} 
+    ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
@@ -144,9 +121,8 @@ target_include_directories(rango PRIVATE
 )
 
 # Define las librerías con las que el ejecutable 'rango' debe enlazarse.
-# 'PRIVATE' significa que estas librerías solo son necesarias para el enlazado de 'rango'.
-target_link_libraries(rango PRIVATE 
-    ${OpenCV_LIBS} 
+target_link_libraries(rango PRIVATE
+    ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
@@ -159,22 +135,15 @@ add_executable(dynaRangeGui WIN32
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
-    src/gui/GuiPresenter.cpp    
+    src/gui/GuiPresenter.cpp
     ${CORE_SOURCES}
     icono_noise.rc
 )
 
-# Aplicar las configuraciones de wxWidgets según el método usado
-if(WX_CONFIG_EXECUTABLE)
-    # Usamos los flags obtenidos de wx-config
-    target_compile_options(dynaRangeGui PRIVATE ${WX_CXXFLAGS})
-    target_link_libraries(dynaRangeGui PRIVATE ${WX_LIBS})
-else()
-    # Usamos las variables de find_package
-    target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
-    target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
-    target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
-endif()
+# Aplicar las configuraciones de wxWidgets usando las variables de find_package
+target_include_directories(dynaRangeGui PRIVATE ${wxWidgets_INCLUDE_DIRS})
+target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
+target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES})
 
 # Enlazar el resto de librerías comunes (esto no cambia)
 target_link_libraries(dynaRangeGui PRIVATE
@@ -190,7 +159,6 @@ target_link_libraries(dynaRangeGui PRIVATE
 # 6. CONFIGURACIÓN POST-COMPILACIÓN Y RECURSOS
 # =============================================================================
 # Establece el directorio de salida para los ejecutables de ambos targets.
-# Esto hará que 'rango.exe' y 'dynaRangeGui.exe' aparezcan directamente en la carpeta 'build'.
 set_target_properties(rango dynaRangeGui PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
 )
@@ -202,45 +170,26 @@ file(COPY "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION "${PORTABLE_DIR}")
 # =============================================================================
 # 7. INTERNACIONALIZACIÓN (Traducciones con Gettext)
 # =============================================================================
-# Incluye el módulo de CMake para manejar Gettext.
 include(UseGettext)
-
-# Define los flags para xgettext, asegurando la codificación UTF-8.
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
-
-# Define los idiomas que se van a traducir.
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 
-# Lista de ficheros fuente que contienen cadenas traducibles.
 set(I18N_SOURCES
     src/rango.cpp
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
-    ${CORE_SOURCES} # Incluye los ficheros comunes también
+    ${CORE_SOURCES}
 )
 
-# Genera el fichero .pot (Portable Object Template).
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
-
-# Añade los ficheros .po (Portable Object) para cada idioma.
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
-
-# Procesa los ficheros .po y los instala en la ubicación estándar de locales.
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
-
 
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-# Incluye las librerías del sistema necesarias para el instalador (Windows).
 include(InstallRequiredSystemLibraries)
-
-# Define el nombre y la versión del proyecto para CPack.
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-
-# Instala los ejecutables en el directorio 'bin' del destino de instalación.
 install(TARGETS rango dynaRangeGui DESTINATION bin)
-
-# Incluye CPack para generar paquetes de instalación.
 include(CPack)
