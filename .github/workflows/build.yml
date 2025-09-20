@@ -42,6 +42,15 @@ jobs:
           echo "C:/msys64/usr/bin" >> $GITHUB_PATH
         shell: bash
 
+      - name: Install wxWidgets (MSYS2)
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm mingw-w64-x86_64-wxWidgets
+
+      - name: Add wx-config to PATH
+        run: |
+          echo "/mingw64/bin" >> $GITHUB_PATH
+
       # Debug: Verificar que wx-config está presente
       - name: Debug PATH and wx-config presence
         run: |
