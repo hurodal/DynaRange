@@ -32,15 +32,7 @@ jobs:
             mingw-w64-x86_64-cli11
             mingw-w64-x86_64-gettext
             mingw-w64-x86_64-cairo
-            mingw-w64-x86_64-wxwidgets
             mingw-w64-x86_64-wxwidgets-gtk3
-
-      - name: Reinstall wxwidgets for mingw64
-        run: |
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm mingw-w64-x86_64-wxwidgets mingw-w64-x86_64-wxwidgets-gtk3
-          ls /mingw64/bin | grep wx || true
-        shell: msys2 {0}
 
       - name: Buscar wx-config en todo el sistema
         run: |
