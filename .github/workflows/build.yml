@@ -1,5 +1,5 @@
 # .github/workflows/build.yml
-name: Build dynaRange for Windows (2) (Static Binaries + Installer)
+name: Build dynaRange for Windows (3) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
@@ -27,9 +27,24 @@ jobs:
             mingw-w64-x86_64-cairo
             mingw-w64-x86_64-wxwidgets-gtk3
 
+      # ========= PLAN B: PASOS ADICIONALES PARA GARANTIZAR wxWidgets =========
+      # Paso 1: Instalar wxWidgets explícitamente (redundante, pero para asegurar)
+      - name: Ensure wxWidgets is Installed
+        run: |
+          pacman -Sy --noconfirm mingw-w64-x86_64-wxwidgets-gtk3
+        shell: msys2 {0}
+
+      # Paso 2: Añadir MSYS2 bin al PATH global del job
+      - name: Add MSYS2 mingw64 to Global PATH
+        run: |
+          echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+          echo "C:/msys64/usr/bin" >> $GITHUB_PATH
+        shell: bash
+      # ====================================================================
+
       - name: Configure CMake for Static Build
         run: |
-          # Añadir el directorio de binarios de MSYS2 al PATH para que 'wx-config' sea encontrado
+          # Asegurar que wx-config está en el PATH del entorno actual
           export PATH="/mingw64/bin:$PATH"
           # Ejecutar CMake
           cmake -B build \
