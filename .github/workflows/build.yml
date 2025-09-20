@@ -9,13 +9,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # --- Instalar WiX Toolset (para CPack) ---
+      - name: Install WiX Toolset
+        run: choco install wixtoolset -y
+        shell: powershell
+
+      # --- Configurar MSYS2 ---
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
           update: true
           msystem: MINGW64
           install: >
-            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-toolchain/
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-opencv
@@ -26,8 +32,8 @@ jobs:
             mingw-w64-x86_64-cairo
             mingw-w64-x86_64-wxwidgets3.2-msw
             mingw-w64-x86_64-wxwidgets3.2-common
-            wixtoolset
 
+      # --- Configurar (CMake) ---
       - name: Configure (CMake)
         shell: msys2 {0}
         run: |
@@ -35,12 +41,14 @@ jobs:
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH=/mingw64 \
-            -DBUILD_SHARED_LIBS=ON # Aseguramos que se usen DLLs
+            -DBUILD_SHARED_LIBS=ON
 
+      # --- Construir ---
       - name: Build
         shell: msys2 {0}
         run: cmake --build build --config Release --parallel
 
+      # --- Copiar DLLs necesarias ---
       - name: Copy Required DLLs
         shell: msys2 {0}
         run: |
@@ -49,19 +57,17 @@ jobs:
             cp "$dll" .
           done
 
+      # --- Generar Instalador ---
       - name: Generate Installer
         shell: msys2 {0}
         run: |
           cd build
           cpack -G WIX # Genera el archivo .msi
 
+      # --- Subir Instalador ---
       - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
           name: dynaRange-windows-installer
           path: |
-            build/*.msi # Sube el instalador
-            # Opcional: también puedes subir la carpeta portable para quienes no quieran instalar
-            # build/rango.exe
-            # build/dynaRangeGui.exe
-            # build/*.dll
+            build/*.msi
