@@ -191,37 +191,39 @@ install(TARGETS rango dynaRangeGui
 )
 
 # --- Instalar las DLLs necesarias ---
-# Busca todos los ficheros .dll en el directorio de compilación (build)
-# y los añade a la lista de ficheros que se instalarán.
-file(GLOB DLLS "${CMAKE_BINARY_DIR}/*.dll")
+# Este script se ejecuta en el MOMENTO DE LA INSTALACIÓN (con cpack),
+# DESPUÉS de que el build.yml haya copiado las DLLs al directorio de compilación.
+install(CODE "
+    message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
+    file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
+    if(DLL_FILES)
+        message(STATUS \"DLLs encontradas, instalando: \${DLL_FILES}\")
+        install(FILES \${DLL_FILES}
+            DESTINATION bin
+            COMPONENT Applications
+        )
+    else()
+        message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
+    endif()
+" COMPONENT Applications)
 
-# Instala los ficheros .dll encontrados en el directorio 'bin' del instalador.
-install(FILES ${DLLS}
+
+# --- Instalar otros archivos (iconos, etc.) ---
+install(FILES
+    "${CMAKE_SOURCE_DIR}/logo.png"
+    "${CMAKE_SOURCE_DIR}/favicon_noise.ico"
     DESTINATION bin
     COMPONENT Applications
-)
-
-# --- Instalar las DLLs necesarias ---
-# Usa DIRECTORY con PATTERN para copiar las DLLs en tiempo de instalación,
-# no en tiempo de configuración.
-install(DIRECTORY "${CMAKE_BINARY_DIR}/"
-    DESTINATION "bin"
-    COMPONENT Applications
-    FILES_MATCHING PATTERN "*.dll"
 )
 
 # --- Configurar CPack para generar un instalador MSI ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-# --- ¡¡¡CORRECCIÓN 1: Unir esta línea para arreglar la advertencia de sintaxis!!! ---
 set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 
-# --- ¡¡¡CORRECCIÓN 2: Lógica del PATH simplificada y robusta!!! ---
-# Eliminamos el método CPACK_WIX_PATCH_FILE que estaba fallando.
-# En su lugar, definimos el componente para el PATH directamente dentro de la característica.
 set(CPACK_WIX_EXTRA_FEATURES
 [[
 <Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
@@ -231,5 +233,7 @@ set(CPACK_WIX_EXTRA_FEATURES
 </Feature>
 ]]
 )
+
+include(CPack)
 
 include(CPack)
