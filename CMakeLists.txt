@@ -191,13 +191,19 @@ install(TARGETS rango dynaRangeGui
 )
 
 # --- Instalar las DLLs necesarias ---
-# Usa DIRECTORY con PATTERN para copiar las DLLs en tiempo de instalación,
-# no en tiempo de configuración.
-install(DIRECTORY "${CMAKE_BINARY_DIR}/"
-    DESTINATION "bin"
-    COMPONENT Applications
-    FILES_MATCHING PATTERN "*.dll"
-)
+# Este comando personalizado se ejecuta DURANTE LA INSTALACIÓN (no en la configuración).
+# Lista todos los .dll en el directorio de compilación y los instala.
+install(CODE "
+    file(GLOB DLL_FILES \"\${CMAKE_INSTALL_PREFIX}/bin/*.dll\")
+    foreach(dll \${DLL_FILES})
+        # Solo copia si el archivo existe y es un archivo regular (no un directorio)
+        if(EXISTS \"\${dll}\" AND NOT IS_DIRECTORY \"\${dll}\")
+            message(STATUS \"Instalando DLL: \${dll}\")
+            file(INSTALL \"\${dll}\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\")
+        endif()
+    endforeach()
+" COMPONENT Applications)
+
 
 # --- Instalar otros archivos (iconos, etc.) ---
 install(FILES
