@@ -184,11 +184,15 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-# --- Instalar los ejecutables ---
+
+# --- Instalar los ejecutables y las traducciones ---
 install(TARGETS rango dynaRangeGui
     RUNTIME DESTINATION bin
     COMPONENT Applications
 )
+
+# Las traducciones se instalan automáticamente gracias a la función
+# GETTEXT_PROCESS_PO_FILES de la sección 7.
 
 # --- Instalar las DLLs necesarias ---
 # Este script se ejecuta en el MOMENTO DE LA INSTALACIÓN (con cpack),
@@ -207,33 +211,35 @@ install(CODE "
     endif()
 " COMPONENT Applications)
 
-
-# --- Instalar otros archivos (iconos, etc.) ---
-install(FILES
-    "${CMAKE_SOURCE_DIR}/logo.png"
-    "${CMAKE_SOURCE_DIR}/favicon_noise.ico"
-    DESTINATION bin
-    COMPONENT Applications
-)
-
-# --- Configurar CPack para generar un instalador MSI ---
+# --- Configuración General de CPack ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
+set(CPACK_PACKAGE_VENDOR "DynaRange Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
+
+# --- SOLUCIÓN: Nombre de la carpeta de instalación y del fichero ---
+# 1. Define el nombre exacto de la carpeta en "Archivos de Programa".
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
+# 2. Define el nombre del fichero .msi sin la versión.
+set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-win64-installer")
+
+
+# --- Configuración Específica para WiX (Instalador de Windows) ---
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
+set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541") # GUID fijo para tu proyecto
 
+# --- SOLUCIÓN: Añadir la aplicación al PATH del sistema ---
+# Se ha cambiado el GUID por uno generado automáticamente (*) para evitar conflictos
+# y asegurar que el componente se registre correctamente.
 set(CPACK_WIX_EXTRA_FEATURES
 [[
 <Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
-    <Component Id="AddToPath" Guid="{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F67890}" Directory="bin">
+    <Component Id="AddToPath" Guid="*" Directory="bin">
         <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
     </Component>
 </Feature>
 ]]
 )
-
-include(CPack)
 
 include(CPack)
