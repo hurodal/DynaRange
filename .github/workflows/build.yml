@@ -29,6 +29,9 @@ jobs:
 
       - name: Configure CMake for Static Build
         run: |
+          # Añadir el directorio de binarios de MSYS2 al PATH para que 'wx-config' sea encontrado
+          export PATH="/mingw64/bin:$PATH"
+          # Ejecutar CMake
           cmake -B build \
             -G "MinGW Makefiles" \
             -DCMAKE_BUILD_TYPE=Release \
