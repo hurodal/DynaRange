@@ -1,4 +1,4 @@
-name: Build dynaRange for Windows (8) (Static Binaries + Installer)
+name: Build dynaRange for Windows (9) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
