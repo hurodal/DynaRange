@@ -2,6 +2,8 @@
 # 1. CONFIGURACIÓN INICIAL DEL PROYECTO
 # =============================================================================
 cmake_minimum_required(VERSION 3.16)
+# --- ¡¡¡CORRECCIÓN AQUÍ!!! Se añade para encontrar módulos estándar como UseGettext ---
+include(CMakePackageConfigHelpers)
 
 project(dynaRange CXX)
 set(PROJECT_VERSION "1.0.0")
@@ -25,7 +27,7 @@ find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
 
 # =============================================================================
-# 4. FUENTES (Formato editable para humanos)
+# 4. FUENTES
 # =============================================================================
 set(CORE_SOURCES
     src/core/analysis/Analysis.cpp
@@ -62,14 +64,32 @@ if(WIN32)
     set(WIN_STATIC_LIBS gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi version comctl32 uxtheme oleacc advapi32 png jpeg tiff z iconv gomp)
 endif()
 
+# --- Target: rango ---
 add_executable(rango src/rango.cpp ${CORE_SOURCES} icono_owl.rc)
-target_include_directories(rango PRIVATE ${OpenCV_INCLUDE_DIRS} ${LIBRAW_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${CAIRO_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/core)
-target_link_libraries(rango PRIVATE ${OpenCV_LIBS} ${LIBRAW_LIBRARIES} CLI11::CLI11 ${GETTEXT_LIBRARIES} ${GETTEXT_EXTRA_LIBS} ${CAIRO_LIBRARIES} ${WIN_STATIC_LIBS})
+target_include_directories(rango PRIVATE
+    ${OpenCV_INCLUDE_DIRS} ${LIBRAW_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR}
+    ${CAIRO_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+)
+target_link_libraries(rango PRIVATE
+    ${OpenCV_LIBS} ${LIBRAW_LIBRARIES} CLI11::CLI11 ${GETTEXT_LIBRARIES}
+    ${GETTEXT_EXTRA_LIBS} ${CAIRO_LIBRARIES} ${WIN_STATIC_LIBS}
+)
 
-add_executable(dynaRangeGui WIN32 src/DynaRangeGuiApp.cpp src/gui/DynaRangeBase.cpp src/gui/DynaRangeFrame.cpp src/gui/GuiPresenter.cpp ${CORE_SOURCES} icono_noise.rc)
-target_include_directories(dynaRangeGui PRIVATE ${OpenCV_INCLUDE_DIRS} ${LIBRAW_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${wxWidgets_INCLUDE_DIRS} ${CAIRO_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/core)
+# --- Target: dynaRangeGui ---
+add_executable(dynaRangeGui WIN32
+    src/DynaRangeGuiApp.cpp src/gui/DynaRangeBase.cpp
+    src/gui/DynaRangeFrame.cpp src/gui/GuiPresenter.cpp
+    ${CORE_SOURCES} icono_noise.rc
+)
+target_include_directories(dynaRangeGui PRIVATE
+    ${OpenCV_INCLUDE_DIRS} ${LIBRAW_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR}
+    ${wxWidgets_INCLUDE_DIRS} ${CAIRO_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+)
 target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
-target_link_libraries(dynaRangeGui PRIVATE ${wxWidgets_LIBRARIES} ${OpenCV_LIBS} ${LIBRAW_LIBRARIES} CLI11::CLI11 ${GETTEXT_LIBRARIES} ${GETTEXT_EXTRA_LIBS} ${CAIRO_LIBRARIES} ${WIN_STATIC_LIBS})
+target_link_libraries(dynaRangeGui PRIVATE
+    ${wxWidgets_LIBRARIES} ${OpenCV_LIBS} ${LIBRAW_LIBRARIES} CLI11::CLI11
+    ${GETTEXT_LIBRARIES} ${GETTEXT_EXTRA_LIBS} ${CAIRO_LIBRARIES} ${WIN_STATIC_LIBS}
+)
 
 # =============================================================================
 # 6. POST-BUILD
@@ -91,7 +111,6 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # =============================================================================
 install(TARGETS rango dynaRangeGui RUNTIME DESTINATION bin COMPONENT Applications)
 
-# Instalar las DLLs en el momento del empaquetado y excluir subdirectorios para evitar el cuelgue.
 install(DIRECTORY "${CMAKE_BINARY_DIR}/"
     DESTINATION bin
     COMPONENT Applications
@@ -103,18 +122,13 @@ install(DIRECTORY "${CMAKE_BINARY_DIR}/"
 
 install(FILES "${CMAKE_SOURCE_DIR}/logo.png" "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION bin COMPONENT Applications)
 
-# --- Configuración de CPack ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-
-# Asegurarse de que esta línea es una sola línea para evitar errores de sintaxis.
 set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
-
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 
-# Lógica del PATH simplificada y robusta.
 set(CPACK_WIX_EXTRA_FEATURES
 [[
 <Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
