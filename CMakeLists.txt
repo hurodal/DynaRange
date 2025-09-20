@@ -18,7 +18,7 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
 # =============================================================================
-# (Eliminamos la ruta hardcodeada, ya que se pasa desde el build.yml)
+# (La ruta de MSYS2 se pasa desde el build.yml)
 
 # =============================================================================
 # 3. DEPENDENCIAS
@@ -94,15 +94,6 @@ target_include_directories(rango PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
-target_link_libraries(rango PRIVATE 
-    ${OpenCV_LIBS} 
-    ${LIBRAW_LIBRARIES}
-    CLI11::CLI11
-    ${GETTEXT_LIBRARIES}
-    ${GETTEXT_EXTRA_LIBS}
-    ${CAIRO_LIBRARIES}
-)
-
 add_executable(dynaRangeGui WIN32
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
@@ -130,6 +121,29 @@ target_compile_definitions(dynaRangeGui PRIVATE
     ${wxWidgets_DEFINITIONS}
 )
 
+# --- ENLAZADO DE LIBRERÍAS ---
+if(WIN32)
+    # Lista de librerías de sistema necesarias para el enlazado estático.
+    # Esta lista resuelve las dependencias transitivas de wxWidgets, Cairo, etc.
+    set(WIN_STATIC_LIBS 
+        gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
+        version comctl32 uxtheme oleacc gomp
+        # Dependencias reveladas por el log
+        jpeg z iconv
+    )
+endif()
+
+target_link_libraries(rango PRIVATE 
+    ${OpenCV_LIBS} 
+    ${LIBRAW_LIBRARIES}
+    CLI11::CLI11
+    ${GETTEXT_LIBRARIES}
+    ${GETTEXT_EXTRA_LIBS}
+    ${CAIRO_LIBRARIES}
+    # Enlazar las librerías de sistema al final
+    ${WIN_STATIC_LIBS}
+)
+
 target_link_libraries(dynaRangeGui PRIVATE
     ${wxWidgets_LIBRARIES}
     ${OpenCV_LIBS}
@@ -138,31 +152,9 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
+    # Enlazar las librerías de sistema al final
+    ${WIN_STATIC_LIBS}
 )
-
-# --- LIBRERÍAS ADICIONALES PARA ENLAZADO ESTÁTICO EN WINDOWS ---
-if(WIN32)
-    # These are needed for static builds with MinGW on Windows.
-    # They resolve the "undefined reference to `__imp_...`" errors.
-    set(WIN_STATIC_LIBS 
-        gdi32 
-        comdlg32 
-        shell32 
-        ole32 
-        oleaut32 
-        uuid 
-        ws2_32 
-        rpcrt4 
-        shlwapi 
-        version
-        comctl32
-        uxtheme
-        oleacc
-        gomp # For OpenMP functions (GOMP_...)
-    )
-    target_link_libraries(rango PRIVATE ${WIN_STATIC_LIBS})
-    target_link_libraries(dynaRangeGui PRIVATE ${WIN_STATIC_LIBS})
-endif()
 
 # =============================================================================
 # 6. POST-BUILD
