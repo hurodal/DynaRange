@@ -1,4 +1,4 @@
-name: Build Windows Static 5
+name: Build Windows Static 6
 
 on:
   workflow_dispatch:   # solo manual

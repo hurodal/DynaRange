@@ -24,7 +24,7 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # 3. DEPENDENCIAS
 # =============================================================================
 find_package(PkgConfig REQUIRED)
-set(PKG_CONFIG_USE_STATIC ON) 
+set(PKG_CONFIG_USE_STATIC ON)
 
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
@@ -140,6 +140,28 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
 )
+
+# --- LIBRERÍAS ADICIONALES PARA ENLAZADO ESTÁTICO EN WINDOWS ---
+if(WIN32)
+    target_link_libraries(rango PRIVATE 
+        -lgomp      # Para los errores de GOMP_ (OpenMP)
+        -lws2_32    # Para los errores de __imp_ntohs, etc (Windows Sockets)
+        -loleacc    # Para CreateStdAccessibleObject
+        -luxtheme   # Para las funciones de Theming (OpenThemeData, etc.)
+        -lshlwapi   # Para PathMatchSpecW
+        -lversion   # Para GetFileVersionInfo
+        -lcomctl32  # Para controles comunes de Windows (ImageList, etc.)
+    )
+    target_link_libraries(dynaRangeGui PRIVATE 
+        -lgomp
+        -lws2_32
+        -loleacc
+        -luxtheme
+        -lshlwapi
+        -lversion
+        -lcomctl32
+    )
+endif()
 
 # =============================================================================
 # 6. POST-BUILD
