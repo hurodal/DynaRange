@@ -18,9 +18,7 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
 # =============================================================================
-if(WIN32)
-    list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
-endif()
+# (Eliminamos la ruta hardcodeada, ya que se pasa desde el build.yml)
 
 # =============================================================================
 # 3. DEPENDENCIAS
@@ -38,9 +36,8 @@ if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
 
-# --- wxWidgets monolítico y estático ---
-set(wxBUILD_MONOLITHIC ON CACHE BOOL "" FORCE)
-set(wxBUILD_SHARED OFF CACHE BOOL "" FORCE)
+# --- wxWidgets ---
+# Las opciones MONOLITHIC y SHARED se pasan desde el build.yml para mayor flexibilidad
 find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)

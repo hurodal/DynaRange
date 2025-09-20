@@ -1,4 +1,4 @@
-name: Build Windows Static 2
+name: Build Windows Static 3
 
 on:
   workflow_dispatch:   # solo manual
@@ -30,12 +30,12 @@ jobs:
       - name: Configure (CMake)
         shell: msys2 {0}
         run: |
-          cmake -G "MinGW Makefiles" ^
-            -B build ^
-            -DCMAKE_BUILD_TYPE=Release ^
-            -DCMAKE_PREFIX_PATH=/mingw64 ^
-            -DwxBUILD_MONOLITHIC=ON ^
-            -DwxBUILD_SHARED=OFF ^
+          cmake -G "MinGW Makefiles" \
+            -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=/mingw64 \
+            -DwxBUILD_MONOLITHIC=ON \
+            -DwxBUILD_SHARED=OFF \
             -DBUILD_SHARED_LIBS=OFF
 
       - name: Build
