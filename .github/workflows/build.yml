@@ -1,4 +1,4 @@
-name: Build dynaRange for Windows (B) (Static Binaries + Installer)
+name: Build dynaRange for Windows (C) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
@@ -34,7 +34,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=OFF \
             -DwxWidgets_STATIC=ON \
-            -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
+            -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" \
+            -DwxWidgets_CONFIG_EXECUTABLE=C:/msys64/mingw64/bin/wx-config
         shell: msys2 {0}
 
       - name: Build Project
