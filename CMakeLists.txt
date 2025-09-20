@@ -201,12 +201,13 @@ install(FILES ${DLLS}
     COMPONENT Applications
 )
 
-# --- Instalar otros archivos (iconos, etc.) ---
-install(FILES
-    "${CMAKE_SOURCE_DIR}/logo.png"
-    "${CMAKE_SOURCE_DIR}/favicon_noise.ico"
-    DESTINATION bin
+# --- Instalar las DLLs necesarias ---
+# Usa DIRECTORY con PATTERN para copiar las DLLs en tiempo de instalación,
+# no en tiempo de configuración.
+install(DIRECTORY "${CMAKE_BINARY_DIR}/"
+    DESTINATION "bin"
     COMPONENT Applications
+    FILES_MATCHING PATTERN "*.dll"
 )
 
 # --- Configurar CPack para generar un instalador MSI ---
