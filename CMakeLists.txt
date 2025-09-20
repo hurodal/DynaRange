@@ -190,14 +190,14 @@ install(TARGETS rango dynaRangeGui
     COMPONENT Applications
 )
 
-# --- Instalar las DLLs de forma eficiente ---
-file(GLOB DLL_FILES "${CMAKE_BINARY_DIR}/*.dll")
-if(DLL_FILES)
-    install(FILES ${DLL_FILES}
-        DESTINATION bin
-        COMPONENT Applications
-    )
-endif()
+# --- Instalar las DLLs necesarias ---
+# Usa DIRECTORY con PATTERN para copiar las DLLs en tiempo de instalación,
+# no en tiempo de configuración.
+install(DIRECTORY "${CMAKE_BINARY_DIR}/"
+    DESTINATION "bin"
+    COMPONENT Applications
+    FILES_MATCHING PATTERN "*.dll"
+)
 
 # --- Instalar otros archivos (iconos, etc.) ---
 install(FILES

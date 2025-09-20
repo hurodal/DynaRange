@@ -1,21 +1,26 @@
-# .github/workflows/build.yml
-name: Build dynaRange for Windows (2) (Static Binaries + Installer)
+name: Build Windows Installer
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # solo manual
 
 jobs:
-  build-windows-static:
+  build-windows-portable-installer:
     runs-on: windows-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install MSYS2 and Static Dependencies
+      # --- Instalar WiX Toolset (para CPack) ---
+      - name: Install WiX Toolset
+        run: choco install wixtoolset -y
+        shell: powershell
+
+      # --- Configurar MSYS2 ---
+      - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
           update: true
-          install: >-
+          msystem: MINGW64
+          install: >
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
@@ -25,65 +30,44 @@ jobs:
             mingw-w64-x86_64-cli11
             mingw-w64-x86_64-gettext
             mingw-w64-x86_64-cairo
-            mingw-w64-x86_64-wxwidgets-gtk3
+            mingw-w64-x86_64-wxwidgets3.2-msw
+            mingw-w64-x86_64-wxwidgets3.2-common
 
-      - name: Configure CMake for Static Build
+      # --- Configurar (CMake) ---
+      - name: Configure (CMake)
+        shell: msys2 {0}
         run: |
-          cmake -B build \
-            -G "MinGW Makefiles" \
+          cmake -G "MinGW Makefiles" \
+            -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
-        shell: msys2 {0}
+            -DCMAKE_PREFIX_PATH=/mingw64 \
+            -DBUILD_SHARED_LIBS=ON
 
+      # --- Construir ---
       - name: Build
-        run: cmake --build build --config Release
         shell: msys2 {0}
+        run: cmake --build build --config Release --parallel
 
-      - name: Verify Static Linking
-        run: |
-          ldd build/rango.exe || echo "rango.exe is statically linked (no dynamic deps found)"
-          ldd build/dynaRangeGui.exe || echo "dynaRangeGui.exe is statically linked (no dynamic deps found)"
+      # --- Copiar DLLs necesarias ---
+      - name: Copy Required DLLs
         shell: msys2 {0}
-
-      - name: Create Portable Folder Structure
         run: |
-          mkdir dynaRangePortable
-          cp build/rango.exe dynaRangePortable/
-          cp build/dynaRangeGui.exe dynaRangePortable/
-          cp build/logo.png dynaRangePortable/
-          cp favicon_owl.ico dynaRangePortable/
-          cp favicon_noise.ico dynaRangePortable/
-          if [ -f "crear_instalador_windows.nsi" ]; then
-            cp crear_instalador_windows.nsi dynaRangePortable/
-          fi
-        shell: bash
+          cd build
+          for dll in $(ldd rango.exe dynaRangeGui.exe | grep -o '/mingw64/bin/[^ ]*' | sort -u); do
+            cp "$dll" .
+          done
 
-      - name: Check for NSIS script
-        id: check_nsis_script
-        uses: andstor/file-existence-action@v3
-        with:
-          files: "crear_instalador_windows.nsi"
+      # --- Generar Instalador ---
+      - name: Generate Installer
+        shell: msys2 {0}
+        run: |
+          cd build
+          cpack -G WIX # Genera el archivo .msi
 
-      - name: Install NSIS
-        if: steps.check_nsis_script.outputs.files_exists == 'true'
-        run: choco install nsis -y
-
-      - name: Build Windows Installer with NSIS
-        if: steps.check_nsis_script.outputs.files_exists == 'true'
-        run: makensis crear_instalador_windows.nsi
-        working-directory: ./dynaRangePortable
-        shell: bash
-
-      - name: Upload Portable Version Artifact
+      # --- Subir Instalador ---
+      - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
-          name: dynaRange-Windows-Static-Portable
-          path: dynaRangePortable/
-
-      - name: Upload Windows Installer Artifact
-        if: steps.check_nsis_script.outputs.files_exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dynaRange-Windows-Installer
-          path: dynaRangePortable/dynaRangeInstaller.exe
+          name: dynaRange-windows-installer
+          path: |
+            build/*.msi
