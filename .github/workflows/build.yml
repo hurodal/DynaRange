@@ -21,7 +21,7 @@ jobs:
           update: true
           msystem: MINGW64
           install: >
-            mingw-w64-x86_64-toolchain/
+            mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-opencv
