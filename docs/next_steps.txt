@@ -99,6 +99,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     ')
 
 
+4:	DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
 
 
 
