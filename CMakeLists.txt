@@ -1,5 +1,5 @@
 # =============================================================================
-# 1. CONFIGURACIÓN INICIAL DEL PROYECTO
+# 1. CONFIGURACIÓN INICIAL DEL PROYECTO (Llega al enlazado)
 # =============================================================================
 cmake_minimum_required(VERSION 3.16)
 
@@ -18,7 +18,7 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
 # =============================================================================
-# (La ruta de MSYS2 se pasa desde el build.yml)
+# Esta sección debe estar vacía porque la ruta se pasa desde el build.yml
 
 # =============================================================================
 # 3. DEPENDENCIAS
@@ -38,10 +38,8 @@ if(WIN32)
 endif()
 
 # --- wxWidgets ---
-# AÑADIMOS LAS PISTAS AQUÍ PARA QUE EL FICHERO SEA AUTOSUFICIENTE
-set(wxBUILD_MONOLITHIC ON)
-set(wxBUILD_SHARED OFF)
-find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED STATIC)
+# Esta es la versión que funcionaba, porque las pistas se las da el build.yml
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
 
@@ -124,14 +122,15 @@ target_compile_definitions(dynaRangeGui PRIVATE
     ${wxWidgets_DEFINITIONS}
 )
 
-# --- ENLAZADO DE LIBRERÍAS ---
+# --- ENLAZADO DE LIBRERÍAS (CON LA SOLUCIÓN DEL LOG) ---
 if(WIN32)
-    # Lista exhaustiva de librerías de sistema y dependencias de las librerías estáticas.
+    # Esta es la lista completa basada en los errores de "undefined reference" del log
     set(WIN_STATIC_LIBS 
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
         version comctl32 uxtheme oleacc advapi32
-        png jpeg tiff z
-        iconv
+        # Dependencias de imágenes y otras librerías
+        png jpeg tiff z iconv
+        # Dependencia de OpenMP
         gomp
     )
 endif()
