@@ -38,7 +38,6 @@ if(WIN32)
 endif()
 
 # --- wxWidgets ---
-# Las opciones MONOLITHIC y SHARED se pasan desde el build.yml para mayor flexibilidad
 find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
@@ -143,24 +142,26 @@ target_link_libraries(dynaRangeGui PRIVATE
 
 # --- LIBRERÍAS ADICIONALES PARA ENLAZADO ESTÁTICO EN WINDOWS ---
 if(WIN32)
-    target_link_libraries(rango PRIVATE 
-        -lgomp      # Para los errores de GOMP_ (OpenMP)
-        -lws2_32    # Para los errores de __imp_ntohs, etc (Windows Sockets)
-        -loleacc    # Para CreateStdAccessibleObject
-        -luxtheme   # Para las funciones de Theming (OpenThemeData, etc.)
-        -lshlwapi   # Para PathMatchSpecW
-        -lversion   # Para GetFileVersionInfo
-        -lcomctl32  # Para controles comunes de Windows (ImageList, etc.)
+    # These are needed for static builds with MinGW on Windows.
+    # They resolve the "undefined reference to `__imp_...`" errors.
+    set(WIN_STATIC_LIBS 
+        gdi32 
+        comdlg32 
+        shell32 
+        ole32 
+        oleaut32 
+        uuid 
+        ws2_32 
+        rpcrt4 
+        shlwapi 
+        version
+        comctl32
+        uxtheme
+        oleacc
+        gomp # For OpenMP functions (GOMP_...)
     )
-    target_link_libraries(dynaRangeGui PRIVATE 
-        -lgomp
-        -lws2_32
-        -loleacc
-        -luxtheme
-        -lshlwapi
-        -lversion
-        -lcomctl32
-    )
+    target_link_libraries(rango PRIVATE ${WIN_STATIC_LIBS})
+    target_link_libraries(dynaRangeGui PRIVATE ${WIN_STATIC_LIBS})
 endif()
 
 # =============================================================================
