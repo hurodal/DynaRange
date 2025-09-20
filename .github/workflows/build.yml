@@ -1,5 +1,5 @@
 # .github/workflows/build.yml
-name: Build dynaRange for Windows (6) (Static Binaries + Installer)
+name: Build dynaRange for Windows (7) (Static Binaries + Installer)
 
 on:
   workflow_dispatch:
@@ -16,7 +16,15 @@ jobs:
         with:
           update: true
           install: >-
-            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-binutils
+            mingw-w64-x86_64-crt-git
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gdb
+            mingw-w64-x86_64-gdb-multiarch
+            mingw-w64-x86_64-headers-git
+            mingw-w64-x86_64-libmangle-git
+            mingw-w64-x86_64-libwinpthread
+            mingw-w64-x86_64-make
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-opencv
@@ -25,7 +33,7 @@ jobs:
             mingw-w64-x86_64-cli11
             mingw-w64-x86_64-gettext
             mingw-w64-x86_64-cairo
-            mingw-w64-x86_64-wxwidgets-gtk3 # <-- ¡CORREGIDO!
+            mingw-w64-x86_64-wxwidgets-gtk3
 
       # Añadir MSYS2 bin al PATH global del job (para máxima compatibilidad)
       - name: Add MSYS2 mingw64 to Global PATH
