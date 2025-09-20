@@ -30,15 +30,15 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # =============================================================================
 # Configuración específica para Windows (MSYS2/MinGW)
 if(WIN32)
-    # CMAKE_PREFIX_PATH es CRUCIAL en MSYS2 para que CMake encuentre las librerías
-    # instaladas por pacman (como wxWidgets, Gettext, etc.)
-    list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
-
-    # CMake en Windows puede tener problemas con la detección de algunas funcionalidades
-    # si no se establecen ciertas definiciones explícitamente.
-    # Por ejemplo, para OpenMP, aunque OpenCV ya lo usa, a veces es necesario.
-    # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+    # Detecta automáticamente la ruta de MSYS2 si estamos en un entorno
+    # que la define (como GitHub Actions) o usa una ruta por defecto.
+    if(DEFINED ENV{MSYS2_ROOT})
+        message(STATUS "MSYS2 environment detected at $ENV{MSYS2_ROOT}")
+        list(APPEND CMAKE_PREFIX_PATH "$ENV{MSYS2_ROOT}/mingw64")
+    else()
+        message(STATUS "MSYS2_ROOT not defined. Falling back to default C:/msys64/mingw64")
+        list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64")
+    endif()
 endif()
 
 # =============================================================================
