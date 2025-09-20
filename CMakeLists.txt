@@ -122,16 +122,21 @@ target_compile_definitions(dynaRangeGui PRIVATE
     ${wxWidgets_DEFINITIONS}
 )
 
-# --- ENLAZADO DE LIBRERÍAS (CON LA SOLUCIÓN DEL LOG) ---
+# --- ENLAZADO DE LIBRERÍAS ---
 if(WIN32)
-    # Esta es la lista completa basada en los errores de "undefined reference" del log
+    # Lista completa de dependencias basada en los errores "undefined reference" del log
     set(WIN_STATIC_LIBS 
-        gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
-        version comctl32 uxtheme oleacc advapi32
-        # Dependencias de imágenes y otras librerías
-        png jpeg tiff z iconv
-        # Dependencia de OpenMP
+        # Dependencias de imágenes (wxWidgets, cairo, libraw)
+        png jpeg tiff z
+        # Dependencias de fuentes y texto (cairo)
+        fontconfig freetype expat bz2 graphite2 harfbuzz
+        # Dependencias de gettext
+        iconv
+        # Dependencia de OpenMP (OpenCV)
         gomp
+        # Librerías del sistema Windows (API)
+        gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
+        version comctl32 uxtheme oleacc advapi32 winmm
     )
 endif()
 
