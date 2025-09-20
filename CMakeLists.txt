@@ -179,7 +179,10 @@ set(I18N_SOURCES
 
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
-GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
+
+#  Usamos una ruta relativa para la instalación de los archivos de idioma ---
+GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" ${LANGUAGES})
+
 
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
@@ -190,12 +193,11 @@ install(TARGETS rango dynaRangeGui
     COMPONENT Applications
 )
 
-# --- MODIFICACIÓN 1: Instalar las DLLs de forma eficiente para evitar el cuelgue ---
+# --- Instalar las DLLs de forma eficiente para evitar el cuelgue ---
 # 1. Creamos una lista con todas las DLLs que el workflow copió al directorio de compilación.
 file(GLOB DLL_FILES "${CMAKE_BINARY_DIR}/*.dll")
 
 # 2. Le decimos a CPack que instale ESA LISTA específica de archivos.
-#    Esto es mucho más rápido y fiable que escanear todo el directorio con "install(DIRECTORY...)".
 if(DLL_FILES)
     install(FILES ${DLL_FILES}
         DESTINATION bin
