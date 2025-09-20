@@ -2,7 +2,6 @@
 # 1. CONFIGURACIÓN INICIAL DEL PROYECTO
 # =============================================================================
 cmake_minimum_required(VERSION 3.16)
-# --- ¡¡¡CORRECCIÓN AQUÍ!!! Se añade para encontrar módulos estándar como UseGettext ---
 include(CMakePackageConfigHelpers)
 
 project(dynaRange CXX)
@@ -18,6 +17,8 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # 3. DEPENDENCIAS
 # =============================================================================
 find_package(PkgConfig REQUIRED)
+# La línea "set(PKG_CONFIG_USE_STATIC ON)" ha sido eliminada.
+
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
@@ -111,6 +112,7 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # =============================================================================
 install(TARGETS rango dynaRangeGui RUNTIME DESTINATION bin COMPONENT Applications)
 
+# --- Instalar todas las DLLs copiadas por el workflow ---
 install(DIRECTORY "${CMAKE_BINARY_DIR}/"
     DESTINATION bin
     COMPONENT Applications
@@ -122,6 +124,7 @@ install(DIRECTORY "${CMAKE_BINARY_DIR}/"
 
 install(FILES "${CMAKE_SOURCE_DIR}/logo.png" "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION bin COMPONENT Applications)
 
+# --- Configuración de CPack ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
@@ -129,6 +132,7 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de r
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 
+# --- Lógica para añadir el programa al PATH del sistema ---
 set(CPACK_WIX_EXTRA_FEATURES
 [[
 <Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
