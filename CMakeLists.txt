@@ -186,32 +186,26 @@ GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/locale ${LANGUAGES})
 
 # =============================================================================
-# 8. INSTALACIÓN Y EMPAQUETADO
+# 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-include(InstallRequiredSystemLibraries)
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
-
-# --- Instalar los ejecutables ---
+# --- Definición de qué instalar y dónde ---
 install(TARGETS rango dynaRangeGui
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION bin  # Instala los .exe en la carpeta 'bin'
     COMPONENT Applications
 )
 
-# --- Instalar las DLLs necesarias ---
-# Primero, copiamos las DLLs al directorio de instalación durante la compilación
-# (esto lo hacemos en el workflow, ver paso 2 abajo)
-# Luego, las instalamos
-install(DIRECTORY "${CMAKE_BINARY_DIR}/"
+# --- SOLUCIÓN: Instalar las DLLs de forma eficiente ---
+# 1. Encontramos las DLLs que el workflow copió en el directorio de compilación.
+file(GLOB DLL_FILES "${CMAKE_BINARY_DIR}/*.dll")
+
+# 2. Le decimos a CPack que instale ESA LISTA específica de archivos.
+#    Esto es mucho más rápido y fiable que escanear todo el directorio.
+install(FILES ${DLL_FILES}
     DESTINATION bin
     COMPONENT Applications
-    FILES_MATCHING PATTERN "*.dll"
 )
 
-# --- Instalar otros archivos (iconos, etc.) ---
+# Instala otros archivos necesarios en la misma carpeta 'bin'
 install(FILES
     "${CMAKE_SOURCE_DIR}/logo.png"
     "${CMAKE_SOURCE_DIR}/favicon_noise.ico"
@@ -219,22 +213,23 @@ install(FILES
     COMPONENT Applications
 )
 
-# --- Configurar CPack para generar un instalador MSI ---
-set(CPACK_GENERATOR "WIX") # Genera un archivo .msi, más profesional y con mejor soporte para PATH
-# Opcional: set(CPACK_GENERATOR "NSIS") # Genera un archivo .exe
-
-# --- IMPORTANTE: Añadir el directorio 'bin' al PATH del sistema ---
-# Este es el bloque clave que añade la ruta al PATH
+# --- Configuración de CPack ---
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VENDOR "TuNombre")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
+set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
+
+# --- Lógica para añadir la carpeta 'bin' al PATH del sistema ---
 set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs")
 
-# Creamos el archivo WXS que contiene la lógica para modificar el PATH
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs" 
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs"
 [[<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="INSTALLDIR">
-            <Component Id="AddToPath" Guid="{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F67890}" KeyPath="yes">
+            <Component Id="AddToPath" Guid="{DEADBEEF-4157-435D-8BC3-C14D1652D2D4}" KeyPath="yes">
                 <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
             </Component>
         </DirectoryRef>
@@ -242,9 +237,8 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs"
 </Wix>]]
 )
 
-# Incluimos el componente "AddToPath" en la característica principal
-set(CPACK_WIX_EXTRA_FEATURES 
-[[<Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1" Absent="disallow">
+set(CPACK_WIX_EXTRA_FEATURES
+[[<Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
     <ComponentRef Id="AddToPath"/>
 </Feature>]]
 )
