@@ -1,5 +1,5 @@
 # =============================================================================
-# 1. CONFIGURACIÓN INICIAL DEL PROYECTO (Llega al enlazado)
+# 1. CONFIGURACIÓN INICIAL DEL PROYECTO
 # =============================================================================
 cmake_minimum_required(VERSION 3.16)
 
@@ -38,7 +38,6 @@ if(WIN32)
 endif()
 
 # --- wxWidgets ---
-# Esta es la versión que funcionaba, porque las pistas se las da el build.yml
 find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
@@ -58,11 +57,11 @@ set(CORE_SOURCES
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
-    src/core/engine/Validation.cpp 
+    src/core/engine/Validation.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
-    src/core/graphics/PlotInfoBox.cpp    
+    src/core/graphics/PlotInfoBox.cpp
     src/core/graphics/Plotting.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
@@ -83,7 +82,7 @@ add_executable(rango
 )
 
 target_include_directories(rango PRIVATE
-    ${OpenCV_INCLUDE_DIRS} 
+    ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
@@ -99,12 +98,12 @@ add_executable(dynaRangeGui WIN32
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
-    src/gui/GuiPresenter.cpp    
+    src/gui/GuiPresenter.cpp
     ${CORE_SOURCES}
     icono_noise.rc
 )
 
-target_include_directories(dynaRangeGui PRIVATE 
+target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
@@ -112,20 +111,20 @@ target_include_directories(dynaRangeGui PRIVATE
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup    
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
-target_compile_definitions(dynaRangeGui PRIVATE 
+target_compile_definitions(dynaRangeGui PRIVATE
     ${wxWidgets_DEFINITIONS}
 )
 
 # --- ENLAZADO DE LIBRERÍAS (CON LA SOLUCIÓN DEL LOG) ---
 if(WIN32)
     # Esta es la lista completa basada en los errores de "undefined reference" del log
-    set(WIN_STATIC_LIBS 
+    set(WIN_STATIC_LIBS
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
         version comctl32 uxtheme oleacc advapi32
         # Dependencias de imágenes y otras librerías
@@ -135,8 +134,8 @@ if(WIN32)
     )
 endif()
 
-target_link_libraries(rango PRIVATE 
-    ${OpenCV_LIBS} 
+target_link_libraries(rango PRIVATE
+    ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
     ${GETTEXT_LIBRARIES}
@@ -163,9 +162,6 @@ set_target_properties(rango dynaRangeGui PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
 )
 
-file(COPY "${CMAKE_SOURCE_DIR}/logo.png" DESTINATION "${PORTABLE_DIR}")
-file(COPY "${CMAKE_SOURCE_DIR}/favicon_noise.ico" DESTINATION "${PORTABLE_DIR}")
-
 # =============================================================================
 # 7. INTERNACIONALIZACIÓN
 # =============================================================================
@@ -188,24 +184,26 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION ${CMAKE_INSTALL
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-# --- Definición de qué instalar y dónde ---
+# --- Instalar los ejecutables ---
 install(TARGETS rango dynaRangeGui
-    RUNTIME DESTINATION bin  # Instala los .exe en la carpeta 'bin'
+    RUNTIME DESTINATION bin
     COMPONENT Applications
 )
 
-# --- SOLUCIÓN: Instalar las DLLs de forma eficiente ---
-# 1. Encontramos las DLLs que el workflow copió en el directorio de compilación.
+# --- MODIFICACIÓN 1: Instalar las DLLs de forma eficiente para evitar el cuelgue ---
+# 1. Creamos una lista con todas las DLLs que el workflow copió al directorio de compilación.
 file(GLOB DLL_FILES "${CMAKE_BINARY_DIR}/*.dll")
 
 # 2. Le decimos a CPack que instale ESA LISTA específica de archivos.
-#    Esto es mucho más rápido y fiable que escanear todo el directorio.
-install(FILES ${DLL_FILES}
-    DESTINATION bin
-    COMPONENT Applications
-)
+#    Esto es mucho más rápido y fiable que escanear todo el directorio con "install(DIRECTORY...)".
+if(DLL_FILES)
+    install(FILES ${DLL_FILES}
+        DESTINATION bin
+        COMPONENT Applications
+    )
+endif()
 
-# Instala otros archivos necesarios en la misma carpeta 'bin'
+# --- Instalar otros archivos (iconos, etc.) ---
 install(FILES
     "${CMAKE_SOURCE_DIR}/logo.png"
     "${CMAKE_SOURCE_DIR}/favicon_noise.ico"
@@ -213,10 +211,10 @@ install(FILES
     COMPONENT Applications
 )
 
-# --- Configuración de CPack ---
+# --- Configurar CPack para generar un instalador MSI ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_VENDOR "TuNombre")
+set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
@@ -229,7 +227,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs"
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="INSTALLDIR">
-            <Component Id="AddToPath" Guid="{DEADBEEF-4157-435D-8BC3-C14D1652D2D4}" KeyPath="yes">
+            <Component Id="AddToPath" Guid="{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F67890}" KeyPath="yes">
                 <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
             </Component>
         </DirectoryRef>
