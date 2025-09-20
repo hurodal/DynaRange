@@ -24,6 +24,7 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # 3. DEPENDENCIAS
 # =============================================================================
 find_package(PkgConfig REQUIRED)
+set(PKG_CONFIG_USE_STATIC ON) 
 
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
