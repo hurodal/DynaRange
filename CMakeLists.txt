@@ -210,33 +210,23 @@ install(FILES
 # --- Configurar CPack para generar un instalador MSI ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+# --- ¡¡¡CORRECCIÓN 1: Unir esta línea para arreglar la advertencia de sintaxis!!! ---
 set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 
-# --- Lógica para añadir la carpeta 'bin' al PATH del sistema ---
-set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs")
-
-# --- ¡¡¡CORRECCIÓN AQUÍ!!! Se añade el envoltorio <CPackWiXPatch> que CPack necesita ---
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/AddToPath.wxs"
-[[<?xml version="1.0" encoding="UTF-8"?>
-<CPackWiXPatch>
-    <CPackWiXFragment Id="Wix/Product">
-        <DirectoryRef Id="INSTALLDIR">
-            <Component Id="AddToPath" Guid="{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F67890}" KeyPath="yes">
-                <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
-            </Component>
-        </DirectoryRef>
-    </CPackWiXFragment>
-</CPackWiXPatch>]]
-)
-
-# Esta parte sigue siendo necesaria para incluir el componente en el instalador
+# --- ¡¡¡CORRECCIÓN 2: Lógica del PATH simplificada y robusta!!! ---
+# Eliminamos el método CPACK_WIX_PATCH_FILE que estaba fallando.
+# En su lugar, definimos el componente para el PATH directamente dentro de la característica.
 set(CPACK_WIX_EXTRA_FEATURES
-[[<Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
-    <ComponentRef Id="AddToPath"/>
-</Feature>]]
+[[
+<Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
+    <Component Id="AddToPath" Guid="{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F67890}" Directory="bin">
+        <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
+    </Component>
+</Feature>
+]]
 )
 
 include(CPack)
