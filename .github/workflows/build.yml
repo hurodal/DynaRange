@@ -26,7 +26,6 @@ jobs:
             mingw-w64-x86_64-cairo
             mingw-w64-x86_64-wxwidgets3.2-msw
             mingw-w64-x86_64-wxwidgets3.2-common
-            # Añadimos WiX Toolset para generar el .msi
             wixtoolset
 
       - name: Configure (CMake)
