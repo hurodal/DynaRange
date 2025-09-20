@@ -264,23 +264,23 @@ NROWS=7  # NROWS=8
 # Parameters
 
 # Chart format (suited to CAMERA, not to monitor)
-Format=1  #4/3  # 3/2  # 4/3  1
+Format=3/2  # 4/3 1
 # Chart dimensions
 DIMX=1920  # full HD width
 DIMY=round(DIMX/Format)
 
-# Number of patches in chart (ideally nearly square)
-NCOLS=4  # 11
-NROWS=4  # 7
+# Number of patches in chart (ideally nearly square patches)
+NCOLS=11
+NROWS=7
 
-# Chart colours: UniWB for Canon 350D: R=162, G=64 y B=104
+# Chart colours: UniWB for Canon 350D: R=162, G=64 y B=104 -> OPTIMIZE
 R=162; G=64; B=104
 RGBMAX=max(R,G,B)
 
-# Gamma curve to otimize colour separation
+# Gamma curve to otimize colour separation -> OPTIMIZE
 invgamma=1.4  # nonlinear colour scale factor (inverse gamma)
 
-# white circles radius -> WE CAN CALCULATE EXACT SIZE FOR USED QUANTILE
+# white circles radius -> CALCULATE EXACT SIZE FOR USED QUANTILE
 RADIUS=15
 
 
