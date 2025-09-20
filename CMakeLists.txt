@@ -38,7 +38,8 @@ if(WIN32)
 endif()
 
 # --- wxWidgets ---
-find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
+# CAMBIO CLAVE: Añadimos STATIC para forzar la búsqueda de librerías estáticas.
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED STATIC)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
 
@@ -123,12 +124,10 @@ target_compile_definitions(dynaRangeGui PRIVATE
 
 # --- ENLAZADO DE LIBRERÍAS ---
 if(WIN32)
-    # Lista de librerías de sistema necesarias para el enlazado estático.
-    # Esta lista resuelve las dependencias transitivas de wxWidgets, Cairo, etc.
+    # CAMBIO CLAVE: Añadimos las dependencias que pide el log (jpeg, z, iconv).
     set(WIN_STATIC_LIBS 
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
         version comctl32 uxtheme oleacc gomp
-        # Dependencias reveladas por el log
         jpeg z iconv
     )
 endif()
@@ -140,7 +139,6 @@ target_link_libraries(rango PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
-    # Enlazar las librerías de sistema al final
     ${WIN_STATIC_LIBS}
 )
 
@@ -152,7 +150,6 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
-    # Enlazar las librerías de sistema al final
     ${WIN_STATIC_LIBS}
 )
 
