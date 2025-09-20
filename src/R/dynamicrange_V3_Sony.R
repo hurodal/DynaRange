@@ -316,8 +316,8 @@ OFFSETY=round((DIMY-DIMYc)/2)
 chartfinal[(OFFSETY+1):(OFFSETY+DIMYc), (OFFSETX+1):(OFFSETX+DIMXc),]=chart
 
 # Add 4 WHITE circles
-x0=c(WIDTH,  WIDTH,  DIMX-WIDTH,  DIMX-WIDTH)
-y0=c(HEIGHT, HEIGHT, DIMY-HEIGHT, HEIGHT)
+x0=c(WIDTH,  WIDTH,       DIMX-WIDTH,  DIMX-WIDTH)
+y0=c(HEIGHT, DIMY-HEIGHT, DIMY-HEIGHT, HEIGHT)
 for (i in 1:4) {
     indices=which( ((row(chartfinal[,,1])-y0[i])/RADIUS)^2 +
                        ((col(chartfinal[,,1])-x0[i])/RADIUS)^2 < 1 )
