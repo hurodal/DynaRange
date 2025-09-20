@@ -2,7 +2,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 0: PARA PENSAR SOBRE ELLO (ONLY GUILLERMO'S EYES)
 	- Modo "Sensor performance" con múltiples exposiciones al mismo ISO: juntar datos de capturas al mismo ISO. TIPO DE CURVA?
-	- Carta Multiformato (3:2, 4:3, 1:1), multidimensiones MxN. Definir la carta ESTÁNDAR en MxN
+	- Carta Multiformato (3:2, 4:3, 1:1), multidimensiones MxN. Definir la carta ESTÁNDAR en MxN una vez hayamos visto cómo queda usar todos los canales RAW y optimizar la gamma.
 	- Gráfica de RD con recta de ISO invarianza
 	- Simplificar el parámetro umbral --snrthreshold-db: que no saque 0dB y 12dB por defecto, sino solo 12dB. O polo opuesto: poder especificar una lista de umbrales
 	- Detalle cosmético: intercambiar nombres de parámetros: -b/-B y -s/-S, y acortar algunos nombres: --sat-level, --sat-file, --drnorm-mpx
@@ -83,26 +83,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	- Metadatos: si LibRAW nos da la estructura RG/GB, GB/RG,... del RAW
 	- Analizando qué posición de la matriz de Bayer adquiere más niveles (serán los 2 canales G, da igual uno que otro)
 
-	DIMX=ncol(chart)
-	DIMY=nrow(chart)
-	
-	for (sector in 1:4) {
-	    if (sector==1) img=chart[1:(DIMY/2), 1:(DIMX/2)]
-	    if (sector==2) img=chart[1:(DIMY/2), (DIMX/2+1):DIMX]
-	    if (sector==3) img=chart[(DIMY/2+1):DIMY, (DIMX/2+1):DIMX]
-	    if (sector==4) img=chart[(DIMY/2+1):DIMY, 1:(DIMX/2)]
-	    
-	    # 1. Threshold for top 0.05% brightest pixels
-	    q <- quantile(img, probs = 0.9995)
-	    
-	    # 2. Coordinates of pixels above threshold
-	    coords <- which(img >= q, arr.ind = TRUE)
-	    img[coords]=1-img[coords]
-	    
-	    # 3. Median coordinates, rounded
-	    center_y <- round(median(coords[, 1]))
-	    center_x <- round(median(coords[, 2]))
-	}
+	Ver código R
 
 	La función quantile() se puede implementar en C++ con:
 
@@ -114,6 +95,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
                     return x[n]; 
                     }
                     ')
+
 
 
 
