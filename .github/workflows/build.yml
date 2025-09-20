@@ -43,9 +43,9 @@ jobs:
         shell: msys2 {0}
 
       - name: Buscar wx-config en todo el sistema
-	run: |
-	  find / -type f -name "wx-config" 2>/dev/null || true
-	shell: msys2 {0}
+        run: |
+          find / -type f -name "wx-config" 2>/dev/null || true
+        shell: msys2 {0}
 
       - name: Find wx-config anywhere
         run: |
