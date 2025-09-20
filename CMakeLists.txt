@@ -190,14 +190,15 @@ install(TARGETS rango dynaRangeGui
     COMPONENT Applications
 )
 
-# --- Instalar las DLLs de forma eficiente ---
-file(GLOB DLL_FILES "${CMAKE_BINARY_DIR}/*.dll")
-if(DLL_FILES)
-    install(FILES ${DLL_FILES}
-        DESTINATION bin
-        COMPONENT Applications
-    )
-endif()
+# --- ¡¡¡CORRECCIÓN!!! Usamos install(DIRECTORY) que busca las DLLs en el momento del empaquetado. ---
+#     Añadimos "EXCLUDE" para que no se cuelgue escaneando directorios internos de CMake.
+install(DIRECTORY "${CMAKE_BINARY_DIR}/"
+    DESTINATION bin
+    COMPONENT Applications
+    FILES_MATCHING
+    PATTERN "*.dll"
+    PATTERN "CMakeFiles" EXCLUDE
+)
 
 # --- Instalar otros archivos (iconos, etc.) ---
 install(FILES
@@ -210,15 +211,12 @@ install(FILES
 # --- Configurar CPack para generar un instalador MSI ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-# --- ¡¡¡CORRECCIÓN 1: Unir esta línea para arreglar la advertencia de sintaxis!!! ---
-set(CPACK_PACKAGE_VENDOR "TuNombre o TuEmpresa")
+set(CPACK_PACKAGE_VENDOR "DynaRange")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 
-# --- ¡¡¡CORRECCIÓN 2: Lógica del PATH simplificada y robusta!!! ---
-# Eliminamos el método CPACK_WIX_PATCH_FILE que estaba fallando.
-# En su lugar, definimos el componente para el PATH directamente dentro de la característica.
+# --- Lógica del PATH simplificada y robusta ---
 set(CPACK_WIX_EXTRA_FEATURES
 [[
 <Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
