@@ -1,10 +1,10 @@
-name: Build Windows Static 6
+name: Build Windows Portable Installer
 
 on:
   workflow_dispatch:   # solo manual
 
 jobs:
-  build-windows-static:
+  build-windows-portable-installer:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +26,8 @@ jobs:
             mingw-w64-x86_64-cairo
             mingw-w64-x86_64-wxwidgets3.2-msw
             mingw-w64-x86_64-wxwidgets3.2-common
+            # Añadimos WiX Toolset para generar el .msi
+            wixtoolset
 
       - name: Configure (CMake)
         shell: msys2 {0}
@@ -34,17 +36,33 @@ jobs:
             -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH=/mingw64 \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_EXE_LINKER_FLAGS="-static"
+            -DBUILD_SHARED_LIBS=ON # Aseguramos que se usen DLLs
 
       - name: Build
         shell: msys2 {0}
         run: cmake --build build --config Release --parallel
 
-      - name: Upload executables
+      - name: Copy Required DLLs
+        shell: msys2 {0}
+        run: |
+          cd build
+          for dll in $(ldd rango.exe dynaRangeGui.exe | grep -o '/mingw64/bin/[^ ]*' | sort -u); do
+            cp "$dll" .
+          done
+
+      - name: Generate Installer
+        shell: msys2 {0}
+        run: |
+          cd build
+          cpack -G WIX # Genera el archivo .msi
+
+      - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
-          name: dynaRange-windows-static
+          name: dynaRange-windows-installer
           path: |
-            build/rango.exe
-            build/dynaRangeGui.exe
+            build/*.msi # Sube el instalador
+            # Opcional: también puedes subir la carpeta portable para quienes no quieran instalar
+            # build/rango.exe
+            # build/dynaRangeGui.exe
+            # build/*.dll
