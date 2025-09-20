@@ -4,6 +4,7 @@
 # Drive de Hugo: https://drive.google.com/drive/folders/1SYbGBnXorQpJdaZaeTbdinNTv4ks3nlo
 
 library(tiff)
+library(png)
 library(Cairo)
 library(Rcpp)
 # library(microbenchmark)
@@ -251,10 +252,88 @@ normalize=FALSE  # TRUE
 drnormalization_mpx=8  # 8Mpx normalization
 
 # Number of patches in test chart
-NCOLS=11
-NCOLS=10
-NROWS=7
-NROWS=8
+NCOLS=10  # NCOLS=11
+NROWS=7  # NROWS=8
+
+
+
+################################
+
+# OPTIONAL MAGENTA CHART GENERATION
+
+# Parameters
+
+# Chart format (suited to CAMERA, not to monitor)
+Format=1  #4/3  # 3/2  # 4/3  1
+# Chart dimensions
+DIMX=1920  # full HD width
+DIMY=round(DIMX/Format)
+
+# Number of patches in chart (ideally nearly square)
+NCOLS=4  # 11
+NROWS=4  # 7
+
+# Chart colours: UniWB for Canon 350D: R=162, G=64 y B=104
+R=162; G=64; B=104
+RGBMAX=max(R,G,B)
+
+# Gamma curve to otimize colour separation
+invgamma=1.4  # nonlinear colour scale factor (inverse gamma)
+
+# white circles radius -> WE CAN CALCULATE EXACT SIZE FOR USED QUANTILE
+RADIUS=15
+
+
+WIDTH=round(DIMX/(NCOLS+4))  # width of all patches in pixels
+HEIGHT=round(DIMY/(NROWS+4))  # height of all patches in pixels
+
+DIMXc=WIDTH*NCOLS  # effective patch area (exact number of pixels)
+DIMYc=HEIGHT*NROWS
+chart=array(0, dim=c(DIMYc, DIMXc, 3))  # effective chart
+
+val=seq(1, 0, length.out=NCOLS*NROWS)^invgamma
+p=1
+for (j in 1:NROWS) {
+    for (i in 1:NCOLS) {
+        x1=(i-1)*WIDTH+1
+        x2= i   *WIDTH
+        y1=(j-1)*HEIGHT+1
+        y2= j   *HEIGHT
+        patch=which(row(chart[,,1])>=y1 & row(chart[,,1])<=y2 &
+                        col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
+        
+        chart[,,1][patch]=val[p] * R/RGBMAX  # R
+        chart[,,2][patch]=val[p] * G/RGBMAX  # G
+        chart[,,3][patch]=val[p] * B/RGBMAX  # B
+        p=p+1
+    }
+}
+
+# Add borders to patch chart
+chartfinal=array(0, dim=c(DIMY, DIMX, 3))
+OFFSETX=round((DIMX-DIMXc)/2)
+OFFSETY=round((DIMY-DIMYc)/2)
+chartfinal[(OFFSETY+1):(OFFSETY+DIMYc), (OFFSETX+1):(OFFSETX+DIMXc),]=chart
+
+# Add 4 WHITE circles
+x0=c(WIDTH,  WIDTH,  DIMX-WIDTH,  DIMX-WIDTH)
+y0=c(HEIGHT, HEIGHT, DIMY-HEIGHT, HEIGHT)
+for (i in 1:4) {
+    indices=which( ((row(chartfinal[,,1])-y0[i])/RADIUS)^2 +
+                       ((col(chartfinal[,,1])-x0[i])/RADIUS)^2 < 1 )
+    chartfinal[,,1][indices]=1
+    chartfinal[,,2][indices]=1 
+    chartfinal[,,3][indices]=1 
+}
+
+# Write chart
+# writeTIFF(chart, "magentachart.tif", bits.per.sample=16)
+CHARTNAME=paste0("magentachart_", NCOLS, "x", NROWS, "_",
+                 round(Format,2), "_", invgamma*10, ".png")
+writePNG(chartfinal, CHARTNAME)
+
+
+
 
 
 ################################
