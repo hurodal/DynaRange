@@ -48,7 +48,7 @@
             <CpackWiXComponents />
             
             <Component Id="AddToPath" Guid="*" KeyPath="yes">
-                <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER_BIN]" Permanent="no" Part="last" Action="set" System="yes" />
+                <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]bin" Permanent="no" Part="last" Action="set" System="yes" />
             </Component>
         </ComponentGroup>
     </Fragment>
