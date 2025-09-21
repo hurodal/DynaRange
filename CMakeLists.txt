@@ -24,11 +24,9 @@ set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
 # 3. DEPENDENCIAS
 # =============================================================================
 find_package(PkgConfig REQUIRED)
-set(PKG_CONFIG_USE_STATIC ON)
 
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
-#find_package(Eigen3 3.3 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
 
@@ -122,14 +120,12 @@ target_compile_definitions(dynaRangeGui PRIVATE
     ${wxWidgets_DEFINITIONS}
 )
 
-# --- ENLAZADO DE LIBRERÍAS (CON LA SOLUCIÓN DEL LOG) ---
+# Contiene librerías de importación para DLLs del sistema y de dependencias.
 if(WIN32)
-    set(WIN_STATIC_LIBS
+    set(WIN_LINK_LIBS
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
         version comctl32 uxtheme oleacc advapi32
-        # Dependencias de imágenes y otras librerías
         png jpeg tiff z iconv
-        # Dependencia de OpenMP
         gomp
     )
 endif()
@@ -142,7 +138,7 @@ target_link_libraries(rango PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
-    ${WIN_STATIC_LIBS}
+    ${WIN_LINK_LIBS}
 )
 
 target_link_libraries(dynaRangeGui PRIVATE
@@ -154,7 +150,7 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
-    ${WIN_STATIC_LIBS}
+    ${WIN_LINK_LIBS}
 )
 
 # =============================================================================
@@ -168,35 +164,28 @@ set_target_properties(rango dynaRangeGui PROPERTIES
 # 7. INTERNACIONALIZACIÓN
 # =============================================================================
 include(UseGettext)
-
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
-
 set(I18N_SOURCES
     src/rango.cpp
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
     ${CORE_SOURCES}
 )
-
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
 GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" ${LANGUAGES})
 
-
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-
-# --- Definir qué ficheros se instalan (sin especificar componente) ---
+# Definir qué ficheros se instalan (sin especificar componente)
 install(TARGETS rango dynaRangeGui
     RUNTIME DESTINATION bin
 )
-
 install(FILES "${CMAKE_SOURCE_DIR}/logo.png"
     DESTINATION bin
 )
-
 install(CODE "
     message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
     file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
@@ -208,31 +197,27 @@ install(CODE "
     endif()
 ")
 
-# --- Configuración General de CPack ---
+# Configuración General de CPack
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VENDOR "DynaRange Project")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de análisis de rango dinámico")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-win64-installer")
+set(CPACK_PACKAGE_FILE_NAME "dynaRange-win64-installer")
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
 set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
 
-# --- Configuración Específica para WiX (Instalador de Windows) ---
+# Configuración Específica para WiX (Instalador de Windows)
 set(CPACK_GENERATOR "WIX")
-
-# --- GUIDs para el producto y actualizaciones (esencial para desinstalar/actualizar) ---
 set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
 set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
 
-# --- Usar la plantilla WiX ---
-# Procesamos nuestra plantilla y le decimos a CPack que la use.
+# Usar la plantilla WiX
 configure_file(
     "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
     "${CMAKE_BINARY_DIR}/wix_template.wxs"
     @ONLY
 )
 set(CPACK_WIX_TEMPLATE "${CMAKE_BINARY_DIR}/wix_template.wxs")
-
 
 include(CPack)

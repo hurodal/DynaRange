@@ -28,11 +28,7 @@
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
         <Feature Id="ProductFeature" Title="DynaRange" Level="1">
-            <ComponentGroupRef Id="Components" />
-            
-            <Component Id="AddToPath" Guid="*" Directory="INSTALLFOLDER_BIN" KeyPath="yes">
-                <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER_BIN]" Permanent="no" Part="last" Action="set" System="yes" />
-            </Component>
+            <ComponentGroupRef Id="MainComponents" />
         </Feature>
 
     </Product>
@@ -48,8 +44,12 @@
     </Fragment>
 
     <Fragment>
-        <ComponentGroup Id="Components" Directory="INSTALLFOLDER_BIN">
+        <ComponentGroup Id="MainComponents" Directory="INSTALLFOLDER_BIN">
             <CpackWiXComponents />
+            
+            <Component Id="AddToPath" Guid="*" KeyPath="yes">
+                <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER_BIN]" Permanent="no" Part="last" Action="set" System="yes" />
+            </Component>
         </ComponentGroup>
     </Fragment>
 </Wix>
