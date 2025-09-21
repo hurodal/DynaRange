@@ -138,6 +138,7 @@ target_link_libraries(rango PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
+    Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
@@ -149,6 +150,7 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
+    Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
