@@ -185,15 +185,13 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
 
-# --- Definir qué ficheros se instalan ---
+# --- Definir qué ficheros se instalan (sin especificar componente) ---
 install(TARGETS rango dynaRangeGui
     RUNTIME DESTINATION bin
-    COMPONENT Applications
 )
 
 install(FILES "${CMAKE_SOURCE_DIR}/logo.png"
     DESTINATION bin
-    COMPONENT Applications
 )
 
 install(CODE "
@@ -205,7 +203,7 @@ install(CODE "
     else()
         message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
     endif()
-" COMPONENT Applications)
+")
 
 # --- Configuración General de CPack ---
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
@@ -225,7 +223,7 @@ set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
 set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
 
 # --- Usar la plantilla WiX ---
-# Este es el cambio clave: procesamos nuestra plantilla y le decimos a CPack que la use.
+# Procesamos nuestra plantilla y le decimos a CPack que la use.
 configure_file(
     "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
     "${CMAKE_BINARY_DIR}/wix_template.wxs"
