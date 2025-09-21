@@ -201,7 +201,7 @@ install(CODE "
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VENDOR "DynaRange Project")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de análisis de rango dinámico")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de an&#225;lisis de rango din&#225;mico")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
 set(CPACK_PACKAGE_FILE_NAME "dynaRange-win64-installer")
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
