@@ -1,0 +1,9 @@
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <Feature Id="AddToPathFeature" Title="Add to System PATH" Description="Add the application's bin directory to the system PATH." Level="1">
+            <Component Id="AddToPath" Guid="*" Directory="INSTALLFOLDER_BIN" KeyPath="yes">
+                <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]bin" Permanent="no" Part="last" Action="set" System="yes" />
+            </Component>
+        </Feature>
+    </Fragment>
+</Wix>

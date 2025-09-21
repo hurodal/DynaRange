@@ -179,7 +179,7 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-# Definir qué ficheros se instalan (sin especificar componente)
+# Definir qué ficheros se instalan
 install(TARGETS rango dynaRangeGui
     RUNTIME DESTINATION bin
 )
@@ -197,27 +197,27 @@ install(CODE "
     endif()
 ")
 
-# Configuración General de CPack
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+# --- Configuración General de CPack ---
+# CORRECCIÓN: Usar CPACK_PACKAGE_* para que CPack los reconozca.
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VENDOR "DynaRange Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de an&#225;lisis de rango din&#225;mico")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-set(CPACK_PACKAGE_FILE_NAME "dynaRange-win64-installer")
+set(CPACK_PACKAGE_FILE_NAME "dynaRange-installer")
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
 set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
 
-# Configuración Específica para WiX (Instalador de Windows)
+# --- Configuración Específica para WiX (Instalador de Windows) ---
 set(CPACK_GENERATOR "WIX")
 set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
 set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
 
-# Usar la plantilla WiX
-configure_file(
-    "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
-    "${CMAKE_BINARY_DIR}/wix_template.wxs"
-    @ONLY
-)
-set(CPACK_WIX_TEMPLATE "${CMAKE_BINARY_DIR}/wix_template.wxs")
+# --- Quitar la página de la licencia ---
+set(CPACK_WIX_UI_REF "WixUI_InstallDir")
+
+# --- Aplicar el parche para añadir el PATH ---
+# CORRECCIÓN: Usamos un fichero de parche en lugar de la plantilla completa.
+set(CPACK_WIX_PATCH_FILE "${CMAKE_SOURCE_DIR}/wix.patch.xml")
 
 include(CPack)
