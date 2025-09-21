@@ -29,7 +29,7 @@
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
         <Feature Id="ProductFeature" Title="DynaRange" Level="1">
-            <ComponentGroupRef Id="Unspecified" />
+            <FeatureRef Id="Unspecified" />
             
             <Component Id="AddToPath" Guid="*" Directory="INSTALLFOLDER_BIN" KeyPath="yes">
                 <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]bin" Permanent="no" Part="last" Action="set" System="yes" />
