@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <atomic>
 
 // Forward declaration of the View to avoid circular includes
 class DynaRangeFrame; 
@@ -57,6 +58,10 @@ public:
      */
     const ReportOutput& GetLastReport() const;
 
+    bool IsWorkerRunning() const;
+    void RemoveInputFiles(const std::vector<int>& indices);
+    void RequestWorkerCancellation();
+
 private:
     /**
      * @brief The main function for the worker thread.
@@ -79,4 +84,6 @@ private:
     ReportOutput m_lastReport;
     ProgramOptions m_lastRunOptions;
     std::thread m_workerThread;
+    std::atomic<bool> m_isWorkerRunning{false};
+    std::atomic<bool> m_cancelWorker{false};
 };

@@ -111,8 +111,19 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_rawFileslistBox = new wxListBox( rawFilesSbSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
 	rawFilesSbSizer->Add( m_rawFileslistBox, 1, wxALL|wxEXPAND, 5 );
 
+	wxBoxSizer* AddRemoveRawsSbSizer7;
+	AddRemoveRawsSbSizer7 = new wxBoxSizer( wxHORIZONTAL );
+
 	m_addRawFilesButton = new wxButton( rawFilesSbSizer->GetStaticBox(), wxID_ANY, _("Add RAW Files..."), wxDefaultPosition, wxDefaultSize, 0 );
-	rawFilesSbSizer->Add( m_addRawFilesButton, 0, wxALIGN_CENTER|wxALL, 5 );
+	AddRemoveRawsSbSizer7->Add( m_addRawFilesButton, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_removeRawFilesButton = new wxButton( rawFilesSbSizer->GetStaticBox(), wxID_ANY, _("Remove Selected"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_removeRawFilesButton->Enable( false );
+
+	AddRemoveRawsSbSizer7->Add( m_removeRawFilesButton, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	rawFilesSbSizer->Add( AddRemoveRawsSbSizer7, 0, wxEXPAND, 5 );
 
 
 	mainPanelSizer->Add( rawFilesSbSizer, 1, wxALL|wxEXPAND, 5 );
@@ -125,7 +136,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	equivalentCliSbSizer->Add( m_equivalentCliTextCtrl, 1, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( equivalentCliSbSizer, 1, wxALL|wxEXPAND, 5 );
+	mainPanelSizer->Add( equivalentCliSbSizer, 0, wxALL|wxEXPAND, 5 );
 
 	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
 	mainPanelSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );

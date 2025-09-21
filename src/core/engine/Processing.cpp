@@ -10,6 +10,7 @@
 #include "../analysis/ImageAnalyzer.hpp"
 #include <filesystem>
 #include <iostream>
+#include <atomic>
 
 namespace fs = std::filesystem;
 
@@ -52,7 +53,7 @@ SingleFileResult AnalyzeSingleRawFile(
     std::ostream& log_stream,
     double camera_resolution_mpx)
 {
-    log_stream << "\nProcessing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
+    log_stream << "Processing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
     
     // 1. Call ImageProcessing module to prepare the image
     cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
@@ -86,7 +87,14 @@ SingleFileResult AnalyzeSingleRawFile(
 
 } // end of anonymous namespace
 
-ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream) {
+/**
+ * @brief Processes a list of RAW files to analyze their dynamic range.
+ * @param opts The program options containing all configuration settings.
+ * @param log_stream The output stream for logging messages.
+ * @param cancel_flag An atomic boolean flag to signal cancellation from another thread.
+ * @return A ProcessingResult struct containing the aggregated results.
+ */
+ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
     
     // 1. Load files (I/O Responsibility)
@@ -94,27 +102,22 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     
     // 2. Define the context for the analysis (e.g., which chart to use)
     ChartProfile chart;
-    // The analysis will use the default chart profile.
     
     std::string camera_model_name;
     if(!raw_files.empty() && raw_files[0].IsLoaded()){
         camera_model_name = raw_files[0].GetCameraModel();
     }
 
-    // --- CAMBIO: Lógica condicional basada en la nueva constante de Processing.hpp ---
+    // 3. Orchestrate analysis for each file, respecting the keystone optimization setting.
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
-        // --- RUTA OPTIMIZADA Solo se calcula el keystone para el primer fotograma ---
-        log_stream << "[INFO] Using optimized keystone: calculating parameters once for the series..." << std::endl;
-        // El cálculo pesado se hace aquí, una única vez
+        log_stream << "Using optimized keystone: calculating parameters once for the series...\n" << std::endl;
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
         
-        // 3. Orchestrate analysis for each file
         for (const auto& raw_file : raw_files) {
+            if (cancel_flag) return {}; // Cancellation check
             if (!raw_file.IsLoaded()) continue;
-            // Se pasan los parámetros pre-calculados a cada llamada
+
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
-            
-            // Aggregate valid results
             if (!file_result.dr_result.filename.empty()) {
                 file_result.curve_data.camera_model = camera_model_name;
                 result.dr_results.push_back(file_result.dr_result);
@@ -122,17 +125,14 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             }
         }
     } else {
-        // --- RUTA NO OPTIMIZADA Se calcula el keystone para cada fotograma ---
-        log_stream << "[INFO] Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
-        // 3. Orchestrate analysis for each file
+        log_stream << "Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
         for (const auto& raw_file : raw_files) {
-            if (!raw_file.IsLoaded()) continue;
+            if (cancel_flag) return {}; // Cancellation check
 
-            // El cálculo pesado se realiza dentro del bucle, en cada iteración
+            if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
             
-            // Aggregate valid results
             if (!file_result.dr_result.filename.empty()) {
                 file_result.curve_data.camera_model = camera_model_name;
                 result.dr_results.push_back(file_result.dr_result);

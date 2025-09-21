@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-21 16:11+0200\n"
+"POT-Creation-Date: 2025-09-21 22:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,46 +17,50 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/rango.cpp:31
+#: src/rango.cpp:36
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:93
+#: src/gui/DynaRangeFrame.cpp:97
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:143
+#: src/gui/DynaRangeFrame.cpp:147
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:230
+#: src/gui/DynaRangeFrame.cpp:244
 msgid "Processing... Please wait."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:284
+#: src/gui/DynaRangeFrame.cpp:255
+msgid "Generated Graph:"
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:316
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:286
+#: src/gui/DynaRangeFrame.cpp:318
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:303
+#: src/gui/DynaRangeFrame.cpp:335
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:305
+#: src/gui/DynaRangeFrame.cpp:337
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:334
+#: src/gui/DynaRangeFrame.cpp:366
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:337
+#: src/gui/DynaRangeFrame.cpp:369
 msgid "Welcome (logo.png not found)"
 msgstr ""
 

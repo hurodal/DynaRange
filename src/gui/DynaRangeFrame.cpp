@@ -58,10 +58,14 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
+    m_removeRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveFilesClick, this);
+    m_rawFileslistBox->Bind(wxEVT_LISTBOX, &DynaRangeFrame::OnListBoxSelectionChanged, this);
+    m_rawFileslistBox->Bind(wxEVT_KEY_DOWN, &DynaRangeFrame::OnListBoxKeyDown, this);
 
     // Thread communication events
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
+    Bind(wxEVT_CLOSE_WINDOW, &DynaRangeFrame::OnClose, this);
     
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
@@ -144,6 +148,14 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     }
 }
 
+void DynaRangeFrame::OnClose(wxCloseEvent& event) {
+    if (m_presenter->IsWorkerRunning()) {
+        m_presenter->RequestWorkerCancellation(); // Envía la señal de cancelación
+        // El destructor se encargará de esperar (join) al hilo, que ahora terminará pronto.
+    }
+    Destroy(); // Le dice a la ventana que se destruya
+}
+
 void DynaRangeFrame::PostLogUpdate(const std::string& text) {
     wxThreadEvent* event = new wxThreadEvent(wxEVT_COMMAND_WORKER_UPDATE);
     event->SetString(text);
@@ -218,21 +230,41 @@ void DynaRangeFrame::ShowError(const std::string& title, const std::string& mess
 
 void DynaRangeFrame::SetUiState(bool is_processing) {
     m_executeButton->Enable(!is_processing);
-    m_csvOutputStaticText->Show(!is_processing);
-    m_cvsGrid->Show(!is_processing);
-    m_processingGauge->Show(is_processing);
 
     if (is_processing) {
-        m_mainNotebook->SetSelection(1); // Switch to log tab
+        // --- Estado "Procesando" ---
+        m_mainNotebook->SetSelection(1); // Cambia a la pestaña de Log
         ClearLog();
-        m_gaugeTimer->Start(100);
-        LoadLogoImage();
+
+        // Oculta explícitamente los controles de resultados
+        m_csvOutputStaticText->Hide();
+        m_cvsGrid->Hide();
+
+        // Muestra los controles de "procesando" y recarga el logo
         m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
+        LoadLogoImage(); // Recargar el logo
+        m_processingGauge->Show();
+        m_gaugeTimer->Start(100);
+
     } else {
+        // --- Estado "Resultados" ---
         m_gaugeTimer->Stop();
+        m_processingGauge->Hide();
+
+        // Actualiza la etiqueta de texto a su estado final ANTES de mostrarla
+        m_generateGraphStaticText->SetLabel(_("Generated Graph:"));
+
+        // Muestra explícitamente todos los controles de resultados
+        m_csvOutputStaticText->Show();
+        m_cvsGrid->Show();
+        m_imageGraph->Show();
     }
+
+    // Finalmente, fuerza al panel a recalcular el layout y a redibujarse
     m_resultsPanel->Layout();
+    m_resultsPanel->Refresh(); // Esta línea es clave para Windows
 }
+
 
 // --- Getters for the Presenter ---
 
@@ -342,4 +374,36 @@ void DynaRangeFrame::LoadLogoImage() {
 bool DynaRangeFrame::IsSupportedRawFile(const wxString& filePath) {
     LibRaw p;
     return p.open_file(filePath.mb_str()) == LIBRAW_SUCCESS;
+}
+
+void DynaRangeFrame::PerformFileRemoval() {
+    wxArrayInt selections;
+    if (m_rawFileslistBox->GetSelections(selections) == 0) return;
+
+    // Convertimos wxArrayInt a std::vector<int> para el presenter
+    std::vector<int> indices(selections.begin(), selections.end());
+    m_presenter->RemoveInputFiles(indices);
+
+    // Después de que los ficheros se han eliminado, nos aseguramos
+    // de que el botón se deshabilite, ya que la selección se ha perdido.
+    m_removeRawFilesButton->Enable(false);
+}
+
+void DynaRangeFrame::OnRemoveFilesClick(wxCommandEvent& event) {
+    PerformFileRemoval();
+}
+
+void DynaRangeFrame::OnListBoxSelectionChanged(wxCommandEvent& event) {
+    // Habilita o deshabilita el botón "Remove" según si hay algo seleccionado
+    wxArrayInt selections;
+    m_removeRawFilesButton->Enable(m_rawFileslistBox->GetSelections(selections) > 0);
+    event.Skip();
+}
+
+void DynaRangeFrame::OnListBoxKeyDown(wxKeyEvent& event) {
+    // Implementa la eliminación con la tecla Suprimir/Retroceso
+    if (event.GetKeyCode() == WXK_DELETE || event.GetKeyCode() == WXK_BACK) {
+        PerformFileRemoval(); // Reutilizamos la nueva función
+    }
+    event.Skip();
 }

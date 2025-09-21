@@ -58,6 +58,7 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_patchRatioValueText;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;
+		wxButton* m_removeRawFilesButton;
 		wxTextCtrl* m_equivalentCliTextCtrl;
 		wxButton* m_executeButton;
 		wxPanel* m_logPanel;

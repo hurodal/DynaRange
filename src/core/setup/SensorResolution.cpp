@@ -17,7 +17,7 @@ double DetectSensorResolution(const std::vector<std::string>& input_files, std::
         // Attempt to get resolution from specific metadata first
         double sensor_res_from_metadata = raw_file.GetSensorResolutionMPx();
         if (sensor_res_from_metadata > 0.0) {
-            log_stream << "[INFO] Sensor resolution detected from RAW metadata: "
+            log_stream << "Sensor resolution detected from RAW metadata: "
                        << std::fixed << std::setprecision(1) << sensor_res_from_metadata << " Mpx\n";
             return sensor_res_from_metadata;
         }
@@ -28,7 +28,7 @@ double DetectSensorResolution(const std::vector<std::string>& input_files, std::
         if (width > 0 && height > 0) {
             double sensor_res_from_dims = static_cast<double>(width * height) / 1000000.0;
             if (sensor_res_from_dims > 0.1) { // Avoid absurdly small values
-                log_stream << "[INFO] Sensor resolution inferred from RAW dimensions: "
+                log_stream << "Sensor resolution inferred from RAW dimensions: "
                            << std::fixed << std::setprecision(1) << sensor_res_from_dims << " Mpx\n";
                 return sensor_res_from_dims;
             }

@@ -8,6 +8,7 @@
 #include "../arguments/ProgramOptions.hpp"
 #include <vector>
 #include <Eigen/Dense>
+#include <atomic>
 
 namespace DynaRange {
 namespace EngineConfig {
@@ -44,6 +45,7 @@ struct ProcessingResult {
  * @brief Processes a list of RAW files to analyze their dynamic range.
  * @param opts The program options containing all configuration settings.
  * @param log_stream The output stream for logging messages.
+ * @param cancel_flag Canceled. Try closing app.
  * @return A ProcessingResult struct containing the aggregated results.
  */
-ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream);
+ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag);

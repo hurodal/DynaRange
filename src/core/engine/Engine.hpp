@@ -8,9 +8,8 @@
 #include "../arguments/ProgramOptions.hpp"
 #include "Reporting.hpp"
 #include <ostream>
+#include <atomic>
 
 namespace DynaRange {
-
-    ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream);
-
-} // namespace DynaRange
+    ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag);
+}

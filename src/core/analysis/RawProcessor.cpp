@@ -10,7 +10,7 @@
 #include <iomanip>
 
 std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream& log_stream) {
-    log_stream << "[INFO] Calculating black level from: " << filename << "..." << std::endl;
+    log_stream << "Calculating black level from: " << filename << "..." << std::endl;
     RawFile dark_file(filename);
     if (!dark_file.Load()) return std::nullopt;
 
@@ -23,12 +23,12 @@ std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream
     raw_img.reshape(1, 1).convertTo(pixels, CV_64F);
 
     double mean_value = CalculateMean(pixels);
-    log_stream << "[INFO] -> Black level obtained: " << std::fixed << std::setprecision(2) << mean_value << std::endl;
+    log_stream << "Black level obtained: " << std::fixed << std::setprecision(2) << mean_value << std::endl;
     return mean_value;
 }
 
 std::optional<double> ProcessSaturationFrame(const std::string& filename, std::ostream& log_stream) {
-    log_stream << "[INFO] Calculating saturation point from: " << filename << "..." << std::endl;
+    log_stream << "Calculating saturation point from: " << filename << "..." << std::endl;
     RawFile sat_file(filename);
     if (!sat_file.Load()) return std::nullopt;
 
@@ -41,12 +41,12 @@ std::optional<double> ProcessSaturationFrame(const std::string& filename, std::o
 
     // Using 5th percentile of the brightest pixels to avoid sensor defects
     double quantile_value = CalculateQuantile(pixels, 0.05);
-    log_stream << "[INFO] -> Saturation point obtained (5th percentile): " << std::fixed << std::setprecision(2) << quantile_value << std::endl;
+    log_stream << "Saturation point obtained (5th percentile): " << std::fixed << std::setprecision(2) << quantile_value << std::endl;
     return quantile_value;
 }
 
 std::optional<double> OldProcessSaturationFrame(const std::string& filename, std::ostream& log_stream) {
-    log_stream << "[INFO] Calculating saturation point from: " << filename << "..." << std::endl;
+    log_stream << "Calculating saturation point from: " << filename << "..." << std::endl;
     RawFile sat_file(filename);
     if (!sat_file.Load()) return std::nullopt;
 
@@ -69,9 +69,9 @@ std::optional<double> OldProcessSaturationFrame(const std::string& filename, std
 
     // Log the detected bit depth and expected saturation value
     double expected_saturation = (1 << bit_depth) - 1; // 2^bit_depth - 1
-    log_stream << "[INFO] Detected bit depth: " << bit_depth << " bits" << std::endl;
-    log_stream << "[INFO] Expected saturation level: " << expected_saturation << std::endl;
-    log_stream << "[INFO] Measured saturation (5th percentile): " << std::fixed << std::setprecision(2) << quantile_value << std::endl;
+    log_stream << "Detected bit depth: " << bit_depth << " bits" << std::endl;
+    log_stream << "Expected saturation level: " << expected_saturation << std::endl;
+    log_stream << "Measured saturation (5th percentile): " << std::fixed << std::setprecision(2) << quantile_value << std::endl;
 
     // If measured value is suspiciously low (e.g., ~4095 for 14-bit), warn user
     if (bit_depth == 14 && quantile_value < 10000) {

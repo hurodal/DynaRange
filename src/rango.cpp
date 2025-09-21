@@ -8,6 +8,7 @@
 #include <iostream>
 #include <libintl.h>
 #include <locale.h>
+#include <atomic> 
 
 #define _(string) gettext(string)
 
@@ -24,8 +25,12 @@ int main(int argc, char* argv[]) {
 
     ProgramOptions opts = ParseCommandLine(argc, argv);
     
-    ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout);
-
+    // 2. Crear un flag de cancelación que siempre será falso para el CLI.
+    std::atomic<bool> cancel_flag{false}; 
+    
+    // 3. Pasar el flag a la función.
+    ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout, cancel_flag);
+    
     // Check for failure by seeing if the summary plot path was generated.
     if (!report.summary_plot_path.has_value()) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;

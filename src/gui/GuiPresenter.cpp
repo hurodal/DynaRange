@@ -8,9 +8,11 @@
 #include "../core/engine/Engine.hpp"
 #include "../core/arguments/CommandGenerator.hpp"
 #include <wx/stdpaths.h>
+#include <wx/msgdlg.h>
 #include <filesystem>
 #include <ostream>
 #include <streambuf>
+#include <algorithm> // Needed for std::sort
 
 namespace fs = std::filesystem;
 
@@ -18,7 +20,9 @@ namespace fs = std::filesystem;
 // This streambuf redirects std::ostream to the View's log through wxEvents
 class WxLogStreambuf : public std::streambuf {
 public:
-    WxLogStreambuf(DynaRangeFrame* view) : m_view(view) {}
+    WxLogStreambuf(DynaRangeFrame* view) : m_view(view) {
+        // The line "m_cancelWorker = false;" was here and has been removed.
+    }
 protected:
     virtual int sync() override {
         if (!m_buffer.empty() && m_view) {
@@ -40,7 +44,9 @@ private:
 };
 
 
-GuiPresenter::GuiPresenter(DynaRangeFrame* view) : m_view(view) {}
+GuiPresenter::GuiPresenter(DynaRangeFrame* view) : m_view(view) {
+    m_cancelWorker = false;
+}
 
 GuiPresenter::~GuiPresenter() {
     if (m_workerThread.joinable()) {
@@ -60,15 +66,25 @@ void GuiPresenter::StartAnalysis() {
     if (m_workerThread.joinable()) {
         m_workerThread.join();
     }
-    m_workerThread = std::thread(&GuiPresenter::AnalysisWorker, this, m_lastRunOptions);
+    
+    m_cancelWorker = false; // Reset the flag before starting
+
+    // Launch the thread with a lambda to update the state upon completion
+    m_workerThread = std::thread([this] {
+        // We run the worker with the options already stored in m_lastRunOptions
+        this->AnalysisWorker(m_lastRunOptions);    
+        // When AnalysisWorker finishes, we update the flag
+        m_isWorkerRunning = false;
+    });
 }
 
 void GuiPresenter::AnalysisWorker(ProgramOptions opts) {
+    m_isWorkerRunning = true; // Inform that the thread has started
     WxLogStreambuf log_streambuf(m_view);
     std::ostream log_stream(&log_streambuf);
 
-    m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream);
-    
+    m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
+
     // Notify the view on the main thread that the work is done
     if (m_view) {
         m_view->PostAnalysisComplete();
@@ -128,10 +144,37 @@ void GuiPresenter::HandleGridCellClick(int row) {
     }
 }
 
+void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices) {
+    // It is CRITICAL to delete items from the end to the beginning
+    // to avoid invalidating the indices of the remaining items.
+    std::vector<int> sorted_indices = indices;
+    std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+
+    for (int index : sorted_indices) {
+        if (index < m_inputFiles.size()) {
+            m_inputFiles.erase(m_inputFiles.begin() + index);
+        }
+    }
+
+    // Notify the view to update itself
+    m_view->UpdateInputFileList(m_inputFiles);
+
+    // Call the presenter's own method
+    UpdateCommandPreview();
+}
+
 const ProgramOptions& GuiPresenter::GetLastRunOptions() const {
     return m_lastRunOptions;
 }
 
 const ReportOutput& GuiPresenter::GetLastReport() const {
     return m_lastReport;
+}
+
+bool GuiPresenter::IsWorkerRunning() const {
+    return m_isWorkerRunning;
+}
+
+void GuiPresenter::RequestWorkerCancellation() {
+    m_cancelWorker = true;
 }

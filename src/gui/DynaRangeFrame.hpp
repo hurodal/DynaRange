@@ -61,10 +61,14 @@ protected:
     void OnInputChanged(wxEvent& event);
     void OnGaugeTimer(wxTimerEvent& event);
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
+    void OnRemoveFilesClick(wxCommandEvent& event);
+    void OnListBoxSelectionChanged(wxCommandEvent& event);
+    void OnListBoxKeyDown(wxKeyEvent& event);
 
     // Worker thread event handlers
     void OnWorkerUpdate(wxThreadEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
     
 private:
     // Private UI helper functions
@@ -72,7 +76,8 @@ private:
     void AppendLog(const wxString& text);
     bool IsSupportedRawFile(const wxString& filePath);
     void LoadLogoImage();
-    
+    void PerformFileRemoval();
+
     // Member variables
     std::unique_ptr<GuiPresenter> m_presenter;
     FileDropTarget* m_dropTarget;

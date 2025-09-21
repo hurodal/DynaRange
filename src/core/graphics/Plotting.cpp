@@ -109,7 +109,7 @@ void GenerateSnrPlot(
     patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
     info_box.AddItem("Black", black_ss.str());
     info_box.AddItem("Saturation", sat_ss.str());
-    info_box.AddItem("Patch Ratio", patch_ss.str());
+    //info_box.AddItem("Patch Ratio", patch_ss.str());
 
     // Draw the static plot base (axes, grid, labels, thresholds)
     DrawPlotBase(cr, "SNR Curve - " + plot_title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);

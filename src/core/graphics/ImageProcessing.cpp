@@ -51,7 +51,7 @@ cv::Mat PrepareChartImage(
         log_stream << "Error: Could not get normalized image for: " << raw_file.GetFilename() << std::endl;
         return {};
     }
-    log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
+    //log_stream << "  - Info: Black=" << opts.dark_value << ", Saturation=" << opts.saturation_value << std::endl;
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     for (int r = 0; r < imgBayer.rows; ++r) {
         for (int c = 0; c < imgBayer.cols; ++c) {
@@ -59,7 +59,7 @@ cv::Mat PrepareChartImage(
         }
     }
     
-    log_stream << "  - Applying Keystone correction..." << std::endl;
+    //log_stream << "  - Applying Keystone correction..." << std::endl;
     // Se usa el parámetro pre-calculado 'keystone_params'
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
     

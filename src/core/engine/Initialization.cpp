@@ -25,7 +25,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     }
 
     log_stream << std::fixed << std::setprecision(2);
-    log_stream << "\n[FINAL CONFIGURATION]\n";
+    log_stream << "\n[Final configuration]\n";
     log_stream << "Black level: " << opts.dark_value << "\n";
     log_stream << "Saturation point: " << opts.saturation_value << "\n";
     

@@ -36,7 +36,7 @@ FileOrderResult DetermineFileOrder(const std::vector<FileInfo>& file_info_list, 
         bool lists_match = std::equal(list_a.begin(), list_a.end(), list_b.begin(),
                                       [](const FileInfo& a, const FileInfo& b){ return a.filename == b.filename; });
         if (lists_match) {
-            log_stream << "\n[INFO] Sorting by brightness and by ISO produce the same file order." << std::endl;
+            log_stream << "Sorting by brightness and by ISO produce the same file order." << std::endl;
         } else {
             log_stream << "\n[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders." << std::endl;
         }
@@ -48,9 +48,9 @@ FileOrderResult DetermineFileOrder(const std::vector<FileInfo>& file_info_list, 
     const std::vector<FileInfo>* final_sorted_list = &list_a;
     if (USE_EXIF_SORT_DEFAULT && result.was_exif_sort_possible) {
         // This logic path is currently inactive but kept for completeness
-        log_stream << "[INFO] Using final file order from: EXIF ISO (List B)" << std::endl;
+        log_stream << "Using final file order from: EXIF ISO (List B)" << std::endl;
     } else {
-        log_stream << "[INFO] Using final file order from: Image Brightness (List A)" << std::endl;
+        log_stream << "Using final file order from: Image Brightness (List A)" << std::endl;
     }
 
     for (const auto& info : *final_sorted_list) {
