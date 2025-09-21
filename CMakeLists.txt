@@ -28,7 +28,8 @@ set(PKG_CONFIG_USE_STATIC ON)
 
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
-find_package(Eigen3 3.3 REQUIRED)
+#find_package(Eigen3 3.3 REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
 
 find_package(Gettext REQUIRED)
