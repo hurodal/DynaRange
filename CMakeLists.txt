@@ -179,47 +179,52 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # =============================================================================
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
-# Asignamos todos los ficheros a un componente con nombre fijo.
-install(TARGETS rango dynaRangeGui
-    RUNTIME DESTINATION bin
-    COMPONENT Applications
-)
-install(FILES "${CMAKE_SOURCE_DIR}/logo.png"
-    DESTINATION bin
-    COMPONENT Applications
-)
-install(CODE "
-    message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
-    file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
-    if(DLL_FILES)
-        message(STATUS \"DLLs encontradas, instalando en el directorio bin del paquete.\")
-        file(INSTALL \${DLL_FILES} DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\")
-    else()
-        message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
-    endif()
-")
 
-# --- Configuración General de CPack ---
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_VENDOR "DynaRange Project")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de an&#225;lisis de rango din&#225;mico")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-set(CPACK_PACKAGE_FILE_NAME "dynaRange-installer")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
-set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
+# Este bloque completo solo se ejecutará si estamos dentro de un entorno de GitHub Actions.
+if($ENV{GITHUB_ACTIONS})
 
-# --- Configuración Específica para WiX (Instalador de Windows) ---
-set(CPACK_GENERATOR "WIX")
-set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
-set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
+    # --- Definir qué ficheros se instalan ---
+    install(TARGETS rango dynaRangeGui
+        RUNTIME DESTINATION bin
+    )
+    install(FILES "${CMAKE_SOURCE_DIR}/logo.png"
+        DESTINATION bin
+    )
+    install(CODE "
+        message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
+        file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
+        if(DLL_FILES)
+            message(STATUS \"DLLs encontradas, instalando en el directorio bin del paquete.\")
+            file(INSTALL \${DLL_FILES} DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\")
+        else()
+            message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
+        endif()
+    ")
 
-# --- Usar la plantilla WiX ---
-configure_file(
-    "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
-    "${CMAKE_BINARY_DIR}/wix_template.wxs"
-    @ONLY
-)
-set(CPACK_WIX_TEMPLATE "${CMAKE_BINARY_DIR}/wix_template.wxs")
+    # --- Configuración General de CPack ---
+    set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+    set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+    set(CPACK_PACKAGE_VENDOR "DynaRange Project")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de an&#225;lisis de rango din&#225;mico")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
+    set(CPACK_PACKAGE_FILE_NAME "dynaRange-installer")
+    set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
+    set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
 
-include(CPack)
+    # --- Configuración Específica para WiX (Instalador de Windows) ---
+    set(CPACK_GENERATOR "WIX")
+    set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
+    set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
+
+    # --- Usar la plantilla WiX ---
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
+        "${CMAKE_BINARY_DIR}/wix_template.wxs"
+        @ONLY
+    )
+    set(CPACK_WIX_TEMPLATE "${CMAKE_BINARY_DIR}/wix_template.wxs")
+
+
+    include(CPack)
+
+endif()
