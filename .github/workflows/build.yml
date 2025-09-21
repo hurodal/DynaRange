@@ -65,13 +65,13 @@ jobs:
           cpack -G WIX # Genera el archivo .msi
 
       # --- Muestra el log de WiX si el paso anterior falla ---
-      #- name: Display WiX Log on Error
-      #  if: failure()
-      #  shell: msys2 {0}
-      #  run: |
-      #    echo "--- WiX Log Content ---"
-      #    cat build/_CPack_Packages/win64/WIX/wix.log
-      #    echo "--- End of WiX Log ---"
+      - name: Display WiX Log on Error
+        if: failure()
+        shell: msys2 {0}
+        run: |
+          echo "--- WiX Log Content ---"
+          cat build/_CPack_Packages/win64/WIX/wix.log
+          echo "--- End of WiX Log ---"
 
       # --- Subir Instalador ---
       - name: Upload Installer
