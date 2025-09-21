@@ -214,38 +214,24 @@ set(CPACK_PACKAGE_VENDOR "DynaRange Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
 set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-win64-installer")
-
-# --- SOLUCIÓN 3: Registro para un Desinstalador Robusto ---
-# Estas claves aseguran que la aplicación se registre correctamente en Windows.
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
 set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
-
 
 # --- Configuración Específica para WiX (Instalador de Windows) ---
 set(CPACK_GENERATOR "WIX")
 
-# --- SOLUCIÓN 3 (Continuación): GUIDs para el producto y actualizaciones ---
-# Un GUID de producto explícito mejora el registro del desinstalador.
+# --- GUIDs para el producto y actualizaciones (esencial para desinstalar/actualizar) ---
 set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
 set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
-set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
 
-# --- SOLUCIÓN 2: Forzar la eliminación de la página de Licencia ---
-# Le decimos a WiX que no use ningún fichero de licencia y que utilice la interfaz de usuario más simple.
-set(CPACK_WIX_LICENSE_RTF "")
-set(CPACK_WIX_UI_REF "WixUI_InstallDir")
-
-# --- SOLUCIÓN 1: Forzar la adición al PATH del Sistema ---
-# He limpiado el código XML y añadido 'KeyPath=yes' para hacerlo más robusto.
-# El componente que modifica el PATH ahora es una entidad clave del instalador.
-set(CPACK_WIX_EXTRA_FEATURES
-[[
-<Feature Id="AddToPathFeature" Title="Add to System PATH" Description="Add the application's bin directory to the system PATH environment variable." Level="1">
-    <Component Id="AddToPath" Guid="*" Directory="bin" KeyPath="yes">
-        <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
-    </Component>
-</Feature>
-]]
+# --- Usar la plantilla WiX ---
+# Este es el cambio clave: procesamos nuestra plantilla y le decimos a CPack que la use.
+configure_file(
+    "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
+    "${CMAKE_BINARY_DIR}/wix_template.wxs"
+    @ONLY
 )
+set(CPACK_WIX_TEMPLATE "${CMAKE_BINARY_DIR}/wix_template.wxs")
+
 
 include(CPack)

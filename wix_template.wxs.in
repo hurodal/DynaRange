@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product
+        Id="@CPACK_WIX_PRODUCT_GUID@"
+        Name="@CPACK_PACKAGE_NAME@ @CPACK_PACKAGE_VERSION@"
+        Language="1033"
+        Version="@CPACK_PACKAGE_VERSION@"
+        Manufacturer="@CPACK_PACKAGE_VENDOR@"
+        UpgradeCode="@CPACK_WIX_UPGRADE_GUID@">
+
+        <Package
+            Description="@CPACK_PACKAGE_DESCRIPTION_SUMMARY@"
+            Manufacturer="@CPACK_PACKAGE_VENDOR@"
+            InstallerVersion="200"
+            Compressed="yes"
+            InstallScope="perMachine" />
+
+        <MajorUpgrade
+            DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+        <MediaTemplate EmbedCab="yes" />
+
+        <UI>
+            <UIRef Id="WixUI_InstallDir" />
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2">1</Publish>
+            <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+        </UI>
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+        <Feature Id="ProductFeature" Title="DynaRange" Level="1">
+            <ComponentGroupRef Id="Components" />
+            
+            <Component Id="AddToPath" Guid="*" Directory="INSTALLFOLDER_BIN" KeyPath="yes">
+                <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER_BIN]" Permanent="no" Part="last" Action="set" System="yes" />
+            </Component>
+        </Feature>
+
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="@CPACK_PACKAGE_INSTALL_DIRECTORY@">
+                    <Directory Id="INSTALLFOLDER_BIN" Name="bin" />
+                </Directory>
+            </Directory>
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="Components" Directory="INSTALLFOLDER_BIN">
+            <CpackWiXComponents />
+        </ComponentGroup>
+    </Fragment>
+</Wix>
