@@ -185,22 +185,17 @@ GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" 
 # 8. INSTALACIÓN Y EMPAQUETADO (CPack)
 # =============================================================================
 
-# --- Instalar los ejecutables ---
+# --- Definir qué ficheros se instalan ---
 install(TARGETS rango dynaRangeGui
     RUNTIME DESTINATION bin
     COMPONENT Applications
 )
 
-# --- SOLUCIÓN 2: Instalar el fichero logo.png ---
-# Copia el logo en el mismo directorio que los ejecutables para que la GUI lo encuentre.
 install(FILES "${CMAKE_SOURCE_DIR}/logo.png"
     DESTINATION bin
     COMPONENT Applications
 )
 
-# --- Instalar las DLLs necesarias ---
-# Este script se ejecuta en el MOMENTO DE LA INSTALACIÓN (con cpack),
-# DESPUÉS de que el build.yml haya copiado las DLLs al directorio de compilación.
 install(CODE "
     message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
     file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
@@ -217,32 +212,36 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VENDOR "DynaRange Project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DynaRange - Herramienta de análisis de rango dinámico")
-# --- SOLUCIÓN 4 (Mejora): Información para el desinstalador ---
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
+set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-win64-installer")
+
+# --- SOLUCIÓN 3: Registro para un Desinstalador Robusto ---
+# Estas claves aseguran que la aplicación se registre correctamente en Windows.
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
 set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
 
 
-# --- Nombre de la carpeta de instalación y del fichero ---
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-set(CPACK_PACKAGE_FILE_NAME "dynaRange-installer")
-
 # --- Configuración Específica para WiX (Instalador de Windows) ---
 set(CPACK_GENERATOR "WIX")
-set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
-set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
 
-# --- SOLUCIÓN 3: Quitar la página de la licencia ---
-# Usamos una interfaz de usuario de WiX más simple que no incluye el paso de la licencia.
+# --- SOLUCIÓN 3 (Continuación): GUIDs para el producto y actualizaciones ---
+# Un GUID de producto explícito mejora el registro del desinstalador.
+set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
+set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
+set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/hurodal/DynaRange")
+
+# --- SOLUCIÓN 2: Forzar la eliminación de la página de Licencia ---
+# Le decimos a WiX que no use ningún fichero de licencia y que utilice la interfaz de usuario más simple.
+set(CPACK_WIX_LICENSE_RTF "")
 set(CPACK_WIX_UI_REF "WixUI_InstallDir")
 
-
-# --- SOLUCIÓN 1: Añadir la aplicación al PATH del sistema ---
-# Tu código original era correcto. Asegúrate de abrir una NUEVA ventana de terminal
-# (cmd, PowerShell, etc.) después de instalar para que los cambios en el PATH se apliquen.
+# --- SOLUCIÓN 1: Forzar la adición al PATH del Sistema ---
+# He limpiado el código XML y añadido 'KeyPath=yes' para hacerlo más robusto.
+# El componente que modifica el PATH ahora es una entidad clave del instalador.
 set(CPACK_WIX_EXTRA_FEATURES
 [[
-<Feature Id="AddToPathFeature" Title="Add to PATH" Description="Add application directory to system PATH" Level="1">
-    <Component Id="AddToPath" Guid="*" Directory="bin">
+<Feature Id="AddToPathFeature" Title="Add to System PATH" Description="Add the application's bin directory to the system PATH environment variable." Level="1">
+    <Component Id="AddToPath" Guid="*" Directory="bin" KeyPath="yes">
         <Environment Id="PATH" Name="PATH" Value="[INSTALLDIR]bin" Permanent="no" Part="last" Action="set" System="yes" />
     </Component>
 </Feature>
