@@ -29,7 +29,7 @@
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
         <Feature Id="ProductFeature" Title="DynaRange" Level="1">
-            <FeatureRef Id="Unspecified" />
+            <FeatureRef Id="feature_Applications" />
             
             <Component Id="AddToPath" Guid="*" Directory="INSTALLFOLDER_BIN" KeyPath="yes">
                 <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]bin" Permanent="no" Part="last" Action="set" System="yes" />
@@ -37,13 +37,4 @@
         </Feature>
     </Product>
 
-    <Fragment>
-        <Directory Id="TARGETDIR" Name="SourceDir">
-            <Directory Id="ProgramFiles64Folder">
-                <Directory Id="INSTALLFOLDER" Name="@CPACK_PACKAGE_INSTALL_DIRECTORY@">
-                    <Directory Id="INSTALLFOLDER_BIN" Name="bin" />
-                </Directory>
-            </Directory>
-        </Directory>
-    </Fragment>
-</Wix>
+    </Wix>
