@@ -2,9 +2,10 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 0: PARA PENSAR SOBRE ELLO (ONLY GUILLERMO'S EYES)
 	- Modo "Sensor performance" con múltiples exposiciones al mismo ISO: juntar datos de capturas al mismo ISO. TIPO DE CURVA?
-	- Carta Multiformato (3:2, 4:3, 1:1), multidimensiones MxN:
+	- Parametrizar creación de Carta Multiformato (3:2, 4:3, 1:1), multidimensiones MxN:
       * Cálculo óptimo del radio de los círculos en función del quantil usado
-      * Definir la carta ESTÁNDAR en MxN una vez hayamos visto cómo queda usar todos los canales RAW y optimizar la gamma (gamma de Hugo)
+      * Optimizar la gamma (aplicar la de Hugo)
+      * Definir la carta ESTÁNDAR óptima en MxN una vez hayamos visto cómo queda usar todos los canales RAW y optimizar la gamma
 	- Gráfica de RD con recta de ISO invarianza
 	- Simplificar el parámetro umbral --snrthreshold-db: que no saque 0dB y 12dB por defecto, sino solo 12dB. O polo opuesto: poder especificar una lista de umbrales
 	- Detalle cosmético: intercambiar nombres de parámetros: -b/-B y -s/-S, y acortar algunos nombres: --sat-level, --sat-file, --drnorm-mpx
@@ -100,6 +101,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 
 4:	DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
+
 
 
 
