@@ -5,7 +5,7 @@ by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (al
 
 Usage: rango [OPTION]... [FILE]...
 
---chart               -c <R G B invgamma> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+--chart               -c <R G B invgamma M N format> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 --black-level         -b <float>          : Camera RAW black level
 --black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
@@ -21,8 +21,8 @@ Usage: rango [OPTION]... [FILE]...
 
 -----------------------------------------------
 
---chart -c <R G B invgamma>
-Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+--chart -c <R G B invgamma M N format>
+Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4, M=8, N=5, format=1.5)
 Explanation: this option allows to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
 Usage: if the desired colour and gamma are not specified, the default values will produce magenta patches and a gamma suited to optimize patch differentiation in most standard displays
 Examples (first example is default and is equivalent to not specifying the parameter):
@@ -110,6 +110,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format adding CLI command)
+
 
 
 
