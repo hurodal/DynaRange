@@ -104,6 +104,82 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	mainPanelSizer->Add( patchRatioSizer, 0, wxEXPAND, 5 );
 
+	wxBoxSizer* snrThresholdSizer;
+	snrThresholdSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_snrThresholdStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("SNR Threshold"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_snrThresholdStaticText->Wrap( -1 );
+	snrThresholdSizer->Add( m_snrThresholdStaticText, 0, wxALL|wxEXPAND, 5 );
+
+	m_snrThresholdslider = new wxSlider( m_inputPanel, wxID_ANY, 12, 0, 35, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	snrThresholdSizer->Add( m_snrThresholdslider, 1, wxALL|wxEXPAND, 5 );
+
+	m_snrThresholdValueText = new wxStaticText( m_inputPanel, wxID_ANY, _("12dB"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_snrThresholdValueText->Wrap( -1 );
+	snrThresholdSizer->Add( m_snrThresholdValueText, 0, wxALL|wxEXPAND, 5 );
+
+
+	mainPanelSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* drNormalizationSizer;
+	drNormalizationSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_drNormalizationStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("DR Normalization"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_drNormalizationStaticText->Wrap( -1 );
+	drNormalizationSizer->Add( m_drNormalizationStaticText, 0, wxALL|wxEXPAND, 5 );
+
+	m_drNormalizationSlider = new wxSlider( m_inputPanel, wxID_ANY, 8, 2, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	drNormalizationSizer->Add( m_drNormalizationSlider, 1, wxALL|wxEXPAND, 5 );
+
+	m_drNormalizationValueText = new wxStaticText( m_inputPanel, wxID_ANY, _("8Mpx"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_drNormalizationValueText->Wrap( -1 );
+	drNormalizationSizer->Add( m_drNormalizationValueText, 0, wxALL|wxEXPAND, 5 );
+
+
+	mainPanelSizer->Add( drNormalizationSizer, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* plotPolyOutputSizer;
+	plotPolyOutputSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_polynomicStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Polynomic Order"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_polynomicStaticText->Wrap( -1 );
+	plotPolyOutputSizer->Add( m_polynomicStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	wxString m_PlotChoiceChoices[] = { _("Order 2"), _("Order 3") };
+	int m_PlotChoiceNChoices = sizeof( m_PlotChoiceChoices ) / sizeof( wxString );
+	m_PlotChoice = new wxChoice( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_PlotChoiceNChoices, m_PlotChoiceChoices, 0 );
+	m_PlotChoice->SetSelection( 1 );
+	plotPolyOutputSizer->Add( m_PlotChoice, 0, wxALL, 5 );
+
+
+	plotPolyOutputSizer->Add( 20, 0, 0, wxEXPAND, 5 );
+
+	m_plotingStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Graphics"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_plotingStaticText->Wrap( -1 );
+	plotPolyOutputSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	wxString m_plotingChoiceChoices[] = { _("Don't Plot"), _("Ploting with CLI commad"), _("Ploting without CLI command") };
+	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
+	m_plotingChoice = new wxChoice( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
+	m_plotingChoice->SetSelection( 1 );
+	plotPolyOutputSizer->Add( m_plotingChoice, 0, wxALL, 5 );
+
+
+	mainPanelSizer->Add( plotPolyOutputSizer, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* outputSizer;
+	outputSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_outputStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Ouput file"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_outputStaticText->Wrap( -1 );
+	outputSizer->Add( m_outputStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_outputTextCtrl = new wxTextCtrl( m_inputPanel, wxID_ANY, _("result.csv"), wxDefaultPosition, wxDefaultSize, 0 );
+	outputSizer->Add( m_outputTextCtrl, 0, wxALL, 5 );
+
+
+	mainPanelSizer->Add( outputSizer, 0, wxEXPAND, 5 );
+
 	wxStaticBoxSizer* rawFilesSbSizer;
 	rawFilesSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Input RAW Files") ), wxVERTICAL );
 

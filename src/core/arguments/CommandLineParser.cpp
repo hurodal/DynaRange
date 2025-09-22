@@ -79,7 +79,7 @@ ProgramOptions ParseCommandLine(int argc, char* argv[]) {
     double snr_val;
     auto snr_opt = app.add_option("-d,--snrthreshold-db", snr_val, _("SNR threshold in dB for DR calculation (default=12dB and 0dB)"));
     app.add_option("-m,--drnormalization-mpx", opts.dr_normalization_mpx, _("Number of Mpx for DR normalization (default=8Mpx)"))->default_val(8.0);
-    app.add_option("--sensor-resolution-mpx", opts.sensor_resolution_mpx, _("Sensor resolution in megapixels (if unknown, set to 0 to auto-detect)"))->default_val(0.0);
+    //app.add_option("--sensor-resolution-mpx", opts.sensor_resolution_mpx, _("Sensor resolution in megapixels (if unknown, set to 0 to auto-detect)"))->default_val(0.0);
     app.add_option("-f,--poly-fit", opts.poly_order, _("Polynomic order (default=3) to fit the SNR curve"))->check(CLI::Range(2, 3))->default_val(DEFAULT_POLY_ORDER);
     app.add_option("-r,--patch-ratio", opts.patch_ratio, _("Relative patch width/height used to compute signal and noise readings"))->check(CLI::Range(0.0, 1.0))->default_val(0.5);
     app.add_option("-p,--plot", opts.plot_mode, _("Export SNR curves in PNG format (0=no, 1=plot, 2=plot+command)"))->check(CLI::Range(0, 2))->default_val(0);

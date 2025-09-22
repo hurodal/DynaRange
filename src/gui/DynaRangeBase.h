@@ -21,6 +21,7 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/slider.h>
+#include <wx/choice.h>
 #include <wx/listbox.h>
 #include <wx/button.h>
 #include <wx/bitmap.h>
@@ -56,6 +57,18 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
+		wxStaticText* m_snrThresholdStaticText;
+		wxSlider* m_snrThresholdslider;
+		wxStaticText* m_snrThresholdValueText;
+		wxStaticText* m_drNormalizationStaticText;
+		wxSlider* m_drNormalizationSlider;
+		wxStaticText* m_drNormalizationValueText;
+		wxStaticText* m_polynomicStaticText;
+		wxChoice* m_PlotChoice;
+		wxStaticText* m_plotingStaticText;
+		wxChoice* m_plotingChoice;
+		wxStaticText* m_outputStaticText;
+		wxTextCtrl* m_outputTextCtrl;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;
 		wxButton* m_removeRawFilesButton;
