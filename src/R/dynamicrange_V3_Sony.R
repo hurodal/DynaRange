@@ -283,7 +283,7 @@ RGBMAX=max(R,G,B)
 # Gamma curve to otimize colour separation -> OPTIMIZE
 invgamma=1.4  # nonlinear colour scale factor (inverse gamma)
 
-# white circles radius -> CALCULATE EXACT SIZE FOR USED QUANTILE
+# white circles radius -> OPTIMIZE EXACT SIZE FOR USED QUANTILE
 RADIUS=15
 
 
@@ -330,7 +330,6 @@ for (i in 1:4) {
 }
 
 # Write chart
-# writeTIFF(chart, "magentachart.tif", bits.per.sample=16)
 CHARTNAME=paste0("magentachart_", NCOLS, "x", NROWS, "_",
                  round(Format,2), "_", invgamma*10, ".png")
 writePNG(chartfinal, CHARTNAME)
@@ -375,6 +374,7 @@ for (rawchan in c('R', 'G1', 'G2', 'B')) {
 }
 
 BLACK=mean(imgblack)  # 512.178 (Sony A7 IV) / 254.85 (Olympus OM-1)
+BLACKV=c(512.177394540242, 512.154956138962, 512.143174113528, 512.236610063994)
 SAT=median(imgsat)  # 16383
 
 
@@ -397,7 +397,7 @@ filenamesISO=toupper(gsub("^iso0*", "iso", filenamesISO))
 
 ZOOM=1
 NAME=paste0("SNRcurves_patchratio", patch_ratio, "_",
-    ifelse(normalize, paste0(drnormalization_mpx, "Mpx"), "perpixel"), ".png")
+    ifelse(normalize, paste0(drnormalization_mpx, "Mpx"), "perpixel"), "_R.png")
 CairoPNG(NAME, width=1920*ZOOM, height=1080*ZOOM)  # HQ Full HD curves
 
 # Loop through all files
@@ -412,7 +412,8 @@ for (image in 1:N) {
     # abline(v=BLACK, col='red')
     
     # Normalize to floating point 0..1 range (negative values are allowed)
-    img=img-BLACK
+    # img=img-BLACK
+    img=img-BLACK  # V[1]
     img=img/(SAT-BLACK)
     # hist(img, breaks=800)
     # abline(v=0, col='red')
@@ -521,7 +522,7 @@ for (image in 1:N) {
     Signal=c()  # empty vectors for current image
     Noise=c()
     patches_used=c(0,0,0,0)  # samples count
-    for (rawchan in 1:4) {
+    for (rawchan in 1:1) {
         # Loop through all 4 RAW channels
         if (rawchan==1) imgBayer=img[row(img)%%2 & col(img)%%2]  # R
         if (rawchan==2) imgBayer=img[row(img)%%2 & !col(img)%%2]  # G1
@@ -639,9 +640,10 @@ for (image in 1:N) {
     # Log:    SNR_norm dB = SNR_perpixel dB + 20 * log10[(Mpx / 8)^(1/2)]
     if (normalize) SNR = SNR * (camresolution_mpx / drnormalization_mpx)^(1/2)
 
-    # SNR cuves in dB
+    # SNR curves in dB: we'll plot blue scatter points and red curves
     if (image==1) {
-        plot(log2(Signal), 20*log10(SNR), xlim=c(-16,0), ylim=c(-15,25),
+        # plot(log2(Signal), 20*log10(SNR), xlim=c(-16,0), ylim=c(-15,25),
+        plot(log2(Signal), 20*log10(SNR), xlim=c(-16,0), ylim=c(-5,45),
              pch=16, cex=0.5, col='blue',
              # main='SNR curves - Olympus OM-1',
              main='SNR curves - Sony A7 IV',
