@@ -117,9 +117,15 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files) {
 }
 
 void GuiPresenter::UpdateCommandPreview() {
-    // Actualiza el gestor con el estado de la GUI y luego genera el comando.
+    // First, sync the manager with the current state of the GUI controls
     UpdateManagerFromView();
-    std::string command = ArgumentManager::Instance().GenerateCommand();
+
+    // The equivalent command preview in the GUI should always use long argument
+    // names and full paths for maximum clarity and for being able to copy-paste.
+    // We now use the dedicated GuiPreview format for this.
+    std::string command = ArgumentManager::Instance().GenerateCommand(CommandFormat::GuiPreview);
+
+    // Update the view with the newly generated command
     m_view->UpdateCommandPreview(command);
 }
 

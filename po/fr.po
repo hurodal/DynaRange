@@ -1,30 +1,407 @@
 # French translation for dynaRange
-# Copyright (C) 2025
+# Copyright (C) 2025 Juanma
 # This file is distributed under the same license as the dynaRange package.
+# Gemini Assistant, 2025.
 msgid ""
 msgstr ""
-"Project-Id-Version: dynaRange\n"
+"Project-Id-Version: dynaRange 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-23 12:54+0200\n"
-"PO-Revision-Date: 2025-09-23 10:20+0200\n"
+"POT-Creation-Date: 2025-09-23 15:36+0200\n"
+"PO-Revision-Date: 2025-09-23 15:55+0200\n"
 "Last-Translator: Gemini Assistant\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Source-Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/core/engine/Initialization.cpp:22
+msgid "Fatal error processing dark frame."
+msgstr "Erreur fatale lors du traitement du fotogramme noir."
+
+#: src/core/engine/Initialization.cpp:27
+msgid "Fatal error processing saturation frame."
+msgstr "Erreur fatale lors du traitement du fotogramme de saturation."
+
+#: src/core/engine/Initialization.cpp:37
+msgid "Error: None of the input files could be processed."
+msgstr "Erreur : Aucun des fichiers d'entrée n'a pu être traité."
+
+#: src/core/engine/Initialization.cpp:63
+msgid "[Final configuration]"
+msgstr "[Configuration finale]"
+
+#: src/core/engine/Initialization.cpp:64
+msgid "Black level: "
+msgstr "Niveau de noir : "
+
+#: src/core/engine/Initialization.cpp:65
+msgid "Saturation point: "
+msgstr "Point de saturation : "
+
+#: src/core/engine/Initialization.cpp:67
+msgid "Sensor resolution: "
+msgstr "Résolution du capteur : "
+
+#: src/core/engine/Initialization.cpp:67 src/core/engine/Initialization.cpp:74
+#: src/core/setup/SensorResolution.cpp:24
+#: src/core/setup/SensorResolution.cpp:35
+msgid " Mpx"
+msgstr " Mpx"
+
+#: src/core/engine/Initialization.cpp:69
+msgid "SNR threshold(s): "
+msgstr "Seuil(s) SNR : "
+
+#: src/core/engine/Initialization.cpp:73
+msgid " dB"
+msgstr " dB"
+
+#: src/core/engine/Initialization.cpp:74
+msgid "DR normalization: "
+msgstr "Normalisation DR : "
+
+#: src/core/engine/Initialization.cpp:75
+msgid "Polynomic order: "
+msgstr "Ordre polynomial : "
+
+#: src/core/engine/Initialization.cpp:76
+msgid "Patch ratio: "
+msgstr "Ratio de patch : "
+
+#: src/core/engine/Initialization.cpp:77
+msgid "Plotting: "
+msgstr "Génération de graphiques : "
+
+#: src/core/engine/Initialization.cpp:79
+msgid "No graphics"
+msgstr "Aucun graphique"
+
+#: src/core/engine/Initialization.cpp:80
+msgid "Graphics without command CLI"
+msgstr "Graphiques sans commande CLI"
+
+#: src/core/engine/Initialization.cpp:81
+msgid "Graphics with short command CLI"
+msgstr "Graphiques avec commande courte CLI"
+
+#: src/core/engine/Initialization.cpp:82
+msgid "Graphics with long command CLI"
+msgstr "Graphiques avec commande longue CLI"
+
+#: src/core/engine/Initialization.cpp:84
+msgid "Output file: "
+msgstr "Fichier de sortie : "
+
+#: src/core/engine/Initialization.cpp:86
+msgid "Starting Dynamic Range calculation process..."
+msgstr "Démarrage du processus de calcul de la Plage Dynamique..."
+
+#: src/core/engine/Validation.cpp:56
+msgid "Warning: insufficient data to calculate "
+msgstr "Avertissement : données insuffisantes pour calculer "
+
+#: src/core/engine/Validation.cpp:57
+msgid "dB dynamic range at "
+msgstr "dB de plage dynamique à "
+
+#: src/core/engine/Validation.cpp:58
+msgid "Mpx normalization. "
+msgstr "de normalisation Mpx. "
+
+#: src/core/engine/Validation.cpp:59
+msgid "Test chart may have been over/underexposed for this ISO."
+msgstr "La mire de test a peut-être été sur/sous-exposée pour cet ISO."
+
+#: src/core/engine/Processing.cpp:35
+msgid "Error: Could not load RAW file: "
+msgstr "Erreur : Impossible de charger le fichier RAW : "
+
+#: src/core/engine/Processing.cpp:59
+msgid "Processing \""
+msgstr "Traitement de \""
+
+#: src/core/engine/Processing.cpp:69
+msgid "Warning: No valid patches found for "
+msgstr "Avertissement : Aucun patch valide trouvé pour "
+
+#: src/core/engine/Processing.cpp:115
+msgid "Using optimized keystone: calculating parameters once for the series..."
+msgstr "Utilisation du keystone optimisé : calcul des paramètres une seule fois pour la série..."
+
+#: src/core/engine/Engine.cpp:38
+msgid "[INFO] Analysis cancelled by user."
+msgstr "[INFO] Analyse annulée par l'utilisateur."
+
+#: src/core/engine/Reporting.cpp:31
+msgid "Generating individual SNR plots..."
+msgstr "Génération des graphiques SNR individuels..."
+
+#: src/core/engine/Reporting.cpp:42 src/core/setup/PlotLabelGenerator.cpp:31
+msgid "ISO "
+msgstr "ISO "
+
+#: src/core/engine/Reporting.cpp:114
+msgid "Dynamic Range Results"
+msgstr "Résultats de la Plage Dynamique"
+
+#: src/core/engine/Reporting.cpp:117
+msgid "RAW File"
+msgstr "Fichier RAW"
+
+#: src/core/engine/Reporting.cpp:120
+msgid "dB)"
+msgstr "dB)"
+
+#: src/core/engine/Reporting.cpp:123
+msgid "Patches"
+msgstr "Patches"
+
+#: src/core/engine/Reporting.cpp:146
+msgid "Error: Could not open CSV file for writing: "
+msgstr "Erreur : Impossible d'ouvrir le fichier CSV en écriture : "
+
+#: src/core/engine/Reporting.cpp:167
+msgid "Results saved to "
+msgstr "Résultats enregistrés dans "
+
+#: src/core/arguments/ArgumentManager.cpp:78
+msgid ""
+"Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with "
+"gamma compression (default R=255, G=101, B=164, invgamma=1.4)"
+msgstr ""
+"Créer une mire de test au format PNG avec des couleurs de (0,0,0) à (R,G,B) "
+"avec compression gamma (par défaut R=255, G=101, B=164, invgamma=1.4)"
+
+#: src/core/arguments/ArgumentManager.cpp:79
+msgid "Camera RAW black level"
+msgstr "Niveau de noir du RAW de l'appareil photo"
+
+#: src/core/arguments/ArgumentManager.cpp:80
+msgid "Totally dark RAW file ideally shot at base ISO"
+msgstr "Fichier RAW totalement noir, idéalement pris à l'ISO de base"
+
+#: src/core/arguments/ArgumentManager.cpp:81
+msgid "Camera RAW saturation level"
+msgstr "Niveau de saturation du RAW de l'appareil photo"
+
+#: src/core/arguments/ArgumentManager.cpp:82
+msgid "Totally clipped RAW file ideally shot at base ISO"
+msgstr "Fichier RAW totalement brûlé, idéalement pris à l'ISO de base"
+
+#: src/core/arguments/ArgumentManager.cpp:83
+msgid "Input RAW files shot over the test chart ideally for every ISO"
+msgstr "Fichiers RAW d'entrée pris sur la mire de test, idéalement pour chaque ISO"
+
+#: src/core/arguments/ArgumentManager.cpp:84
+msgid "Relative patch width/height used to compute signal and noise readings (default=0.5)"
+msgstr "Largeur/hauteur relative du patch utilisée pour calculer les lectures de signal et de bruit (par défaut=0.5)"
+
+#: src/core/arguments/ArgumentManager.cpp:85
+msgid ""
+"SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
+"(engineering DR))"
+msgstr ""
+"Seuil SNR en dB pour le calcul du DR (par défaut=12dB (DR photo) plus 0dB "
+"(DR ingénierie))"
+
+#: src/core/arguments/ArgumentManager.cpp:86
+msgid "Number of Mpx for DR normalization (default=8Mpx)"
+msgstr "Nombre de Mpx pour la normalisation du DR (par défaut=8Mpx)"
+
+#: src/core/arguments/ArgumentManager.cpp:87
+msgid "Polynomic order (default=3) to fit the SNR curve"
+msgstr "Ordre polynomial (par défaut=3) pour l'ajustement de la courbe SNR"
+
+#: src/core/arguments/ArgumentManager.cpp:88
+msgid ""
+"Output CSV text file(s) with all results: black level, sat level, SNR "
+"samples, DR values, fitting params (default=\"results.csv\")"
+msgstr ""
+"Fichier(s) texte CSV de sortie avec tous les résultats : niveau de noir, "
+"niveau de saturation, échantillons SNR, valeurs DR, paramètres d'ajustement (par défaut=\"results.csv\")"
+
+#: src/core/arguments/ArgumentManager.cpp:89
+msgid ""
+"Export SNR curves in PNG format with/without the CLI command that generated "
+"them (default=0, don't plot)"
+msgstr ""
+"Exporter les courbes SNR au format PNG avec/sans la commande CLI qui les a "
+"générées (par défaut=0, ne pas tracer)"
+
+#: src/core/arguments/ArgumentManager.cpp:96
+msgid "Calculates the dynamic range from a series of RAW images."
+msgstr "Calcule la plage dynamique à partir d'une série d'images RAW."
+
+#: src/core/setup/FileSorter.cpp:43
+msgid "Sorting by brightness and by ISO produce the same file order."
+msgstr "Le tri par luminosité et par ISO produit le même ordre de fichiers."
+
+#: src/core/setup/FileSorter.cpp:45
+msgid "[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders."
+msgstr "[AVERTISSEMENT] Le tri par luminosité et par ISO produit des ordres de fichiers DIFFÉRENTS."
+
+#: src/core/setup/FileSorter.cpp:48
+msgid "[WARNING] Cannot use EXIF data. ISO not available in all files. Using brightness sorting."
+msgstr "[AVERTISSEMENT] Impossible d'utiliser les données EXIF. ISO non disponible dans tous les fichiers. Utilisation du tri par luminosité."
+
+#: src/core/setup/FileSorter.cpp:55
+msgid "Using final file order from: EXIF ISO (List B)"
+msgstr "Utilisation de l'ordre final des fichiers depuis : ISO EXIF (Liste B)"
+
+#: src/core/setup/FileSorter.cpp:57
+msgid "Using final file order from: Image Brightness (List A)"
+msgstr "Utilisation de l'ordre final des fichiers depuis : Luminosité de l'image (Liste A)"
+
+#: src/core/setup/SensorResolution.cpp:23
+msgid "Sensor resolution detected from RAW metadata: "
+msgstr "Résolution du capteur détectée à partir des métadonnées RAW : "
+
+#: src/core/setup/SensorResolution.cpp:34
+msgid "Sensor resolution inferred from RAW dimensions: "
+msgstr "Résolution du capteur déduite des dimensions RAW : "
+
+#: src/core/setup/MetadataExtractor.cpp:18
+msgid "Pre-analyzing files to determine sorting order..."
+msgstr "Pré-analyse des fichiers pour déterminer l'ordre de tri..."
+
+#: src/core/setup/MetadataExtractor.cpp:37
+msgid "  - File: "
+msgstr "  - Fichier : "
+
+#: src/core/setup/MetadataExtractor.cpp:38
+msgid ", Brightness: "
+msgstr ", Luminosité : "
+
+#: src/core/setup/MetadataExtractor.cpp:39
+msgid ", ISO: "
+msgstr ", ISO : "
+
+#: src/core/graphics/PlotBase.cpp:177
+msgid "RAW exposure (EV)"
+msgstr "Exposition RAW (EV)"
+
+#: src/core/graphics/PlotBase.cpp:183
+msgid "SNR (dB)"
+msgstr "SNR (dB)"
+
+#: src/core/graphics/ImageProcessing.cpp:54
+msgid "Error: Could not get normalized image for: "
+msgstr "Erreur : Impossible d'obtenir l'image normalisée pour : "
+
+#: src/core/graphics/ImageProcessing.cpp:73
+msgid "Error: Invalid crop area calculated for keystone correction."
+msgstr "Erreur : Zone de recadrage invalide calculée pour la correction keystone."
+
+#: src/core/graphics/Plotting.cpp:47
+msgid "Generated at %Y-%m-%d %H:%M:%S"
+msgstr "Généré le %Y-%m-%d à %H:%M:%S"
+
+#: src/core/graphics/Plotting.cpp:84
+msgid "  - Warning: Skipping plot for \""
+msgstr "  - Avertissement : Omission du graphique pour \""
+
+#: src/core/graphics/Plotting.cpp:84
+msgid "\" due to insufficient data points ("
+msgstr "\" en raison d'un nombre insuffisant de points de données ("
+
+#: src/core/graphics/Plotting.cpp:93
+msgid "  - Error: Failed to create cairo context for plot \""
+msgstr "  - Erreur : Échec de la création du contexte cairo pour le graphique \""
+
+#: src/core/graphics/Plotting.cpp:115 src/core/graphics/Plotting.cpp:194
+msgid "Black"
+msgstr "Noir"
+
+#: src/core/graphics/Plotting.cpp:116 src/core/graphics/Plotting.cpp:195
+#: src/gui/DynaRangeBase.cpp:61
+msgid "Saturation"
+msgstr "Saturation"
+
+#: src/core/graphics/Plotting.cpp:120
+msgid "SNR Curve - "
+msgstr "Courbe SNR - "
+
+#: src/core/graphics/Plotting.cpp:143
+msgid "  - Info: Plot saved to: "
+msgstr "  - Info : Graphique enregistré dans : "
+
+#: src/core/graphics/Plotting.cpp:159
+msgid "  - Warning: Skipping summary plot due to no curve data."
+msgstr "  - Avertissement : Omission du graphique de synthèse en raison de l'absence de données."
+
+#: src/core/graphics/Plotting.cpp:168
+msgid "  - Error: Failed to create cairo context for summary plot."
+msgstr "  - Erreur : Échec de la création du contexte cairo pour le graphique de synthèse."
+
+#: src/core/graphics/Plotting.cpp:198
+msgid "SNR Curves - Summary ("
+msgstr "Courbes SNR - Synthèse ("
+
+#: src/core/graphics/Plotting.cpp:215
+msgid "  - Info: Summary Plot saved to: "
+msgstr "  - Info : Graphique de synthèse enregistré dans : "
+
+#: src/core/analysis/RawProcessor.cpp:16
+msgid "Calculating black level from: "
+msgstr "Calcul du niveau de noir à partir de : "
+
+#: src/core/analysis/RawProcessor.cpp:29
+msgid "Black level obtained: "
+msgstr "Niveau de noir obtenu : "
+
+#: src/core/analysis/RawProcessor.cpp:34 src/core/analysis/RawProcessor.cpp:52
+msgid "Calculating saturation point from: "
+msgstr "Calcul du point de saturation à partir de : "
+
+#: src/core/analysis/RawProcessor.cpp:47
+msgid "Saturation point obtained (5th percentile): "
+msgstr "Point de saturation obtenu (5ème percentile) : "
+
+#: src/core/analysis/RawProcessor.cpp:59
+msgid "[WARNING] Could not determine bit depth from RAW metadata. Assuming 14-bit."
+msgstr "[AVERTISSEMENT] Impossible de déterminer la profondeur de bits à partir des métadonnées RAW. Utilisation de 14 bits par défaut."
+
+#: src/core/analysis/RawProcessor.cpp:76
+msgid "Detected bit depth: "
+msgstr "Profondeur de bits détectée : "
+
+#: src/core/analysis/RawProcessor.cpp:76
+msgid " bits"
+msgstr " bits"
+
+#: src/core/analysis/RawProcessor.cpp:77
+msgid "Expected saturation level: "
+msgstr "Niveau de saturation attendu : "
+
+#: src/core/analysis/RawProcessor.cpp:78
+msgid "Measured saturation (5th percentile): "
+msgstr "Saturation mesurée (5ème percentile) : "
+
+#: src/core/analysis/RawProcessor.cpp:82
+msgid "[WARNING] Measured saturation ("
+msgstr "[AVERTISSEMENT] Saturation mesurée ("
+
+#: src/core/analysis/RawProcessor.cpp:82
+msgid ") is much lower than expected ("
+msgstr ") est bien inférieure à la valeur attendue ("
+
+#: src/core/analysis/RawProcessor.cpp:82
+msgid "). "
+msgstr "). "
+
+#: src/core/analysis/RawProcessor.cpp:83
+msgid "This may indicate underexposure or non-linear processing."
+msgstr "Cela peut indiquer une sous-exposition ou un traitement non linéaire."
 
 #: src/rango.cpp:45
 msgid "A critical error occurred during processing. Please check the log."
-msgstr ""
-"Une erreur critique s'est produite pendant le traitement. Veuillez consulter "
-"le journal."
+msgstr "Une erreur critique est survenue pendant le traitement. Veuillez consulter le journal."
 
 #: src/gui/DynaRangeFrame.cpp:111
 msgid "Select RAW files"
-msgstr "Sélectionner les fichiers RAW"
+msgstr "Sélectionner des fichiers RAW"
 
 #: src/gui/DynaRangeFrame.cpp:111
 msgid ""
@@ -34,67 +411,65 @@ msgstr ""
 "Fichiers RAW (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|"
 "Tous les fichiers (*.*)|*.*"
 
-#: src/gui/DynaRangeFrame.cpp:158
+#: src/gui/DynaRangeFrame.cpp:165
+msgid "Results loaded. Plot generation was not requested."
+msgstr "Résultats chargés. La génération de graphiques n'a pas été demandée."
+
+#: src/gui/DynaRangeFrame.cpp:168
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 "\n"
-"Erreur : Le graphique récapitulatif n'a pas pu être généré."
+"Erreur : Le graphique de synthèse n'a pas pu être généré."
 
-#: src/gui/DynaRangeFrame.cpp:160
+#: src/gui/DynaRangeFrame.cpp:170
 msgid "Results loaded, but summary plot failed."
-msgstr "Résultats chargés, mais le graphique récapitulatif a échoué."
+msgstr "Résultats chargés, mais le graphique de synthèse a échoué."
 
-#: src/gui/DynaRangeFrame.cpp:199
+#: src/gui/DynaRangeFrame.cpp:210 src/gui/GuiPresenter.cpp:83
 msgid "Error"
 msgstr "Erreur"
 
-#: src/gui/DynaRangeFrame.cpp:199
+#: src/gui/DynaRangeFrame.cpp:210
 msgid "Could not open the results file: "
 msgstr "Impossible d'ouvrir le fichier de résultats : "
 
-#: src/gui/DynaRangeFrame.cpp:255
+#: src/gui/DynaRangeFrame.cpp:266
 msgid "Processing... Please wait."
 msgstr "Traitement en cours... Veuillez patienter."
 
-#: src/gui/DynaRangeFrame.cpp:265
+#: src/gui/DynaRangeFrame.cpp:276
 msgid "Generated Graph:"
-msgstr "Graphique généré :"
+msgstr "Graphique Généré :"
 
-#: src/gui/DynaRangeFrame.cpp:352
-msgid ""
-"The following files were ignored because they are not recognized as "
-"supported RAW formats:\n"
-"\n"
-msgstr ""
-"Les fichiers suivants ont été ignorés car ils ne sont pas reconnus comme des "
-"formats RAW pris en charge :\n"
-"\n"
+#: src/gui/DynaRangeFrame.cpp:360
+msgid "The following files were ignored because they are not recognized as supported RAW formats:\n\n"
+msgstr "Les fichiers suivants ont été ignorés car ils ne sont pas reconnus comme des formats RAW pris en charge :\n\n"
 
-#: src/gui/DynaRangeFrame.cpp:354
+#: src/gui/DynaRangeFrame.cpp:362
 msgid "Unsupported Files Skipped"
-msgstr "Fichiers non pris en charge ignorés"
+msgstr "Fichiers non Pris en Charge Ignorés"
 
-#: src/gui/DynaRangeFrame.cpp:372
+#: src/gui/DynaRangeFrame.cpp:380
 msgid "Generated Graph (Image not found): "
-msgstr "Graphique généré (Image non trouvée) : "
+msgstr "Graphique Généré (Image non trouvée) : "
 
-#: src/gui/DynaRangeFrame.cpp:374
+#: src/gui/DynaRangeFrame.cpp:382
 msgid "Generated Graph: "
-msgstr "Graphique généré : "
+msgstr "Graphique Généré : "
 
-#: src/gui/DynaRangeFrame.cpp:403
+#: src/gui/DynaRangeFrame.cpp:411
 msgid "Welcome to Dynamic Range Calculator"
 msgstr "Bienvenue dans le Calculateur de Plage Dynamique"
 
-#: src/gui/DynaRangeFrame.cpp:406
+#: src/gui/DynaRangeFrame.cpp:414
 msgid "Welcome (logo.png not found)"
 msgstr "Bienvenue (logo.png non trouvé)"
 
 #: src/gui/DynaRangeBase.cpp:32
 msgid "Dark Frame"
-msgstr "Image Noire"
+msgstr "Fotogramme Noir"
 
 #: src/gui/DynaRangeBase.cpp:40
 msgid "Dark File:"
@@ -116,11 +491,6 @@ msgstr "Valeur Noir :"
 msgid "256.0"
 msgstr "256.0"
 
-#: src/gui/DynaRangeBase.cpp:61 src/core/graphics/Plotting.cpp:116
-#: src/core/graphics/Plotting.cpp:196
-msgid "Saturation"
-msgstr "Saturation"
-
 #: src/gui/DynaRangeBase.cpp:69
 msgid "Saturation File:"
 msgstr "Fichier Saturation :"
@@ -135,7 +505,7 @@ msgstr "4095.0"
 
 #: src/gui/DynaRangeBase.cpp:100
 msgid "Analysis Parameters"
-msgstr "Paramètres d'analyse"
+msgstr "Paramètres d'Analyse"
 
 #: src/gui/DynaRangeBase.cpp:105
 msgid "Patch Ratio"
@@ -182,12 +552,16 @@ msgid "No"
 msgstr "Non"
 
 #: src/gui/DynaRangeBase.cpp:175
-msgid "with commad"
-msgstr "Avec commande"
+msgid "Graphic"
+msgstr "Graphique"
 
 #: src/gui/DynaRangeBase.cpp:175
-msgid "Without command"
-msgstr "Sans commande"
+msgid "Graphic + Short Command"
+msgstr "Graphique + Commande Courte"
+
+#: src/gui/DynaRangeBase.cpp:175
+msgid "Graphic + Long Command"
+msgstr "Graphique + Commande Longue"
 
 #: src/gui/DynaRangeBase.cpp:187
 msgid "Ouput file"
@@ -199,15 +573,15 @@ msgstr "resultat.csv"
 
 #: src/gui/DynaRangeBase.cpp:210
 msgid "Input RAW Files"
-msgstr "Fichiers RAW d'entrée"
+msgstr "Fichiers RAW d'Entrée"
 
 #: src/gui/DynaRangeBase.cpp:219
 msgid "Add RAW Files..."
-msgstr "Ajouter Fichiers RAW..."
+msgstr "Ajouter des Fichiers RAW..."
 
 #: src/gui/DynaRangeBase.cpp:222
 msgid "Remove Selected"
-msgstr "Supprimer Sélection"
+msgstr "Supprimer la Sélection"
 
 #: src/gui/DynaRangeBase.cpp:234
 msgid "Equivalent CLI command"
@@ -231,404 +605,12 @@ msgstr "Sortie CSV :"
 
 #: src/gui/DynaRangeBase.cpp:303
 msgid "Generated Graph (placeholder):"
-msgstr "Graphique généré (espace réservé) :"
+msgstr "Graphique Généré (placeholder) :"
 
 #: src/gui/DynaRangeBase.cpp:320
 msgid "Results"
 msgstr "Résultats"
 
-#: src/core/analysis/RawProcessor.cpp:16
-msgid "Calculating black level from: "
-msgstr "Calcul du niveau de noir à partir de : "
-
-#: src/core/analysis/RawProcessor.cpp:29
-msgid "Black level obtained: "
-msgstr "Niveau de noir obtenu : "
-
-#: src/core/analysis/RawProcessor.cpp:34 src/core/analysis/RawProcessor.cpp:52
-msgid "Calculating saturation point from: "
-msgstr "Calcul du point de saturation à partir de : "
-
-#: src/core/analysis/RawProcessor.cpp:47
-msgid "Saturation point obtained (5th percentile): "
-msgstr "Point de saturation obtenu (5e percentile) : "
-
-#: src/core/analysis/RawProcessor.cpp:59
-msgid ""
-"[WARNING] Could not determine bit depth from RAW metadata. Assuming 14-bit."
-msgstr ""
-"[AVERTISSEMENT] Impossible de déterminer la profondeur de bits à partir des "
-"métadonnées RAW. Hypothèse de 14 bits."
-
-#: src/core/analysis/RawProcessor.cpp:76
-msgid "Detected bit depth: "
-msgstr "Profondeur de bits détectée : "
-
-#: src/core/analysis/RawProcessor.cpp:76
-msgid " bits"
-msgstr " bits"
-
-#: src/core/analysis/RawProcessor.cpp:77
-msgid "Expected saturation level: "
-msgstr "Niveau de saturation attendu : "
-
-#: src/core/analysis/RawProcessor.cpp:78
-msgid "Measured saturation (5th percentile): "
-msgstr "Saturation mesurée (5e percentile) : "
-
-#: src/core/analysis/RawProcessor.cpp:82
-msgid "[WARNING] Measured saturation ("
-msgstr "[AVERTISSEMENT] La saturation mesurée ("
-
-#: src/core/analysis/RawProcessor.cpp:82
-msgid ") is much lower than expected ("
-msgstr ") est bien inférieure à la valeur attendue ("
-
-#: src/core/analysis/RawProcessor.cpp:82
-msgid "). "
-msgstr "). "
-
-#: src/core/analysis/RawProcessor.cpp:83
-msgid "This may indicate underexposure or non-linear processing."
-msgstr "Cela peut indiquer une sous-exposition ou un traitement non linéaire."
-
-#: src/core/arguments/ArgumentManager.cpp:78
-msgid ""
-"Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with "
-"gamma compression (default R=255, G=101, B=164, invgamma=1.4)"
-msgstr ""
-"Créer une mire de test au format PNG avec des couleurs de (0,0,0) à (R,G,B) "
-"avec compression gamma (par défaut R=255, G=101, B=164, invgamma=1.4)"
-
-#: src/core/arguments/ArgumentManager.cpp:79
-msgid "Camera RAW black level"
-msgstr "Niveau de noir du RAW de l'appareil photo"
-
-#: src/core/arguments/ArgumentManager.cpp:80
-msgid "Totally dark RAW file ideally shot at base ISO"
-msgstr "Fichier RAW totalement sombre, idéalement pris à l'ISO de base"
-
-#: src/core/arguments/ArgumentManager.cpp:81
-msgid "Camera RAW saturation level"
-msgstr "Niveau de saturation du RAW de l'appareil photo"
-
-#: src/core/arguments/ArgumentManager.cpp:82
-msgid "Totally clipped RAW file ideally shot at base ISO"
-msgstr "Fichier RAW totalement surexposé, idéalement pris à l'ISO de base"
-
-#: src/core/arguments/ArgumentManager.cpp:83
-msgid "Input RAW files shot over the test chart ideally for every ISO"
-msgstr ""
-"Fichiers RAW d'entrée pris sur la mire de test, idéalement pour chaque ISO"
-
-#: src/core/arguments/ArgumentManager.cpp:84
-msgid ""
-"Relative patch width/height used to compute signal and noise readings "
-"(default=0.5)"
-msgstr ""
-"Largeur/hauteur relative du patch utilisée pour calculer les lectures de "
-"signal et de bruit (par défaut=0.5)"
-
-#: src/core/arguments/ArgumentManager.cpp:85
-msgid ""
-"SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
-"(engineering DR))"
-msgstr ""
-"Seuil SNR en dB pour le calcul du DR (par défaut=12dB (DR photo) plus 0dB "
-"(DR ingénierie))"
-
-#: src/core/arguments/ArgumentManager.cpp:86
-msgid "Number of Mpx for DR normalization (default=8Mpx)"
-msgstr "Nombre de Mpx pour la normalisation du DR (par défaut=8Mpx)"
-
-#: src/core/arguments/ArgumentManager.cpp:87
-msgid "Polynomic order (default=3) to fit the SNR curve"
-msgstr "Ordre polynomique (par défaut=3) pour l'ajustement de la courbe SNR"
-
-#: src/core/arguments/ArgumentManager.cpp:88
-msgid ""
-"Output CSV text file(s) with all results: black level, sat level, SNR "
-"samples, DR values, fitting params (default=\"results.csv\")"
-msgstr ""
-"Fichier texte CSV de sortie avec tous les résultats : niveau de noir, niveau "
-"de saturation, échantillons SNR, valeurs DR, paramètres d'ajustement (par "
-"défaut=\"results.csv\")"
-
-#: src/core/arguments/ArgumentManager.cpp:89
-msgid ""
-"Export SNR curves in PNG format with/without the CLI command that generated "
-"them (default=0, don't plot)"
-msgstr ""
-"Exporter les courbes SNR au format PNG avec/sans la commande CLI qui les a "
-"générées (par défaut=0, ne pas tracer)"
-
-#: src/core/arguments/ArgumentManager.cpp:96
-msgid "Calculates the dynamic range from a series of RAW images."
-msgstr "Calcule la plage dynamique à partir d'une série d'images RAW."
-
-#: src/core/engine/Engine.cpp:38
-msgid "[INFO] Analysis cancelled by user."
-msgstr "[INFO] Analyse annulée par l'utilisateur."
-
-#: src/core/engine/Initialization.cpp:23
-msgid "Fatal error processing dark frame."
-msgstr "Erreur fatale lors du traitement du dark frame."
-
-#: src/core/engine/Initialization.cpp:28
-msgid "Fatal error processing saturation frame."
-msgstr "Erreur fatale lors du traitement du frame de saturation."
-
-#: src/core/engine/Initialization.cpp:33
-msgid "[Final configuration]"
-msgstr "[Configuration finale]"
-
-#: src/core/engine/Initialization.cpp:34
-msgid "Black level: "
-msgstr "Niveau de noir : "
-
-#: src/core/engine/Initialization.cpp:35
-msgid "Saturation point: "
-msgstr "Point de saturation : "
-
-#: src/core/engine/Initialization.cpp:37
-msgid "SNR threshold(s): "
-msgstr "Seuil(s) SNR : "
-
-#: src/core/engine/Initialization.cpp:41
-msgid " dB"
-msgstr " dB"
-
-#: src/core/engine/Initialization.cpp:43
-msgid "DR normalization: "
-msgstr "Normalisation DR : "
-
-#: src/core/engine/Initialization.cpp:43 src/core/setup/SensorResolution.cpp:24
-#: src/core/setup/SensorResolution.cpp:35
-msgid " Mpx"
-msgstr " Mpx"
-
-#: src/core/engine/Initialization.cpp:44
-msgid "Polynomic order: "
-msgstr "Ordre polynomique : "
-
-#: src/core/engine/Initialization.cpp:45
-msgid "Patch ratio: "
-msgstr "Ratio de patch : "
-
-#: src/core/engine/Initialization.cpp:46
-msgid "Plotting: "
-msgstr "Tracé des graphiques : "
-
-#: src/core/engine/Initialization.cpp:48
-msgid "No graphics"
-msgstr "Pas de graphiques"
-
-#: src/core/engine/Initialization.cpp:49
-msgid "Graphics without command CLI"
-msgstr "Graphiques sans commande CLI"
-
-#: src/core/engine/Initialization.cpp:50
-msgid "Graphics with command CLI"
-msgstr "Graphiques avec commande CLI"
-
-#: src/core/engine/Initialization.cpp:52
-msgid "Output file: "
-msgstr "Fichier de sortie : "
-
-#: src/core/engine/Initialization.cpp:59
-msgid "Error: None of the input files could be processed."
-msgstr "Erreur : Aucun des fichiers d'entrée n'a pu être traité."
-
-#: src/core/engine/Initialization.cpp:82
-msgid "Sorting finished. Starting Dynamic Range calculation process..."
-msgstr "Tri terminé. Début du processus de calcul de la Plage Dynamique..."
-
-#: src/core/engine/Processing.cpp:35
-msgid "Error: Could not load RAW file: "
-msgstr "Erreur : Impossible de charger le fichier RAW : "
-
-#: src/core/engine/Processing.cpp:59
-msgid "Processing \""
-msgstr "Traitement de \""
-
-#: src/core/engine/Processing.cpp:69
-msgid "Warning: No valid patches found for "
-msgstr "Avertissement : Aucun patch valide trouvé pour "
-
-#: src/core/engine/Processing.cpp:115
-msgid ""
-"Using optimized keystone: calculating parameters once for the series..."
-msgstr "Utilisation de la keystone optimisée : calcul des paramètres une fois pour la série..."
-
-#: src/core/engine/Reporting.cpp:31
-msgid "Generating individual SNR plots..."
-msgstr "Génération des graphiques SNR individuels..."
-
-#: src/core/engine/Reporting.cpp:42 src/core/setup/PlotLabelGenerator.cpp:31
-msgid "ISO "
-msgstr "ISO "
-
-#: src/core/engine/Reporting.cpp:114
-msgid "Dynamic Range Results"
-msgstr "Résultats de la Plage Dynamique"
-
-#: src/core/engine/Reporting.cpp:117
-msgid "RAW File"
-msgstr "Fichier RAW"
-
-#: src/core/engine/Reporting.cpp:120
-msgid "dB)"
-msgstr "dB)"
-
-#: src/core/engine/Reporting.cpp:123
-msgid "Patches"
-msgstr "Patchs"
-
-#: src/core/engine/Reporting.cpp:146
-msgid "Error: Could not open CSV file for writing: "
-msgstr "Erreur : Impossible d'ouvrir le fichier CSV en écriture : "
-
-#: src/core/engine/Reporting.cpp:167
-msgid "Results saved to "
-msgstr "Résultats enregistrés dans "
-
-#: src/core/engine/Validation.cpp:56
-msgid "Warning: insufficient data to calculate "
-msgstr "Avertissement : données insuffisantes pour calculer "
-
-#: src/core/engine/Validation.cpp:57
-msgid "dB dynamic range at "
-msgstr "dB de plage dynamique à "
-
-#: src/core/engine/Validation.cpp:58
-msgid "Mpx normalization. "
-msgstr "de normalisation Mpx. "
-
-#: src/core/engine/Validation.cpp:59
-msgid "Test chart may have been over/underexposed for this ISO."
-msgstr "La mire de test a peut-être été sur/sous-exposée pour cet ISO."
-
-#: src/core/graphics/ImageProcessing.cpp:54
-msgid "Error: Could not get normalized image for: "
-msgstr "Erreur : Impossible d'obtenir l'image normalisée pour : "
-
-#: src/core/graphics/ImageProcessing.cpp:73
-msgid "Error: Invalid crop area calculated for keystone correction."
-msgstr ""
-"Erreur : Zone de recadrage invalide calculée pour la correction trapézoïdale."
-
-#: src/core/graphics/PlotBase.cpp:177
-msgid "RAW exposure (EV)"
-msgstr "Exposition RAW (EV)"
-
-#: src/core/graphics/PlotBase.cpp:183
-msgid "SNR (dB)"
-msgstr "SNR (dB)"
-
-#: src/core/graphics/Plotting.cpp:47
-msgid "Generated at %Y-%m-%d %H:%M:%S"
-msgstr "Généré le %Y-%m-%d à %H:%M:%S"
-
-#: src/core/graphics/Plotting.cpp:84
-msgid "  - Warning: Skipping plot for \""
-msgstr "  - Avertissement : Ignorer le graphique pour \""
-
-#: src/core/graphics/Plotting.cpp:84
-msgid "\" due to insufficient data points ("
-msgstr "\" en raison de données insuffisantes ("
-
-#: src/core/graphics/Plotting.cpp:93
-msgid "  - Error: Failed to create cairo context for plot \""
-msgstr ""
-"  - Erreur : Échec de la création du contexte cairo pour le graphique \""
-
-#: src/core/graphics/Plotting.cpp:115 src/core/graphics/Plotting.cpp:195
-msgid "Black"
-msgstr "Noir"
-
-#: src/core/graphics/Plotting.cpp:120
-msgid "SNR Curve - "
-msgstr "Courbe SNR - "
-
-#: src/core/graphics/Plotting.cpp:143
-msgid "  - Info: Plot saved to: "
-msgstr "  - Info : Graphique enregistré dans : "
-
-#: src/core/graphics/Plotting.cpp:159
-msgid "  - Warning: Skipping summary plot due to no curve data."
-msgstr ""
-"  - Avertissement : Ignorer le graphique récapitulatif en raison de "
-"l'absence de données."
-
-#: src/core/graphics/Plotting.cpp:168
-msgid "  - Error: Failed to create cairo context for summary plot."
-msgstr ""
-"  - Erreur : Échec de la création du contexte cairo pour le graphique "
-"récapitulatif."
-
-#: src/core/graphics/Plotting.cpp:200
-msgid "SNR Curves - Summary ("
-msgstr "Courbes SNR - Résumé ("
-
-#: src/core/graphics/Plotting.cpp:213
-msgid "  - Info: Summary Plot saved to: "
-msgstr "  - Info : Graphique récapitulatif enregistré dans : "
-
-#: src/core/setup/FileSorter.cpp:43
-msgid "Sorting by brightness and by ISO produce the same file order."
-msgstr "Le tri par luminosité et par ISO produit le même ordre de fichiers."
-
-#: src/core/setup/FileSorter.cpp:45
-msgid ""
-"[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders."
-msgstr ""
-"[AVERTISSEMENT] Le tri par luminosité et par ISO produit des ordres de "
-"fichiers DIFFÉRENTS."
-
-#: src/core/setup/FileSorter.cpp:48
-msgid ""
-"[WARNING] Cannot use EXIF data. ISO not available in all files. Using "
-"brightness sorting."
-msgstr ""
-"[AVERTISSEMENT] Impossible d'utiliser les données EXIF. ISO non disponible "
-"dans tous les fichiers. Utilisation du tri par luminosité."
-
-#: src/core/setup/FileSorter.cpp:55
-msgid "Using final file order from: EXIF ISO (List B)"
-msgstr "Utilisation de l'ordre final des fichiers depuis : EXIF ISO (Liste B)"
-
-#: src/core/setup/FileSorter.cpp:57
-msgid "Using final file order from: Image Brightness (List A)"
-msgstr ""
-"Utilisation de l'ordre final des fichiers depuis : Luminosité de l'image "
-"(Liste A)"
-
-#: src/core/setup/MetadataExtractor.cpp:18
-msgid "Pre-analyzing files to determine sorting order..."
-msgstr "Pré-analyse des fichiers pour déterminer l'ordre de tri..."
-
-#: src/core/setup/MetadataExtractor.cpp:37
-msgid "  - File: "
-msgstr "  - Fichier : "
-
-#: src/core/setup/MetadataExtractor.cpp:38
-msgid ", Brightness: "
-msgstr ", Luminosité : "
-
-#: src/core/setup/MetadataExtractor.cpp:39
-msgid ", ISO: "
-msgstr ", ISO : "
-
-#: src/core/setup/SensorResolution.cpp:23
-msgid "Sensor resolution detected from RAW metadata: "
-msgstr "Résolution du capteur détectée depuis les métadonnées RAW : "
-
-#: src/core/setup/SensorResolution.cpp:34
-msgid "Sensor resolution inferred from RAW dimensions: "
-msgstr "Résolution du capteur déduite des dimensions RAW : "
-
-#~ msgid "Parámetros de Análisis"
-#~ msgstr "Paramètres d'Analyse"
-
-#~ msgid "Please select at least one input RAW file."
-#~ msgstr "Veuillez sélectionner au moins un fichier RAW d'entrée."
+#: src/gui/GuiPresenter.cpp:83
+msgid "Please select at least one input RAW file."
+msgstr "Veuillez sélectionner au moins un fichier RAW d'entrée."

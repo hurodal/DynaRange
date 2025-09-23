@@ -56,7 +56,7 @@ std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const 
     // El rango min/max de EV ya no es necesario para la llamada a FindIntersectionEV
     for (const double threshold_db : thresholds_db) {
         // Llama a la nueva versión simplificada de la función
-        auto ev_opt = FindIntersectionEV(snr_curve.poly_coeffs, threshold_db);
+        auto ev_opt = CalculateEVFromSNR(snr_curve.poly_coeffs, threshold_db);
         if (ev_opt) {
             dr_values_ev[threshold_db] = -(*ev_opt);
         }

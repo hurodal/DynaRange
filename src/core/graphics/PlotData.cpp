@@ -127,7 +127,7 @@ void DrawThresholdIntersection(
     auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
     double min_ev = *min_max_ev.first;
     double max_ev = *min_max_ev.second;
-    auto ev_opt = FindIntersectionEV(curve.poly_coeffs, threshold_db);
+    auto ev_opt = CalculateEVFromSNR(curve.poly_coeffs, threshold_db);
     if (!ev_opt) return;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << *ev_opt << "EV";

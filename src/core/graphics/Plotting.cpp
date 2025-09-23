@@ -186,21 +186,23 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    // Crear y poblar el PlotInfoBox ---
+    // Create and populate the PlotInfoBox
     PlotInfoBox info_box;
-    std::stringstream black_ss, sat_ss, patch_ss;
+    std::stringstream black_ss, sat_ss;
     black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
     sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
-    //patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
     info_box.AddItem(_("Black"), black_ss.str());
     info_box.AddItem(_("Saturation"), sat_ss.str());
-    //info_box.AddItem("Patch Ratio", patch_ss.str());
     
     // Draw the static plot base
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
-    DrawPlotBase(cr, title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
+    
+    // The command to print on the plot is the one stored with the curve data.
+    // It's the same for all curves, so we can take it from the first one.
+    std::string command_to_print = all_curves[0].generated_command;
+    DrawPlotBase(cr, title, opts, bounds, command_to_print, opts.snr_thresholds_db);
 
-    // --- CAMBIO: Pasar el info_box a la función de dibujo de datos ---
+    // Pass the info_box to the data drawing function
     DrawCurvesAndData(cr, info_box, all_curves, bounds);
     
     // Draw timestamp in bottom-left corner

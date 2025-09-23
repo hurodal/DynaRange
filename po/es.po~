@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dynaRange\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-23 12:19+0200\n"
+"POT-Creation-Date: 2025-09-23 12:54+0200\n"
 "PO-Revision-Date: 2025-09-23 10:20+0200\n"
 "Last-Translator: Gemini Assistant\n"
 "Language-Team: Spanish\n"
@@ -359,8 +359,7 @@ msgstr ""
 msgid ""
 "Export SNR curves in PNG format with/without the CLI command that generated "
 "them (default=0, don't plot)"
-msgstr ""
-"Exportar curvas SNR en formato PNG con/sin el comando CLI que las generó "
+msgstr "Exportar curvas SNR en formato PNG con/sin el comando CLI que las generó "
 "(por defecto=0, no trazar)"
 
 #: src/core/arguments/ArgumentManager.cpp:96
@@ -442,8 +441,7 @@ msgstr "Error: Ninguno de los ficheros de entrada pudo ser procesado."
 
 #: src/core/engine/Initialization.cpp:82
 msgid "Sorting finished. Starting Dynamic Range calculation process..."
-msgstr ""
-"Ordenación finalizada. Iniciando proceso de cálculo de Rango Dinámico..."
+msgstr "Ordenación finalizada. Iniciando proceso de cálculo de Rango Dinámico..."
 
 #: src/core/engine/Processing.cpp:35
 msgid "Error: Could not load RAW file: "
@@ -458,9 +456,8 @@ msgid "Warning: No valid patches found for "
 msgstr "Advertencia: No se encontraron parches válidos para "
 
 #: src/core/engine/Processing.cpp:115
-msgid ""
-"Using non-optimized keystone: recalculating parameters for each image..."
-msgstr ""
+msgid "Using optimized keystone: calculating parameters once for the series..."
+msgstr "Utilizando la función keystone optimizada: calculando parámetros una vez para la serie..."
 
 #: src/core/engine/Reporting.cpp:31
 msgid "Generating individual SNR plots..."

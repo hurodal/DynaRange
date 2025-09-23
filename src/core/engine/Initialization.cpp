@@ -15,7 +15,6 @@
 
 #define _(string) gettext(string)
 
-// File: src/core/engine/Initialization.cpp
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     if (!opts.dark_file_path.empty()) {
@@ -29,29 +28,8 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         opts.saturation_value = *sat_val_opt;
     }
 
-    log_stream << std::fixed << std::setprecision(2);
-    log_stream << "\n" << _("[Final configuration]") << std::endl;
-    log_stream << _("Black level: ") << opts.dark_value << std::endl;
-    log_stream << _("Saturation point: ") << opts.saturation_value << std::endl;
-    
-    log_stream << _("SNR threshold(s): ");
-    for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
-        log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
-    }
-    log_stream << _(" dB") << std::endl;
-
-    log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
-    log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
-    log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
-    log_stream << _("Plotting: ");
-    switch (opts.plot_mode) {
-        case 0: log_stream << _("No graphics") << std::endl; break;
-        case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
-        case 2: log_stream << _("Graphics with command CLI") << std::endl; break;
-    }    
-    log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
-    
     // --- SETUP PROCESS ORCHESTRATION ---
+    // This is now done before printing the final configuration.
     
     // Step 1: Extract metadata from all files.
     auto file_info = ExtractFileInfo(opts.input_files, log_stream);
@@ -78,12 +56,41 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     // Step 5: Update the program options with the setup results.
     opts.input_files = order.sorted_filenames;
     opts.plot_labels = labels;
-    
-    log_stream << _("Sorting finished. Starting Dynamic Range calculation process...") << std::endl;
-    
-    // Generate command string using the specific 'Plot' format.
-    if (opts.plot_mode == 2) {
-        opts.generated_command = ArgumentManager::Instance().GenerateCommand(CommandFormat::Plot);
+
+    // --- PRINT FINAL CONFIGURATION ---
+    // Now that all auto-detection is complete, print the final settings.
+    log_stream << std::fixed << std::setprecision(2);
+    log_stream << "\n" << _("[Final configuration]") << std::endl;
+    log_stream << _("Black level: ") << opts.dark_value << std::endl;
+    log_stream << _("Saturation point: ") << opts.saturation_value << std::endl;
+    if (opts.sensor_resolution_mpx > 0.0) {
+        log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }
+    log_stream << _("SNR threshold(s): ");
+    for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
+        log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
+    }
+    log_stream << _(" dB") << std::endl;
+    log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
+    log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
+    log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
+    log_stream << _("Plotting: ");
+    switch (opts.plot_mode) {
+        case 0: log_stream << _("No graphics") << std::endl; break;
+        case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
+        case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
+        case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
+    }    
+    log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
+    
+    log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
+    
+    // Generate command string based on the selected plot mode.
+    if (opts.plot_mode == 2) {
+        opts.generated_command = ArgumentManager::Instance().GenerateCommand(CommandFormat::PlotShort);
+    } else if (opts.plot_mode == 3) {
+        opts.generated_command = ArgumentManager::Instance().GenerateCommand(CommandFormat::PlotLong);
+    }
+    
     return true;
 }

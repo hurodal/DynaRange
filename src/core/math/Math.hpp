@@ -19,15 +19,17 @@
 void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order);
 
 /**
- * @brief Finds the x-value (EV) where a polynomial curve intersects a target y-value (SNR).
- * @details Solves the equation P(x) = target_snr_db for x within a given range.
- * Supports quadratic (order 2) and cubic (order 3) polynomials.
- * @param coeffs The polynomial coefficients, as calculated by PolyFit.
- * @param target_snr_db The target SNR value in dB to find the intersection for.
- * @return An optional containing the EV value at the intersection, or std::nullopt if not found.
+ * @brief Calculates the Exposure Value (EV) for a given Signal-to-Noise Ratio (SNR).
+ * @details This function evaluates a polynomial of the form EV = f(SNR_dB).
+ * It directly computes the EV by substituting the target_snr_db into the polynomial,
+ * which is more efficient than solving for a root. The polynomial order is
+ * determined by the number of coefficients.
+ * @param coeffs The polynomial coefficients, as calculated by PolyFit for an EV = f(SNR_dB) model.
+ * @param target_snr_db The input SNR value (in dB) at which to evaluate the polynomial.
+ * @return An std::optional containing the calculated EV value. Returns std::nullopt if the 
+ * coefficient matrix is empty.
  */
-//std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db);
+std::optional<double> CalculateEVFromSNR(const cv::Mat& coeffs, double target_snr_db);
 
 /**
  * @brief Calculates the arithmetic mean of a vector of doubles.

@@ -3,8 +3,8 @@
  * @file src/core/arguments/ProgramOptions.hpp
  * @brief Defines the data structure and types for program configuration.
  * @details This file has a single responsibility: to define the structure
- *          that holds all user-configurable options for the application.
- *          It contains no logic for parsing or generating commands.
+ * that holds all user-configurable options for the application.
+ * It contains no logic for parsing or generating commands.
  */
 #pragma once
 #include <string>
@@ -13,26 +13,22 @@
 
 /// @brief Default polynomial order for curve fitting.
 constexpr int DEFAULT_POLY_ORDER = 3;
-
 /**
  * @enum CommandFormat
  * @brief Specifies the desired format for the generated command string.
  */
 enum class CommandFormat {
-    Full, ///< Complete command with all paths and arguments, for the GUI.
-    /**
-     * @brief Abbreviated command for plots.
-     * @note Uses long argument names (--param) for clarity, shortens paths,
-     * and omits irrelevant arguments like output and input files.
-     */
-    Plot
+    Full,       ///< Complete command with full paths and all arguments.
+    PlotShort,  ///< Abbreviated command for plots with short argument names (-f, -r).
+    PlotLong,   ///< Abbreviated command for plots with long argument names (--poly-fit, --patch-ratio).
+    GuiPreview  ///< Command for the GUI preview: long names and full paths for copy-pasting.
 };
 
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
  * @details This is a pure data structure (POD-like). It should be populated
- *          by a parser and consumed by a generator or the core engine.
+ * by a parser and consumed by a generator or the core engine.
  */
 struct ProgramOptions {
     double dark_value = 0.0;                       ///< Manual or calculated black level value.
@@ -45,7 +41,7 @@ struct ProgramOptions {
     double dr_normalization_mpx = 8.0;             ///< Megapixel count for DR normalization.
     std::vector<double> snr_thresholds_db;         ///< SNR thresholds in dB to calculate DR for.
     double patch_ratio = 0.5;                      ///< Relative area of chart patches to use for analysis.
-    int plot_mode = 0;                             ///< Plot generation mode (0=no, 1=plot, 2=plot+command).
+    int plot_mode = 0;                             ///< Plot generation mode (0=no, 1=plot, 2=short_cmd, 3=long_cmd).
     bool create_chart_mode = false;                ///< Flag to activate chart creation mode.
     std::vector<double> chart_params;              ///< Parameters for chart creation (R, G, B, gamma).
     std::string generated_command;                 ///< Stores the generated command string for plots.

@@ -23,7 +23,7 @@ void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order
 }
 
 // La firma de la función se simplifica, ya no necesita min_ev/max_ev
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db) {
+std::optional<double> CalculateEVFromSNR(const cv::Mat& coeffs, double target_snr_db) {
     if (coeffs.empty()) {
         return std::nullopt;
     }

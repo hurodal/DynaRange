@@ -142,6 +142,8 @@ void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
     AppendLog(event.GetString());
 }
 
+// File: src/gui/DynaRangeFrame.cpp
+
 void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     SetUiState(false); // Go to "results" mode
     
@@ -151,13 +153,22 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
 
     // Update the UI with the results, using the definitive path from the report.
     DisplayResults(report.final_csv_path);
+
     if (report.summary_plot_path.has_value()) {
+        // If a plot path exists, load the image.
         LoadGraphImage(*report.summary_plot_path);
     } else {
-        // Handle case where analysis finished but plot failed to generate
-        AppendLog(_("\nError: Summary plot could not be generated."));
-        LoadLogoImage(); // Revert to logo
-        m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
+        // If no plot path, check why.
+        if (final_opts.plot_mode == 0) {
+            // Case 1: The user chose not to generate a plot.
+            LoadLogoImage(); // Revert to logo
+            m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
+        } else {
+            // Case 2: A plot was expected but failed to generate.
+            AppendLog(_("\nError: Summary plot could not be generated."));
+            LoadLogoImage(); // Revert to logo
+            m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
+        }
     }
 }
 
@@ -319,11 +330,8 @@ int DynaRangeFrame::GetPolyOrder() const {
 }
 
 int DynaRangeFrame::GetPlotMode() const {
-    // The choice index needs to be mapped to the correct plot mode value.
-    int selection = m_plotingChoice->GetSelection();
-    if (selection == 1) return 2; // "With CLI command"
-    if (selection == 2) return 1; // "Without CLI command"
-    return 0; // "Don't Plot"
+    // The choice index now directly corresponds to the plot mode value (0, 1, 2, 3)
+    return m_plotingChoice->GetSelection();
 }
 
 // --- Other UI and Helper Functions ---

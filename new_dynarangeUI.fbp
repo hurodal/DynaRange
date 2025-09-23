@@ -1733,7 +1733,7 @@
                                         <property name="caption"></property>
                                         <property name="caption_visible">1</property>
                                         <property name="center_pane">0</property>
-                                        <property name="choices">&quot;No&quot; &quot;with commad&quot; &quot;Without command&quot;</property>
+                                        <property name="choices">&quot;No&quot; &quot;Graphic&quot; &quot;Graphic + Short Command&quot; &quot;Graphic + Long Command&quot;</property>
                                         <property name="close_button">1</property>
                                         <property name="context_help"></property>
                                         <property name="context_menu">1</property>

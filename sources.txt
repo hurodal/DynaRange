@@ -1,3 +1,4 @@
+src/DynaRangeGuiApp.hpp
 src/core/engine/Initialization.cpp
 src/core/engine/Validation.hpp
 src/core/engine/Initialization.hpp

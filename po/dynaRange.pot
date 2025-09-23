@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-23 13:28+0200\n"
+"POT-Creation-Date: 2025-09-23 16:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,56 +31,60 @@ msgid ""
 "files (*.*)|*.*"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:158
+#: src/gui/DynaRangeFrame.cpp:165
+msgid "Results loaded. Plot generation was not requested."
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:168
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:160
+#: src/gui/DynaRangeFrame.cpp:170
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:199
+#: src/gui/DynaRangeFrame.cpp:210
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:199
+#: src/gui/DynaRangeFrame.cpp:210
 msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:255
+#: src/gui/DynaRangeFrame.cpp:266
 msgid "Processing... Please wait."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:265
+#: src/gui/DynaRangeFrame.cpp:276
 msgid "Generated Graph:"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:352
+#: src/gui/DynaRangeFrame.cpp:360
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:354
+#: src/gui/DynaRangeFrame.cpp:362
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:372
+#: src/gui/DynaRangeFrame.cpp:380
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:374
+#: src/gui/DynaRangeFrame.cpp:382
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:403
+#: src/gui/DynaRangeFrame.cpp:411
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:406
+#: src/gui/DynaRangeFrame.cpp:414
 msgid "Welcome (logo.png not found)"
 msgstr ""
 
@@ -109,7 +113,7 @@ msgid "256.0"
 msgstr ""
 
 #: src/gui/DynaRangeBase.cpp:61 src/core/graphics/Plotting.cpp:116
-#: src/core/graphics/Plotting.cpp:196
+#: src/core/graphics/Plotting.cpp:195
 msgid "Saturation"
 msgstr ""
 
@@ -174,11 +178,15 @@ msgid "No"
 msgstr ""
 
 #: src/gui/DynaRangeBase.cpp:175
-msgid "with commad"
+msgid "Graphic"
 msgstr ""
 
 #: src/gui/DynaRangeBase.cpp:175
-msgid "Without command"
+msgid "Graphic + Short Command"
+msgstr ""
+
+#: src/gui/DynaRangeBase.cpp:175
+msgid "Graphic + Long Command"
 msgstr ""
 
 #: src/gui/DynaRangeBase.cpp:187
@@ -348,77 +356,86 @@ msgstr ""
 msgid "[INFO] Analysis cancelled by user."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:23
+#: src/core/engine/Initialization.cpp:22
 msgid "Fatal error processing dark frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:28
+#: src/core/engine/Initialization.cpp:27
 msgid "Fatal error processing saturation frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:33
+#: src/core/engine/Initialization.cpp:37
+msgid "Error: None of the input files could be processed."
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:63
 msgid "[Final configuration]"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:34
+#: src/core/engine/Initialization.cpp:64
 msgid "Black level: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:35
+#: src/core/engine/Initialization.cpp:65
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:37
-msgid "SNR threshold(s): "
+#: src/core/engine/Initialization.cpp:67
+msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:41
-msgid " dB"
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:43
-msgid "DR normalization: "
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:43 src/core/setup/SensorResolution.cpp:24
+#: src/core/engine/Initialization.cpp:67 src/core/engine/Initialization.cpp:74
+#: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:44
+#: src/core/engine/Initialization.cpp:69
+msgid "SNR threshold(s): "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:73
+msgid " dB"
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:74
+msgid "DR normalization: "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:75
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:45
+#: src/core/engine/Initialization.cpp:76
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:46
+#: src/core/engine/Initialization.cpp:77
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:48
+#: src/core/engine/Initialization.cpp:79
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:49
+#: src/core/engine/Initialization.cpp:80
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:50
-msgid "Graphics with command CLI"
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:52
-msgid "Output file: "
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:59
-msgid "Error: None of the input files could be processed."
+#: src/core/engine/Initialization.cpp:81
+msgid "Graphics with short command CLI"
 msgstr ""
 
 #: src/core/engine/Initialization.cpp:82
-msgid "Sorting finished. Starting Dynamic Range calculation process..."
+msgid "Graphics with long command CLI"
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:84
+msgid "Output file: "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:86
+msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
 #: src/core/engine/Processing.cpp:35
@@ -517,7 +534,7 @@ msgstr ""
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:115 src/core/graphics/Plotting.cpp:195
+#: src/core/graphics/Plotting.cpp:115 src/core/graphics/Plotting.cpp:194
 msgid "Black"
 msgstr ""
 
@@ -537,11 +554,11 @@ msgstr ""
 msgid "  - Error: Failed to create cairo context for summary plot."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:200
+#: src/core/graphics/Plotting.cpp:198
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:213
+#: src/core/graphics/Plotting.cpp:215
 msgid "  - Info: Summary Plot saved to: "
 msgstr ""
 

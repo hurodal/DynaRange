@@ -172,7 +172,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_plotingStaticText->Wrap( -1 );
 	plotPolyOutputSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	wxString m_plotingChoiceChoices[] = { _("No"), _("with commad"), _("Without command") };
+	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
 	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
 	m_plotingChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
 	m_plotingChoice->SetSelection( 1 );

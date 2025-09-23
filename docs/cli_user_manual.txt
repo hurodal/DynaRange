@@ -110,6 +110,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format adding CLI command)
+--plot 3 (plot export of SNR curves in PNG format adding CLI command long version)
 
 
 

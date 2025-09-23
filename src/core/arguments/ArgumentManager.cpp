@@ -86,7 +86,7 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, 8.0};
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, 3, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default=\"results.csv\")"), ArgType::String, std::string("DR_results.csv")};
-    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)"), ArgType::Int, 0, false, 0, 2};
+    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)"), ArgType::Int, 0, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
 
     m_is_registered = true;
@@ -94,26 +94,25 @@ void ArgumentManager::RegisterAllArguments() {
 
 void ArgumentManager::ParseCli(int argc, char* argv[]) {
     CLI::App app{_("Calculates the dynamic range from a series of RAW images.")};
-    
     auto fmt = app.get_formatter();
     fmt->column_width(35);
 
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     
-    // Bind variables directly using the full help text from the registry
-    app.add_flag("-c,--chart", temp_opts.create_chart_mode, m_descriptors.at("chart").help_text);
-    app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
-    app.add_option("-b,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
-    app.add_option("-S,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
-    app.add_option("-s,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
+    // Bind variables and capture the Option pointers to check if they were used.
+    auto chart_opt = app.add_flag("-c,--chart", temp_opts.create_chart_mode, m_descriptors.at("chart").help_text);
+    auto black_file_opt = app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
+    auto black_level_opt = app.add_option("-b,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
+    auto sat_file_opt = app.add_option("-S,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
+    auto sat_level_opt = app.add_option("-s,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
     app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text)->required();
-    app.add_option("-o,--output-file", temp_opts.output_filename, m_descriptors.at("output-file").help_text);
+    auto output_opt = app.add_option("-o,--output-file", temp_opts.output_filename, m_descriptors.at("output-file").help_text);
     auto snr_opt = app.add_option("-d,--snrthreshold-db", temp_snr_thresholds, m_descriptors.at("snrthreshold-db").help_text);
-    app.add_option("-m,--drnormalization-mpx", temp_opts.dr_normalization_mpx, m_descriptors.at("drnormalization-mpx").help_text);
-    app.add_option("-f,--poly-fit", temp_opts.poly_order, m_descriptors.at("poly-fit").help_text)->check(CLI::Range(2, 3));
-    app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
-    app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 2));
+    auto dr_norm_opt = app.add_option("-m,--drnormalization-mpx", temp_opts.dr_normalization_mpx, m_descriptors.at("drnormalization-mpx").help_text);
+    auto poly_fit_opt = app.add_option("-f,--poly-fit", temp_opts.poly_order, m_descriptors.at("poly-fit").help_text)->check(CLI::Range(2, 3));
+    auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
+    auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
 
     try {
         app.parse(argc, argv);
@@ -125,20 +124,27 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         temp_opts.input_files = expand_wildcards_on_windows(temp_opts.input_files);
     #endif
 
-    // Copy the parsed values from the temporary struct to our std::any map.
-    m_values["chart"] = temp_opts.create_chart_mode;
-    m_values["black-file"] = temp_opts.dark_file_path;
-    m_values["black-level"] = temp_opts.dark_value;
-    m_values["saturation-file"] = temp_opts.sat_file_path;
-    m_values["saturation-level"] = temp_opts.saturation_value;
-    m_values["input-files"] = temp_opts.input_files;
-    m_values["output-file"] = temp_opts.output_filename;
-    m_values["snrthreshold-db"] = snr_opt->count() > 0 ? temp_snr_thresholds[0] : std::any_cast<double>(m_descriptors.at("snrthreshold-db").default_value);
-    m_values["drnormalization-mpx"] = temp_opts.dr_normalization_mpx;
-    m_values["poly-fit"] = temp_opts.poly_order;
-    m_values["patch-ratio"] = temp_opts.patch_ratio;
-    m_values["plot"] = temp_opts.plot_mode;
-    m_values["snr-threshold-is-default"] = (snr_opt->count() == 0);
+    // --- Update internal values map ---
+    // Only update values for options that were explicitly passed on the command line.
+    // This prevents overwriting defaults with empty/zero values from the temporary struct.
+    if (chart_opt->count() > 0) m_values["chart"] = temp_opts.create_chart_mode;
+    if (black_file_opt->count() > 0) m_values["black-file"] = temp_opts.dark_file_path;
+    if (black_level_opt->count() > 0) m_values["black-level"] = temp_opts.dark_value;
+    if (sat_file_opt->count() > 0) m_values["saturation-file"] = temp_opts.sat_file_path;
+    if (sat_level_opt->count() > 0) m_values["saturation-level"] = temp_opts.saturation_value;
+    if (output_opt->count() > 0) m_values["output-file"] = temp_opts.output_filename;
+    if (dr_norm_opt->count() > 0) m_values["drnormalization-mpx"] = temp_opts.dr_normalization_mpx;
+    if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
+    if (patch_ratio_opt->count() > 0) m_values["patch-ratio"] = temp_opts.patch_ratio;
+    if (plot_opt->count() > 0) m_values["plot"] = temp_opts.plot_mode;
+    
+    // These arguments are handled specially
+    m_values["input-files"] = temp_opts.input_files; // This one is required, so it's always present.
+    
+    if (snr_opt->count() > 0) {
+        m_values["snrthreshold-db"] = temp_snr_thresholds[0];
+        m_values["snr-threshold-is-default"] = false;
+    }
 }
 
 void ArgumentManager::Set(const std::string& long_name, std::any value) {
@@ -146,6 +152,8 @@ void ArgumentManager::Set(const std::string& long_name, std::any value) {
         m_values[long_name] = std::move(value);
     }
 }
+
+// File: src/core/arguments/ArgumentManager.cpp
 
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
@@ -168,7 +176,9 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
          opts.snr_thresholds_db = { Get<double>("snrthreshold-db") };
     }
 
-    opts.generated_command = GenerateCommand(CommandFormat::Plot);
+    // This line is removed as this logic was moved to InitializeAnalysis()
+    // opts.generated_command = GenerateCommand(CommandFormat::Plot);
+
     return opts;
 }
 
@@ -176,35 +186,72 @@ std::string ArgumentManager::GenerateCommand(CommandFormat format) {
     std::stringstream command_ss;
     command_ss << "rango";
 
+    // Helper lambda to dynamically add arguments based on format
+    auto add_arg = [&](const std::string& name) {
+        const auto& desc = m_descriptors.at(name);
+        const auto& value = m_values.at(name);
+        // Short names are used only for the PlotShort format. All others use long names.
+        bool use_short = (format == CommandFormat::PlotShort);
+        
+        command_ss << " " << (use_short ? "-" + desc.short_name : "--" + desc.long_name);
+
+        // For flags, no value is added. For others, it is.
+        if (desc.type != ArgType::Flag) {
+            command_ss << " ";
+            if (desc.type == ArgType::String) {
+                std::string path_str = std::any_cast<std::string>(value);
+                // Use full paths for 'Full' and 'GuiPreview' formats.
+                bool use_full_path = (format == CommandFormat::Full || format == CommandFormat::GuiPreview);
+                std::string final_path = use_full_path ? path_str : fs::path(path_str).filename().string();
+                command_ss << "\"" << final_path << "\"";
+            } else if (desc.type == ArgType::Double) {
+                command_ss << std::fixed << std::setprecision(2) << std::any_cast<double>(value);
+            } else if (desc.type == ArgType::Int) {
+                command_ss << std::any_cast<int>(value);
+            }
+        }
+    };
+
+    // Logic to add arguments based on their state
     if (!Get<std::string>("black-file").empty()) {
-        command_ss << " -B \"" << (format == CommandFormat::Plot ? fs::path(Get<std::string>("black-file")).filename().string() : Get<std::string>("black-file")) << "\"";
+        add_arg("black-file");
     } else {
-        command_ss << " -b " << Get<double>("black-level");
+        add_arg("black-level");
     }
 
     if (!Get<std::string>("saturation-file").empty()) {
-         command_ss << " -S \"" << (format == CommandFormat::Plot ? fs::path(Get<std::string>("saturation-file")).filename().string() : Get<std::string>("saturation-file")) << "\"";
+        add_arg("saturation-file");
     } else {
-        command_ss << " -s " << Get<double>("saturation-level");
+        add_arg("saturation-level");
     }
-
+    
+    // The output file is only relevant for the full, non-plot command
     if (format == CommandFormat::Full) {
-        command_ss << " -o \"" << Get<std::string>("output-file") << "\"";
+        add_arg("output-file");
     }
 
     if (!Get<bool>("snr-threshold-is-default")) {
-        command_ss << " -d " << std::fixed << std::setprecision(2) << Get<double>("snrthreshold-db");
+        add_arg("snrthreshold-db");
     }
-    
-    command_ss << " -m " << std::fixed << std::setprecision(2) << Get<double>("drnormalization-mpx");
-    command_ss << " -f " << Get<int>("poly-fit");
-    command_ss << " -r " << std::fixed << std::setprecision(2) << Get<double>("patch-ratio");
-    command_ss << " -p " << Get<int>("plot");
 
-    if (format == CommandFormat::Full) {
-        command_ss << " -i";
-        for (const auto& file : Get<std::vector<std::string>>("input-files")) {
-            command_ss << " \"" << file << "\"";
+    add_arg("drnormalization-mpx");
+    add_arg("poly-fit");
+    add_arg("patch-ratio");
+    add_arg("plot");
+
+    // The 'input-files' argument is now only added for the Full and GuiPreview formats
+    // to keep the command printed on the plot images clean.
+    if (format == CommandFormat::Full || format == CommandFormat::GuiPreview) {
+        const auto& input_files = Get<std::vector<std::string>>("input-files");
+        if (!input_files.empty()) {
+            const auto& input_desc = m_descriptors.at("input-files");
+            // These formats always use long names for clarity.
+            command_ss << " " << "--" + input_desc.long_name;
+
+            for (const auto& file : input_files) {
+                // These formats always use the full path for the files.
+                command_ss << " \"" << file << "\"";
+            }
         }
     }
 
