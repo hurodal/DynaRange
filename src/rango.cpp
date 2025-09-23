@@ -3,39 +3,39 @@
  * @file src/rango.cpp
  * @brief Main entry point for the command-line (CLI) version of the application.
  */
-#include "core/arguments/CommandLineParser.hpp"  
+#include "core/arguments/ArgumentManager.hpp"
 #include "core/engine/Engine.hpp"      
 #include <iostream>
 #include <libintl.h>
-#include <locale.h>
+#include <clocale>
 #include <atomic> 
 
 #define _(string) gettext(string)
 
-/**
- * @brief The main function for the dynaRange CLI tool.
- * @param argc The number of command-line arguments.
- * @param argv An array of command-line argument strings.
- * @return 0 on success, 1 on failure.
- */
 int main(int argc, char* argv[]) {
+    // 1. Initialize the localization system for translations
     setlocale(LC_ALL, "");
     bindtextdomain("dynaRange", "locale");
     textdomain("dynaRange");
 
-    ProgramOptions opts = ParseCommandLine(argc, argv);
+    // 2. Set the numeric locale to "C" for consistent number parsing.
+    std::setlocale(LC_NUMERIC, "C");
+
+    // 3. Parse arguments using the new manager.
+    ArgumentManager::Instance().ParseCli(argc, argv);
     
-    // 2. Crear un flag de cancelación que siempre será falso para el CLI.
+    // 4. Convert the parsed arguments to the structure expected by the engine.
+    ProgramOptions opts = ArgumentManager::Instance().ToProgramOptions();
+    
     std::atomic<bool> cancel_flag{false}; 
-    
-    // 3. Pasar el flag a la función.
     ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout, cancel_flag);
     
-    // Check for failure by seeing if the summary plot path was generated.
-    if (!report.summary_plot_path.has_value()) {
+    // Check for a critical error only if a plot was expected to be generated.
+    if (opts.plot_mode != 0 && !report.summary_plot_path.has_value()) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;
         return 1;
     }
+    // --- FIN DE LA CORRECCIÓN ---
     
     return 0;
 }

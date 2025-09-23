@@ -4,7 +4,7 @@
  * @brief Implementation of the analysis initialization process.
  */
 #include "Initialization.hpp"
-#include "../arguments/CommandGenerator.hpp"
+#include "../arguments/ArgumentManager.hpp"
 #include "../analysis/RawProcessor.hpp"
 #include "../setup/MetadataExtractor.hpp"
 #include "../setup/SensorResolution.hpp"
@@ -13,6 +13,7 @@
 #include <iomanip>
 
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
+
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
         if (!dark_val_opt) { log_stream << "Fatal error processing dark frame." << std::endl; return false; }
@@ -38,6 +39,12 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "DR normalization: " << opts.dr_normalization_mpx << " Mpx\n";
     log_stream << "Polynomic order: " << opts.poly_order << "\n";
     log_stream << "Patch ratio: " << opts.patch_ratio << "\n";
+    log_stream << "Plotting: ";
+    switch (opts.plot_mode) {
+        case 0: log_stream << "No graphics\n"; break;
+        case 1: log_stream << "Graphics without command CLI\n"; break;
+        case 2: log_stream << "Graphics with command CLI\n"; break;
+    }    
     log_stream << "Output file: " << opts.output_filename << "\n\n";
 
     // --- SETUP PROCESS ORCHESTRATION ---
@@ -72,7 +79,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     
     // Generate command string using the specific 'Plot' format.
     if (opts.plot_mode == 2) {
-        opts.generated_command = GenerateCommand(opts, CommandFormat::Plot);
+        opts.generated_command = ArgumentManager::Instance().GenerateCommand(CommandFormat::Plot);
     }
     return true;
 }

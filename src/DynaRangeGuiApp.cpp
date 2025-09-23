@@ -7,6 +7,7 @@
 #include <wx/wx.h>
 #include <wx/image.h>
 #include <clocale>
+#include <libintl.h> 
 
 /**
  * @class DynaRangeGuiApp
@@ -26,8 +27,13 @@ public:
 wxIMPLEMENT_APP(DynaRangeGuiApp);
 
 bool DynaRangeGuiApp::OnInit() {
-    // It is important to set a standard locale for number conversion consistency.
-    std::setlocale(LC_ALL, "C");
+    // 1. Initialize the localization system (gettext).
+    setlocale(LC_ALL, "");
+    bindtextdomain("dynaRange", "locale");
+    textdomain("dynaRange");
+
+    // 2. Set the numeric locale to "C" for consistent number parsing.
+    std::setlocale(LC_NUMERIC, "C");
 
     // Allows loading PNG images for the logo, etc.
     wxImage::AddHandler(new wxPNGHandler);

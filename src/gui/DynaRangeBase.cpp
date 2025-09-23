@@ -21,11 +21,15 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* mainPanelSizer;
 	mainPanelSizer = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* darkSaturationSizer;
-	darkSaturationSizer = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* two_columns_sizer;
+	two_columns_sizer = new wxBoxSizer( wxHORIZONTAL );
+
+	left_column_panel = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* left_column_sizer;
+	left_column_sizer = new wxBoxSizer( wxVERTICAL );
 
 	wxStaticBoxSizer* darkFrameSbSizer;
-	darkFrameSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Dark Frame") ), wxVERTICAL );
+	darkFrameSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel, wxID_ANY, _("Dark Frame") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer1;
 	fgSizer1 = new wxFlexGridSizer( 0, 2, 5, 5 );
@@ -35,26 +39,26 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_darkFileStaticText = new wxStaticText( darkFrameSbSizer->GetStaticBox(), wxID_ANY, _("Dark File:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_darkFileStaticText->Wrap( -1 );
-	fgSizer1->Add( m_darkFileStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer1->Add( m_darkFileStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2 );
 
 	m_darkFilePicker = new wxFilePickerCtrl( darkFrameSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE );
-	fgSizer1->Add( m_darkFilePicker, 0, wxALL|wxEXPAND, 5 );
+	fgSizer1->Add( m_darkFilePicker, 0, wxALL|wxEXPAND, 2 );
 
 	m_darkValueStaticText = new wxStaticText( darkFrameSbSizer->GetStaticBox(), wxID_ANY, _("Dark Value:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_darkValueStaticText->Wrap( -1 );
-	fgSizer1->Add( m_darkValueStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer1->Add( m_darkValueStaticText, 0, wxALL, 2 );
 
 	m_darkValueTextCtrl = new wxTextCtrl( darkFrameSbSizer->GetStaticBox(), wxID_ANY, _("256.0"), wxDefaultPosition, wxDefaultSize, 0 );
-	fgSizer1->Add( m_darkValueTextCtrl, 0, wxALL, 5 );
+	fgSizer1->Add( m_darkValueTextCtrl, 0, wxALL, 2 );
 
 
-	darkFrameSbSizer->Add( fgSizer1, 1, 0, 5 );
+	darkFrameSbSizer->Add( fgSizer1, 0, wxALL|wxEXPAND, 5 );
 
 
-	darkSaturationSizer->Add( darkFrameSbSizer, 1, wxALL, 5 );
+	left_column_sizer->Add( darkFrameSbSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* saturationSbSizer;
-	saturationSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Saturation") ), wxVERTICAL );
+	saturationSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel, wxID_ANY, _("Saturation") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer2;
 	fgSizer2 = new wxFlexGridSizer( 0, 2, 5, 5 );
@@ -64,121 +68,143 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_saturationFileStaticText = new wxStaticText( saturationSbSizer->GetStaticBox(), wxID_ANY, _("Saturation File:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_saturationFileStaticText->Wrap( -1 );
-	fgSizer2->Add( m_saturationFileStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer2->Add( m_saturationFileStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2 );
 
 	m_saturationFilePicker = new wxFilePickerCtrl( saturationSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE );
-	fgSizer2->Add( m_saturationFilePicker, 0, wxALL|wxEXPAND, 5 );
+	fgSizer2->Add( m_saturationFilePicker, 0, wxALL|wxEXPAND, 2 );
 
 	m_saturationValueStaticText = new wxStaticText( saturationSbSizer->GetStaticBox(), wxID_ANY, _("Saturation Value:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_saturationValueStaticText->Wrap( -1 );
-	fgSizer2->Add( m_saturationValueStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer2->Add( m_saturationValueStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 2 );
 
 	m_saturationValueTextCtrl = new wxTextCtrl( saturationSbSizer->GetStaticBox(), wxID_ANY, _("4095.0"), wxDefaultPosition, wxDefaultSize, 0 );
-	fgSizer2->Add( m_saturationValueTextCtrl, 0, wxALL|wxEXPAND, 5 );
+	fgSizer2->Add( m_saturationValueTextCtrl, 0, wxALL|wxEXPAND, 2 );
 
 
-	saturationSbSizer->Add( fgSizer2, 1, 0, 5 );
+	saturationSbSizer->Add( fgSizer2, 0, wxALL|wxEXPAND, 5 );
 
 
-	darkSaturationSizer->Add( saturationSbSizer, 1, wxALL, 5 );
+	left_column_sizer->Add( saturationSbSizer, 0, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( darkSaturationSizer, 0, wxALL|wxEXPAND, 5 );
+	left_column_panel->SetSizer( left_column_sizer );
+	left_column_panel->Layout();
+	left_column_sizer->Fit( left_column_panel );
+	two_columns_sizer->Add( left_column_panel, 1, wxEXPAND | wxALL, 5 );
+
+	right_column_panel = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* right_column_sizer;
+	right_column_sizer = new wxBoxSizer( wxVERTICAL );
+
+	wxStaticBoxSizer* analysisParamsSizer;
+	analysisParamsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel, wxID_ANY, _("Parámetros de Análisis") ), wxVERTICAL );
 
 	wxBoxSizer* patchRatioSizer;
 	patchRatioSizer = new wxBoxSizer( wxHORIZONTAL );
 
-	m_patchRatioStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Patch Ratio"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_patchRatioStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Patch Ratio"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_patchRatioStaticText->Wrap( -1 );
 	patchRatioSizer->Add( m_patchRatioStaticText, 0, wxALL|wxEXPAND, 5 );
 
-	m_patchRatioSlider = new wxSlider( m_inputPanel, wxID_ANY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_patchRatioSlider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	patchRatioSizer->Add( m_patchRatioSlider, 1, wxALL|wxEXPAND, 5 );
 
-	m_patchRatioValueText = new wxStaticText( m_inputPanel, wxID_ANY, _("0.50"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_patchRatioValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("0.50"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_patchRatioValueText->Wrap( -1 );
 	m_patchRatioValueText->SetMinSize( wxSize( 40,-1 ) );
 
 	patchRatioSizer->Add( m_patchRatioValueText, 0, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( patchRatioSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( patchRatioSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* snrThresholdSizer;
 	snrThresholdSizer = new wxBoxSizer( wxHORIZONTAL );
 
-	m_snrThresholdStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("SNR Threshold"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_snrThresholdStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("SNR Threshold"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_snrThresholdStaticText->Wrap( -1 );
 	snrThresholdSizer->Add( m_snrThresholdStaticText, 0, wxALL|wxEXPAND, 5 );
 
-	m_snrThresholdslider = new wxSlider( m_inputPanel, wxID_ANY, 12, 0, 35, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_snrThresholdslider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 12, -12, 24, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	snrThresholdSizer->Add( m_snrThresholdslider, 1, wxALL|wxEXPAND, 5 );
 
-	m_snrThresholdValueText = new wxStaticText( m_inputPanel, wxID_ANY, _("12dB"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_snrThresholdValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("12dB"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_snrThresholdValueText->Wrap( -1 );
 	snrThresholdSizer->Add( m_snrThresholdValueText, 0, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* drNormalizationSizer;
 	drNormalizationSizer = new wxBoxSizer( wxHORIZONTAL );
 
-	m_drNormalizationStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("DR Normalization"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_drNormalizationStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("DR Normalization"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_drNormalizationStaticText->Wrap( -1 );
 	drNormalizationSizer->Add( m_drNormalizationStaticText, 0, wxALL|wxEXPAND, 5 );
 
-	m_drNormalizationSlider = new wxSlider( m_inputPanel, wxID_ANY, 8, 2, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_drNormalizationSlider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 8, 2, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	drNormalizationSizer->Add( m_drNormalizationSlider, 1, wxALL|wxEXPAND, 5 );
 
-	m_drNormalizationValueText = new wxStaticText( m_inputPanel, wxID_ANY, _("8Mpx"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_drNormalizationValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("8Mpx"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_drNormalizationValueText->Wrap( -1 );
 	drNormalizationSizer->Add( m_drNormalizationValueText, 0, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( drNormalizationSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( drNormalizationSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* plotPolyOutputSizer;
 	plotPolyOutputSizer = new wxBoxSizer( wxHORIZONTAL );
 
-	m_polynomicStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Polynomic Order"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_polynomicStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Polynomic Order"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_polynomicStaticText->Wrap( -1 );
 	plotPolyOutputSizer->Add( m_polynomicStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	wxString m_PlotChoiceChoices[] = { _("Order 2"), _("Order 3") };
+	wxString m_PlotChoiceChoices[] = { _("2"), _("3") };
 	int m_PlotChoiceNChoices = sizeof( m_PlotChoiceChoices ) / sizeof( wxString );
-	m_PlotChoice = new wxChoice( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_PlotChoiceNChoices, m_PlotChoiceChoices, 0 );
+	m_PlotChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_PlotChoiceNChoices, m_PlotChoiceChoices, 0 );
 	m_PlotChoice->SetSelection( 1 );
 	plotPolyOutputSizer->Add( m_PlotChoice, 0, wxALL, 5 );
 
 
-	plotPolyOutputSizer->Add( 20, 0, 0, wxEXPAND, 5 );
+	plotPolyOutputSizer->Add( 10, 0, 0, wxEXPAND, 5 );
 
-	m_plotingStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Graphics"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_plotingStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Graphics"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_plotingStaticText->Wrap( -1 );
 	plotPolyOutputSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	wxString m_plotingChoiceChoices[] = { _("Don't Plot"), _("Ploting with CLI commad"), _("Ploting without CLI command") };
+	wxString m_plotingChoiceChoices[] = { _("No"), _("with commad"), _("Without command") };
 	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
-	m_plotingChoice = new wxChoice( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
+	m_plotingChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
 	m_plotingChoice->SetSelection( 1 );
 	plotPolyOutputSizer->Add( m_plotingChoice, 0, wxALL, 5 );
 
 
-	mainPanelSizer->Add( plotPolyOutputSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( plotPolyOutputSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* outputSizer;
 	outputSizer = new wxBoxSizer( wxHORIZONTAL );
 
-	m_outputStaticText = new wxStaticText( m_inputPanel, wxID_ANY, _("Ouput file"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_outputStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Ouput file"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_outputStaticText->Wrap( -1 );
-	outputSizer->Add( m_outputStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+	outputSizer->Add( m_outputStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
 
-	m_outputTextCtrl = new wxTextCtrl( m_inputPanel, wxID_ANY, _("result.csv"), wxDefaultPosition, wxDefaultSize, 0 );
-	outputSizer->Add( m_outputTextCtrl, 0, wxALL, 5 );
+	m_outputTextCtrl = new wxTextCtrl( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("result.csv"), wxDefaultPosition, wxDefaultSize, 0 );
+	outputSizer->Add( m_outputTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
 
 
-	mainPanelSizer->Add( outputSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( outputSizer, 0, wxALL, 3 );
+
+
+	right_column_sizer->Add( analysisParamsSizer, 1, wxALL|wxEXPAND, 5 );
+
+
+	right_column_panel->SetSizer( right_column_sizer );
+	right_column_panel->Layout();
+	right_column_sizer->Fit( right_column_panel );
+	two_columns_sizer->Add( right_column_panel, 1, wxEXPAND | wxALL, 5 );
+
+
+	mainPanelSizer->Add( two_columns_sizer, 0, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* rawFilesSbSizer;
 	rawFilesSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Input RAW Files") ), wxVERTICAL );
@@ -202,20 +228,28 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	rawFilesSbSizer->Add( AddRemoveRawsSbSizer7, 0, wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( rawFilesSbSizer, 1, wxALL|wxEXPAND, 5 );
+	mainPanelSizer->Add( rawFilesSbSizer, 0, wxALL|wxEXPAND, 5 );
 
-	wxStaticBoxSizer* equivalentCliSbSizer;
-	equivalentCliSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Equivalent CLI Command") ), wxVERTICAL );
+	wxStaticBoxSizer* equivalentSbSizer;
+	equivalentSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Equivalent CLI command") ), wxVERTICAL );
 
-	equivalentCliSbSizer->SetMinSize( wxSize( -1,150 ) );
-	m_equivalentCliTextCtrl = new wxTextCtrl( equivalentCliSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
-	equivalentCliSbSizer->Add( m_equivalentCliTextCtrl, 1, wxALL|wxEXPAND, 5 );
+	equivalentSbSizer->SetMinSize( wxSize( -1,100 ) );
+	m_equivalentCliTextCtrl = new wxTextCtrl( equivalentSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+	m_equivalentCliTextCtrl->SetMinSize( wxSize( -1,100 ) );
+
+	equivalentSbSizer->Add( m_equivalentCliTextCtrl, 1, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( equivalentCliSbSizer, 0, wxALL|wxEXPAND, 5 );
+	mainPanelSizer->Add( equivalentSbSizer, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* footSizer;
+	footSizer = new wxBoxSizer( wxVERTICAL );
 
 	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
-	mainPanelSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );
+	footSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );
+
+
+	mainPanelSizer->Add( footSizer, 0, wxEXPAND, 5 );
 
 
 	m_inputPanel->SetSizer( mainPanelSizer );
@@ -290,6 +324,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	this->SetSizer( mainSizer );
 	this->Layout();
+	mainSizer->Fit( this );
 
 	this->Centre( wxBOTH );
 }

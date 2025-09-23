@@ -48,6 +48,14 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
         wxString iconPath = appDir + wxFILE_SEP_PATH + "favicon_noise.ico";
         if (wxFileExists(iconPath)) { SetIcon(wxIcon(iconPath, wxBITMAP_TYPE_ICO)); }
     #endif
+
+    // Force font to 9    
+    // 1. Obtenemos la fuente por defecto del sistema
+    //wxFont defaultFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    // 2. Le cambiamos el tamaño
+    //defaultFont.SetPointSize(9);
+    // 3. Aplicamos la nueva fuente (con tamaño modificado) a toda la ventana
+    //this->SetFont(defaultFont);
         
     // --- Bind Events ---
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
@@ -61,7 +69,13 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_removeRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveFilesClick, this);
     m_rawFileslistBox->Bind(wxEVT_LISTBOX, &DynaRangeFrame::OnListBoxSelectionChanged, this);
     m_rawFileslistBox->Bind(wxEVT_KEY_DOWN, &DynaRangeFrame::OnListBoxKeyDown, this);
-
+    m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
+    m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnDrNormSliderChanged, this);
+    m_PlotChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
+    m_plotingChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
+    m_outputTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    //m_cliCollapsiblePane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, &DynaRangeFrame::OnCliPaneChanged, this);
+  
     // Thread communication events
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
@@ -135,8 +149,8 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     const ProgramOptions& final_opts = m_presenter->GetLastRunOptions();
     const ReportOutput& report = m_presenter->GetLastReport();
 
-    // Update the UI with the results
-    DisplayResults(final_opts.output_filename);
+    // Update the UI with the results, using the definitive path from the report.
+    DisplayResults(report.final_csv_path);
 
     if (report.summary_plot_path.has_value()) {
         LoadGraphImage(*report.summary_plot_path);
@@ -290,6 +304,33 @@ double DynaRangeFrame::GetPatchRatio() const {
     return static_cast<double>(m_patchRatioSlider->GetValue()) / 100.0;
 }
 
+std::string DynaRangeFrame::GetOutputFilePath() const {
+    return std::string(m_outputTextCtrl->GetValue().mb_str());
+}
+
+double DynaRangeFrame::GetSnrThreshold() const {
+    // The slider value is an integer, so we cast it to double.
+    return static_cast<double>(m_snrThresholdslider->GetValue());
+}
+
+double DynaRangeFrame::GetDrNormalization() const {
+    // The slider value is an integer, so we cast it to double.
+    return static_cast<double>(m_drNormalizationSlider->GetValue());
+}
+
+int DynaRangeFrame::GetPolyOrder() const {
+    // The choice index (0 or 1) maps to the polynomial order (2 or 3).
+    return m_PlotChoice->GetSelection() + 2;
+}
+
+int DynaRangeFrame::GetPlotMode() const {
+    // The choice index needs to be mapped to the correct plot mode value.
+    int selection = m_plotingChoice->GetSelection();
+    if (selection == 1) return 2; // "With CLI command"
+    if (selection == 2) return 1; // "Without CLI command"
+    return 0; // "Don't Plot"
+}
+
 // --- Other UI and Helper Functions ---
 
 void DynaRangeFrame::AddDroppedFiles(const wxArrayString& filenames) {
@@ -407,3 +448,25 @@ void DynaRangeFrame::OnListBoxKeyDown(wxKeyEvent& event) {
     }
     event.Skip();
 }
+
+void DynaRangeFrame::OnSnrSliderChanged(wxScrollEvent& event) {
+    double value = GetSnrThreshold();
+    m_snrThresholdValueText->SetLabel(wxString::Format("%.0fdB", value));
+    m_presenter->UpdateCommandPreview();
+}
+
+void DynaRangeFrame::OnDrNormSliderChanged(wxScrollEvent& event) {
+    double value = GetDrNormalization();
+    m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", value));
+    m_presenter->UpdateCommandPreview();
+}
+
+//void DynaRangeFrame::OnCliPaneChanged(wxCollapsiblePaneEvent& event)
+//{
+//    // When the pane's state changes, we need to tell the parent panel's sizer
+//    // to recalculate the layout of all its children. This will move the button up/down.
+//    m_inputPanel->Layout();
+//
+//    // It is good practice to allow the event to propagate if needed.
+//    event.Skip();
+//}

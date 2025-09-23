@@ -58,8 +58,21 @@ public:
      */
     const ReportOutput& GetLastReport() const;
 
+    /**
+     * @brief Checks if the worker thread is currently running.
+     * @return true if the worker is active, false otherwise.
+     */
     bool IsWorkerRunning() const;
+
+    /**
+     * @brief Removes a list of files from the input list by their indices.
+     * @param indices The vector of zero-based indices to remove.
+     */
     void RemoveInputFiles(const std::vector<int>& indices);
+
+    /**
+     * @brief Signals the worker thread to stop its processing.
+     */
     void RequestWorkerCancellation();
 
 private:
@@ -70,11 +83,11 @@ private:
     void AnalysisWorker(ProgramOptions opts);
 
     /**
-     * @brief Gathers current settings from the View and merges them with defaults
-     * to create the final ProgramOptions for an analysis run.
-     * @return A fully configured ProgramOptions object.
+     * @brief Gathers current settings from the View and updates the ArgumentManager.
+     * @details This is the bridge that synchronizes the GUI state with the centralized
+     * argument system before an analysis or command preview generation.
      */
-    ProgramOptions BuildProgramOptions();
+    void UpdateManagerFromView();
 
     // Member variables
     DynaRangeFrame* m_view; // Pointer to the View

@@ -20,6 +20,7 @@
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
+#include <wx/panel.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/listbox.h>
@@ -27,7 +28,6 @@
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
-#include <wx/panel.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/statbmp.h>
@@ -46,6 +46,7 @@ class MyFrameBase : public wxFrame
 	protected:
 		wxNotebook* m_mainNotebook;
 		wxPanel* m_inputPanel;
+		wxPanel* left_column_panel;
 		wxStaticText* m_darkFileStaticText;
 		wxFilePickerCtrl* m_darkFilePicker;
 		wxStaticText* m_darkValueStaticText;
@@ -54,6 +55,7 @@ class MyFrameBase : public wxFrame
 		wxFilePickerCtrl* m_saturationFilePicker;
 		wxStaticText* m_saturationValueStaticText;
 		wxTextCtrl* m_saturationValueTextCtrl;
+		wxPanel* right_column_panel;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
@@ -85,7 +87,7 @@ class MyFrameBase : public wxFrame
 
 	public:
 
-		MyFrameBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Dynamic Range Calculator"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 700,800 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		MyFrameBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Dynamic Range Calculator"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
 		~MyFrameBase();
 

@@ -178,6 +178,9 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
+    // Store the definitive CSV path in the output report.
+    output.final_csv_path = paths.GetCsvOutputPath().string();
+    
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     
     // Call the two new, single-responsibility functions

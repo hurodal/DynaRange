@@ -24,8 +24,8 @@ class FileDropTarget;
 /**
  * @class DynaRangeFrame
  * @brief Implements the application's main window (the View).
- * @details This class is responsible only for UI elements and events. It delegates
- * all application logic to a GuiPresenter instance.
+ * @details This class is responsible only for UI elements and events.
+ * It delegates all application logic to a GuiPresenter instance.
  */
 class DynaRangeFrame : public MyFrameBase
 {
@@ -35,7 +35,6 @@ public:
 
     // --- Methods called by external classes (e.g., FileDropTarget) ---
     void AddDroppedFiles(const wxArrayString& filenames);
-
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
@@ -46,13 +45,19 @@ public:
     void PostAnalysisComplete();
     void LoadGraphImage(const std::string& image_path);
 
-    // --- Methods for the Presenter to get data from the View ---
+    // --- Getters for the Presenter to get data from the View ---
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
     double GetDarkValue() const;
     double GetSaturationValue() const;
     double GetPatchRatio() const;
-    
+
+    std::string GetOutputFilePath() const;
+    double GetSnrThreshold() const;
+    double GetDrNormalization() const;
+    int GetPolyOrder() const;
+    int GetPlotMode() const;
+
 protected:
     // Event Handlers that delegate to the Presenter
     void OnExecuteClick(wxCommandEvent& event);
@@ -64,7 +69,10 @@ protected:
     void OnRemoveFilesClick(wxCommandEvent& event);
     void OnListBoxSelectionChanged(wxCommandEvent& event);
     void OnListBoxKeyDown(wxKeyEvent& event);
-
+    void OnSnrSliderChanged(wxScrollEvent& event);
+    void OnDrNormSliderChanged(wxScrollEvent& event);
+    //void OnCliPaneChanged(wxCollapsiblePaneEvent& event);
+    
     // Worker thread event handlers
     void OnWorkerUpdate(wxThreadEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);

@@ -1,3 +1,4 @@
+// File: core/utils/PathManager.hpp
 /**
  * @file core/utils/PathManager.hpp
  * @brief Declares a utility class for managing output file paths.
@@ -20,6 +21,9 @@ class PathManager {
 public:
     /**
      * @brief Constructs a PathManager.
+     * @details It intelligently determines the base output directory. If the output
+     * filename in opts is a simple filename without a path, it prepends the user's
+     * Documents directory. Otherwise, it respects the full or relative path provided.
      * @param opts The program options, used to determine base paths.
      */
     explicit PathManager(const ProgramOptions& opts);

@@ -19,6 +19,9 @@ struct ReportOutput {
     
     /// @brief Maps each source RAW filename to the path of its generated individual plot.
     std::map<std::string, std::string> individual_plot_paths; 
+
+    /// @brief The final, absolute path where the CSV results file was saved.
+    std::string final_csv_path;    
 };
 
 /**
