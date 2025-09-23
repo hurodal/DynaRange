@@ -13,7 +13,6 @@
 #include <streambuf>
 #include <algorithm> // Needed for std::sort
 
-
 // --- WORKER THREAD LOGGING SETUP ---
 // This streambuf redirects std::ostream to the View's log through wxEvents
 class WxLogStreambuf : public std::streambuf {
@@ -81,7 +80,7 @@ void GuiPresenter::StartAnalysis() {
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
     
     if (m_lastRunOptions.input_files.empty()) {
-        m_view->ShowError("Error", "Please select at least one input RAW file.");
+        m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
 

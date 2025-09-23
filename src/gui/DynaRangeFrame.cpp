@@ -108,7 +108,7 @@ void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) {
 }
 
 void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) {
-    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    wxFileDialog openFileDialog(this, _("Select RAW files"), "", "", _("RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*"), wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (openFileDialog.ShowModal() == wxID_CANCEL) { return; }
     
     wxArrayString paths;
@@ -151,12 +151,11 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
 
     // Update the UI with the results, using the definitive path from the report.
     DisplayResults(report.final_csv_path);
-
     if (report.summary_plot_path.has_value()) {
         LoadGraphImage(*report.summary_plot_path);
     } else {
         // Handle case where analysis finished but plot failed to generate
-        AppendLog("\nError: Summary plot could not be generated.");
+        AppendLog(_("\nError: Summary plot could not be generated."));
         LoadLogoImage(); // Revert to logo
         m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
     }
@@ -197,7 +196,7 @@ void DynaRangeFrame::UpdateCommandPreview(const std::string& command) {
 void DynaRangeFrame::DisplayResults(const std::string& csv_path) {
     std::ifstream file(csv_path);
     if (!file) { 
-        ShowError("Error", "Could not open the results file: " + csv_path);
+        ShowError(_("Error"), _("Could not open the results file: ") + csv_path);
         return;
     }
 
@@ -238,7 +237,7 @@ void DynaRangeFrame::DisplayResults(const std::string& csv_path) {
     m_resultsPanel->Layout();
 }
 
-void DynaRangeFrame::ShowError(const std::string& title, const std::string& message) {
+void DynaRangeFrame::ShowError(const wxString& title, const wxString& message) {
     wxMessageBox(message, title, wxOK | wxICON_ERROR, this);
 }
 
@@ -249,17 +248,14 @@ void DynaRangeFrame::SetUiState(bool is_processing) {
         // --- Estado "Procesando" ---
         m_mainNotebook->SetSelection(1); // Cambia a la pestaña de Log
         ClearLog();
-
         // Oculta explícitamente los controles de resultados
         m_csvOutputStaticText->Hide();
         m_cvsGrid->Hide();
-
         // Muestra los controles de "procesando" y recarga el logo
         m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
         LoadLogoImage(); // Recargar el logo
         m_processingGauge->Show();
         m_gaugeTimer->Start(100);
-
     } else {
         // --- Estado "Resultados" ---
         m_gaugeTimer->Stop();
@@ -267,7 +263,6 @@ void DynaRangeFrame::SetUiState(bool is_processing) {
 
         // Actualiza la etiqueta de texto a su estado final ANTES de mostrarla
         m_generateGraphStaticText->SetLabel(_("Generated Graph:"));
-
         // Muestra explícitamente todos los controles de resultados
         m_csvOutputStaticText->Show();
         m_cvsGrid->Show();
@@ -369,6 +364,7 @@ void DynaRangeFrame::LoadGraphImage(const std::string& image_path) {
     
     fs::path graphPath(image_path);
     std::string displayFilename = graphPath.filename().string();
+    
     wxImage image;
 
     if (!fs::exists(graphPath) || !image.LoadFile(wxString(graphPath.string()))) {

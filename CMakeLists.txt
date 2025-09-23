@@ -169,6 +169,7 @@ set(I18N_SOURCES
     src/rango.cpp
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
+    src/gui/DynaRangeBase.cpp
     ${CORE_SOURCES}
 )
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})

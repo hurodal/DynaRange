@@ -6,6 +6,9 @@
 #include "FileSorter.hpp"
 #include <algorithm>
 #include <iostream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 FileOrderResult DetermineFileOrder(const std::vector<FileInfo>& file_info_list, std::ostream& log_stream) {
     FileOrderResult result;
@@ -25,32 +28,33 @@ FileOrderResult DetermineFileOrder(const std::vector<FileInfo>& file_info_list, 
     std::sort(list_a.begin(), list_a.end(), [](const FileInfo& a, const FileInfo& b) {
         return a.mean_brightness < b.mean_brightness;
     });
-
+    
     // Responsibility 3: Perform EXIF-based sort and compare if possible
     if (result.was_exif_sort_possible) {
         std::vector<FileInfo> list_b = file_info_list;
         std::sort(list_b.begin(), list_b.end(), [](const FileInfo& a, const FileInfo& b) {
             return a.iso_speed < b.iso_speed;
         });
-
+        
         bool lists_match = std::equal(list_a.begin(), list_a.end(), list_b.begin(),
                                       [](const FileInfo& a, const FileInfo& b){ return a.filename == b.filename; });
+        
         if (lists_match) {
-            log_stream << "Sorting by brightness and by ISO produce the same file order." << std::endl;
+            log_stream << _("Sorting by brightness and by ISO produce the same file order.") << std::endl;
         } else {
-            log_stream << "\n[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders." << std::endl;
+            log_stream << "\n" << _("[WARNING] Sorting by brightness and by ISO produce DIFFERENT file orders.") << std::endl;
         }
     } else {
-        log_stream << "\n[WARNING] Cannot use EXIF data. ISO not available in all files. Using brightness sorting." << std::endl;
+        log_stream << "\n" << _("[WARNING] Cannot use EXIF data. ISO not available in all files. Using brightness sorting.") << std::endl;
     }
 
     // Responsibility 4: Select the final list
     const std::vector<FileInfo>* final_sorted_list = &list_a;
     if (USE_EXIF_SORT_DEFAULT && result.was_exif_sort_possible) {
         // This logic path is currently inactive but kept for completeness
-        log_stream << "Using final file order from: EXIF ISO (List B)" << std::endl;
+        log_stream << _("Using final file order from: EXIF ISO (List B)") << std::endl;
     } else {
-        log_stream << "Using final file order from: Image Brightness (List A)" << std::endl;
+        log_stream << _("Using final file order from: Image Brightness (List A)") << std::endl;
     }
 
     for (const auto& info : *final_sorted_list) {

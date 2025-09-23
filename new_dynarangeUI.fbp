@@ -898,7 +898,7 @@
                               <property name="proportion">1</property>
                               <object class="wxStaticBoxSizer" expanded="true">
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Parámetros de Análisis</property>
+                                <property name="label">Analysis Parameters</property>
                                 <property name="minimum_size"></property>
                                 <property name="name">analysisParamsSizer</property>
                                 <property name="orient">wxVERTICAL</property>

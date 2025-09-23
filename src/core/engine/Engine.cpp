@@ -10,6 +10,9 @@
 #include "Validation.hpp"
 #include <atomic>
 #include <ostream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 namespace DynaRange {
 
@@ -20,6 +23,7 @@ namespace DynaRange {
  * @param cancel_flag An atomic boolean flag that can be set from another thread to request cancellation.
  * @return A ReportOutput struct containing paths to the generated plots, or an empty struct on failure or cancellation.
  */
+// File: src/core/engine/Engine.cpp
 ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     // Phase 1: Preparation
     if (!InitializeAnalysis(opts, log_stream)) {
@@ -28,10 +32,10 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
     
     // Phase 2: Processing of all files
     ProcessingResult results = ProcessFiles(opts, log_stream, cancel_flag);
-
+    
     // Check if the user cancelled the operation during processing
     if (cancel_flag) {
-        log_stream << "\n[INFO] Analysis cancelled by user." << std::endl;
+        log_stream << "\n" << _("[INFO] Analysis cancelled by user.") << std::endl;
         return {};
     }
 

@@ -17,4 +17,4 @@ raws
 build
 sources
 .cache
-dynaRange.pot
+#dynaRange.pot

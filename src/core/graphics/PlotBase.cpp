@@ -8,6 +8,9 @@
 #include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -159,6 +162,7 @@ void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds) {
  */
 void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const std::string& command_text) {
     cairo_text_extents_t extents;
+    
     // Title: Black
     PlotColors::cairo_set_source_black(cr);
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
@@ -166,21 +170,24 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const std::strin
     cairo_text_extents(cr, title.c_str(), &extents);
     cairo_move_to(cr, PLOT_WIDTH / 2 - extents.width / 2, MARGIN_TOP - 40);
     cairo_show_text(cr, title.c_str());
+
     // X-axis label: Black
     PlotColors::cairo_set_source_black(cr);
     cairo_set_font_size(cr, 20.0);
-    std::string x_label = "RAW exposure (EV)";
+    std::string x_label = _("RAW exposure (EV)");
     cairo_text_extents(cr, x_label.c_str(), &extents);
     cairo_move_to(cr, PLOT_WIDTH / 2 - extents.width / 2, PLOT_HEIGHT - MARGIN_BOTTOM + 70);
     cairo_show_text(cr, x_label.c_str());
+
     // Y-axis label (rotated): Black
-    std::string y_label = "SNR (dB)";
+    std::string y_label = _("SNR (dB)");
     cairo_text_extents(cr, y_label.c_str(), &extents);
     cairo_save(cr);
     cairo_move_to(cr, MARGIN_LEFT / 2.0 - extents.height / 2.0, PLOT_HEIGHT / 2.0 + extents.width / 2.0);
     cairo_rotate(cr, -M_PI / 2.0);
     cairo_show_text(cr, y_label.c_str());
     cairo_restore(cr);
+
     // Command text (bottom right): Medium gray (GREY_50)
     if (!command_text.empty()) {
         PlotColors::cairo_set_source_grey_50(cr);

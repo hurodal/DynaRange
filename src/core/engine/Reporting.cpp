@@ -10,6 +10,9 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 namespace fs = std::filesystem;
 
@@ -25,7 +28,7 @@ std::map<std::string, std::string> GenerateIndividualPlots(
     std::ostream& log_stream)
 {
     std::map<std::string, std::string> plot_paths_map;
-    log_stream << "\nGenerating individual SNR plots..." << std::endl;
+    log_stream << "\n" << _("Generating individual SNR plots...") << std::endl;
     for (const auto& curve : all_curves_data) {
         fs::path plot_path = paths.GetIndividualPlotPath(curve);
         plot_paths_map[curve.filename] = plot_path.string();
@@ -36,7 +39,7 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         if (!curve.camera_model.empty()) {
             title_ss << " (" << curve.camera_model;
             if (curve.iso_speed > 0) {
-                title_ss << ", ISO " << static_cast<int>(curve.iso_speed);
+                title_ss << ", " << _("ISO ") << static_cast<int>(curve.iso_speed);
             }
             title_ss << ")";
         }
@@ -108,18 +111,16 @@ void GenerateLogReport(
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
-    log_stream << "\n--- Dynamic Range Results ---\n";
-    
+    log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
     // --- Generate Header for Log ---
     std::stringstream header_log;
-    header_log << std::left << std::setw(30) << "RAW File";
-    
+    header_log << std::left << std::setw(30) << _("RAW File");
     for (const double threshold : opts.snr_thresholds_db) {
         std::stringstream col_name_ss;
-        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
+        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << _("dB)");
         header_log << std::setw(20) << col_name_ss.str();
     }
-    header_log << "Patches";
+    header_log << _("Patches");
 
     // --- Print Header and Rows to Log ---
     log_stream << header_log.str() << std::endl;
@@ -142,14 +143,13 @@ void GenerateCsvReport(
     // --- Open CSV file ---
     std::ofstream csv_file(paths.GetCsvOutputPath());
     if (!csv_file.is_open()) {
-        log_stream << "\nError: Could not open CSV file for writing: " << paths.GetCsvOutputPath() << std::endl;
+        log_stream << "\n" << _("Error: Could not open CSV file for writing: ") << paths.GetCsvOutputPath() << std::endl;
         return;
     }
 
     // --- Generate Header for CSV ---
     std::stringstream header_csv;
     header_csv << "raw_file";
-    
     for (const double threshold : opts.snr_thresholds_db) {
         std::stringstream col_name_ss;
         col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
@@ -158,14 +158,13 @@ void GenerateCsvReport(
     header_csv << ",patches_used";
 
     // --- Write Header and Rows to CSV ---
-    csv_file << header_csv.str() << "\n";
-
+    csv_file << header_csv.str() << std::endl;
     for (const auto& res : all_results) {
-        csv_file << GenerateDataRow(res, opts, false) << "\n";
+        csv_file << GenerateDataRow(res, opts, false) << std::endl;
     }
 
     csv_file.close();
-    log_stream << "\nResults saved to " << paths.GetCsvOutputPath().string() << std::endl;
+    log_stream << "\n" << _("Results saved to ") << paths.GetCsvOutputPath().string() << std::endl;
 }
 
 } // end anonymous namespace

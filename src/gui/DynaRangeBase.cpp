@@ -97,7 +97,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	right_column_sizer = new wxBoxSizer( wxVERTICAL );
 
 	wxStaticBoxSizer* analysisParamsSizer;
-	analysisParamsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel, wxID_ANY, _("Parámetros de Análisis") ), wxVERTICAL );
+	analysisParamsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel, wxID_ANY, _("Analysis Parameters") ), wxVERTICAL );
 
 	wxBoxSizer* patchRatioSizer;
 	patchRatioSizer = new wxBoxSizer( wxHORIZONTAL );

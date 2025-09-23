@@ -6,6 +6,10 @@
 #include "PlotLabelGenerator.hpp"
 #include <filesystem>
 #include <sstream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
+
 
 namespace fs = std::filesystem;
 
@@ -15,7 +19,6 @@ std::map<std::string, std::string> GeneratePlotLabels(
     bool was_exif_sort_possible
 ) {
     std::map<std::string, std::string> labels;
-    
     // Create a quick lookup map from filename to its metadata
     std::map<std::string, FileInfo> info_map;
     for(const auto& info : original_file_info) {
@@ -25,7 +28,7 @@ std::map<std::string, std::string> GeneratePlotLabels(
     for (const auto& filename : sorted_filenames) {
         if (was_exif_sort_possible) {
             std::stringstream label_ss;
-            label_ss << "ISO " << static_cast<int>(info_map.at(filename).iso_speed);
+            label_ss << _("ISO ") << static_cast<int>(info_map.at(filename).iso_speed);
             labels[filename] = label_ss.str();
         } else {
             labels[filename] = fs::path(filename).stem().string();

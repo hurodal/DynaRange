@@ -21,6 +21,9 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 namespace { // Anonymous namespace for private helper functions
 
@@ -41,7 +44,7 @@ void DrawGeneratedTimestamp(cairo_t* cr) {
     localtime_r(&time_now, &local_tm);
 #endif
     std::ostringstream timestamp_ss;
-    timestamp_ss << std::put_time(&local_tm, "Generated at %Y-%m-%d %H:%M:%S");
+    timestamp_ss << std::put_time(&local_tm, _("Generated at %Y-%m-%d %H:%M:%S"));
     std::string generated_at_text = timestamp_ss.str();
 
     // Draw timestamp in bottom-left corner
@@ -78,7 +81,8 @@ void GenerateSnrPlot(
     }
 
     if (signal_ev.size() < 2) {
-        log_stream << "  - Warning: Skipping plot for \"" << plot_title << "\" due to insufficient data points (" << signal_ev.size() << ")." << std::endl;
+        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")."
+                   << std::endl;
         return;
     }
 
@@ -86,7 +90,8 @@ void GenerateSnrPlot(
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << "  - Error: Failed to create cairo context for plot \"" << plot_title << "\"." << std::endl;
+        log_stream << _("  - Error: Failed to create cairo context for plot \"") << plot_title << "\"."
+                   << std::endl;
         cairo_surface_destroy(surface);
         return;
     }
@@ -107,12 +112,12 @@ void GenerateSnrPlot(
     black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
     sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
     patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
-    info_box.AddItem("Black", black_ss.str());
-    info_box.AddItem("Saturation", sat_ss.str());
+    info_box.AddItem(_("Black"), black_ss.str());
+    info_box.AddItem(_("Saturation"), sat_ss.str());
     //info_box.AddItem("Patch Ratio", patch_ss.str());
-
+    
     // Draw the static plot base (axes, grid, labels, thresholds)
-    DrawPlotBase(cr, "SNR Curve - " + plot_title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
+    DrawPlotBase(cr, _("SNR Curve - ") + plot_title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
     
     // Prepare the data for a single curve
     std::vector<CurveData> single_curve_vec = {{
@@ -124,10 +129,10 @@ void GenerateSnrPlot(
         poly_coeffs,
         opts.generated_command
     }};
-
-    // --- CAMBIO: Pasar el info_box a la función de dibujo de datos ---
+    
+    // Pasar el info_box a la función de dibujo de datos
     DrawCurvesAndData(cr, info_box, single_curve_vec, bounds);
-
+    
     // Draw timestamp in bottom-left corner
     DrawGeneratedTimestamp(cr);
     
@@ -135,7 +140,7 @@ void GenerateSnrPlot(
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    log_stream << "  - Info: Plot saved to: " << output_filename << std::endl;
+    log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
 }
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -151,7 +156,8 @@ std::optional<std::string> GenerateSummaryPlot(
     }
 
     if (all_curves.empty()) {
-        log_stream << "  - Warning: Skipping summary plot due to no curve data." << std::endl;
+        log_stream << _("  - Warning: Skipping summary plot due to no curve data.")
+                   << std::endl;
         return std::nullopt;
     }
 
@@ -159,7 +165,8 @@ std::optional<std::string> GenerateSummaryPlot(
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << "  - Error: Failed to create cairo context for summary plot." << std::endl;
+        log_stream << _("  - Error: Failed to create cairo context for summary plot.")
+                   << std::endl;
         cairo_surface_destroy(surface);
         return std::nullopt;
     }
@@ -185,17 +192,17 @@ std::optional<std::string> GenerateSummaryPlot(
     black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
     sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
     //patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
-    info_box.AddItem("Black", black_ss.str());
-    info_box.AddItem("Saturation", sat_ss.str());
+    info_box.AddItem(_("Black"), black_ss.str());
+    info_box.AddItem(_("Saturation"), sat_ss.str());
     //info_box.AddItem("Patch Ratio", patch_ss.str());
-
+    
     // Draw the static plot base
-    std::string title = "SNR Curves - Summary (" + camera_name + ")";
+    std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     DrawPlotBase(cr, title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
 
     // --- CAMBIO: Pasar el info_box a la función de dibujo de datos ---
     DrawCurvesAndData(cr, info_box, all_curves, bounds);
-
+    
     // Draw timestamp in bottom-left corner
     DrawGeneratedTimestamp(cr);
     
@@ -203,7 +210,7 @@ std::optional<std::string> GenerateSummaryPlot(
     cairo_surface_write_to_png(surface, output_filename.c_str());
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    log_stream << "  - Info: Summary Plot saved to: " << output_filename << std::endl;
+    log_stream << _("  - Info: Summary Plot saved to: ") << output_filename << std::endl;
 
     return output_filename;
 }

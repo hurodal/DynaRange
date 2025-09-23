@@ -8,26 +8,36 @@
 #include <iostream>
 #include <libintl.h>
 #include <clocale>
-#include <atomic> 
+#include <atomic>
+#include <filesystem>
 
 #define _(string) gettext(string)
+namespace fs = std::filesystem;
 
 int main(int argc, char* argv[]) {
-    // 1. Initialize the localization system for translations
+    
+    // 1. Initialize the localization system to respect environment variables.
     setlocale(LC_ALL, "");
-    bindtextdomain("dynaRange", "locale");
+
+    // 2. Calculate the absolute path to the 'locale' directory.
+    // This makes the app portable and work when run from the build directory.
+    fs::path exe_path(argv[0]);
+    fs::path locale_dir = exe_path.parent_path() / "locale";
+    bindtextdomain("dynaRange", locale_dir.c_str());
+    
+    // 3. Set the text domain.
     textdomain("dynaRange");
 
-    // 2. Set the numeric locale to "C" for consistent number parsing.
+    // 4. Set the numeric locale to "C" for consistent number parsing.
     std::setlocale(LC_NUMERIC, "C");
 
-    // 3. Parse arguments using the new manager.
+    // 5. Parse arguments using the manager.
     ArgumentManager::Instance().ParseCli(argc, argv);
     
-    // 4. Convert the parsed arguments to the structure expected by the engine.
+    // 6. Convert the parsed arguments to the structure expected by the engine.
     ProgramOptions opts = ArgumentManager::Instance().ToProgramOptions();
     
-    std::atomic<bool> cancel_flag{false}; 
+    std::atomic<bool> cancel_flag{false};
     ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout, cancel_flag);
     
     // Check for a critical error only if a plot was expected to be generated.
@@ -35,7 +45,6 @@ int main(int argc, char* argv[]) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;
         return 1;
     }
-    // --- FIN DE LA CORRECCIÓN ---
     
     return 0;
 }

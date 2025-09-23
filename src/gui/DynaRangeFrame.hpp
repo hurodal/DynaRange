@@ -39,7 +39,7 @@ public:
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
     void DisplayResults(const std::string& csv_path);
-    void ShowError(const std::string& title, const std::string& message);
+    void ShowError(const wxString& title, const wxString& message);
     void SetUiState(bool is_processing);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();

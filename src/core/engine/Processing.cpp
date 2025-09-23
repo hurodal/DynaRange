@@ -11,6 +11,9 @@
 #include <filesystem>
 #include <iostream>
 #include <atomic>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 namespace fs = std::filesystem;
 
@@ -29,7 +32,7 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
     for(const auto& filename : input_files) {
         raw_files.emplace_back(filename);
         if (!raw_files.back().Load()) {
-            log_stream << "Error: Could not load RAW file: " << filename << std::endl;
+            log_stream << _("Error: Could not load RAW file: ") << filename << std::endl;
         }
     }
     return raw_files;
@@ -53,8 +56,7 @@ SingleFileResult AnalyzeSingleRawFile(
     std::ostream& log_stream,
     double camera_resolution_mpx)
 {
-    log_stream << "Processing \"" << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
-    
+    log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
     // 1. Call ImageProcessing module to prepare the image
     cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
     if (img_prepared.empty()) {
@@ -64,7 +66,7 @@ SingleFileResult AnalyzeSingleRawFile(
     // 2. Call Analysis module to find patches
     PatchAnalysisResult patch_data = AnalyzePatches(img_prepared.clone(), chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
     if (patch_data.signal.empty()) {
-        log_stream << "Warning: No valid patches found for " << raw_file.GetFilename() << std::endl;
+        log_stream << _("Warning: No valid patches found for ") << raw_file.GetFilename() << std::endl;
         return {};
     }
 
@@ -110,7 +112,7 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
 
     // 3. Orchestrate analysis for each file, respecting the keystone optimization setting.
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
-        log_stream << "Using optimized keystone: calculating parameters once for the series...\n" << std::endl;
+        log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << "\n" << std::endl;
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
         
         for (const auto& raw_file : raw_files) {
