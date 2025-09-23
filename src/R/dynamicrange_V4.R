@@ -268,14 +268,17 @@ NROWS=8
 # Parameters
 
 # Chart format (suited to CAMERA, not to monitor)
-Format=1  # 4/3  #3/2  # 4/3 1
+Format=3/2  # 1  # 4/3  #3/2  # 4/3 1
 # Chart dimensions
 DIMX=1920  # full HD width
 DIMY=round(DIMX/Format)
 
 # Number of patches in chart (ideally nearly square patches)
-NCOLS=20
-NROWS=20
+NCOLS=6
+NROWS=4
+
+NCOLS=10
+NROWS=7
 
 
 # Chart colours: UniWB for Canon 350D: R=162, G=64 y B=104 -> OPTIMIZE
@@ -289,8 +292,8 @@ invgamma=1.4  # nonlinear colour scale factor (inverse gamma)
 RADIUS=15
 
 
-WIDTH=round(DIMX / (NCOLS+2))  # width of all patches in pixels
-HEIGHT=round(DIMY / (NROWS+2))  # height of all patches in pixels
+WIDTH=round(DIMX / (NCOLS+4))  # width of all patches in pixels
+HEIGHT=round(DIMY / (NROWS+4))  # height of all patches in pixels
 
 DIMXc=WIDTH*NCOLS  # effective patch area (exact number of pixels)
 DIMYc=HEIGHT*NROWS
@@ -321,10 +324,18 @@ OFFSETY=round((DIMY-DIMYc)/2)
 chartfinal[(OFFSETY+1):(OFFSETY+DIMYc), (OFFSETX+1):(OFFSETX+DIMXc),]=chart
 
 # Add 4 WHITE circles: top-left, bottom-left, bottom-right, top-right
-WIDTHDIV2=round(DIMX / (NCOLS+2) / 2)  # half width of all patches in pixels
-HEIGHTDIV2=round(DIMY / (NROWS+2) / 2)  # half height of all patches in pixels
+WIDTHDIV2 =round(DIMX / (NCOLS+4) * 1.5)  # 1.5 x width of all patches in pixels
+HEIGHTDIV2=round(DIMY / (NROWS+4) *1.5)  # 1.5 x height of all patches in pixels
 x0=c(WIDTHDIV2,  WIDTHDIV2,       DIMX-WIDTHDIV2,  DIMX-WIDTHDIV2)
 y0=c(HEIGHTDIV2, DIMY-HEIGHTDIV2, DIMY-HEIGHTDIV2, HEIGHTDIV2)
+
+# Draw 4 blue lines
+chartfinal[y0[1]:y0[2], x0[1]:x0[2], 3]=0.75
+chartfinal[y0[2]:y0[3], x0[2]:x0[3], 3]=0.75
+chartfinal[y0[3]:y0[4], x0[3]:x0[4], 3]=0.75
+chartfinal[y0[4]:y0[1], x0[4]:x0[1], 3]=0.75
+
+# Draw 4 white circles
 for (i in 1:4) {
     indices=which( ((row(chartfinal[,,1])-y0[i])/RADIUS)^2 +
                    ((col(chartfinal[,,1])-x0[i])/RADIUS)^2 < 1 )
