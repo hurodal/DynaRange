@@ -24,11 +24,10 @@ void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order
  * Supports quadratic (order 2) and cubic (order 3) polynomials.
  * @param coeffs The polynomial coefficients, as calculated by PolyFit.
  * @param target_snr_db The target SNR value in dB to find the intersection for.
- * @param min_ev The minimum bound of the search range for the EV value.
- * @param max_ev The maximum bound of the search range for the EV value.
  * @return An optional containing the EV value at the intersection, or std::nullopt if not found.
  */
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
+//std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
+std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db);
 
 /**
  * @brief Calculates the arithmetic mean of a vector of doubles.

@@ -4,8 +4,8 @@
  */
 #include "CurveCalculator.hpp"
 #include "../math/Math.hpp"
+#include "../math/Math.hpp"
 #include <cmath>
-#include <algorithm>
 
 namespace CurveCalculator {
 
@@ -36,10 +36,16 @@ SnrCurve CalculateSnrCurve(PatchAnalysisResult& patch_data, const ProgramOptions
     }
 
     // 4. Fit polynomial to the final data
+    //cv::Mat signal_mat_global(curve.signal_ev.size(), 1, CV_64F, curve.signal_ev.data());
+    //cv::Mat snr_mat_global(curve.snr_db.size(), 1, CV_64F, curve.snr_db.data());
+    //PolyFit(signal_mat_global, snr_mat_global, curve.poly_coeffs, opts.poly_order);
+
+    // 4. Fit polynomial to the final data, swapping variables: EV = f(SNR_dB)
     cv::Mat signal_mat_global(curve.signal_ev.size(), 1, CV_64F, curve.signal_ev.data());
     cv::Mat snr_mat_global(curve.snr_db.size(), 1, CV_64F, curve.snr_db.data());
-    PolyFit(signal_mat_global, snr_mat_global, curve.poly_coeffs, opts.poly_order);
-    return curve;
+    // Invertimos las variables: SNR es ahora X, EV es ahora Y.
+    PolyFit(snr_mat_global, signal_mat_global, curve.poly_coeffs, opts.poly_order);
+    return curve;    
 }
 
 std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const std::vector<double>& thresholds_db) {
@@ -47,9 +53,10 @@ std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const 
     if (snr_curve.signal_ev.empty()) {
         return dr_values_ev;
     }
-    auto min_max_ev = std::minmax_element(snr_curve.signal_ev.begin(), snr_curve.signal_ev.end());
+    // El rango min/max de EV ya no es necesario para la llamada a FindIntersectionEV
     for (const double threshold_db : thresholds_db) {
-        auto ev_opt = FindIntersectionEV(snr_curve.poly_coeffs, threshold_db, *min_max_ev.first, *min_max_ev.second);
+        // Llama a la nueva versión simplificada de la función
+        auto ev_opt = FindIntersectionEV(snr_curve.poly_coeffs, threshold_db);
         if (ev_opt) {
             dr_values_ev[threshold_db] = -(*ev_opt);
         }
