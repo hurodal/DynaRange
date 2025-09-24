@@ -6,6 +6,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <wx/event.h>
 
 // Forward declarations
 class DynaRangeFrame;
@@ -23,7 +24,7 @@ public:
     void LoadLogoImage();
     bool DisplayResults(const std::string& csv_path);
     void SetUiState(bool is_processing);
-    
+    void OnRightPanelSize(wxSizeEvent& event);    
     // Event handling logic
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnSize();

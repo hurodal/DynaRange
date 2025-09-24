@@ -54,28 +54,28 @@ void ImageViewer::HandleResize() {
 }
 
 void ImageViewer::UpdateBitmapDisplay() {
-    if (!m_originalImage.IsOk() || !m_imageControl) {
-        return;
-    }
+    if (!m_originalImage.IsOk() || !m_imageControl) { return; }
 
     wxSize containerSize = m_imageControl->GetSize();
-    if (containerSize.GetWidth() <= 10 || containerSize.GetHeight() <= 10) {
-        // If the container has no size yet, we cannot scale.
-        // This is normal during initial window creation before layout is finalized.
+
+    // Permitir redimensionamiento incluso con tamaños pequeños
+    // Solo ignorar si el tamaño es cero o negativo.
+    if (containerSize.GetWidth() <= 0 || containerSize.GetHeight() <= 0) {
         return;
     }
 
+    // Si el tamaño es positivo, procedemos a escalar la imagen.
     wxImage imageCopy = m_originalImage.Copy();
-
     int imgWidth = imageCopy.GetWidth();
     int imgHeight = imageCopy.GetHeight();
+
     double hScale = static_cast<double>(containerSize.GetWidth()) / imgWidth;
     double vScale = static_cast<double>(containerSize.GetHeight()) / imgHeight;
     double scale = std::min(hScale, vScale);
 
-    int newWidth = static_cast<int>(imgWidth * scale);
-    int newHeight = static_cast<int>(imgHeight * scale);
-    imageCopy.Rescale(newWidth, newHeight, wxIMAGE_QUALITY_HIGH);
+    if (scale < 1.0) {
+        imageCopy.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
+    }
 
     m_imageControl->SetBitmap(wxBitmap(imageCopy));
 }

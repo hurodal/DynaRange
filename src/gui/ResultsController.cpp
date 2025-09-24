@@ -13,6 +13,8 @@ ResultsController::ResultsController(DynaRangeFrame* frame) : m_frame(frame), m_
     m_imageViewer = std::make_unique<ImageViewer>(m_frame->m_imageGraph);
     m_gridManager = std::make_unique<ResultsGridManager>(m_frame->m_cvsGrid);
     m_frame->m_splitter->SetSashPosition(m_lastSashPosition);
+    // Esto asegura que HandleResize() se llame cuando el panel cambie de tamaño.
+    m_frame->m_rightPanel->Bind(wxEVT_SIZE, &ResultsController::OnRightPanelSize, this);
 }
 
 ResultsController::~ResultsController() = default;
@@ -25,6 +27,19 @@ void ResultsController::LoadGraphImage(const std::string& path) {
 void ResultsController::LoadLogoImage() {
     wxString label = m_imageViewer->ShowLogo();
     m_frame->m_generateGraphStaticText->SetLabel(label);
+}
+
+void ResultsController::OnRightPanelSize(wxSizeEvent& event) {
+    // Programar la actualización para el siguiente ciclo de eventos
+    // Esto garantiza que el layout del panel haya terminado de calcularse.
+    // Y la gráfica se repinte en su nuevo tamaño.
+    m_frame->CallAfter([this]() {
+        if (m_imageViewer) {
+            m_imageViewer->HandleResize();
+        }
+    });
+    // Propaga el evento para que el layout funcione correctamente.
+    event.Skip();
 }
 
 bool ResultsController::DisplayResults(const std::string& csv_path) {
