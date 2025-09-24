@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-24 19:07+0200\n"
+"POT-Creation-Date: 2025-09-24 19:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -507,19 +507,19 @@ msgstr ""
 msgid "Test chart may have been over/underexposed for this ISO."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:31
+#: src/core/graphics/ChartGenerator.cpp:35
 msgid "Error: Invalid chart parameters."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:39
+#: src/core/graphics/ChartGenerator.cpp:43
 msgid "Error: Could not create Cairo context for chart generation."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:77
+#: src/core/graphics/ChartGenerator.cpp:110
 msgid "Test chart generated successfully: "
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:79
+#: src/core/graphics/ChartGenerator.cpp:112
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 
