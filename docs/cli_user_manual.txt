@@ -29,7 +29,7 @@ Definition: create test chart in PNG format with a specific resolution and forma
 Definition: range colours in test chart from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 --chart-patches -M <M N>  
 Definition: specify number of patches over rows (M) and columns (N) (default M=4, N=6)
-Explanation: this option allows to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
+Explanation: these options allow to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
 Usage: if absolutely no chart parameters are specified, ALL the chart creation default values will be used to produce an optimized test chart in most standard displays
 Examples (first example is default and is equivalent to not specifying the parameter):
 --chart                        (output the default standard magenta patches chart)
@@ -117,6 +117,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format adding CLI command)
+
 
 
 
