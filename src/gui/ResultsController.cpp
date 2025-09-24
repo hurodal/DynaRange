@@ -39,20 +39,19 @@ void ResultsController::SetUiState(bool is_processing) {
         LoadLogoImage();
         m_frame->m_processingGauge->Show();
 
-        // --- FIX: Forzar layout COMPLETO de la ventana ---
-        // Esto garantiza que todos los controles, incluida la barra de progreso,
-        // reciban su espacio correcto.
-        m_frame->Layout();
-        // Opcional: Forzar un refresco visual inmediato.
-        m_frame->Refresh();
+        // Forzar layout y refresco en el panel CORRECTO
+        // El gauge y el bitmap están en m_rightPanel, no en m_resultsPanel.
+        m_frame->m_rightPanel->Layout();
+        m_frame->m_rightPanel->Refresh();
     } else {
         m_frame->m_processingGauge->Hide();
         m_frame->m_generateGraphStaticText->SetLabel(_("Generated Graph:"));
         m_frame->m_csvOutputStaticText->Show();
         m_frame->m_cvsGrid->Show();
 
-        // Para el estado "no procesando", forzar layout inmediatamente es suficiente.
-        m_frame->Layout();
+        // Para el estado "no procesando", hacer lo mismo.
+        m_frame->m_rightPanel->Layout();
+        m_frame->m_rightPanel->Refresh();
     }
 }
 

@@ -80,7 +80,6 @@ private:
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
-    
     // --- Controller Class Members ---
     std::unique_ptr<InputController> m_inputController;
     std::unique_ptr<LogController> m_logController;
