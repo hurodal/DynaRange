@@ -2,9 +2,6 @@
 /**
  * @file src/core/arguments/ProgramOptions.hpp
  * @brief Defines the data structure and types for program configuration.
- * @details This file has a single responsibility: to define the structure
- * that holds all user-configurable options for the application.
- * It contains no logic for parsing or generating commands.
  */
 #pragma once
 #include <string>
@@ -13,6 +10,7 @@
 
 /// @brief Default polynomial order for curve fitting.
 constexpr int DEFAULT_POLY_ORDER = 3;
+
 /**
  * @enum CommandFormat
  * @brief Specifies the desired format for the generated command string.
@@ -27,8 +25,6 @@ enum class CommandFormat {
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
- * @details This is a pure data structure (POD-like). It should be populated
- * by a parser and consumed by a generator or the core engine.
  */
 struct ProgramOptions {
     double dark_value = 0.0;                       ///< Manual or calculated black level value.
@@ -43,7 +39,9 @@ struct ProgramOptions {
     double patch_ratio = 0.5;                      ///< Relative area of chart patches to use for analysis.
     int plot_mode = 0;                             ///< Plot generation mode (0=no, 1=plot, 2=short_cmd, 3=long_cmd).
     bool create_chart_mode = false;                ///< Flag to activate chart creation mode.
-    std::vector<std::string> chart_params;         ///< Optional parameters for chart creation <R G B invgamma>.
+    std::vector<std::string> chart_colour_params;  ///< Optional parameters for chart colour <R G B invgamma>.
+    std::vector<int> chart_params;                 ///< Optional parameters for chart size <DIMX W H>.
+    std::vector<int> chart_patches_params;         ///< Optional parameters for chart patches <M N>.
     std::string generated_command;                 ///< Stores the generated command string for plots.
     std::map<std::string, std::string> plot_labels;///< Maps a filename to its desired plot label (e.g., "ISO 100").
     double sensor_resolution_mpx = 0.0;            ///< If 0, try to auto-detect from RAW metadata.

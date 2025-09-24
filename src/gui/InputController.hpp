@@ -38,7 +38,8 @@ public:
     void EnableExecuteButton(bool enable);
     void AddDroppedFiles(const wxArrayString& filenames);
 
-    // Event handling logic
+    // Event handling logic, called by DynaRangeFrame's Bind()
+    // These must be public to be callable from DynaRangeFrame.
     void OnAddFilesClick(wxCommandEvent& event);
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
     void OnRemoveFilesClick(wxCommandEvent& event);

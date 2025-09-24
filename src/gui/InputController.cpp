@@ -4,12 +4,12 @@
  * @brief Implements the InputController class.
  */
 #include "InputController.hpp"
-#include "DynaRangeFrame.hpp" // To access frame members
+#include "DynaRangeFrame.hpp" // To access frame members and their members
+#include "GuiPresenter.hpp"   // To call presenter methods
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <libraw/libraw.h>
-#include <algorithm>
 #include <vector>
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {}
@@ -82,6 +82,7 @@ void InputController::PerformFileRemoval() {
     for (size_t i = 0; i < selections.GetCount(); ++i) {
         indices.push_back(selections[i]);
     }
+    // The frame holds the presenter, so we call it through the frame.
     m_frame->m_presenter->RemoveInputFiles(indices);
     m_frame->m_removeRawFilesButton->Enable(false);
 }

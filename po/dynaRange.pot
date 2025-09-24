@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-24 19:46+0200\n"
+"POT-Creation-Date: 2025-09-25 00:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/rango.cpp:49
-msgid "Error: Invalid parameter for --chart. Must be <R G B invgamma>."
-msgstr ""
-
-#: src/rango.cpp:68
+#: src/rango.cpp:65
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
@@ -230,14 +226,14 @@ msgid ""
 "files (*.*)|*.*"
 msgstr ""
 
-#: src/gui/InputController.cpp:107
+#: src/gui/InputController.cpp:108
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/InputController.cpp:109
+#: src/gui/InputController.cpp:110
 msgid "Unsupported Files Skipped"
 msgstr ""
 
@@ -298,63 +294,73 @@ msgstr ""
 msgid "This may indicate underexposure or non-linear processing."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:77
+#: src/core/arguments/ArgumentManager.cpp:76
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:78
+#: src/core/arguments/ArgumentManager.cpp:77
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:79
+#: src/core/arguments/ArgumentManager.cpp:78
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:80
+#: src/core/arguments/ArgumentManager.cpp:79
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:81
+#: src/core/arguments/ArgumentManager.cpp:80
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:82
+#: src/core/arguments/ArgumentManager.cpp:81
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:83
+#: src/core/arguments/ArgumentManager.cpp:82
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:84
+#: src/core/arguments/ArgumentManager.cpp:83
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:85
+#: src/core/arguments/ArgumentManager.cpp:84
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
+#: src/core/arguments/ArgumentManager.cpp:85
+msgid "Output CSV text file(s) with all results..."
+msgstr ""
+
 #: src/core/arguments/ArgumentManager.cpp:86
+msgid "Export SNR curves in PNG format..."
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:90
+msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:91
+msgid "Create test chart in PNG format ranging colours..."
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:92
 msgid ""
-"Output CSV text file(s) with all results: black level, sat level, SNR "
-"samples, DR values, fitting params (default=\"DR_results.csv\")"
+"specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:87
-msgid ""
-"Export SNR curves in PNG format (0=no, 1=no cmd, 2=short cmd, 3=long cmd)"
-msgstr ""
-
-#: src/core/arguments/ArgumentManager.cpp:93
-msgid "Create test chart in PNG format with optional params <R G B invgamma>"
-msgstr ""
-
-#: src/core/arguments/ArgumentManager.cpp:104
+#: src/core/arguments/ArgumentManager.cpp:99
 msgid "Calculates the dynamic range from a series of RAW images."
+msgstr ""
+
+#: src/core/arguments/ChartOptionsParser.cpp:46
+msgid "Error: Invalid parameter for a chart argument."
 msgstr ""
 
 #: src/core/engine/Engine.cpp:38
@@ -507,19 +513,19 @@ msgstr ""
 msgid "Test chart may have been over/underexposed for this ISO."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:35
+#: src/core/graphics/ChartGenerator.cpp:33
 msgid "Error: Invalid chart parameters."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:43
+#: src/core/graphics/ChartGenerator.cpp:47
 msgid "Error: Could not create Cairo context for chart generation."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:110
+#: src/core/graphics/ChartGenerator.cpp:98
 msgid "Test chart generated successfully: "
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:112
+#: src/core/graphics/ChartGenerator.cpp:100
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 

@@ -50,6 +50,7 @@ set(CORE_SOURCES
     src/core/analysis/ImageAnalyzer.cpp
     src/core/analysis/RawProcessor.cpp
     src/core/arguments/ArgumentManager.cpp
+    src/core/arguments/ChartOptionsParser.cpp
     src/core/ChartProfile.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp

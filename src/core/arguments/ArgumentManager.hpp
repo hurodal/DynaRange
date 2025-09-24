@@ -11,7 +11,7 @@
 #include <map>
 
 enum class ArgType {
-    Int, Double, String, StringVector, Flag
+    Int, Double, String, StringVector, IntVector, Flag
 };
 
 struct ArgumentDescriptor {
@@ -33,7 +33,7 @@ public:
     std::string GenerateCommand(CommandFormat format = CommandFormat::Full);
     ProgramOptions ToProgramOptions();
 
-    // Método genérico para establecer el valor de un argumento
+    // Generic method to set the value of an argument
     void Set(const std::string& long_name, std::any value);
 
     template<typename T>
@@ -41,7 +41,7 @@ public:
 
 private:
     // Private constructor/destructor for the Singleton pattern.
-    ArgumentManager(); //  Eliminado el '= default'
+    ArgumentManager();
     ~ArgumentManager() = default;
 
     // Prohibit copying and assignment.

@@ -4,7 +4,6 @@
  * @brief Implements the centralized argument management system.
  */
 #include "ArgumentManager.hpp"
-#include "../graphics/ChartGenerator.hpp"
 #include <CLI/CLI.hpp>
 #include <sstream>
 #include <iomanip>
@@ -83,19 +82,15 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::Double, 12.0};
     m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, 8.0};
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, 3, false, 2, 3};
-    m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default=\"DR_results.csv\")"), ArgType::String, std::string("DR_results.csv")};
-    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format (0=no, 1=no cmd, 2=short cmd, 3=long cmd)"), ArgType::Int, 0, false, 0, 3};
+    m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string("DR_results.csv")};
+    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, 0, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     
-    // Descriptor for the chart argument, accepting optional string parameters
-    m_descriptors["chart"] = {
-        "chart", "c",
-        _("Create test chart in PNG format with optional params <R G B invgamma>"),
-        ArgType::StringVector, // Use StringVector to accept 0 to 4 optional parameters
-        std::vector<std::string>()
-    };
-    // Internal use only to carry parsed chart parameters
-    m_descriptors["chart-params"] = {"chart-params", "", "", ArgType::StringVector, std::vector<std::string>()};
+    // New chart arguments, with correct short names from the user manual.
+    m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
+    m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
+    m_descriptors["chart-patches"] = {"chart-patches", "M", _("specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
+    m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
 
     m_is_registered = true;
 }
@@ -108,14 +103,16 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     
-    // Bind variables and capture the Option pointers to check if they were used.
-    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)
-        ->expected(0, 4); // 0 to 4 optional parameters
+    // Bind all options with correct short names
+    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(3);
+    auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
+    auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches_params, m_descriptors.at("chart-patches").help_text)->expected(2);
+    
+    auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text);
     auto black_file_opt = app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
     auto black_level_opt = app.add_option("-b,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
     auto sat_file_opt = app.add_option("-S,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
     auto sat_level_opt = app.add_option("-s,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
-    auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text);
     auto output_opt = app.add_option("-o,--output-file", temp_opts.output_filename, m_descriptors.at("output-file").help_text);
     auto snr_opt = app.add_option("-d,--snrthreshold-db", temp_snr_thresholds, m_descriptors.at("snrthreshold-db").help_text);
     auto dr_norm_opt = app.add_option("-m,--drnormalization-mpx", temp_opts.dr_normalization_mpx, m_descriptors.at("drnormalization-mpx").help_text);
@@ -123,7 +120,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
     auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
 
-    // First parse to see if --chart is present
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
@@ -134,17 +130,17 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         temp_opts.input_files = expand_wildcards_on_windows(temp_opts.input_files);
     #endif
 
-    // Set the create_chart_mode flag if the --chart option was used at all.
-    if (chart_opt->count() > 0) {
+    // Determine if we are in chart creation mode
+    if (chart_opt->count() > 0 || chart_colour_opt->count() > 0 || chart_patches_opt->count() > 0) {
         temp_opts.create_chart_mode = true;
     }
 
-    // If --chart is not used, input files are required.
+    // If not in chart mode, input files are required
     if (!temp_opts.create_chart_mode) {
         input_opt->required();
     }
     
-    // Re-parse with the conditional requirement set.
+    // Re-parse with the conditional requirement set
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
@@ -152,10 +148,11 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     }
 
     // --- Update internal values map ---
-    if (chart_opt->count() > 0) {
-        m_values["chart"] = temp_opts.create_chart_mode;
-        m_values["chart-params"] = temp_opts.chart_params;
-    }
+    m_values["create-chart-mode"] = temp_opts.create_chart_mode;
+    if (chart_opt->count() > 0) m_values["chart"] = temp_opts.chart_params;
+    if (chart_colour_opt->count() > 0) m_values["chart-colour"] = temp_opts.chart_colour_params;
+    if (chart_patches_opt->count() > 0) m_values["chart-patches"] = temp_opts.chart_patches_params;
+    
     if (black_file_opt->count() > 0) m_values["black-file"] = temp_opts.dark_file_path;
     if (black_level_opt->count() > 0) m_values["black-level"] = temp_opts.dark_value;
     if (sat_file_opt->count() > 0) m_values["saturation-file"] = temp_opts.sat_file_path;
@@ -183,7 +180,12 @@ void ArgumentManager::Set(const std::string& long_name, std::any value) {
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
     
-    opts.create_chart_mode = Get<bool>("chart");
+    opts.create_chart_mode = Get<bool>("create-chart-mode");
+    // These now use the correct keys to access the values map, fixing the crash.
+    opts.chart_params = Get<std::vector<int>>("chart");
+    opts.chart_colour_params = Get<std::vector<std::string>>("chart-colour");
+    opts.chart_patches_params = Get<std::vector<int>>("chart-patches");
+    
     opts.dark_value = Get<double>("black-level");
     opts.saturation_value = Get<double>("saturation-level");
     opts.dark_file_path = Get<std::string>("black-file");
@@ -200,9 +202,6 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     } else {
          opts.snr_thresholds_db = { Get<double>("snrthreshold-db") };
     }
-
-    // This line is removed as this logic was moved to InitializeAnalysis()
-    // opts.generated_command = GenerateCommand(CommandFormat::Plot);
 
     return opts;
 }
