@@ -6,6 +6,7 @@
 #include "Reporting.hpp"
 #include "../graphics/Plotting.hpp"
 #include "../utils/PathManager.hpp"
+#include "../io/OutputWriter.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -169,6 +170,7 @@ void GenerateCsvReport(
 
 } // end anonymous namespace
 
+// This function already existed and is now updated.
 ReportOutput FinalizeAndReport(
     const ProcessingResult& results,
     const ProgramOptions& opts,
@@ -177,14 +179,13 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
-    // Store the definitive CSV path in the output report.
     output.final_csv_path = paths.GetCsvOutputPath().string();
-    
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     
-    // Call the two new, single-responsibility functions
     GenerateLogReport(results.dr_results, opts, log_stream);
-    GenerateCsvReport(results.dr_results, opts, paths, log_stream);
+
+    // The logic for generating the CSV is now delegated to the OutputWriter.
+    OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
 
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
 

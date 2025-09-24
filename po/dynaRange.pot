@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-24 11:27+0200\n"
+"POT-Creation-Date: 2025-09-24 19:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/rango.cpp:58
+#: src/rango.cpp:49
+msgid "Error: Invalid parameter for --chart. Must be <R G B invgamma>."
+msgstr ""
+
+#: src/rango.cpp:68
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
@@ -67,8 +71,8 @@ msgstr ""
 msgid "256.0"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:61 src/core/graphics/Plotting.cpp:116
-#: src/core/graphics/Plotting.cpp:195
+#: src/gui/DynaRangeBase.cpp:61 src/core/graphics/Plotting.cpp:117
+#: src/core/graphics/Plotting.cpp:196
 msgid "Saturation"
 msgstr ""
 
@@ -294,65 +298,62 @@ msgstr ""
 msgid "This may indicate underexposure or non-linear processing."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:78
-msgid ""
-"Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with "
-"gamma compression (default R=255, G=101, B=164, invgamma=1.4)"
-msgstr ""
-
-#: src/core/arguments/ArgumentManager.cpp:79
+#: src/core/arguments/ArgumentManager.cpp:77
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:80
+#: src/core/arguments/ArgumentManager.cpp:78
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:81
+#: src/core/arguments/ArgumentManager.cpp:79
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:82
+#: src/core/arguments/ArgumentManager.cpp:80
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:83
+#: src/core/arguments/ArgumentManager.cpp:81
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:84
+#: src/core/arguments/ArgumentManager.cpp:82
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:85
+#: src/core/arguments/ArgumentManager.cpp:83
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:86
+#: src/core/arguments/ArgumentManager.cpp:84
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:87
+#: src/core/arguments/ArgumentManager.cpp:85
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:88
+#: src/core/arguments/ArgumentManager.cpp:86
 msgid ""
 "Output CSV text file(s) with all results: black level, sat level, SNR "
-"samples, DR values, fitting params (default=\"results.csv\")"
+"samples, DR values, fitting params (default=\"DR_results.csv\")"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:89
+#: src/core/arguments/ArgumentManager.cpp:87
 msgid ""
-"Export SNR curves in PNG format with/without the CLI command that generated "
-"them (default=0, don't plot)"
+"Export SNR curves in PNG format (0=no, 1=no cmd, 2=short cmd, 3=long cmd)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:96
+#: src/core/arguments/ArgumentManager.cpp:93
+msgid "Create test chart in PNG format with optional params <R G B invgamma>"
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:104
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
@@ -458,35 +459,35 @@ msgstr ""
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:31
+#: src/core/engine/Reporting.cpp:32
 msgid "Generating individual SNR plots..."
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:42 src/core/setup/PlotLabelGenerator.cpp:31
+#: src/core/engine/Reporting.cpp:43 src/core/setup/PlotLabelGenerator.cpp:31
 msgid "ISO "
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:114
+#: src/core/engine/Reporting.cpp:115
 msgid "Dynamic Range Results"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:117
+#: src/core/engine/Reporting.cpp:118
 msgid "RAW File"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:120
+#: src/core/engine/Reporting.cpp:121
 msgid "dB)"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:123
+#: src/core/engine/Reporting.cpp:124
 msgid "Patches"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:146
+#: src/core/engine/Reporting.cpp:147 src/core/io/OutputWriter.cpp:52
 msgid "Error: Could not open CSV file for writing: "
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:167
+#: src/core/engine/Reporting.cpp:168 src/core/io/OutputWriter.cpp:71
 msgid "Results saved to "
 msgstr ""
 
@@ -506,6 +507,22 @@ msgstr ""
 msgid "Test chart may have been over/underexposed for this ISO."
 msgstr ""
 
+#: src/core/graphics/ChartGenerator.cpp:31
+msgid "Error: Invalid chart parameters."
+msgstr ""
+
+#: src/core/graphics/ChartGenerator.cpp:39
+msgid "Error: Could not create Cairo context for chart generation."
+msgstr ""
+
+#: src/core/graphics/ChartGenerator.cpp:77
+msgid "Test chart generated successfully: "
+msgstr ""
+
+#: src/core/graphics/ChartGenerator.cpp:79
+msgid "Error: Failed to write chart to file: "
+msgstr ""
+
 #: src/core/graphics/ImageProcessing.cpp:54
 msgid "Error: Could not get normalized image for: "
 msgstr ""
@@ -522,48 +539,44 @@ msgstr ""
 msgid "SNR (dB)"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:47
+#: src/core/graphics/Plotting.cpp:48
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:84
+#: src/core/graphics/Plotting.cpp:85
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:84
+#: src/core/graphics/Plotting.cpp:85
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:93
+#: src/core/graphics/Plotting.cpp:94
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:115 src/core/graphics/Plotting.cpp:194
+#: src/core/graphics/Plotting.cpp:116 src/core/graphics/Plotting.cpp:195
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:120
+#: src/core/graphics/Plotting.cpp:121
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:143
-msgid "  - Info: Plot saved to: "
-msgstr ""
-
-#: src/core/graphics/Plotting.cpp:159
+#: src/core/graphics/Plotting.cpp:160
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:168
+#: src/core/graphics/Plotting.cpp:169
 msgid "  - Error: Failed to create cairo context for summary plot."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:198
+#: src/core/graphics/Plotting.cpp:199
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:215
-msgid "  - Info: Summary Plot saved to: "
+#: src/core/io/OutputWriter.cpp:38
+msgid "  - Info: Plot saved to: "
 msgstr ""
 
 #: src/core/setup/FileSorter.cpp:43

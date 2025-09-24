@@ -4,7 +4,10 @@
  * @brief Main entry point for the command-line (CLI) version of the application.
  */
 #include "core/arguments/ArgumentManager.hpp"
-#include "core/engine/Engine.hpp"      
+#include "core/engine/Engine.hpp"
+#include "core/utils/LocaleManager.hpp"
+#include "core/utils/PathManager.hpp"
+#include "core/graphics/ChartGenerator.hpp"
 #include <iostream>
 #include <libintl.h>
 #include <clocale>
@@ -12,52 +15,59 @@
 #include <filesystem>
 
 #ifdef _WIN32
-#include <windows.h> // Para manejo correcto del path con locales
+#include <windows.h>
 #endif
 
 #define _(string) gettext(string)
-namespace fs = std::filesystem;
 
+// File: src/rango.cpp
+
+// This is the main function. It already existed and is now updated.
 int main(int argc, char* argv[]) {
-    
-    // 1. Initialize the localization system to respect environment variables.
     setlocale(LC_ALL, "");
-
-    // 2. Calculate the absolute path to the 'locale' directory.
-    // This makes the app portable and work when run from the build directory.
-    fs::path exe_path;
-    #ifdef _WIN32
-        wchar_t path_buf[MAX_PATH];
-        // GetModuleFileNameW(NULL, ...) obtiene la ruta del proceso actual.
-        GetModuleFileNameW(NULL, path_buf, MAX_PATH);
-        exe_path = path_buf;
-    #else
-        // El método original es suficiente para Linux.
-        exe_path = argv[0];
-    #endif
-    fs::path locale_dir = exe_path.parent_path() / "locale";
-    bindtextdomain("dynaRange", locale_dir.string().c_str());    
-
-    // 3. Set the text domain.
+    std::filesystem::path exe_path = argv[0];
+    std::filesystem::path locale_dir = exe_path.parent_path() / "locale";
+    bindtextdomain("dynaRange", locale_dir.string().c_str());
     textdomain("dynaRange");
+    
+    LocaleManager locale_manager;
 
-    // 4. Set the numeric locale to "C" for consistent number parsing.
-    std::setlocale(LC_NUMERIC, "C");
-
-    // 5. Parse arguments using the manager.
     ArgumentManager::Instance().ParseCli(argc, argv);
-    
-    // 6. Convert the parsed arguments to the structure expected by the engine.
     ProgramOptions opts = ArgumentManager::Instance().ToProgramOptions();
-    
+
+    // Check for chart creation mode as the primary action
+    if (opts.create_chart_mode) {
+        // Parse optional parameters with defaults
+        int R = 255, G = 101, B = 164;
+        double invgamma = 1.4;
+        try {
+            if (opts.chart_params.size() >= 1) R = std::stoi(opts.chart_params[0]);
+            if (opts.chart_params.size() >= 2) G = std::stoi(opts.chart_params[1]);
+            if (opts.chart_params.size() >= 3) B = std::stoi(opts.chart_params[2]);
+            if (opts.chart_params.size() >= 4) invgamma = std::stod(opts.chart_params[3]);
+        } catch (const std::exception& e) {
+            std::cerr << _("Error: Invalid parameter for --chart. Must be <R G B invgamma>.") << std::endl;
+            return 1;
+        }
+
+        // Use PathManager to determine the correct output directory, ensuring consistency.
+        PathManager paths(opts);
+        fs::path chart_output_path = paths.GetCsvOutputPath().parent_path() / "magentachart.png";
+
+        if (!GenerateTestChart(chart_output_path.string(), R, G, B, invgamma, std::cout)) {
+            return 1;
+        }
+        return 0; // Exit successfully after chart generation
+    }
+
+    // Normal analysis mode logic continues here if --chart was not used
     std::atomic<bool> cancel_flag{false};
     ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout, cancel_flag);
     
-    // Check for a critical error only if a plot was expected to be generated.
-    if (opts.plot_mode != 0 && !report.summary_plot_path.has_value()) {
+    if (!report.summary_plot_path.has_value() && opts.plot_mode > 0) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;
         return 1;
     }
-    
+
     return 0;
 }

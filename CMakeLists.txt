@@ -56,17 +56,21 @@ set(CORE_SOURCES
     src/core/engine/Processing.cpp
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
+    src/core/graphics/ChartGenerator.cpp
+    src/core/graphics/ImageProcessing.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
     src/core/graphics/PlotInfoBox.cpp
     src/core/graphics/Plotting.cpp
+    src/core/io/OutputWriter.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
     src/core/setup/FileSorter.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
     src/core/setup/SensorResolution.cpp
+    src/core/utils/LocaleManager.cpp
     src/core/utils/PathManager.cpp
 )
 

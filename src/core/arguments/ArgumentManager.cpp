@@ -4,6 +4,7 @@
  * @brief Implements the centralized argument management system.
  */
 #include "ArgumentManager.hpp"
+#include "../graphics/ChartGenerator.hpp"
 #include <CLI/CLI.hpp>
 #include <sstream>
 #include <iomanip>
@@ -73,21 +74,28 @@ ArgumentManager::ArgumentManager() {
 void ArgumentManager::RegisterAllArguments() {
     if (m_is_registered) return;
 
-    // This is the single source of truth for all arguments in the project.
-    // Help texts are from cli_user_manual.txt.
-    m_descriptors["chart"] = {"chart", "c", _("Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)"), ArgType::Flag, false};
     m_descriptors["black-level"] = {"black-level", "b", _("Camera RAW black level"), ArgType::Double, 0.0};
     m_descriptors["black-file"] = {"black-file", "B", _("Totally dark RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
     m_descriptors["saturation-level"] = {"saturation-level", "s", _("Camera RAW saturation level"), ArgType::Double, 16383.0};
     m_descriptors["saturation-file"] = {"saturation-file", "S", _("Totally clipped RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
-    m_descriptors["input-files"] = {"input-files", "i", _("Input RAW files shot over the test chart ideally for every ISO"), ArgType::StringVector, std::vector<std::string>{}, true};
+    m_descriptors["input-files"] = {"input-files", "i", _("Input RAW files shot over the test chart ideally for every ISO"), ArgType::StringVector, std::vector<std::string>{}, false};
     m_descriptors["patch-ratio"] = {"patch-ratio", "r", _("Relative patch width/height used to compute signal and noise readings (default=0.5)"), ArgType::Double, 0.5, false, 0.0, 1.0};
     m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::Double, 12.0};
     m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, 8.0};
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, 3, false, 2, 3};
-    m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default=\"results.csv\")"), ArgType::String, std::string("DR_results.csv")};
-    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)"), ArgType::Int, 0, false, 0, 3};
+    m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default=\"DR_results.csv\")"), ArgType::String, std::string("DR_results.csv")};
+    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format (0=no, 1=no cmd, 2=short cmd, 3=long cmd)"), ArgType::Int, 0, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
+    
+    // Descriptor for the chart argument, accepting optional string parameters
+    m_descriptors["chart"] = {
+        "chart", "c",
+        _("Create test chart in PNG format with optional params <R G B invgamma>"),
+        ArgType::StringVector, // Use StringVector to accept 0 to 4 optional parameters
+        std::vector<std::string>()
+    };
+    // Internal use only to carry parsed chart parameters
+    m_descriptors["chart-params"] = {"chart-params", "", "", ArgType::StringVector, std::vector<std::string>()};
 
     m_is_registered = true;
 }
@@ -101,12 +109,13 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     std::vector<double> temp_snr_thresholds;
     
     // Bind variables and capture the Option pointers to check if they were used.
-    auto chart_opt = app.add_flag("-c,--chart", temp_opts.create_chart_mode, m_descriptors.at("chart").help_text);
+    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)
+        ->expected(0, 4); // 0 to 4 optional parameters
     auto black_file_opt = app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
     auto black_level_opt = app.add_option("-b,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
     auto sat_file_opt = app.add_option("-S,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
     auto sat_level_opt = app.add_option("-s,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
-    app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text)->required();
+    auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text);
     auto output_opt = app.add_option("-o,--output-file", temp_opts.output_filename, m_descriptors.at("output-file").help_text);
     auto snr_opt = app.add_option("-d,--snrthreshold-db", temp_snr_thresholds, m_descriptors.at("snrthreshold-db").help_text);
     auto dr_norm_opt = app.add_option("-m,--drnormalization-mpx", temp_opts.dr_normalization_mpx, m_descriptors.at("drnormalization-mpx").help_text);
@@ -114,6 +123,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
     auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
 
+    // First parse to see if --chart is present
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
@@ -124,10 +134,28 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         temp_opts.input_files = expand_wildcards_on_windows(temp_opts.input_files);
     #endif
 
+    // Set the create_chart_mode flag if the --chart option was used at all.
+    if (chart_opt->count() > 0) {
+        temp_opts.create_chart_mode = true;
+    }
+
+    // If --chart is not used, input files are required.
+    if (!temp_opts.create_chart_mode) {
+        input_opt->required();
+    }
+    
+    // Re-parse with the conditional requirement set.
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        exit(app.exit(e));
+    }
+
     // --- Update internal values map ---
-    // Only update values for options that were explicitly passed on the command line.
-    // This prevents overwriting defaults with empty/zero values from the temporary struct.
-    if (chart_opt->count() > 0) m_values["chart"] = temp_opts.create_chart_mode;
+    if (chart_opt->count() > 0) {
+        m_values["chart"] = temp_opts.create_chart_mode;
+        m_values["chart-params"] = temp_opts.chart_params;
+    }
     if (black_file_opt->count() > 0) m_values["black-file"] = temp_opts.dark_file_path;
     if (black_level_opt->count() > 0) m_values["black-level"] = temp_opts.dark_value;
     if (sat_file_opt->count() > 0) m_values["saturation-file"] = temp_opts.sat_file_path;
@@ -138,8 +166,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (patch_ratio_opt->count() > 0) m_values["patch-ratio"] = temp_opts.patch_ratio;
     if (plot_opt->count() > 0) m_values["plot"] = temp_opts.plot_mode;
     
-    // These arguments are handled specially
-    m_values["input-files"] = temp_opts.input_files; // This one is required, so it's always present.
+    m_values["input-files"] = temp_opts.input_files;
     
     if (snr_opt->count() > 0) {
         m_values["snrthreshold-db"] = temp_snr_thresholds[0];
@@ -152,8 +179,6 @@ void ArgumentManager::Set(const std::string& long_name, std::any value) {
         m_values[long_name] = std::move(value);
     }
 }
-
-// File: src/core/arguments/ArgumentManager.cpp
 
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;

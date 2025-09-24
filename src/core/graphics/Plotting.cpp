@@ -12,6 +12,7 @@
 #include "PlotBase.hpp"
 #include "PlotData.hpp"
 #include "PlotInfoBox.hpp"
+#include "../io/OutputWriter.hpp"
 #include <cairo/cairo.h>
 #include <iostream>
 #include <algorithm>
@@ -136,11 +137,11 @@ void GenerateSnrPlot(
     // Draw timestamp in bottom-left corner
     DrawGeneratedTimestamp(cr);
     
-    // Write PNG and clean up
-    cairo_surface_write_to_png(surface, output_filename.c_str());
+    // Write PNG and clean up using the new writer
+    OutputWriter::WritePng(surface, output_filename, log_stream);
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
+    //log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
 }
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -208,11 +209,10 @@ std::optional<std::string> GenerateSummaryPlot(
     // Draw timestamp in bottom-left corner
     DrawGeneratedTimestamp(cr);
     
-    // Write PNG and clean up
-    cairo_surface_write_to_png(surface, output_filename.c_str());
+    // Write PNG and clean up using the new writer
+    OutputWriter::WritePng(surface, output_filename, log_stream);
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    log_stream << _("  - Info: Summary Plot saved to: ") << output_filename << std::endl;
 
     return output_filename;
 }

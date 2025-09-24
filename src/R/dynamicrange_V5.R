@@ -267,14 +267,18 @@ NROWS=8
 # Parameters
 
 # Chart format (suited to CAMERA, not to monitor)
-Format=3/2  # 4/3 1
+Format=4/3  # 1.5  # 4/3  #3/2  # 4/3 1
 # Chart dimensions
 DIMX=1920  # full HD width
 DIMY=round(DIMX/Format)
 
+# Effective area of chart
+alpha=0.8
+
 # Number of patches in chart (ideally nearly square patches)
-NCOLS=11
-NROWS=7
+NCOLS=5*2
+NROWS=4*2
+
 
 # Chart colours: UniWB for Canon 350D: R=162, G=64 y B=104 -> OPTIMIZE
 R=162; G=64; B=104
@@ -283,25 +287,50 @@ RGBMAX=max(R,G,B)
 # Gamma curve to otimize colour separation -> OPTIMIZE
 invgamma=1.4  # nonlinear colour scale factor (inverse gamma)
 
-# white circles radius -> OPTIMIZE EXACT SIZE FOR USED QUANTILE
+# White circles radius -> OPTIMIZE EXACT SIZE FOR USED QUANTILE
 RADIUS=15
 
+chart=array(0, dim=c(DIMY, DIMX, 3))  # colour test chart
 
-WIDTH=round(DIMX/(NCOLS+4))  # width of all patches in pixels
-HEIGHT=round(DIMY/(NROWS+4))  # height of all patches in pixels
+# Effective chart canvas inside white circles
+DIMXc=DIMX*alpha
+DIMYc=DIMY*alpha
 
-DIMXc=WIDTH*NCOLS  # effective patch area (exact number of pixels)
-DIMYc=HEIGHT*NROWS
-chart=array(0, dim=c(DIMYc, DIMXc, 3))  # effective chart
+# Offsets
+OFFSETX=(DIMX-DIMXc)/2
+OFFSETY=(DIMY-DIMYc)/2
+
+# Position of 4 white circles: top-left, bottom-left, bottom-right, top-right
+x0=c(round(OFFSETX), round(OFFSETX),      round(DIMX-OFFSETX), round(DIMX-OFFSETX))
+y0=c(round(OFFSETY), round(DIMY-OFFSETY), round(DIMY-OFFSETY), round(OFFSETY))
+
+# Draw 4 blue lines
+chart[y0[1]:y0[2], x0[1]:x0[2], 3]=0.75
+chart[y0[2]:y0[3], x0[2]:x0[3], 3]=0.75
+chart[y0[3]:y0[4], x0[3]:x0[4], 3]=0.75
+chart[y0[4]:y0[1], x0[4]:x0[1], 3]=0.75
+
+# Draw 4 white circles
+for (i in 1:4) {
+    indices=which( ((row(chart[,,1])-y0[i])/RADIUS)^2 +
+                   ((col(chart[,,1])-x0[i])/RADIUS)^2 < 1 )
+    chart[,,1][indices]=1
+    chart[,,2][indices]=1 
+    chart[,,3][indices]=1 
+}
+
+# Draw magenta patches
+WIDTH =DIMXc / (NCOLS+1)  # width of all patches in pixels
+HEIGHT=DIMYc / (NROWS+1)  # height of all patches in pixels
 
 val=seq(1, 0, length.out=NCOLS*NROWS)^invgamma
 p=1
 for (j in 1:NROWS) {
     for (i in 1:NCOLS) {
-        x1=(i-1)*WIDTH+1
-        x2= i   *WIDTH
-        y1=(j-1)*HEIGHT+1
-        y2= j   *HEIGHT
+        x1=(i-1)*WIDTH  + OFFSETX+WIDTH/2
+        x2= i   *WIDTH  + OFFSETX+WIDTH/2
+        y1=(j-1)*HEIGHT + OFFSETY+HEIGHT/2
+        y2= j   *HEIGHT + OFFSETY+HEIGHT/2
         patch=which(row(chart[,,1])>=y1 & row(chart[,,1])<=y2 &
                         col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
         
@@ -312,27 +341,11 @@ for (j in 1:NROWS) {
     }
 }
 
-# Add borders to patch chart
-chartfinal=array(0, dim=c(DIMY, DIMX, 3))
-OFFSETX=round((DIMX-DIMXc)/2)
-OFFSETY=round((DIMY-DIMYc)/2)
-chartfinal[(OFFSETY+1):(OFFSETY+DIMYc), (OFFSETX+1):(OFFSETX+DIMXc),]=chart
-
-# Add 4 WHITE circles: top-left, bottom-left, bottom-right, top-right
-x0=c(WIDTH,  WIDTH,       DIMX-WIDTH,  DIMX-WIDTH)
-y0=c(HEIGHT, DIMY-HEIGHT, DIMY-HEIGHT, HEIGHT)
-for (i in 1:4) {
-    indices=which( ((row(chartfinal[,,1])-y0[i])/RADIUS)^2 +
-                       ((col(chartfinal[,,1])-x0[i])/RADIUS)^2 < 1 )
-    chartfinal[,,1][indices]=1
-    chartfinal[,,2][indices]=1 
-    chartfinal[,,3][indices]=1 
-}
 
 # Write chart
 CHARTNAME=paste0("magentachart_", NCOLS, "x", NROWS, "_",
                  round(Format,2), "_", invgamma*10, ".png")
-writePNG(chartfinal, CHARTNAME)
+writePNG(chart, CHARTNAME)
 
 
 ################################
@@ -559,15 +572,14 @@ for (image in 1:N) {
         # imgsave[imgsave<0]=0
         # writeTIFF(imgsave, paste0("correctedchart_", NAME, ".tif"), bits.per.sample=16)
         # rm(imgsave)
-    
-    
+
 ################################
     
 # 3. READ PATCHES TO FORM 7x11 GRID AND COLLECT (EV,SNR) PAIRS
     
-        # Crop patches area dropping corner marks (that are 1 patch away)
-        GAPX=(xbr-xtl)/(NCOLS+2)
-        GAPY=(ybr-ytl)/(NROWS+2)
+        # Crop patches area dropping corner marks (that are 0.5 patches away)
+        GAPX=(xbr-xtl) / (NCOLS+1) / 2
+        GAPY=(ybr-ytl) / (NROWS+1) / 2
         imgcrop=imgc[round(ytl+GAPY):round(ybr-GAPY), round(xtl+GAPX):round(xbr-GAPX)]
     
         # Save corrected and cropped image
