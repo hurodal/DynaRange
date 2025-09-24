@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-21 22:45+0200\n"
+"POT-Creation-Date: 2025-09-24 08:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -107,10 +107,6 @@ msgstr ""
 
 #: src/core/arguments/CommandLineParser.cpp:81
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
-msgstr ""
-
-#: src/core/arguments/CommandLineParser.cpp:82
-msgid "Sensor resolution in megapixels (if unknown, set to 0 to auto-detect)"
 msgstr ""
 
 #: src/core/arguments/CommandLineParser.cpp:83
