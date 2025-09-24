@@ -35,7 +35,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --chart-size                   (output the default standard magenta patches chart)
 --chart-colour                 (output the default standard magenta patches chart)
 --chart-patches                (output the default standard magenta patches chart)
---chart-size 800 4 3           (create a 800 pixels width chart for M4/3 cameras)
+--chart-size 800 4 3           (create a 800 pixels width test chart for M4/3 cameras)
 --chart-colour 128 128 128 1.4 (create a soft grayscale test chart)
 --chart-patches 8 12           (create a very dense 8 x 12 patches test chart)
 
@@ -119,6 +119,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format adding CLI command)
+
 
 
 
