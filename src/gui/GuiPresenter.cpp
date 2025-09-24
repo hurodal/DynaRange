@@ -1,6 +1,6 @@
 // File: gui/GuiPresenter.cpp
 /**
- * @file GuiPresenter.cpp
+ * @file gui/GuiPresenter.cpp
  * @brief Implements the application logic presenter for the GUI.
  */
 #include "GuiPresenter.hpp"
@@ -17,9 +17,7 @@
 // This streambuf redirects std::ostream to the View's log through wxEvents
 class WxLogStreambuf : public std::streambuf {
 public:
-    WxLogStreambuf(DynaRangeFrame* view) : m_view(view) {
-        // The line "m_cancelWorker = false;" was here and has been removed.
-    }
+    WxLogStreambuf(DynaRangeFrame* view) : m_view(view) {}
 protected:
     
     virtual int sync() override {
@@ -56,14 +54,13 @@ GuiPresenter::~GuiPresenter() {
 
 void GuiPresenter::UpdateManagerFromView() {
     auto& mgr = ArgumentManager::Instance();
-
-    // Aquí es donde se conectan los controles
+    // This is where the controls are connected to the argument manager
     mgr.Set("black-file", m_view->GetDarkFilePath());
     mgr.Set("saturation-file", m_view->GetSaturationFilePath());
     mgr.Set("black-level", m_view->GetDarkValue());
     mgr.Set("saturation-level", m_view->GetSaturationValue());
     mgr.Set("patch-ratio", m_view->GetPatchRatio());
-    mgr.Set("input-files", m_inputFiles); // Usa la lista interna del presenter    
+    mgr.Set("input-files", m_view->GetInputFiles()); // Use the getter from the frame
     mgr.Set("output-file", m_view->GetOutputFilePath());
     mgr.Set("snrthreshold-db", m_view->GetSnrThreshold());
     mgr.Set("drnormalization-mpx", m_view->GetDrNormalization());
@@ -73,12 +70,11 @@ void GuiPresenter::UpdateManagerFromView() {
 
 
 void GuiPresenter::StartAnalysis() {
-    // 1. Actualiza el gestor con los valores actuales de la GUI.
+    // 1. Update the manager with the current values from the GUI.
     UpdateManagerFromView();
 
-    // 2. Obtiene las opciones para el motor desde el gestor.
+    // 2. Get the options for the engine from the manager.
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
-    
     if (m_lastRunOptions.input_files.empty()) {
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
@@ -98,12 +94,12 @@ void GuiPresenter::StartAnalysis() {
 }
 
 void GuiPresenter::AnalysisWorker(ProgramOptions opts) {
-    m_isWorkerRunning = true; // Inform that the thread has started
+    m_isWorkerRunning = true;
+    // Inform that the thread has started
     WxLogStreambuf log_streambuf(m_view);
     std::ostream log_stream(&log_streambuf);
 
     m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
-
     // Notify the view on the main thread that the work is done
     if (m_view) {
         m_view->PostAnalysisComplete();
@@ -111,20 +107,19 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts) {
 }
 
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files) {
-    m_inputFiles.insert(m_inputFiles.end(), files.begin(), files.end());
-    m_view->UpdateInputFileList(m_inputFiles);
+    std::vector<std::string> current_files = m_view->GetInputFiles();
+    current_files.insert(current_files.end(), files.begin(), files.end());
+    m_view->UpdateInputFileList(current_files);
     UpdateCommandPreview();
 }
 
 void GuiPresenter::UpdateCommandPreview() {
     // First, sync the manager with the current state of the GUI controls
     UpdateManagerFromView();
-
     // The equivalent command preview in the GUI should always use long argument
     // names and full paths for maximum clarity and for being able to copy-paste.
     // We now use the dedicated GuiPreview format for this.
     std::string command = ArgumentManager::Instance().GenerateCommand(CommandFormat::GuiPreview);
-
     // Update the view with the newly generated command
     m_view->UpdateCommandPreview(command);
 }
@@ -151,18 +146,18 @@ void GuiPresenter::HandleGridCellClick(int row)
 void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices) {
     // It is CRITICAL to delete items from the end to the beginning
     // to avoid invalidating the indices of the remaining items.
+    std::vector<std::string> current_files = m_view->GetInputFiles();
     std::vector<int> sorted_indices = indices;
     std::sort(sorted_indices.rbegin(), sorted_indices.rend());
 
     for (int index : sorted_indices) {
-        if (index < m_inputFiles.size()) {
-            m_inputFiles.erase(m_inputFiles.begin() + index);
+        if (index < current_files.size()) {
+            current_files.erase(current_files.begin() + index);
         }
     }
 
     // Notify the view to update itself
-    m_view->UpdateInputFileList(m_inputFiles);
-
+    m_view->UpdateInputFileList(current_files);
     // Call the presenter's own method
     UpdateCommandPreview();
 }

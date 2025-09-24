@@ -18,7 +18,7 @@ msgstr ""
 
 #: src/core/engine/Initialization.cpp:22
 msgid "Fatal error processing dark frame."
-msgstr "Error fatal al procesar el fotograma oscuro."
+msgstr "Error fatal al procesar el fotograma negro."
 
 #: src/core/engine/Initialization.cpp:27
 msgid "Fatal error processing saturation frame."
@@ -180,7 +180,7 @@ msgstr "Nivel de negro del RAW de la cámara"
 
 #: src/core/arguments/ArgumentManager.cpp:80
 msgid "Totally dark RAW file ideally shot at base ISO"
-msgstr "Fichero RAW totalmente oscuro, idealmente tomado a ISO base"
+msgstr "Fichero RAW totalmente negro, idealmente tomado a ISO base"
 
 #: src/core/arguments/ArgumentManager.cpp:81
 msgid "Camera RAW saturation level"
@@ -470,11 +470,11 @@ msgstr "Bienvenido (logo.png no encontrado)"
 
 #: src/gui/DynaRangeBase.cpp:32
 msgid "Dark Frame"
-msgstr "Fotograma Oscuro"
+msgstr "Fotograma negro"
 
 #: src/gui/DynaRangeBase.cpp:40
 msgid "Dark File:"
-msgstr "Archivo Oscuro:"
+msgstr "Archivo negro:"
 
 #: src/gui/DynaRangeBase.cpp:44 src/gui/DynaRangeBase.cpp:73
 msgid "Select a file"
@@ -486,7 +486,7 @@ msgstr "*.*"
 
 #: src/gui/DynaRangeBase.cpp:47
 msgid "Dark Value:"
-msgstr "Valor Oscuro:"
+msgstr "Valor Negro:"
 
 #: src/gui/DynaRangeBase.cpp:51
 msgid "256.0"

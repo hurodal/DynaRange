@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-23 16:01+0200\n"
+"POT-Creation-Date: 2025-09-23 21:32+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,71 +21,26 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:111
-msgid "Select RAW files"
+#: src/gui/DynaRangeFrame.cpp:95 src/gui/GuiPresenter.cpp:79
+msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:111
-msgid ""
-"RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All "
-"files (*.*)|*.*"
+#: src/gui/DynaRangeFrame.cpp:95
+msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:165
-msgid "Results loaded. Plot generation was not requested."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:168
+#: src/gui/DynaRangeFrame.cpp:170
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:170
+#: src/gui/DynaRangeFrame.cpp:171
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:210
-msgid "Error"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:210
-msgid "Could not open the results file: "
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:266
-msgid "Processing... Please wait."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:276
-msgid "Generated Graph:"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:360
-msgid ""
-"The following files were ignored because they are not recognized as "
-"supported RAW formats:\n"
-"\n"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:362
-msgid "Unsupported Files Skipped"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:380
-msgid "Generated Graph (Image not found): "
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:382
-msgid "Generated Graph: "
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:411
-msgid "Welcome to Dynamic Range Calculator"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:414
-msgid "Welcome (logo.png not found)"
+#: src/gui/DynaRangeFrame.cpp:174
+msgid "Results loaded. Plot generation was not requested."
 msgstr ""
 
 #: src/gui/DynaRangeBase.cpp:32
@@ -197,44 +152,93 @@ msgstr ""
 msgid "result.csv"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:210
+#: src/gui/DynaRangeBase.cpp:214
 msgid "Input RAW Files"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:219
+#: src/gui/DynaRangeBase.cpp:223
 msgid "Add RAW Files..."
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:222
+#: src/gui/DynaRangeBase.cpp:226
 msgid "Remove Selected"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:234
+#: src/gui/DynaRangeBase.cpp:242
 msgid "Equivalent CLI command"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:248
+#: src/gui/DynaRangeBase.cpp:262
 msgid "Execute"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:258
+#: src/gui/DynaRangeBase.cpp:272
 msgid "Input"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:270
+#: src/gui/DynaRangeBase.cpp:284
 msgid "Log"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:275
+#: src/gui/DynaRangeBase.cpp:298
 msgid "CSV Output:"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:303
+#: src/gui/DynaRangeBase.cpp:334
 msgid "Generated Graph (placeholder):"
 msgstr ""
 
-#: src/gui/DynaRangeBase.cpp:320
+#: src/gui/DynaRangeBase.cpp:358
 msgid "Results"
+msgstr ""
+
+#: src/gui/GuiPresenter.cpp:79
+msgid "Please select at least one input RAW file."
+msgstr ""
+
+#: src/gui/ImageViewer.cpp:19 src/gui/ResultsController.cpp:50
+msgid "Generated Graph:"
+msgstr ""
+
+#: src/gui/ImageViewer.cpp:27
+msgid "Generated Graph (Image not found): "
+msgstr ""
+
+#: src/gui/ImageViewer.cpp:29
+msgid "Generated Graph: "
+msgstr ""
+
+#: src/gui/ImageViewer.cpp:43
+msgid "Welcome to Dynamic Range Calculator"
+msgstr ""
+
+#: src/gui/ImageViewer.cpp:46
+msgid "Welcome (logo.png not found)"
+msgstr ""
+
+#: src/gui/InputController.cpp:48
+msgid "Select RAW files"
+msgstr ""
+
+#: src/gui/InputController.cpp:48
+msgid ""
+"RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All "
+"files (*.*)|*.*"
+msgstr ""
+
+#: src/gui/InputController.cpp:107
+msgid ""
+"The following files were ignored because they are not recognized as "
+"supported RAW formats:\n"
+"\n"
+msgstr ""
+
+#: src/gui/InputController.cpp:109
+msgid "Unsupported Files Skipped"
+msgstr ""
+
+#: src/gui/ResultsController.cpp:38
+msgid "Processing... Please wait."
 msgstr ""
 
 #: src/core/analysis/RawProcessor.cpp:16

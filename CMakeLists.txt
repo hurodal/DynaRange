@@ -97,6 +97,11 @@ add_executable(dynaRangeGui WIN32
     src/gui/DynaRangeBase.cpp
     src/gui/DynaRangeFrame.cpp
     src/gui/GuiPresenter.cpp
+    src/gui/ImageViewer.cpp
+    src/gui/ResultsGridManager.cpp
+    src/gui/InputController.cpp
+    src/gui/LogController.cpp
+    src/gui/ResultsController.cpp
     ${CORE_SOURCES}
     icono_noise.rc
 )
@@ -170,6 +175,12 @@ set(I18N_SOURCES
     src/DynaRangeGuiApp.cpp
     src/gui/DynaRangeFrame.cpp
     src/gui/DynaRangeBase.cpp
+    src/gui/GuiPresenter.cpp
+    src/gui/ImageViewer.cpp
+    src/gui/ResultsGridManager.cpp
+    src/gui/InputController.cpp
+    src/gui/LogController.cpp
+    src/gui/ResultsController.cpp
     ${CORE_SOURCES}
 )
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
@@ -205,7 +216,7 @@ if($ENV{GITHUB_ACTIONS})
     set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
     set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
     set(CPACK_PACKAGE_VENDOR "DynaRange Project")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de an&#225;lisis de rango din&#225;mico")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de análisis de rango dinámico")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
     set(CPACK_PACKAGE_FILE_NAME "dynaRange-installer")
     set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")

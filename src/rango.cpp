@@ -23,8 +23,8 @@ int main(int argc, char* argv[]) {
     // This makes the app portable and work when run from the build directory.
     fs::path exe_path(argv[0]);
     fs::path locale_dir = exe_path.parent_path() / "locale";
-    bindtextdomain("dynaRange", locale_dir.c_str());
-    
+    bindtextdomain("dynaRange", locale_dir.string().c_str());    
+
     // 3. Set the text domain.
     textdomain("dynaRange");
 

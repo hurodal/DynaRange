@@ -31,6 +31,7 @@
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/statbmp.h>
+#include <wx/splitter.h>
 #include <wx/notebook.h>
 #include <wx/frame.h>
 
@@ -46,7 +47,7 @@ class MyFrameBase : public wxFrame
 	protected:
 		wxNotebook* m_mainNotebook;
 		wxPanel* m_inputPanel;
-		wxPanel* left_column_panel;
+		wxPanel* left_column_panel_Up;
 		wxStaticText* m_darkFileStaticText;
 		wxFilePickerCtrl* m_darkFilePicker;
 		wxStaticText* m_darkValueStaticText;
@@ -55,7 +56,7 @@ class MyFrameBase : public wxFrame
 		wxFilePickerCtrl* m_saturationFilePicker;
 		wxStaticText* m_saturationValueStaticText;
 		wxTextCtrl* m_saturationValueTextCtrl;
-		wxPanel* right_column_panel;
+		wxPanel* right_column_panel_Up;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
@@ -71,16 +72,21 @@ class MyFrameBase : public wxFrame
 		wxChoice* m_plotingChoice;
 		wxStaticText* m_outputStaticText;
 		wxTextCtrl* m_outputTextCtrl;
+		wxPanel* left_column_panel_Down;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;
 		wxButton* m_removeRawFilesButton;
+		wxPanel* right_column_panel_Down;
 		wxTextCtrl* m_equivalentCliTextCtrl;
 		wxButton* m_executeButton;
 		wxPanel* m_logPanel;
 		wxTextCtrl* m_logOutputTextCtrl;
 		wxPanel* m_resultsPanel;
+		wxSplitterWindow* m_splitter;
+		wxPanel* m_leftPanel;
 		wxStaticText* m_csvOutputStaticText;
 		wxGrid* m_cvsGrid;
+		wxPanel* m_rightPanel;
 		wxStaticText* m_generateGraphStaticText;
 		wxGauge* m_processingGauge;
 		wxStaticBitmap* m_imageGraph;
@@ -90,6 +96,12 @@ class MyFrameBase : public wxFrame
 		MyFrameBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Dynamic Range Calculator"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
 		~MyFrameBase();
+
+		void m_splitterOnIdle( wxIdleEvent& )
+		{
+			m_splitter->SetSashPosition( 0 );
+			m_splitter->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterOnIdle ), NULL, this );
+		}
 
 };
 

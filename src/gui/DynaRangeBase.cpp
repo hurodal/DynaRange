@@ -21,15 +21,15 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* mainPanelSizer;
 	mainPanelSizer = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* two_columns_sizer;
-	two_columns_sizer = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* two_columns_sizer_Up;
+	two_columns_sizer_Up = new wxBoxSizer( wxHORIZONTAL );
 
-	left_column_panel = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	left_column_panel_Up = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* left_column_sizer;
 	left_column_sizer = new wxBoxSizer( wxVERTICAL );
 
 	wxStaticBoxSizer* darkFrameSbSizer;
-	darkFrameSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel, wxID_ANY, _("Dark Frame") ), wxVERTICAL );
+	darkFrameSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Dark Frame") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer1;
 	fgSizer1 = new wxFlexGridSizer( 0, 2, 5, 5 );
@@ -58,7 +58,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	left_column_sizer->Add( darkFrameSbSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* saturationSbSizer;
-	saturationSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel, wxID_ANY, _("Saturation") ), wxVERTICAL );
+	saturationSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Saturation") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer2;
 	fgSizer2 = new wxFlexGridSizer( 0, 2, 5, 5 );
@@ -87,17 +87,17 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	left_column_sizer->Add( saturationSbSizer, 0, wxALL|wxEXPAND, 5 );
 
 
-	left_column_panel->SetSizer( left_column_sizer );
-	left_column_panel->Layout();
-	left_column_sizer->Fit( left_column_panel );
-	two_columns_sizer->Add( left_column_panel, 1, wxEXPAND | wxALL, 5 );
+	left_column_panel_Up->SetSizer( left_column_sizer );
+	left_column_panel_Up->Layout();
+	left_column_sizer->Fit( left_column_panel_Up );
+	two_columns_sizer_Up->Add( left_column_panel_Up, 1, wxEXPAND | wxALL, 5 );
 
-	right_column_panel = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	right_column_panel_Up = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* right_column_sizer;
 	right_column_sizer = new wxBoxSizer( wxVERTICAL );
 
 	wxStaticBoxSizer* analysisParamsSizer;
-	analysisParamsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel, wxID_ANY, _("Analysis Parameters") ), wxVERTICAL );
+	analysisParamsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Analysis Parameters") ), wxVERTICAL );
 
 	wxBoxSizer* patchRatioSizer;
 	patchRatioSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -198,16 +198,20 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	right_column_sizer->Add( analysisParamsSizer, 1, wxALL|wxEXPAND, 5 );
 
 
-	right_column_panel->SetSizer( right_column_sizer );
-	right_column_panel->Layout();
-	right_column_sizer->Fit( right_column_panel );
-	two_columns_sizer->Add( right_column_panel, 1, wxEXPAND | wxALL, 5 );
+	right_column_panel_Up->SetSizer( right_column_sizer );
+	right_column_panel_Up->Layout();
+	right_column_sizer->Fit( right_column_panel_Up );
+	two_columns_sizer_Up->Add( right_column_panel_Up, 1, wxEXPAND | wxALL, 5 );
 
 
-	mainPanelSizer->Add( two_columns_sizer, 0, wxEXPAND, 5 );
+	mainPanelSizer->Add( two_columns_sizer_Up, 0, wxEXPAND, 5 );
 
+	wxBoxSizer* two_columns_sizer_Down;
+	two_columns_sizer_Down = new wxBoxSizer( wxHORIZONTAL );
+
+	left_column_panel_Down = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxStaticBoxSizer* rawFilesSbSizer;
-	rawFilesSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Input RAW Files") ), wxVERTICAL );
+	rawFilesSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Down, wxID_ANY, _("Input RAW Files") ), wxVERTICAL );
 
 	rawFilesSbSizer->SetMinSize( wxSize( -1,150 ) );
 	m_rawFileslistBox = new wxListBox( rawFilesSbSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
@@ -228,10 +232,14 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	rawFilesSbSizer->Add( AddRemoveRawsSbSizer7, 0, wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( rawFilesSbSizer, 0, wxALL|wxEXPAND, 5 );
+	left_column_panel_Down->SetSizer( rawFilesSbSizer );
+	left_column_panel_Down->Layout();
+	rawFilesSbSizer->Fit( left_column_panel_Down );
+	two_columns_sizer_Down->Add( left_column_panel_Down, 1, wxEXPAND | wxALL, 5 );
 
+	right_column_panel_Down = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxStaticBoxSizer* equivalentSbSizer;
-	equivalentSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Equivalent CLI command") ), wxVERTICAL );
+	equivalentSbSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Down, wxID_ANY, _("Equivalent CLI command") ), wxVERTICAL );
 
 	equivalentSbSizer->SetMinSize( wxSize( -1,100 ) );
 	m_equivalentCliTextCtrl = new wxTextCtrl( equivalentSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
@@ -240,7 +248,13 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	equivalentSbSizer->Add( m_equivalentCliTextCtrl, 1, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( equivalentSbSizer, 0, wxEXPAND, 5 );
+	right_column_panel_Down->SetSizer( equivalentSbSizer );
+	right_column_panel_Down->Layout();
+	equivalentSbSizer->Fit( right_column_panel_Down );
+	two_columns_sizer_Down->Add( right_column_panel_Down, 1, wxEXPAND | wxALL, 5 );
+
+
+	mainPanelSizer->Add( two_columns_sizer_Down, 1, wxEXPAND, 5 );
 
 	wxBoxSizer* footSizer;
 	footSizer = new wxBoxSizer( wxVERTICAL );
@@ -272,11 +286,20 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* resultsSizer;
 	resultsSizer = new wxBoxSizer( wxVERTICAL );
 
-	m_csvOutputStaticText = new wxStaticText( m_resultsPanel, wxID_ANY, _("CSV Output:"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_csvOutputStaticText->Wrap( -1 );
-	resultsSizer->Add( m_csvOutputStaticText, 0, wxALL, 5 );
+	m_splitter = new wxSplitterWindow( m_resultsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+	m_splitter->SetSashGravity( 0.3 );
+	m_splitter->Connect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterOnIdle ), NULL, this );
+	m_splitter->SetMinimumPaneSize( 50 );
 
-	m_cvsGrid = new wxGrid( m_resultsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	m_leftPanel = new wxPanel( m_splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer16;
+	bSizer16 = new wxBoxSizer( wxVERTICAL );
+
+	m_csvOutputStaticText = new wxStaticText( m_leftPanel, wxID_ANY, _("CSV Output:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_csvOutputStaticText->Wrap( -1 );
+	bSizer16->Add( m_csvOutputStaticText, 0, wxALL, 5 );
+
+	m_cvsGrid = new wxGrid( m_leftPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 
 	// Grid
 	m_cvsGrid->CreateGrid( 5, 5 );
@@ -298,20 +321,35 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	// Cell Defaults
 	m_cvsGrid->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
-	resultsSizer->Add( m_cvsGrid, 1, wxALL|wxEXPAND, 5 );
+	bSizer16->Add( m_cvsGrid, 1, wxALL|wxEXPAND, 5 );
 
-	m_generateGraphStaticText = new wxStaticText( m_resultsPanel, wxID_ANY, _("Generated Graph (placeholder):"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_leftPanel->SetSizer( bSizer16 );
+	m_leftPanel->Layout();
+	bSizer16->Fit( m_leftPanel );
+	m_rightPanel = new wxPanel( m_splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer18;
+	bSizer18 = new wxBoxSizer( wxVERTICAL );
+
+	m_generateGraphStaticText = new wxStaticText( m_rightPanel, wxID_ANY, _("Generated Graph (placeholder):"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_generateGraphStaticText->Wrap( -1 );
-	resultsSizer->Add( m_generateGraphStaticText, 0, wxALL, 5 );
+	bSizer18->Add( m_generateGraphStaticText, 0, wxALL, 5 );
 
-	m_processingGauge = new wxGauge( m_resultsPanel, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
+	m_processingGauge = new wxGauge( m_rightPanel, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
 	m_processingGauge->SetValue( 0 );
 	m_processingGauge->Hide();
 
-	resultsSizer->Add( m_processingGauge, 0, wxALL|wxEXPAND, 5 );
+	bSizer18->Add( m_processingGauge, 0, wxALL|wxEXPAND, 5 );
 
-	m_imageGraph = new wxStaticBitmap( m_resultsPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
-	resultsSizer->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
+	m_imageGraph = new wxStaticBitmap( m_rightPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer18->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
+
+
+	m_rightPanel->SetSizer( bSizer18 );
+	m_rightPanel->Layout();
+	bSizer18->Fit( m_rightPanel );
+	m_splitter->SplitVertically( m_leftPanel, m_rightPanel, 0 );
+	resultsSizer->Add( m_splitter, 1, wxEXPAND, 5 );
 
 
 	m_resultsPanel->SetSizer( resultsSizer );

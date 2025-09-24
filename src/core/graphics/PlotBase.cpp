@@ -200,34 +200,6 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const std::strin
     }
 }
 
-/**
- * @brief Draws the Black and Saturation level info on the plot.
- * @param cr The cairo drawing context.
- * @param opts The program options containing the calibration values.
- */
-void DrawCalibrationInfo(cairo_t* cr, const ProgramOptions& opts) {
-    // Set text style: small, gray, and legible
-    PlotColors::cairo_set_source_grey_50(cr); // Medium gray color
-    cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 14.0);
-
-    // Format the strings
-    std::stringstream black_ss, sat_ss;
-    black_ss << "Black: " << std::fixed << std::setprecision(1) << opts.dark_value;
-    sat_ss << "Saturation: " << std::fixed << std::setprecision(1) << opts.saturation_value;
-
-    // Position in the top-left corner of the plot area
-    const double x_pos = MARGIN_LEFT + 15.0;
-    const double y_pos1 = MARGIN_TOP + 20.0;
-    const double y_pos2 = MARGIN_TOP + 40.0;
-
-    // Draw the text
-    cairo_move_to(cr, x_pos, y_pos1);
-    cairo_show_text(cr, black_ss.str().c_str());
-
-    cairo_move_to(cr, x_pos, y_pos2);
-    cairo_show_text(cr, sat_ss.str().c_str());
-}
 } // end of anonymous namespace
 
 // ================== PUBLIC FUNCTION ==================
