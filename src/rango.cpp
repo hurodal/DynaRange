@@ -11,6 +11,10 @@
 #include <atomic>
 #include <filesystem>
 
+#ifdef _WIN32
+#include <windows.h> // Para manejo correcto del path con locales
+#endif
+
 #define _(string) gettext(string)
 namespace fs = std::filesystem;
 
@@ -21,7 +25,16 @@ int main(int argc, char* argv[]) {
 
     // 2. Calculate the absolute path to the 'locale' directory.
     // This makes the app portable and work when run from the build directory.
-    fs::path exe_path(argv[0]);
+    fs::path exe_path;
+    #ifdef _WIN32
+        wchar_t path_buf[MAX_PATH];
+        // GetModuleFileNameW(NULL, ...) obtiene la ruta del proceso actual.
+        GetModuleFileNameW(NULL, path_buf, MAX_PATH);
+        exe_path = path_buf;
+    #else
+        // El método original es suficiente para Linux.
+        exe_path = argv[0];
+    #endif
     fs::path locale_dir = exe_path.parent_path() / "locale";
     bindtextdomain("dynaRange", locale_dir.string().c_str());    
 
