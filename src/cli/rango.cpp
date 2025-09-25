@@ -3,12 +3,12 @@
  * @file src/rango.cpp
  * @brief Main entry point for the command-line (CLI) version of the application.
  */
-#include "core/arguments/ArgumentManager.hpp"
-#include "core/arguments/ChartOptionsParser.hpp"
-#include "core/engine/Engine.hpp"
-#include "core/utils/LocaleManager.hpp"
-#include "core/utils/PathManager.hpp"
-#include "core/graphics/ChartGenerator.hpp"
+#include "../core/arguments/ArgumentManager.hpp"
+#include "../core/arguments/ChartOptionsParser.hpp"
+#include "../core/engine/Engine.hpp"
+#include "../core/utils/LocaleManager.hpp"
+#include "../core/utils/PathManager.hpp"
+#include "../core/graphics/ChartGenerator.hpp"
 #include <iostream>
 #include <libintl.h>
 #include <clocale>
@@ -21,7 +21,6 @@
 
 #define _(string) gettext(string)
 
-// This is the main function. It already existed and is now updated.
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "");
     std::filesystem::path exe_path = argv[0];
@@ -38,7 +37,8 @@ int main(int argc, char* argv[]) {
         // La responsabilidad de interpretar los parámetros se delega al parser.
         auto chart_options_opt = ParseChartOptions(opts, std::cerr);
         if (!chart_options_opt) {
-            return 1; // El parser ya ha informado del error.
+            return 1;
+        // El parser ya ha informado del error.
         }
         
         // Se usan las opciones ya validadas y parseadas.
@@ -46,12 +46,9 @@ int main(int argc, char* argv[]) {
 
         PathManager paths(opts);
         fs::path chart_output_path = paths.GetCsvOutputPath().parent_path() / "magentachart.png";
-
-        if (!GenerateTestChart(chart_output_path.string(), 
-                               chart_opts.R, chart_opts.G, chart_opts.B, chart_opts.invgamma, 
-                               chart_opts.dim_x, chart_opts.aspect_w, chart_opts.aspect_h, 
-                               chart_opts.patches_m, chart_opts.patches_n, 
-                               std::cout)) {
+        
+        // The call to GenerateTestChart is corrected to pass the options struct directly.
+        if (!GenerateTestChart(chart_opts, chart_output_path.string(), std::cout)) {
             return 1;
         }
         return 0; // Se finaliza la ejecución tras generar la carta.

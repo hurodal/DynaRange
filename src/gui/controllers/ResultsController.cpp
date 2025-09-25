@@ -4,15 +4,15 @@
  * @brief Implements the ResultsController class.
  */
 #include "ResultsController.hpp"
-#include "DynaRangeFrame.hpp"
-#include "ImageViewer.hpp"
-#include "ResultsGridManager.hpp"
+#include "../DynaRangeFrame.hpp"
+#include "../helpers/ImageViewer.hpp"
+#include "../helpers/ResultsGridManager.hpp"
 
 ResultsController::ResultsController(DynaRangeFrame* frame) : m_frame(frame), m_lastSashPosition(350)
 {
     m_imageViewer = std::make_unique<ImageViewer>(m_frame->m_imageGraph);
     m_gridManager = std::make_unique<ResultsGridManager>(m_frame->m_cvsGrid);
-    m_frame->m_splitter->SetSashPosition(m_lastSashPosition);
+    m_frame->m_splitterResults->SetSashPosition(m_lastSashPosition);
     // Esto asegura que HandleResize() se llame cuando el panel cambie de tamaño.
     m_frame->m_rightPanel->Bind(wxEVT_SIZE, &ResultsController::OnRightPanelSize, this);
 }
@@ -71,11 +71,11 @@ void ResultsController::SetUiState(bool is_processing) {
 }
 
 void ResultsController::OnSplitterSashDClick(wxSplitterEvent& event) {
-    if (m_frame->m_splitter->IsSplit()) {
+    if (m_frame->m_splitterResults->IsSplit()) {
         m_lastSashPosition = event.GetSashPosition();
-        m_frame->m_splitter->Unsplit(m_frame->m_leftPanel);
+        m_frame->m_splitterResults->Unsplit(m_frame->m_leftPanel);
     } else {
-        m_frame->m_splitter->SplitVertically(m_frame->m_leftPanel, m_frame->m_rightPanel, m_lastSashPosition);
+        m_frame->m_splitterResults->SplitVertically(m_frame->m_leftPanel, m_frame->m_rightPanel, m_lastSashPosition);
     }
 }
 

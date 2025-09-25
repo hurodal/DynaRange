@@ -9,9 +9,10 @@
 #include <any>
 #include <optional>
 #include <map>
+#include <stdexcept> // For std::runtime_error
 
 enum class ArgType {
-    Int, Double, String, StringVector, IntVector, Flag
+    Int, Double, String, StringVector, IntVector, DoubleVector, Flag
 };
 
 struct ArgumentDescriptor {
@@ -33,18 +34,25 @@ public:
     std::string GenerateCommand(CommandFormat format = CommandFormat::Full);
     ProgramOptions ToProgramOptions();
 
-    // Generic method to set the value of an argument
     void Set(const std::string& long_name, std::any value);
 
+    // This is a template function, so its definition must be in the header file.
     template<typename T>
-    T Get(const std::string& long_name) const;
+    T Get(const std::string& long_name) const {
+        if (m_values.count(long_name)) {
+            try {
+                return std::any_cast<T>(m_values.at(long_name));
+            } catch (const std::bad_any_cast& e) {
+                throw std::runtime_error("Invalid type requested for argument: " + long_name);
+            }
+        }
+        throw std::runtime_error("Argument not found: " + long_name);
+    }
 
 private:
-    // Private constructor/destructor for the Singleton pattern.
     ArgumentManager();
     ~ArgumentManager() = default;
 
-    // Prohibit copying and assignment.
     ArgumentManager(const ArgumentManager&) = delete;
     ArgumentManager& operator=(const ArgumentManager&) = delete;
 

@@ -5,20 +5,19 @@
  */
 #pragma once
 
-#include "DynaRangeBase.h"
+#include "generated/DynaRangeBase.h"
 #include "GuiPresenter.hpp"
 #include <wx/dnd.h>
 #include <wx/timer.h>
-#include <wx/notebook.h> // Required for wxNotebookEvent
+#include <wx/notebook.h>
 #include <string>
-#include <memory>
-#include <vector>
 
 // Forward declarations
+class ChartController;
+class FileDropTarget;
 class InputController;
 class LogController;
 class ResultsController;
-class FileDropTarget;
 class wxSplitterEvent;
 
 // Custom event declarations
@@ -30,7 +29,7 @@ class DynaRangeFrame : public MyFrameBase
 public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
-
+    
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
@@ -40,7 +39,7 @@ public:
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
     void LoadGraphImage(const std::string& image_path);
-
+    
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
@@ -56,37 +55,45 @@ public:
 
 protected:
     // --- Event Handlers ---
-    void OnExecuteClick(wxCommandEvent& event);
     void OnAddFilesClick(wxCommandEvent& event);
+    void OnChartColorSliderChanged(wxCommandEvent& event);
+    void OnChartCreateClick(wxCommandEvent& event);
+    void OnChartInputChanged(wxCommandEvent& event);
+    void OnChartPreviewClick(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
+    void OnDrNormSliderChanged(wxScrollEvent& event);
+    void OnExecuteClick(wxCommandEvent& event);
+    void OnGaugeTimer(wxTimerEvent& event);
     void OnGridCellClick(wxGridEvent& event);
     void OnInputChanged(wxEvent& event);
-    void OnGaugeTimer(wxTimerEvent& event);
+    void OnListBoxKeyDown(wxKeyEvent& event);
+    void OnListBoxSelectionChanged(wxCommandEvent& event);
+    void OnNotebookPageChanged(wxNotebookEvent& event);
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
     void OnRemoveFilesClick(wxCommandEvent& event);
-    void OnListBoxSelectionChanged(wxCommandEvent& event);
-    void OnListBoxKeyDown(wxKeyEvent& event);
-    void OnSnrSliderChanged(wxScrollEvent& event);
-    void OnDrNormSliderChanged(wxScrollEvent& event);
-    void OnWorkerUpdate(wxThreadEvent& event);
-    void OnWorkerCompleted(wxCommandEvent& event);
-    void OnClose(wxCloseEvent& event);
     void OnSize(wxSizeEvent& event);
-    void OnSplitterSashDClick(wxSplitterEvent& event);
+    void OnSnrSliderChanged(wxScrollEvent& event);
     void OnSplitterSashChanged(wxSplitterEvent& event);
-    void OnNotebookPageChanged(wxNotebookEvent& event);
+    void OnSplitterSashDClick(wxSplitterEvent& event);
+    void OnWorkerCompleted(wxCommandEvent& event);
+    void OnWorkerUpdate(wxThreadEvent& event);
 
 private:
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
+
     // --- Controller Class Members ---
     std::unique_ptr<InputController> m_inputController;
     std::unique_ptr<LogController> m_logController;
     std::unique_ptr<ResultsController> m_resultsController;
+    std::unique_ptr<ChartController> m_chartController;
 
+    // Grant controllers access to protected UI members.
     friend class InputController;
     friend class ResultsController;
+    friend class ChartController;
     friend class FileDropTarget;
 };
 

@@ -89,21 +89,15 @@ SingleFileResult AnalyzeSingleRawFile(
 
 } // end of anonymous namespace
 
-/**
- * @brief Processes a list of RAW files to analyze their dynamic range.
- * @param opts The program options containing all configuration settings.
- * @param log_stream The output stream for logging messages.
- * @param cancel_flag An atomic boolean flag to signal cancellation from another thread.
- * @return A ProcessingResult struct containing the aggregated results.
- */
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
-    
     // 1. Load files (I/O Responsibility)
     std::vector<RawFile> raw_files = LoadRawFiles(opts.input_files, log_stream);
     
     // 2. Define the context for the analysis (e.g., which chart to use)
-    ChartProfile chart;
+    // The ChartProfile is now constructed with the program options,
+    // allowing it to use custom coordinates if they were provided.
+    ChartProfile chart(opts);
     
     std::string camera_model_name;
     if(!raw_files.empty() && raw_files[0].IsLoaded()){
@@ -118,7 +112,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         for (const auto& raw_file : raw_files) {
             if (cancel_flag) return {}; // Cancellation check
             if (!raw_file.IsLoaded()) continue;
-
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
             if (!file_result.dr_result.filename.empty()) {
                 file_result.curve_data.camera_model = camera_model_name;
@@ -134,7 +127,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
-            
             if (!file_result.dr_result.filename.empty()) {
                 file_result.curve_data.camera_model = camera_model_name;
                 result.dr_results.push_back(file_result.dr_result);

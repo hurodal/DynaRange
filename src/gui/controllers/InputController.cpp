@@ -4,8 +4,8 @@
  * @brief Implements the InputController class.
  */
 #include "InputController.hpp"
-#include "DynaRangeFrame.hpp" // To access frame members and their members
-#include "GuiPresenter.hpp"   // To call presenter methods
+#include "../DynaRangeFrame.hpp" // To access frame members and their members
+#include "../GuiPresenter.hpp"   // To call presenter methods
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>

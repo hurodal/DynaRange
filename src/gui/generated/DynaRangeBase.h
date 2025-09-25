@@ -114,9 +114,26 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_chartPatchRowValue;
 		wxStaticText* chartPatchColStaticText;
 		wxTextCtrl* m_chartPatchColValue;
+		wxStaticText* m_coordX1StaticText;
+		wxTextCtrl* m_coordX1Value;
+		wxStaticText* m_coordY1StaticText;
+		wxTextCtrl* m_coordY1Value;
+		wxStaticText* m_coordX2StaticText;
+		wxTextCtrl* m_coordX2Value;
+		wxStaticText* m_coordY2StaticText;
+		wxTextCtrl* m_coordY2Value;
+		wxStaticText* m_coordX4StaticText;
+		wxTextCtrl* m_coordX4Value;
+		wxStaticText* m_coordY4StaticText;
+		wxTextCtrl* m_coordY4Value;
+		wxStaticText* m_coordX3StaticText;
+		wxTextCtrl* m_coordX3Value;
+		wxStaticText* m_coordY3StaticText;
+		wxTextCtrl* m_coordY3Value;
 		wxButton* chartButtonCreate;
 		wxButton* chartButtonPreview;
 		wxPanel* rightColChartPanel;
+		wxStaticBitmap* m_chartPreviewBitmap;
 
 	public:
 

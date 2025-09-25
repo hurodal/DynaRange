@@ -252,12 +252,14 @@ normalize=FALSE  # TRUE
 drnormalization_mpx=8  # 8Mpx normalization
 
 # Number of patches in test chart
-NCOLS=11
-NROWS=7
+NCOLS=6
+NROWS=4
 
-NCOLS=10
-NROWS=8
-
+# --chart-coords x1 y1 x2 y2 x3 y3 x4 y4
+# Test chart defined by 4 corners: top-left (x1,y1), bottom-left (x2,y2), bottom-right (x3,y3) and top-right (x4,y4)
+# being (0,0) top-left corner
+chartcoords=TRUE  # FALSE  # TRUE
+# Distorted points (source) - Sony A7 II
 
 
 ################################
@@ -295,10 +297,30 @@ chart=array(0, dim=c(DIMY, DIMX, 3))  # colour test chart
 # Effective chart canvas inside white circles
 DIMXc=DIMX*alpha
 DIMYc=DIMY*alpha
-
-# Offsets
 OFFSETX=(DIMX-DIMXc)/2
 OFFSETY=(DIMY-DIMYc)/2
+
+# Draw magenta patches
+WIDTH =DIMXc / (NCOLS+1)  # width of all patches in pixels (decimal)
+HEIGHT=DIMYc / (NROWS+1)  # height of all patches in pixels (decimal)
+
+val=seq(1, 0, length.out=NCOLS*NROWS)^invgamma
+p=1
+for (j in 1:NROWS) {
+    for (i in 1:NCOLS) {
+        x1=(i-1)*WIDTH  + OFFSETX + WIDTH/2
+        x2= i   *WIDTH  + OFFSETX + WIDTH/2
+        y1=(j-1)*HEIGHT + OFFSETY + HEIGHT/2
+        y2= j   *HEIGHT + OFFSETY + HEIGHT/2
+        patch=which(row(chart[,,1])>=y1 & row(chart[,,1])<=y2 &
+                        col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
+        
+        chart[,,1][patch]=val[p] * R/RGBMAX  # R
+        chart[,,2][patch]=val[p] * G/RGBMAX  # G
+        chart[,,3][patch]=val[p] * B/RGBMAX  # B
+        p=p+1
+    }
+}
 
 # Position of 4 white circles: top-left, bottom-left, bottom-right, top-right
 x0=c(round(OFFSETX), round(OFFSETX),      round(DIMX-OFFSETX), round(DIMX-OFFSETX))
@@ -318,29 +340,6 @@ for (i in 1:4) {
     chart[,,2][indices]=1 
     chart[,,3][indices]=1 
 }
-
-# Draw magenta patches
-WIDTH =DIMXc / (NCOLS+1)  # width of all patches in pixels
-HEIGHT=DIMYc / (NROWS+1)  # height of all patches in pixels
-
-val=seq(1, 0, length.out=NCOLS*NROWS)^invgamma
-p=1
-for (j in 1:NROWS) {
-    for (i in 1:NCOLS) {
-        x1=(i-1)*WIDTH  + OFFSETX+WIDTH/2
-        x2= i   *WIDTH  + OFFSETX+WIDTH/2
-        y1=(j-1)*HEIGHT + OFFSETY+HEIGHT/2
-        y2= j   *HEIGHT + OFFSETY+HEIGHT/2
-        patch=which(row(chart[,,1])>=y1 & row(chart[,,1])<=y2 &
-                        col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
-        
-        chart[,,1][patch]=val[p] * R/RGBMAX  # R
-        chart[,,2][patch]=val[p] * G/RGBMAX  # G
-        chart[,,3][patch]=val[p] * B/RGBMAX  # B
-        p=p+1
-    }
-}
-
 
 # Write chart
 CHARTNAME=paste0("magentachart_", NCOLS, "x", NROWS, "_",
@@ -389,6 +388,9 @@ for (rawchan in c('R', 'G1', 'G2', 'B')) {
 BLACK=mean(imgblack)  # 512.178 (Sony A7 IV) / 254.85 (Olympus OM-1)
 BLACKV=c(512.177394540242, 512.154956138962, 512.143174113528, 512.236610063994)
 SAT=median(imgsat)  # 16383
+
+BLACK=512
+SAT=16383
 
 
 ################################
@@ -468,56 +470,61 @@ for (image in 1:N) {
         DIMX=ncol(imgBayer)
         DIMY=nrow(imgBayer)
         
-        xu=c(NA, NA, NA, NA)
-        yu=c(NA, NA, NA, NA)
-        for (sector in 1:4) {  # loop through 4 sectors (=quadrants)
-            # 1: top-left, 2: bottom-left, 3: bottom-right, 4: top-right
-            if (sector==1) imgsector=imgBayer[1:round(DIMY/2), 1:round(DIMX/2)]
-            if (sector==2) imgsector=imgBayer[round(DIMY/2+1):DIMY, 1:round(DIMX/2)]
-            if (sector==3) imgsector=imgBayer[round(DIMY/2+1):DIMY, round(DIMX/2+1):DIMX]
-            if (sector==4) imgsector=imgBayer[1:round(DIMY/2), round(DIMX/2+1):DIMX]
-
-            # Threshold for top 0.5% brightest pixels
-            THRESHOLD=0.995  # 0.9995 -> top 0.05% brightest pixels
-            q <- quantile(imgsector, probs = THRESHOLD)
-            
-            # Coordinates of pixels above threshold
-            coords <- which(imgsector >= q, arr.ind = TRUE)
-            imgsector[coords]=1  # mark as 1 pixels that participated in calculation
-            
-            # Median coordinates, rounded
-            center_y <- round(median(coords[, 1]))
-            center_x <- round(median(coords[, 2]))
-            
-            # Draw cartesian lines on calculated coords
-            imgsector[center_y, 1:round(DIMX/2)]=1-imgsector[center_y, 1:round(DIMX/2)]
-            imgsector[1:round(DIMY/2), center_x]=1-imgsector[1:round(DIMY/2), center_x]
-            
-            # 1: top-left, 2: bottom-left, 3: bottom-right, 4: top-right
-            if (sector==1) {
-                imgBayer[1:round(DIMY/2), 1:round(DIMX/2)]=imgsector
-                xu[sector]=center_x
-                yu[sector]=center_y
+        if (chartcoords) {  # chart coordinates were provided
+            xu=round(c(1097, 1500, 5077, 4682) / 2)  # top-left, bottom-left, bottom-right, top-right
+            yu=round(c(1152, 3396, 2800, 568) / 2)  # divide by 2 to be used on G1
+        } else {  # automatic corner detection
+            xu=c(NA, NA, NA, NA)
+            yu=c(NA, NA, NA, NA)
+            for (sector in 1:4) {  # loop through 4 sectors (=quadrants)
+                # 1: top-left, 2: bottom-left, 3: bottom-right, 4: top-right
+                if (sector==1) imgsector=imgBayer[1:round(DIMY/2), 1:round(DIMX/2)]
+                if (sector==2) imgsector=imgBayer[round(DIMY/2+1):DIMY, 1:round(DIMX/2)]
+                if (sector==3) imgsector=imgBayer[round(DIMY/2+1):DIMY, round(DIMX/2+1):DIMX]
+                if (sector==4) imgsector=imgBayer[1:round(DIMY/2), round(DIMX/2+1):DIMX]
+    
+                # Threshold for top 0.5% brightest pixels
+                THRESHOLD=0.9995  # 0.9995 -> top 0.05% brightest pixels
+                q <- quantile(imgsector, probs = THRESHOLD)
+                
+                # Coordinates of pixels above threshold
+                coords <- which(imgsector >= q, arr.ind = TRUE)
+                imgsector[coords]=1  # mark as 1 pixels that participated in calculation
+                
+                # Median coordinates, rounded
+                center_y <- round(median(coords[, 1]))
+                center_x <- round(median(coords[, 2]))
+                
+                # Draw cartesian lines on calculated coords
+                imgsector[center_y, 1:round(DIMX/2)]=1-imgsector[center_y, 1:round(DIMX/2)]
+                imgsector[1:round(DIMY/2), center_x]=1-imgsector[1:round(DIMY/2), center_x]
+                
+                # 1: top-left, 2: bottom-left, 3: bottom-right, 4: top-right
+                if (sector==1) {
+                    imgBayer[1:round(DIMY/2), 1:round(DIMX/2)]=imgsector
+                    xu[sector]=center_x
+                    yu[sector]=center_y
+                }
+                if (sector==2) {
+                    imgBayer[round(DIMY/2+1):DIMY, 1:round(DIMX/2)]=imgsector
+                    xu[sector]=center_x
+                    yu[sector]=center_y+round(DIMY/2)
+                }
+                if (sector==3) {
+                    imgBayer[round(DIMY/2+1):DIMY, round(DIMX/2+1):DIMX]=imgsector
+                    xu[sector]=center_x+round(DIMX/2)
+                    yu[sector]=center_y+round(DIMY/2)
+                }
+                if (sector==4) {
+                    imgBayer[1:round(DIMY/2), round(DIMX/2+1):DIMX]=imgsector
+                    xu[sector]=center_x+round(DIMX/2)
+                    yu[sector]=center_y
+                }
             }
-            if (sector==2) {
-                imgBayer[round(DIMY/2+1):DIMY, 1:round(DIMX/2)]=imgsector
-                xu[sector]=center_x
-                yu[sector]=center_y+round(DIMY/2)
-            }
-            if (sector==3) {
-                imgBayer[round(DIMY/2+1):DIMY, round(DIMX/2+1):DIMX]=imgsector
-                xu[sector]=center_x+round(DIMX/2)
-                yu[sector]=center_y+round(DIMY/2)
-            }
-            if (sector==4) {
-                imgBayer[1:round(DIMY/2), round(DIMX/2+1):DIMX]=imgsector
-                xu[sector]=center_x+round(DIMX/2)
-                yu[sector]=center_y
-            }
+            # Write imgBayer with coords detection
+            writeTIFF(imgBayer, paste0(NAME, "_cornersdetection.tif"), bits.per.sample=16)
         }
-        # Write imgBayer with coords detection
-        writeTIFF(imgBayer, paste0(NAME, "_cornersdetection.tif"), bits.per.sample=16)
-        
+
         # Undistorted points (destination): (floating point values)
         # top-left
         xtl=(xu[1] + xu[2]) / 2
@@ -575,11 +582,16 @@ for (image in 1:N) {
 
 ################################
     
-# 3. READ PATCHES TO FORM 7x11 GRID AND COLLECT (EV,SNR) PAIRS
+# 3. READ PATCHES TO FORM GRID AND COLLECT (EV,SNR) PAIRS
     
         # Crop patches area dropping corner marks (that are 0.5 patches away)
-        GAPX=(xbr-xtl) / (NCOLS+1) / 2
-        GAPY=(ybr-ytl) / (NROWS+1) / 2
+        if (chartcoords) {  # when specifying the char coords there is no gap
+            GAPX=0
+            GAPY=0          
+        } else {
+            GAPX=(xbr-xtl) / (NCOLS+1) / 2
+            GAPY=(ybr-ytl) / (NROWS+1) / 2
+        }
         imgcrop=imgc[round(ytl+GAPY):round(ybr-GAPY), round(xtl+GAPX):round(xbr-GAPX)]
     
         # Save corrected and cropped image
@@ -625,6 +637,7 @@ for (image in 1:N) {
         # }
         
         MIN_SNR_dB = -10
+        MIN_SNR_dB = -90
         if (normalize) MIN_SNR_dB = MIN_SNR_dB - 20*log10((camresolution_mpx / drnormalization_mpx)^(1/2))
         
         calc=analyze_patches(imgcrop, NCOLS, NROWS, patch_ratio, MIN_SNR_dB)
@@ -654,8 +667,7 @@ for (image in 1:N) {
 
     # SNR curves in dB: we'll plot blue scatter points and red curves
     if (image==1) {
-        # plot(log2(Signal), 20*log10(SNR), xlim=c(-16,0), ylim=c(-15,25),
-        plot(log2(Signal), 20*log10(SNR), xlim=c(-16,0), ylim=c(-5,45),
+        plot(log2(Signal), 20*log10(SNR), xlim=c(-18,0), ylim=c(-20,30),
              pch=16, cex=0.5, col='blue',
              # main='SNR curves - Olympus OM-1',
              main='SNR curves - Sony A7 IV',

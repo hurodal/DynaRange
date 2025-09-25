@@ -4,7 +4,10 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(dynaRange CXX)
-set(PROJECT_VERSION "1.0.0")
+set(PROJECT_VERSION "1.1.0")
+
+# Establece la política para normalizar las rutas de instalación y silenciar el aviso.
+cmake_policy(SET CMP0177 NEW)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,7 +16,7 @@ add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(PORTABLE_DIR ${CMAKE_BINARY_DIR})
+set(PORTABLE_DIR ${CMAKE_BINARY_DIR}/bin)
 
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
@@ -58,8 +61,7 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
-    src/core/graphics/ImageProcessing.cpp
-    src/core/graphics/ImageProcessing.cpp
+    src/core/graphics/ImageProcessing.cpp # <-- LÍNEA DUPLICADA ELIMINADA
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
     src/core/graphics/PlotInfoBox.cpp
@@ -79,10 +81,13 @@ set(CORE_SOURCES
 # 5. TARGETS
 # =============================================================================
 add_executable(rango
-    src/rango.cpp
+    src/cli/rango.cpp
     ${CORE_SOURCES}
-    icono_owl.rc
 )
+# CORRECCIÓN 1: Añadir el fichero de recursos de forma condicional
+if(WIN32)
+    target_sources(rango PRIVATE assets/windows/icono_owl.rc)
+endif()
 
 target_include_directories(rango PRIVATE
     ${OpenCV_INCLUDE_DIRS}
@@ -98,18 +103,22 @@ target_include_directories(rango PRIVATE
 )
 
 add_executable(dynaRangeGui WIN32
-    src/DynaRangeGuiApp.cpp
-    src/gui/DynaRangeBase.cpp
+    src/gui/controllers/ChartController.cpp
+    src/gui/controllers/InputController.cpp
+    src/gui/controllers/LogController.cpp
+    src/gui/controllers/ResultsController.cpp
     src/gui/DynaRangeFrame.cpp
+    src/gui/DynaRangeGuiApp.cpp
+    src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
-    src/gui/ImageViewer.cpp
-    src/gui/ResultsGridManager.cpp
-    src/gui/InputController.cpp
-    src/gui/LogController.cpp
-    src/gui/ResultsController.cpp
+    src/gui/helpers/ImageViewer.cpp
+    src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
-    icono_noise.rc
 )
+# CORRECCIÓN 1: Añadir el fichero de recursos de forma condicional
+if(WIN32)
+    target_sources(dynaRangeGui PRIVATE assets/windows/icono_noise.rc)
+endif()
 
 target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
@@ -169,23 +178,39 @@ set_target_properties(rango dynaRangeGui PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
 )
 
+# Actualizar las rutas para que apunten a la carpeta 'assets'
+add_custom_command(
+    TARGET rango dynaRangeGui POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/assets/images/logo.png"
+        "${CMAKE_SOURCE_DIR}/assets/icons/favicon_noise.ico"
+        "${PORTABLE_DIR}" # Esta es la ruta de destino
+    COMMENT "Copiando assets al directorio de compilación..."
+    VERBATIM
+)
+
 # =============================================================================
 # 7. INTERNACIONALIZACIÓN
 # =============================================================================
+
+# Se define la ruta ANTES de incluir el módulo para que la reconozca al cargarse.
+set(GETTEXT_PO_DIR "${CMAKE_SOURCE_DIR}/assets/i18n/po")
+
 include(UseGettext)
 set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
+
 set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
 set(I18N_SOURCES
-    src/rango.cpp
-    src/DynaRangeGuiApp.cpp
+    src/cli/rango.cpp
+    src/gui/controllers/InputController.cpp
+    src/gui/controllers/LogController.cpp
+    src/gui/controllers/ResultsController.cpp
     src/gui/DynaRangeFrame.cpp
-    src/gui/DynaRangeBase.cpp
+    src/gui/DynaRangeGuiApp.cpp
+    src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
-    src/gui/ImageViewer.cpp
-    src/gui/ResultsGridManager.cpp
-    src/gui/InputController.cpp
-    src/gui/LogController.cpp
-    src/gui/ResultsController.cpp
+    src/gui/helpers/ImageViewer.cpp
+    src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
 )
 GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
@@ -193,19 +218,19 @@ GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
 GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" ${LANGUAGES})
 
 # =============================================================================
-# 8. INSTALACIÓN Y EMPAQUETADO (CPack)
+# 8. INSTALACIÓN Y EMPAQUETADO (CPack) - SOLO PARA WINDOWS
 # =============================================================================
 
-# Este bloque completo solo se ejecutará si estamos dentro de un entorno de GitHub Actions.
-if($ENV{GITHUB_ACTIONS})
+# Toda la lógica de instalación y empaquetado se ejecutará únicamente en Windows.
+if(WIN32)
 
     # --- Definir qué ficheros se instalan ---
     install(TARGETS rango dynaRangeGui
         RUNTIME DESTINATION bin
     )
-    install(FILES "${CMAKE_SOURCE_DIR}/logo.png"
-        DESTINATION bin
-    )
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/images/" DESTINATION bin/assets/images)
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/icons/" DESTINATION bin/assets/icons)
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/locale/" DESTINATION bin/locale)
     install(CODE "
         message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
         file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
@@ -223,23 +248,18 @@ if($ENV{GITHUB_ACTIONS})
     set(CPACK_PACKAGE_VENDOR "DynaRange Project")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de análisis de rango dinámico")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-    set(CPACK_PACKAGE_FILE_NAME "dynaRange-installer")
+    set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-portable")
     set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
     set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
 
+    # --- Configuración de Generadores para Windows ---
+    set(CPACK_GENERATOR "ZIP;WIX")
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+
     # --- Configuración Específica para WiX (Instalador de Windows) ---
-    set(CPACK_GENERATOR "WIX")
     set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
     set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
-
-    # --- Usar la plantilla WiX ---
-    configure_file(
-        "${CMAKE_SOURCE_DIR}/wix_template.wxs.in"
-        "${CMAKE_BINARY_DIR}/wix_template.wxs"
-        @ONLY
-    )
-    set(CPACK_WIX_TEMPLATE "${CMAKE_BINARY_DIR}/wix_template.wxs")
-
+    set(CPACK_WIX_TEMPLATE "${CMAKE_SOURCE_DIR}/assets/windows/packaging/wix_template.wxs.in")
 
     include(CPack)
 

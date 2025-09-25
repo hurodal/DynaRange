@@ -4,10 +4,9 @@
  * @brief Main entry point for the wxWidgets GUI version of the dynaRange application.
  */
 #include "DynaRangeGuiApp.hpp"
-#include "gui/DynaRangeFrame.hpp"
-#include "core/utils/LocaleManager.hpp"
+#include "DynaRangeFrame.hpp"
+#include "../core/utils/LocaleManager.hpp"
 #include <wx/image.h>
-#include <clocale>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <cstdlib> // For std::getenv

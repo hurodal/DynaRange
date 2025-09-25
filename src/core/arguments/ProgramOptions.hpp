@@ -42,6 +42,7 @@ struct ProgramOptions {
     std::vector<std::string> chart_colour_params;  ///< Optional parameters for chart colour <R G B invgamma>.
     std::vector<int> chart_params;                 ///< Optional parameters for chart size <DIMX W H>.
     std::vector<int> chart_patches_params;         ///< Optional parameters for chart patches <M N>.
+    std::vector<double> chart_coords;              ///< Optional parameters for manual chart coords <x1 y1 ... x4 y4>.
     std::string generated_command;                 ///< Stores the generated command string for plots.
     std::map<std::string, std::string> plot_labels;///< Maps a filename to its desired plot label (e.g., "ISO 100").
     double sensor_resolution_mpx = 0.0;            ///< If 0, try to auto-detect from RAW metadata.

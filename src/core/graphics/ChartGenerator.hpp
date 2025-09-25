@@ -1,31 +1,41 @@
 // File: src/core/graphics/ChartGenerator.hpp
 /**
  * @file ChartGenerator.hpp
- * @brief Declares the function to generate a test chart image for dynamic range analysis.
+ * @brief Declares functions to generate a test chart image for dynamic range analysis.
  */
 #pragma once
+#include "../arguments/ChartOptionsParser.hpp" // For ChartGeneratorOptions
 #include <string>
 #include <ostream>
+#include <vector>
+#include <optional>
+
+// Forward declare wxImage to avoid including wxWidgets headers in this core file.
+class wxImage;
 
 /**
- * @brief Generates a test chart PNG image.
+ * @struct InMemoryImage
+ * @brief A generic, library-agnostic container for raw image data.
+ */
+struct InMemoryImage {
+    std::vector<unsigned char> data; ///< Raw pixel data in RGB format.
+    int width;                       ///< Image width in pixels.
+    int height;                      ///< Image height in pixels.
+};
+
+/**
+ * @brief Generates and saves a full-size test chart PNG image to a file.
+ * @param opts A struct containing all validated chart parameters.
  * @param output_filename The path where the PNG file will be saved.
- * @param R Red channel value for the brightest patch (0-255).
- * @param G Green channel value for the brightest patch (0-255).
- * @param B Blue channel value for the brightest patch (0-255).
- * @param invgamma The inverse gamma value for the patch intensity curve.
- * @param dim_x Width of the chart in pixels.
- * @param aspect_w Aspect ratio width component.
- * @param aspect_h Aspect ratio height component.
- * @param patches_m Number of rows of patches.
- * @param patches_n Number of columns of patches.
  * @param log_stream An output stream for logging messages.
  * @return true if the chart was generated successfully, false otherwise.
  */
-bool GenerateTestChart(
-    const std::string& output_filename,
-    int R, int G, int B, double invgamma,
-    int dim_x, int aspect_w, int aspect_h,
-    int patches_m, int patches_n,
-    std::ostream& log_stream
-);
+bool GenerateTestChart(const ChartGeneratorOptions& opts, const std::string& output_filename, std::ostream& log_stream);
+
+/**
+ * @brief Generates a small, in-memory thumbnail of a test chart.
+ * @param opts A struct containing all validated chart parameters.
+ * @param thumb_width The desired width of the thumbnail in pixels.
+ * @return An optional containing the generated thumbnail data, or nullopt on failure.
+ */
+std::optional<InMemoryImage> GenerateChartThumbnail(const ChartGeneratorOptions& opts, int thumb_width);

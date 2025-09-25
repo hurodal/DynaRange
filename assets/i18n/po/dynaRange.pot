@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-25 00:36+0200\n"
+"POT-Creation-Date: 2025-09-25 18:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,228 +17,367 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/rango.cpp:65
+#: src/cli/rango.cpp:62
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:95 src/gui/GuiPresenter.cpp:79
-msgid "Error"
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:95
-msgid "Could not open the results file: "
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:170
-msgid ""
-"\n"
-"Error: Summary plot could not be generated."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:171
-msgid "Results loaded, but summary plot failed."
-msgstr ""
-
-#: src/gui/DynaRangeFrame.cpp:174
-msgid "Results loaded. Plot generation was not requested."
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:32
-msgid "Dark Frame"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:40
-msgid "Dark File:"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:44 src/gui/DynaRangeBase.cpp:73
-msgid "Select a file"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:44 src/gui/DynaRangeBase.cpp:73
-msgid "*.*"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:47
-msgid "Dark Value:"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:51
-msgid "256.0"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:61 src/core/graphics/Plotting.cpp:117
-#: src/core/graphics/Plotting.cpp:196
-msgid "Saturation"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:69
-msgid "Saturation File:"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:76
-msgid "Saturation Value:"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:80
-msgid "4095.0"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:100
-msgid "Analysis Parameters"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:105
-msgid "Patch Ratio"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:112
-msgid "0.50"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:124
-msgid "SNR Threshold"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:131
-msgid "12dB"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:141
-msgid "DR Normalization"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:148
-msgid "8Mpx"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:158
-msgid "Polynomic Order"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:162
-msgid "2"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:162
-msgid "3"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:171
-msgid "Graphics"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:175
-msgid "No"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:175
-msgid "Graphic"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:175
-msgid "Graphic + Short Command"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:175
-msgid "Graphic + Long Command"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:187
-msgid "Ouput file"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:191
-msgid "result.csv"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:214
-msgid "Input RAW Files"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:223
-msgid "Add RAW Files..."
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:226
-msgid "Remove Selected"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:242
-msgid "Equivalent CLI command"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:262
-msgid "Execute"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:272
-msgid "Input"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:284
-msgid "Log"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:298
-msgid "CSV Output:"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:334
-msgid "Generated Graph (placeholder):"
-msgstr ""
-
-#: src/gui/DynaRangeBase.cpp:358
-msgid "Results"
-msgstr ""
-
-#: src/gui/GuiPresenter.cpp:79
-msgid "Please select at least one input RAW file."
-msgstr ""
-
-#: src/gui/ImageViewer.cpp:19 src/gui/ResultsController.cpp:63
-msgid "Generated Graph:"
-msgstr ""
-
-#: src/gui/ImageViewer.cpp:27
-msgid "Generated Graph (Image not found): "
-msgstr ""
-
-#: src/gui/ImageViewer.cpp:29
-msgid "Generated Graph: "
-msgstr ""
-
-#: src/gui/ImageViewer.cpp:43
-msgid "Welcome to Dynamic Range Calculator"
-msgstr ""
-
-#: src/gui/ImageViewer.cpp:46
-msgid "Welcome (logo.png not found)"
-msgstr ""
-
-#: src/gui/InputController.cpp:48
+#: src/gui/controllers/InputController.cpp:48
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/InputController.cpp:48
+#: src/gui/controllers/InputController.cpp:48
 msgid ""
 "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All "
 "files (*.*)|*.*"
 msgstr ""
 
-#: src/gui/InputController.cpp:108
+#: src/gui/controllers/InputController.cpp:108
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/InputController.cpp:110
+#: src/gui/controllers/InputController.cpp:110
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/ResultsController.cpp:53
+#: src/gui/controllers/ResultsController.cpp:53
 msgid "Processing... Please wait."
+msgstr ""
+
+#: src/gui/controllers/ResultsController.cpp:63
+#: src/gui/helpers/ImageViewer.cpp:19
+msgid "Generated Graph:"
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:113 src/gui/GuiPresenter.cpp:79
+msgid "Error"
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:113
+msgid "Could not open the results file: "
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:229
+msgid ""
+"\n"
+"Error: Summary plot could not be generated."
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:230
+msgid "Results loaded, but summary plot failed."
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:233
+msgid "Results loaded. Plot generation was not requested."
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:32
+msgid "Dark Frame"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:40
+msgid "Dark File:"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:44
+#: src/gui/generated/DynaRangeBase.cpp:73
+msgid "Select a file"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:44
+#: src/gui/generated/DynaRangeBase.cpp:73
+msgid "*.*"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:47
+msgid "Dark Value:"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:51
+msgid "256.0"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:61 src/core/graphics/Plotting.cpp:117
+#: src/core/graphics/Plotting.cpp:196
+msgid "Saturation"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:69
+msgid "Saturation File:"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:76
+msgid "Saturation Value:"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:80
+msgid "4095.0"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:100
+msgid "Analysis Parameters"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:105
+msgid "Patch Ratio"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:112
+msgid "0.50"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:124
+msgid "SNR Threshold"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:131
+msgid "12dB"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:141
+msgid "DR Normalization"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:148
+msgid "8Mpx"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:158
+msgid "Polynomic Order"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:162
+#: src/gui/generated/DynaRangeBase.cpp:485
+msgid "2"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:162
+#: src/gui/generated/DynaRangeBase.cpp:472
+msgid "3"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:171
+msgid "Graphics"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:175
+msgid "No"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:175
+msgid "Graphic"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:175
+msgid "Graphic + Short Command"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:175
+msgid "Graphic + Long Command"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:187
+msgid "Ouput file"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:191
+msgid "result.csv"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:214
+msgid "Input RAW Files"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:223
+msgid "Add RAW Files..."
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:226
+msgid "Remove Selected"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:242
+msgid "Equivalent CLI command"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:262
+msgid "Execute"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:272
+msgid "Input"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:284
+msgid "Log"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:298
+msgid "CSV Output:"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:334
+msgid "Generated Graph (placeholder):"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:358
+msgid "Results"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:371
+msgid "Chart colors"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:376
+msgid "Red"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:385
+#: src/gui/generated/DynaRangeBase.cpp:404
+#: src/gui/generated/DynaRangeBase.cpp:423
+msgid "255"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:395
+msgid "Green"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:414
+msgid "Blue"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:433
+msgid "InvGamma"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:437
+msgid "1.4"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:447
+msgid "Chart dimensions"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:452
+msgid "DimX"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:456
+msgid "1920"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:468
+msgid "Width proportion"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:481
+msgid "Height proportion"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:498
+msgid "Chart patches"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:506
+msgid "Rows"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:510
+msgid "4"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:519
+msgid "Colums"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:523
+msgid "6"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:536
+msgid "Chart coordinates"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:545
+msgid "X1,Y1"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:547
+msgid "X1"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:554
+msgid "Y1"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:571
+msgid "X2,Y2"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:573
+msgid "X2"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:580
+msgid "Y2"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:603
+msgid "X4,Y4"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:605
+msgid "X4"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:612
+msgid "Y4"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:629
+msgid "X3,Y3"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:631
+msgid "X3"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:638
+msgid "Y3"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:660
+msgid "Create chart"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:666
+msgid "Preview chart"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:694
+msgid "Chart"
+msgstr ""
+
+#: src/gui/GuiPresenter.cpp:79
+msgid "Please select at least one input RAW file."
+msgstr ""
+
+#: src/gui/helpers/ImageViewer.cpp:27
+msgid "Generated Graph (Image not found): "
+msgstr ""
+
+#: src/gui/helpers/ImageViewer.cpp:29
+msgid "Generated Graph: "
+msgstr ""
+
+#: src/gui/helpers/ImageViewer.cpp:43
+msgid "Welcome to Dynamic Range Calculator"
+msgstr ""
+
+#: src/gui/helpers/ImageViewer.cpp:46
+msgid "Welcome (logo.png not found)"
 msgstr ""
 
 #: src/core/analysis/RawProcessor.cpp:16
@@ -355,7 +494,11 @@ msgid ""
 "specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:99
+#: src/core/arguments/ArgumentManager.cpp:94
+msgid "Test chart defined by 4 corners: tl, bl, br, tr"
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:100
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
@@ -461,7 +604,7 @@ msgstr ""
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:115
+#: src/core/engine/Processing.cpp:109
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
@@ -513,19 +656,15 @@ msgstr ""
 msgid "Test chart may have been over/underexposed for this ISO."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:33
-msgid "Error: Invalid chart parameters."
+#: src/core/graphics/ChartGenerator.cpp:107
+msgid "Error: Invalid chart parameters or Cairo context creation failed."
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:47
-msgid "Error: Could not create Cairo context for chart generation."
-msgstr ""
-
-#: src/core/graphics/ChartGenerator.cpp:98
+#: src/core/graphics/ChartGenerator.cpp:113
 msgid "Test chart generated successfully: "
 msgstr ""
 
-#: src/core/graphics/ChartGenerator.cpp:100
+#: src/core/graphics/ChartGenerator.cpp:115
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 

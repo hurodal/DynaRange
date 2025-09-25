@@ -86,11 +86,12 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, 0, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     
-    // New chart arguments, with correct short names from the user manual.
+    // Chart arguments
     m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
     m_descriptors["chart-patches"] = {"chart-patches", "M", _("specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
+    m_descriptors["chart-coords"] = {"chart-coords", "x", _("Test chart defined by 4 corners: tl, bl, br, tr"), ArgType::DoubleVector, std::vector<double>()};
 
     m_is_registered = true;
 }
@@ -107,6 +108,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(3);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
     auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches_params, m_descriptors.at("chart-patches").help_text)->expected(2);
+    // Add the new option to the CLI parser, expecting exactly 8 values.
+    auto chart_coords_opt = app.add_option("-x,--chart-coords", temp_opts.chart_coords, m_descriptors.at("chart-coords").help_text)->expected(8);
     
     auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text);
     auto black_file_opt = app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
@@ -152,6 +155,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (chart_opt->count() > 0) m_values["chart"] = temp_opts.chart_params;
     if (chart_colour_opt->count() > 0) m_values["chart-colour"] = temp_opts.chart_colour_params;
     if (chart_patches_opt->count() > 0) m_values["chart-patches"] = temp_opts.chart_patches_params;
+    // Store the new coordinates if provided.
+    if (chart_coords_opt->count() > 0) m_values["chart-coords"] = temp_opts.chart_coords;
     
     if (black_file_opt->count() > 0) m_values["black-file"] = temp_opts.dark_file_path;
     if (black_level_opt->count() > 0) m_values["black-level"] = temp_opts.dark_value;
@@ -171,6 +176,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     }
 }
 
+
 void ArgumentManager::Set(const std::string& long_name, std::any value) {
     if (m_descriptors.count(long_name)) {
         m_values[long_name] = std::move(value);
@@ -181,10 +187,10 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
     
     opts.create_chart_mode = Get<bool>("create-chart-mode");
-    // These now use the correct keys to access the values map, fixing the crash.
     opts.chart_params = Get<std::vector<int>>("chart");
     opts.chart_colour_params = Get<std::vector<std::string>>("chart-colour");
     opts.chart_patches_params = Get<std::vector<int>>("chart-patches");
+    opts.chart_coords = Get<std::vector<double>>("chart-coords");
     
     opts.dark_value = Get<double>("black-level");
     opts.saturation_value = Get<double>("saturation-level");
@@ -281,22 +287,3 @@ std::string ArgumentManager::GenerateCommand(CommandFormat format) {
 
     return command_ss.str();
 }
-
-template<typename T>
-T ArgumentManager::Get(const std::string& long_name) const {
-    if (m_values.count(long_name)) {
-        try {
-            return std::any_cast<T>(m_values.at(long_name));
-        } catch (const std::bad_any_cast& e) {
-            throw std::runtime_error("Invalid type requested for argument: " + long_name);
-        }
-    }
-    throw std::runtime_error("Argument not found: " + long_name);
-}
-
-// Explicit template instantiation for all types used in the application.
-template int ArgumentManager::Get<int>(const std::string& long_name) const;
-template double ArgumentManager::Get<double>(const std::string& long_name) const;
-template std::string ArgumentManager::Get<std::string>(const std::string& long_name) const;
-template std::vector<std::string> ArgumentManager::Get<std::vector<std::string>>(const std::string& long_name) const;
-template bool ArgumentManager::Get<bool>(const std::string& long_name) const;
