@@ -1,6 +1,6 @@
-// File: gui/ImageViewer.hpp
+// File: gui/helpers/ImageViewer.hpp
 /**
- * @file gui/ImageViewer.hpp
+ * @file gui/helpers/ImageViewer.hpp
  * @brief Declares a helper class to manage image display and scaling.
  * @details This class encapsulates all logic related to loading an image,
  * storing it, and handling the responsive scaling to fit its container.
@@ -35,6 +35,12 @@ public:
     wxString ShowLogo();
 
     /**
+     * @brief Sets the viewer's content from an in-memory wxImage object.
+     * @param image The wxImage to display.
+     */
+    void SetImage(const wxImage& image); // This is a new function.
+
+    /**
      * @brief Handles a resize event from the parent frame.
      * @details This should be called from the frame's OnSize handler.
      */
@@ -48,7 +54,7 @@ private:
 
     /// @brief Pointer to the UI control that displays the image.
     wxStaticBitmap* m_imageControl;
-
+    
     /// @brief Stores the original, unscaled image to prevent quality loss.
     wxImage m_originalImage;
 };

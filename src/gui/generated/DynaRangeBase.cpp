@@ -678,7 +678,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	chartPreviewImageSizer = new wxBoxSizer( wxVERTICAL );
 
 	m_chartPreviewBitmap = new wxStaticBitmap( rightColChartPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
-	chartPreviewImageSizer->Add( m_chartPreviewBitmap, 0, wxALL, 5 );
+	chartPreviewImageSizer->Add( m_chartPreviewBitmap, 1, wxALIGN_CENTER|wxALL, 5 );
 
 
 	rightColChartPanel->SetSizer( chartPreviewImageSizer );

@@ -9,19 +9,19 @@
 
 #define _(string) gettext(string)
 
+// This function already existed and is now updated.
 std::optional<ChartGeneratorOptions> ParseChartOptions(const ProgramOptions& opts, std::ostream& log_stream) {
     ChartGeneratorOptions chart_opts;
-
     // Set default values from the user manual
     chart_opts.R = 255;
     chart_opts.G = 101;
     chart_opts.B = 164;
     chart_opts.invgamma = 1.4;
     chart_opts.dim_x = 1920;
-    chart_opts.aspect_w = 4; // Corrected default as per manual W=3, H=2 -> 4/3 aspect is common
+    chart_opts.aspect_w = 4;
     chart_opts.aspect_h = 3;
-    chart_opts.patches_m = 7;  // M=rows
-    chart_opts.patches_n = 11; // N=cols
+    chart_opts.patches_m = 7;
+    chart_opts.patches_n = 11;
 
     try {
         // Parse colour params if provided
@@ -31,7 +31,7 @@ std::optional<ChartGeneratorOptions> ParseChartOptions(const ProgramOptions& opt
             if (opts.chart_colour_params.size() >= 3) chart_opts.B = std::stoi(opts.chart_colour_params[2]);
             if (opts.chart_colour_params.size() >= 4) chart_opts.invgamma = std::stod(opts.chart_colour_params[3]);
         }
-        // Parse size params if provided
+        // Parse size params if provided, overwriting the default
         if (!opts.chart_params.empty()) {
             chart_opts.dim_x = opts.chart_params[0];
             chart_opts.aspect_w = opts.chart_params[1];

@@ -11,6 +11,7 @@
 class DynaRangeFrame;
 struct ChartGeneratorOptions;
 class ImageViewer;
+class wxSizeEvent; // Forward declare the event class
 
 class ChartController {
 public:
@@ -22,13 +23,18 @@ public:
     void OnCreateClick(wxCommandEvent& event);
     void OnColorSliderChanged(wxCommandEvent& event);
     void OnInputChanged(wxCommandEvent& event);
-
 private:
     /**
      * @brief Reads all chart-related controls from the UI and creates an options struct.
      * @return A ChartGeneratorOptions struct populated with the current UI values.
      */
     ChartGeneratorOptions GetCurrentOptionsFromUi() const;
+    
+    /**
+     * @brief Handles the size event for the right panel to refresh the image layout.
+     * @param event The size event.
+     */
+    void OnRightPanelSize(wxSizeEvent& event); // This is a new function.
     
     DynaRangeFrame* m_frame; // Pointer to the parent frame
     

@@ -11,9 +11,14 @@
 #include "../../core/utils/PathManager.hpp"
 #include <wx/msgdlg.h>
 
+// This function already existed and is now updated.
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
     m_thumbnailViewer = std::make_unique<ImageViewer>(m_frame->m_chartPreviewBitmap);
+    
+    // Bind the size event of the panel to our new handler.
+    // This is the key to fixing the initial layout.
+    m_frame->rightColChartPanel->Bind(wxEVT_SIZE, &ChartController::OnRightPanelSize, this);
 
     // Set initial values on UI controls from default options
     auto default_opts = ParseChartOptions(ProgramOptions(), std::cerr);
@@ -52,21 +57,18 @@ ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
 
 void ChartController::OnPreviewClick(wxCommandEvent& event) {
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
-    
     // Generate the thumbnail data in the core library
     std::optional<InMemoryImage> thumb_data_opt = GenerateChartThumbnail(opts, 256);
-
     if (thumb_data_opt) {
         // Convert the generic image data to a wxImage here, inside the GUI layer.
         InMemoryImage& thumb_data = *thumb_data_opt;
         wxImage image(thumb_data.width, thumb_data.height, thumb_data.data.data(), true); // true = static data
-        m_frame->m_chartPreviewBitmap->SetBitmap(wxBitmap(image));
+        m_thumbnailViewer->SetImage(image); // Use the viewer to handle setting and scaling
     }
 }
 
 void ChartController::OnCreateClick(wxCommandEvent& event) {
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
-    
     // Use a temporary ProgramOptions to leverage PathManager
     ProgramOptions temp_prog_opts; 
     PathManager paths(temp_prog_opts);
@@ -87,4 +89,17 @@ void ChartController::OnColorSliderChanged(wxCommandEvent& event) {
 
 void ChartController::OnInputChanged(wxCommandEvent& event) {
     // This can be used later to trigger live preview if desired.
+}
+
+// It replicates the logic from ResultsController to fix the initial layout issue.
+void ChartController::OnRightPanelSize(wxSizeEvent& event) {
+    // Schedule the update for the next event cycle. This ensures the panel's
+    // layout has finished calculating and the image is repainted correctly.
+    m_frame->CallAfter([this]() {
+        if (m_thumbnailViewer) {
+            m_thumbnailViewer->HandleResize();
+        }
+    });
+    // Propagate the event to allow other layout calculations to proceed.
+    event.Skip();
 }

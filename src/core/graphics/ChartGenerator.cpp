@@ -22,7 +22,7 @@ namespace {
 
 // This is a new helper function created to avoid code duplication (DRY).
 // It contains the core Cairo drawing logic shared by both public functions.
-cairo_surface_t* CreateChartSurface(const ChartGeneratorOptions& opts) {
+    cairo_surface_t* CreateChartSurface(const ChartGeneratorOptions& opts) {
     if (opts.R < 0 || opts.R > 255 || opts.G < 0 || opts.G > 255 || opts.B < 0 || opts.B > 255 || opts.invgamma <= 0.0 || opts.dim_x <= 0 || opts.aspect_w <= 0 || opts.aspect_h <= 0 || opts.patches_m <= 0 || opts.patches_n <= 0) {
         return nullptr;
     }
@@ -43,7 +43,6 @@ cairo_surface_t* CreateChartSurface(const ChartGeneratorOptions& opts) {
     
     // Constants for drawing
     constexpr double ALPHA = 0.8;
-    constexpr double RADIUS = 20.0;
     constexpr double RGBMAX = 255.0;
 
     cairo_set_source_rgb(cr, 0.0, 0.0, 0.0); // Black background
@@ -55,6 +54,13 @@ cairo_surface_t* CreateChartSurface(const ChartGeneratorOptions& opts) {
     const double OFFSETY = (DIMY - DIMYc) / 2.0;
     std::vector<double> x0 = {OFFSETX, OFFSETX, DIMX - OFFSETX, DIMX - OFFSETX};
     std::vector<double> y0 = {OFFSETY, DIMY - OFFSETY, DIMY - OFFSETY, OFFSETY};
+
+    const double patch_width = DIMXc / (NCOLS + 1);
+    const double patch_height = DIMYc / (NROWS + 1);
+
+    // The radius is now calculated as a fraction of a patch's width.
+    // This makes it fully dynamic and independent of any hardcoded default width.
+    const double RADIUS = patch_width * 0.25;
 
     cairo_set_source_rgb(cr, 0.0, 0.0, 191.0 / 255.0);
     cairo_set_line_width(cr, 2.0);
@@ -71,9 +77,6 @@ cairo_surface_t* CreateChartSurface(const ChartGeneratorOptions& opts) {
         cairo_fill(cr);
     }
     
-    const double patch_width = DIMXc / (NCOLS + 1);
-    const double patch_height = DIMYc / (NROWS + 1);
-
     int patch_index = 0;
     for (int row = 0; row < NROWS; ++row) {
         for (int col = 0; col < NCOLS; ++col) {
@@ -94,8 +97,6 @@ cairo_surface_t* CreateChartSurface(const ChartGeneratorOptions& opts) {
 
 } // end anonymous namespace
 
-
-// This function already existed and is now updated.
 // Its logic is now simplified to call the helper function and write the file.
 bool GenerateTestChart(
     const ChartGeneratorOptions& opts,
@@ -119,7 +120,6 @@ bool GenerateTestChart(
     return success;
 }
 
-// This function already existed and is now updated.
 // Its logic is now implemented to generate the preview in memory.
 std::optional<InMemoryImage> GenerateChartThumbnail(const ChartGeneratorOptions& opts, int thumb_width) {
     ChartGeneratorOptions thumb_opts = opts;

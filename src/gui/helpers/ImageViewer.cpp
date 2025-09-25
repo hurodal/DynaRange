@@ -1,6 +1,6 @@
-// File: gui/ImageViewer.cpp
+// File: gui/helpers/ImageViewer.cpp
 /**
- * @file gui/ImageViewer.cpp
+ * @file gui/helpers/ImageViewer.cpp
  * @brief Implements the ImageViewer helper class.
  */
 #include "ImageViewer.hpp"
@@ -21,7 +21,7 @@ wxString ImageViewer::ShowGraph(const std::string& path) {
     
     fs::path graphPath(path);
     std::string displayFilename = graphPath.filename().string();
-
+    
     if (!fs::exists(graphPath) || !m_originalImage.LoadFile(wxString(graphPath.string()))) {
         m_imageControl->SetBitmap(wxBitmap()); // Clear bitmap on failure
         label = _("Generated Graph (Image not found): ") + wxString(displayFilename);
@@ -54,17 +54,21 @@ void ImageViewer::HandleResize() {
 }
 
 void ImageViewer::UpdateBitmapDisplay() {
-    if (!m_originalImage.IsOk() || !m_imageControl) { return; }
+    if (!m_originalImage.IsOk() || !m_imageControl || !m_imageControl->GetParent()) { 
+        return; 
+    }
 
-    wxSize containerSize = m_imageControl->GetSize();
-
-    // Permitir redimensionamiento incluso con tamaños pequeños
-    // Solo ignorar si el tamaño es cero o negativo.
+    // Get the size of the parent container, not the image control itself.
+    // GetClientSize() gives us the actual usable area within the panel.
+    wxSize containerSize = m_imageControl->GetParent()->GetClientSize();
+    
+    // Allow resizing even with small sizes.
+    // Only ignore if the size is zero or negative.
     if (containerSize.GetWidth() <= 0 || containerSize.GetHeight() <= 0) {
         return;
     }
 
-    // Si el tamaño es positivo, procedemos a escalar la imagen.
+    // If the size is positive, we proceed to scale the image.
     wxImage imageCopy = m_originalImage.Copy();
     int imgWidth = imageCopy.GetWidth();
     int imgHeight = imageCopy.GetHeight();
@@ -73,9 +77,26 @@ void ImageViewer::UpdateBitmapDisplay() {
     double vScale = static_cast<double>(containerSize.GetHeight()) / imgHeight;
     double scale = std::min(hScale, vScale);
 
-    if (scale < 1.0) {
-        imageCopy.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
-    }
+    imageCopy.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
 
     m_imageControl->SetBitmap(wxBitmap(imageCopy));
+    
+    if (m_imageControl->GetParent()) {
+        m_imageControl->GetParent()->Layout();
+    }
+}
+
+void ImageViewer::SetImage(const wxImage& image)
+{
+    if (!m_imageControl) {
+        return;
+    }
+
+    if (!image.IsOk()) {
+        m_originalImage = wxImage(); // Invalidate the image
+        m_imageControl->SetBitmap(wxBitmap()); // Clear the control
+    } else {
+        m_originalImage = image.Copy(); // Store the new image
+        UpdateBitmapDisplay(); // Scale and display it
+    }
 }
