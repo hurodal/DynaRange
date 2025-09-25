@@ -8,7 +8,7 @@ Usage: rango [OPTION]... [FILE]...
 --chart               -c <DIMX W H>       : Create test chart in PNG format with a specific resolution and format (default DIMX=1920, W=3, H=2)
 --chart-colour        -C <R G B invgamma> : Range colours in test chart from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 --chart-patches       -M <M N>            : Specify number of patches over rows (M) and columns (N) (default M=4, N=6)
---chart-coords        -x <x1 y1 x2 y2 x3 y3 x4 y4> : Test chart defined by 4 corners (no ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
+--chart-coords        -x <x1 y1 x2 y2 x3 y3 x4 y4> : Test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
 --black-level         -b <float>          : Camera RAW black level
 --black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
@@ -39,7 +39,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --chart-patches 8 12           (create a very dense 8 x 12 patches test chart)
 
 --chart-coords -x <x1 y1 x2 y2 x3 y3 x4 y4>
-Definition: test chart defined by 4 corners (no ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
+Definition: test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
 Explanation: to read patches on an arbitrarily positioned test chart when automatic corner detection fails or cannot be used 
 Examples:
 --chart-coords 1 1 1 4000 6000 4000 6000 1 (test chart occupying the entire frame on a 24 Mpx camera)
@@ -124,6 +124,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot   (no plot export)
 --plot 1 (plot export of SNR curves in PNG format without CLI command)
 --plot 2 (plot export of SNR curves in PNG format adding CLI command)
+
 
 
 
