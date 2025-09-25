@@ -261,9 +261,6 @@ RGBMAX=max(R,G,B)
 # Gamma curve to otimize colour separation -> OPTIMIZE
 invgamma=1.4  # nonlinear colour scale factor (inverse gamma)
 
-# White circles radius -> OPTIMIZE EXACT SIZE FOR USED QUANTILE
-RADIUS=15
-
 chart=array(0, dim=c(DIMY, DIMX, 3))  # colour test chart
 
 # Effective chart canvas inside white circles
@@ -285,7 +282,7 @@ for (j in 1:NROWS) {
         y1=(j-1)*HEIGHT + OFFSETY + HEIGHT/2
         y2= j   *HEIGHT + OFFSETY + HEIGHT/2
         patch=which(row(chart[,,1])>=y1 & row(chart[,,1])<=y2 &
-                        col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
+                    col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
         
         chart[,,1][patch]=val[p] * R/RGBMAX  # R
         chart[,,2][patch]=val[p] * G/RGBMAX  # G
@@ -293,6 +290,7 @@ for (j in 1:NROWS) {
         p=p+1
     }
 }
+
 
 # Position of 4 white circles: top-left, bottom-left, bottom-right, top-right
 x0=c(round(OFFSETX), round(OFFSETX),      round(DIMX-OFFSETX), round(DIMX-OFFSETX))
@@ -304,7 +302,14 @@ chart[y0[2]:y0[3], x0[2]:x0[3], 3]=0.75
 chart[y0[3]:y0[4], x0[3]:x0[4], 3]=0.75
 chart[y0[4]:y0[1], x0[4]:x0[1], 3]=0.75
 
-# Draw 4 white circles
+# Now draw 4 white circles radius: 1% of the whole Diagonal between circles
+DIAG=(DIMX^2+DIMY^2)^0.5
+RADIUS=DIAG*0.01  # Radius=1% of the whole Diagonal
+AreaCircle=pi*RADIUS^2
+AreaQuad=(DIMX/2)*(DIMY/2)
+Quantile=AreaCircle/AreaQuad
+THRESHOLD=1-Quantile/4  # THESHOLD to be used for quantile on corner detection
+
 for (i in 1:4) {
     indices=which( ((row(chart[,,1])-y0[i])/RADIUS)^2 +
                    ((col(chart[,,1])-x0[i])/RADIUS)^2 < 1 )
@@ -432,14 +437,14 @@ for (image in 1:N) {
         xu=c(NA, NA, NA, NA)
         yu=c(NA, NA, NA, NA)
         if (chartcoords) {  # chart coordinates were provided in xchart, ychart
-            # Order provided coordinates according to counterclockwise:
+            # Reorder provided coordinates according to:
             # top-left, bottom-left, bottom-right, top-right
             pos1=which.min(xchart+ychart); xu[1]=xchart[pos1]; yu[1]=ychart[pos1]
             pos3=which.max(xchart+ychart); xu[3]=xchart[pos3]; yu[3]=ychart[pos3]
             pos2=which.min(xchart/ychart); xu[2]=xchart[pos2]; yu[2]=ychart[pos2]
             pos4=which.max(xchart/ychart); xu[4]=xchart[pos4]; yu[4]=ychart[pos4]
             
-            xu=round(xu / 2)  # divide by 2 to be used on G1 half sized image
+            xu=round(xu / 2)  # divide by 2 to be used on G1 half sized RAW data
             yu=round(yu / 2)
         } else {  # automatic corner detection
             for (sector in 1:4) {  # loop through 4 sectors (=quadrants)
@@ -449,8 +454,14 @@ for (image in 1:N) {
                 if (sector==3) imgsector=imgBayer[round(DIMY/2+1):DIMY, round(DIMX/2+1):DIMX]
                 if (sector==4) imgsector=imgBayer[1:round(DIMY/2), round(DIMX/2+1):DIMX]
     
-                # Threshold for top 0.5% brightest pixels
-                THRESHOLD=0.9995  # 0.9995 -> top 0.05% brightest pixels
+                # Threshold for top Quantile of brightest pixels
+                # White circles radius: 1% of the whole Diagonal
+                DIAG=(DIMX^2+DIMY^2)^0.5
+                RADIUS=DIAG*0.01  # Radius=1% of the whole Diagonal
+                AreaCircle=pi*RADIUS^2
+                AreaQuad=(DIMX/2)*(DIMY/2)
+                Quantile=AreaCircle/AreaQuad
+                THRESHOLD=1-Quantile/4  # THESHOLD to be used for quantile on corner detection
                 q <- quantile(imgsector, probs = THRESHOLD)
                 
                 # Coordinates of pixels above threshold
@@ -526,7 +537,7 @@ for (image in 1:N) {
 # 3. READ PATCHES TO FORM GRID AND COLLECT (EV,SNR) PAIRS
     
         # Crop patches area dropping corner marks (that are 0.5 patches away)
-        if (chartcoords) {  # when specifying the char coords there is no gap
+        if (chartcoords) {  # when specifying the chart coords there is no gap
             GAPX=0
             GAPY=0          
         } else {
