@@ -5,10 +5,10 @@ by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (al
 
 Usage: rango [OPTION]... [FILE]...
 
---chart               -c <DIMX W H>       : Create test chart in PNG format with a specific resolution and format (default DIMX=1920, W=3, H=2)
---chart-colour        -C <R G B invgamma> : Range colours in test chart from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
---chart-patches       -M <M N>            : Specify number of patches over rows (M) and columns (N) (default M=4, N=6)
---chart-coords        -x <x1 y1 x2 y2 x3 y3 x4 y4> : Test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
+--chart               -c <DIMX W H M N>   : Create test chart in PNG format with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
+--chart-colour        -C <R G B invgamma> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+--chart-patches       -M <M N>            : Read test chart decoding MxN patches over rows (M) and columns (N) (default M=4, N=6)
+--chart-coords        -x <x1 y1 x2 y2 x3 y3 x4 y4> : Read test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
 --black-level         -b <float>          : Camera RAW black level
 --black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
 --saturation-level    -s <float>          : Camera RAW saturation level
@@ -24,25 +24,25 @@ Usage: rango [OPTION]... [FILE]...
 
 -----------------------------------------------
 
---chart -c <DIMX W H>
-Definition: create test chart in PNG format with a specific resolution and format (default DIMX=1920, W=3, H=2)
+--chart -c <DIMX W H M N>
+Definition: create test chart in PNG format with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
 --chart-colour -C <R G B invgamma>
-Definition: range colours in test chart from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
---chart-patches -M <M N>  
-Definition: specify number of patches over rows (M) and columns (N) (default M=4, N=6)
+Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 Explanation: these options allow to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
 Usage: if absolutely no chart parameters are specified, ALL the chart creation default values will be used to produce an optimized test chart in most standard displays
 Examples (first example is default and is equivalent to not specifying the parameter):
---chart                        (output the default standard magenta patches chart)
---chart 800 4 3                (create a 800 pixels width test chart for M4/3 cameras)
---chart-colour 128 128 128 1.4 (create a soft grayscale test chart)
---chart-patches 8 12           (create a very dense 8 x 12 patches test chart)
+--chart -c                        (output the default standard magenta patches chart)
+--chart -c 800 4 3                (create a 800 pixels width test chart for M4/3 cameras)
+--chart -c 800 4 3 2 5            (create a 800 pixels width test chart for M4/3 cameras with 2 rows and 5 columns of patches)
+--chart-colour -C 128 128 128 1.4 (create a soft grayscale test chart)
 
+--chart-patches -M <M N>  
+Definition: read test chart decoding MxN patches over rows (M) and columns (N) (default M=4, N=6)
 --chart-coords -x <x1 y1 x2 y2 x3 y3 x4 y4>
-Definition: test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
-Explanation: to read patches on an arbitrarily positioned test chart when automatic corner detection fails or cannot be used 
-Examples:
---chart-coords 1 1 1 4000 6000 4000 6000 1 (test chart occupying the entire frame on a 24 Mpx camera)
+Definition: read test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
+Explanation: read patches on an arbitrarily sized or positioned test chart when automatic corner detection fails or cannot be used, or a specific number of patches were used
+--chart-patches -M 8 12 (decode a very dense 8x12 patches test chart)
+--chart-coords  -x 1 1 1 4000 6000 4000 6000 1 (decode a test chart occupying the entire frame on a 24 Mpx camera)
 
 --black-level -b <float>
 --black-file  -B <file>
@@ -52,7 +52,7 @@ Usage: the most reliable way to proceed is to capture a quick darkframe at base 
 Examples (first example is default and is equivalent to not specifying the parameter):
 --black-level -b 255       (provide a black level of 255 for the Olympus OM-1)
 --black-level -b 254.85    (provide a more precise black level of 254.85 for the Olympus OM-1)
---black-level -B black.dng (provide a darkframe RAW file so that rango calculates the black level)
+--black-file  -B black.dng (provide a darkframe RAW file so that rango calculates the black level)
 
 --saturation-level -s <float>
 --saturation-file  -S <file>
@@ -62,7 +62,7 @@ Usage: the most reliable way to proceed is to capture a completely clipped RAW f
 Examples (first example is default and is equivalent to not specifying the parameter):
 --saturation-level -s 3692    (provide a saturation level of 3692 for the Canon 5D)
 --saturation-level -s 16383   (provide a saturation level of 16383 for the Sony A7 II)
---saturation-level -S sat.dng (provide a clipped RAW file so that rango calculates the saturation level)
+--saturation-file  -S sat.dng (provide a clipped RAW file so that rango calculates the saturation level)
 
 --input-files -i <files>
 Definition: input RAW files shot over the test chart ideally for every ISO (no default, mandatory parameter)
@@ -76,54 +76,55 @@ Definition: relative patch width/height used to compute signal and noise reading
 Explanation: contamination on signal and noise readings, specially from chart blur and lens distortion, but also from screen reflections or lens vigneting, will lead to artificially increase noise measurements and hence lowering SNR values and estimated DR. To minimize this the effective area of each patch that will be used can be set: 0.5 means we're using 50% of centred patch width/height, so we're using 25% of the total chart area. Lower values will be more robust vs chart lighting non uniformity, while higher values will collect more samples providing higher statistical robustness
 Usage: by default 50% of each patch width/height centred is used. You may set any value between 0 and 1 but values far from 0.5 are not recommended
 Examples (first example is default and is equivalent to not specifying the parameter):
---patch-ratio     (50% of patch width/height centred will be used, 25% of patch area)
---patch-ratio 0.5 (50% of patch width/height centred will be used, 25% of patch area)
---patch-ratio 0.6 (60% of patch width/height centred will be used, 36% of patch area)
+--patch-ratio -r     (50% of patch width/height centred will be used, 25% of patch area)
+--patch-ratio -r 0.5 (50% of patch width/height centred will be used, 25% of patch area)
+--patch-ratio -r 0.6 (60% of patch width/height centred will be used, 36% of patch area)
 
 --snrthreshold-db -d <float>
 Definition: SNR threshold in dB for DR calculation (default=12dB "Photographic DR")
 Explanation: to determine the DR, a SNR threshold must be defined. The DR according to that criteria will be the number of stops between sensor saturation and the point at which the SNR curve falls to the specified SNR threshold. This means each threshold will yield different DR values, and they will all be correct according to that criteria
 Usage: by default the DR for both 12dB and 0dB DR values is calculated. If specified, only the specified threshold is used
 Examples (first example is default and is equivalent to not specifying the parameter):
---snrthreshold-db     (both 12dB and 0dB threshold are used)
---snrthreshold-db 12  (only a 12dB threshold is used)
---snrthreshold-db 6.5 (only a 6.5dB threshold is used)
+--snrthreshold-db -d     (only a 12dB threshold is used)
+--snrthreshold-db -d 12  (only a 12dB threshold is used)
+--snrthreshold-db -d 6.5 (only a 6.5dB threshold is used)
 
 --drnormalization-mpx -m <float>
 Definition: number of Mpx for DR normalization (default=8Mpx)
 Explanation: in order to properly and fairly compare different resolution cameras, the SNR values need to be normalized to a given output resolution before calculating the DR. This means DR figures will vary according to this resolution normalization, obtaining higher values the lower the number of Mpx specified
 Usage: by default a 8Mpx based DR is calculated. If no normalization is wanted (per-pixel DR) a value of 0 must be set for this parameter
 Examples (first example is default and is equivalent to not specifying the parameter):
---drnormalization-mpx      (DR normalized to 8Mpx)
---drnormalization-mpx 21.5 (DR normalized to 21.5Mpx)
---drnormalization-mpx 0    (no normalization, per-pixel DR)
+--drnormalization-mpx .m      (DR normalized to 8Mpx)
+--drnormalization-mpx -m 21.5 (DR normalized to 21.5Mpx)
+--drnormalization-mpx -m 0    (no normalization, per-pixel DR)
 
 --poly-fit -f <int 2-3>
 Definition: Polynomic order to fit the SNR curve (default=3)
 Explanation: the gathered (exposure, SNR) pairs need to be fitted to estimate the SNR curves. This is done through polynomial least squares fitting. For the problem under study, SNR on a digital image sensor, we found that 3rd order curves are in general preferred for increased accuracy while 2nd order are less prone to overfitting
 Usage: by default 3rd order (cubic) curves will be used to approximate the SNR response. The alternative is using 2nd order (cuadratic) curves
 Examples (first example is default and is equivalent to not specifying the parameter):
---poly-fit   (3rd order curves are used to fit the SNR curves)
---poly-fit 2 (2nd order curves are used to fit the SNR curves)
---poly-fit 3 (3rd order curves are used to fit the SNR curves)
+--poly-fit -f   (3rd order curves are used to fit the SNR curves)
+--poly-fit -f 2 (2nd order curves are used to fit the SNR curves)
+--poly-fit -f 3 (3rd order curves are used to fit the SNR curves)
 
 --output-file -o <file>
 Definition: output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
 Explanation: in a CSV text file chosen by the user all the relevant variables will be output: black level, sat level, SNR samples, DR values, fitting params
 Usage: by default the data will be output on a "results.csv" file, which the user can change at convenience
 Examples (first example is default and is equivalent to not specifying the parameter):
---output-file                    (output results to "results.csv")
---output-file results_ep5.csv    (output results to "results_ep5.csv")
---output-file results_sonya7.csv (output results to "results_sonya7.csv")
+--output-file -o                    (output results to "results.csv")
+--output-file -o results_ep5.csv    (output results to "results_ep5.csv")
+--output-file -o results_sonya7.csv (output results to "results_sonya7.csv")
 
 --plot -p <int 0-3>
 Definition: export SNR curves plot in PNG format with/without the CLI command that generated them (default=0, don't plot)
 Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows). In order to export these SNR curves in PNG format a 1-2 parameter must be set
 Usage: by default no plot export is performed. 1 will export the SNR curves alone in PNG format, 2 and 3 will add the specific CLI commmand (no filenames) that generated the curves
 Examples (first example is default and is equivalent to not specifying the parameter):
---plot   (no plot export)
---plot 1 (plot export of SNR curves in PNG format without CLI command)
---plot 2 (plot export of SNR curves in PNG format adding CLI command)
+--plot -p   (no plot export)
+--plot -p 1 (plot export of SNR curves in PNG format without CLI command)
+--plot -p 2 (plot export of SNR curves in PNG format adding CLI command)
+
 
 
 
