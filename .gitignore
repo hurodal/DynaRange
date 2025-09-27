@@ -5,6 +5,7 @@ DynRange.geany
 rango.sublime-workspace
 
 # Ignorar ejecutables
+sources.sh
 dynaRange.exe
 rango.exe
 dynaRangeGui.exe
