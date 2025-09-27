@@ -635,7 +635,8 @@ print(DR_df)
 
 
 
-############################
+#######################################
+# Polynomic fitting
 
 # Create (x,y) samples
 set.seed(100)
@@ -692,11 +693,10 @@ lines(xbkd, ybkd, col="blue", lwd=1)
 ################################
 # (Exposicion,SNR) example
 
+# Data: (Exposicion, SNR) pairs
 set.seed(10)
-
-# Data
-Exposicion <- 1:10-12 + rnorm(length(x), sd=0.15)
-SNR <- (2000-(15-x)^3 + rnorm(length(x), sd=80))/100  # noisy cubic data
+Exposicion <- 1:10-12 + rnorm(10, sd=0.15)
+SNR <- (15000-(15-Exposicion)^3 + rnorm(10, sd=80))/400  # noisy cubic data
 plot(Exposicion, SNR)
 
 # Fit cubic polynomial: Exposicion=f(SNR)
