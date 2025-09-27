@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-27 14:58+0200\n"
+"POT-Creation-Date: 2025-09-27 19:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -100,7 +100,7 @@ msgid "256.0"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:64 src/core/graphics/Plotting.cpp:117
-#: src/core/graphics/Plotting.cpp:196
+#: src/core/graphics/Plotting.cpp:195
 msgid "Saturation"
 msgstr ""
 
@@ -656,11 +656,11 @@ msgstr ""
 msgid "Patches"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:147 src/core/io/OutputWriter.cpp:52
+#: src/core/engine/Reporting.cpp:147 src/core/io/OutputWriter.cpp:57
 msgid "Error: Could not open CSV file for writing: "
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:168 src/core/io/OutputWriter.cpp:71
+#: src/core/engine/Reporting.cpp:168 src/core/io/OutputWriter.cpp:76
 msgid "Results saved to "
 msgstr ""
 
@@ -716,7 +716,7 @@ msgstr ""
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:116 src/core/graphics/Plotting.cpp:195
+#: src/core/graphics/Plotting.cpp:116 src/core/graphics/Plotting.cpp:194
 msgid "Black"
 msgstr ""
 
@@ -724,19 +724,19 @@ msgstr ""
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:160
+#: src/core/graphics/Plotting.cpp:159
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:169
+#: src/core/graphics/Plotting.cpp:168
 msgid "  - Error: Failed to create cairo context for summary plot."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:199
+#: src/core/graphics/Plotting.cpp:198
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/io/OutputWriter.cpp:38
+#: src/core/io/OutputWriter.cpp:43
 msgid "  - Info: Plot saved to: "
 msgstr ""
 

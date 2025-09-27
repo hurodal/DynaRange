@@ -20,7 +20,8 @@ std::string GenerateCsvDataRow(const DynamicRangeResult& res, const ProgramOptio
     row_ss << filename;
 
     for (const double threshold : opts.snr_thresholds_db) {
-        double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
+        double value = res.dr_values_ev.count(threshold) ?
+ res.dr_values_ev.at(threshold) : 0.0;
         row_ss << "," << std::fixed << std::setprecision(4) << value;
     }
     row_ss << "," << res.patches_used;
@@ -31,9 +32,13 @@ std::string GenerateCsvDataRow(const DynamicRangeResult& res, const ProgramOptio
 
 namespace OutputWriter {
 
+// This function existed previously and has been modified.
 bool WritePng(cairo_surface_t* surface, const fs::path& path, std::ostream& log_stream) {
     if (!surface) return false;
-    cairo_status_t status = cairo_surface_write_to_png(surface, path.c_str());
+    // MODIFIED: Use path.string().c_str() for cross-platform compatibility.
+    // This converts the path to a std::string (using char) before getting the C-style string,
+    // which resolves the wchar_t* vs char* conflict on Windows.
+    cairo_status_t status = cairo_surface_write_to_png(surface, path.string().c_str());
     if (status == CAIRO_STATUS_SUCCESS) {
         log_stream << _("  - Info: Plot saved to: ") << path.string() << std::endl;
         return true;

@@ -107,11 +107,11 @@ void GenerateSnrPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    // --- CAMBIO: Crear y poblar el PlotInfoBox ---
+    // Create and populate the PlotInfoBox
     PlotInfoBox info_box;
     std::stringstream black_ss, sat_ss, patch_ss;
-    black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
-    sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
+    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;      // MODIFIED: Precision set to 2
+    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value; // MODIFIED: Precision set to 2
     patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
     info_box.AddItem(_("Black"), black_ss.str());
     info_box.AddItem(_("Saturation"), sat_ss.str());
@@ -131,7 +131,7 @@ void GenerateSnrPlot(
         opts.generated_command
     }};
     
-    // Pasar el info_box a la función de dibujo de datos
+    // Pass the info_box to the data drawing function
     DrawCurvesAndData(cr, info_box, single_curve_vec, bounds);
     
     // Draw timestamp in bottom-left corner
@@ -141,7 +141,6 @@ void GenerateSnrPlot(
     OutputWriter::WritePng(surface, output_filename, log_stream);
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-    //log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
 }
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -190,8 +189,8 @@ std::optional<std::string> GenerateSummaryPlot(
     // Create and populate the PlotInfoBox
     PlotInfoBox info_box;
     std::stringstream black_ss, sat_ss;
-    black_ss << std::fixed << std::setprecision(1) << opts.dark_value;
-    sat_ss << std::fixed << std::setprecision(1) << opts.saturation_value;
+    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;      // MODIFIED: Precision set to 2
+    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value; // MODIFIED: Precision set to 2
     info_box.AddItem(_("Black"), black_ss.str());
     info_box.AddItem(_("Saturation"), sat_ss.str());
     
@@ -200,7 +199,7 @@ std::optional<std::string> GenerateSummaryPlot(
     
     // The command to print on the plot is the one stored with the curve data.
     // It's the same for all curves, so we can take it from the first one.
-    std::string command_to_print = all_curves[0].generated_command;
+    std::string command_to_print = all_curves.empty() ? "" : all_curves[0].generated_command;
     DrawPlotBase(cr, title, opts, bounds, command_to_print, opts.snr_thresholds_db);
 
     // Pass the info_box to the data drawing function
