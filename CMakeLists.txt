@@ -58,7 +58,6 @@ set(CORE_SOURCES
     src/core/analysis/RawProcessor.cpp
     src/core/arguments/ArgumentManager.cpp
     src/core/arguments/ChartOptionsParser.cpp
-    src/core/ChartProfile.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/Processing.cpp
@@ -73,6 +72,7 @@ set(CORE_SOURCES
     src/core/io/OutputWriter.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
+    src/core/setup/ChartProfile.cpp
     src/core/setup/FileSorter.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp

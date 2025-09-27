@@ -6,9 +6,8 @@
 #pragma once
 
 #include "../io/RawFile.hpp"
-#include "../ChartProfile.hpp"
+#include "../setup/ChartProfile.hpp"
 #include "../arguments/ProgramOptions.hpp"
-#include <vector>
 #include <opencv2/core.hpp>
 #include <Eigen/Dense>
 

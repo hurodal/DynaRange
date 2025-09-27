@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <opencv2/core.hpp>
-#include "arguments/ProgramOptions.hpp" // Needed for the constructor
+#include "../arguments/ProgramOptions.hpp" // Needed for the constructor
 
 /**
  * @class ChartProfile

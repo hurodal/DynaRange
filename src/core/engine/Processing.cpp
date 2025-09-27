@@ -6,7 +6,7 @@
 #include "Processing.hpp"
 #include "../io/RawFile.hpp"
 #include "../graphics/ImageProcessing.hpp"
-#include "../ChartProfile.hpp"
+#include "../setup/ChartProfile.hpp"
 #include "../analysis/ImageAnalyzer.hpp"
 #include <filesystem>
 #include <iostream>
