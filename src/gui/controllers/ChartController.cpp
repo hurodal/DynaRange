@@ -19,6 +19,12 @@ ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
     // This is the key to fixing the initial layout.
     m_frame->rightColChartPanel->Bind(wxEVT_SIZE, &ChartController::OnRightPanelSize, this);
 
+    // Explicitly set the bitmap to a default valid (but empty) state.
+    // This overrides any hardcoded relative path from the UI designer (wxFormBuilder)
+    // that would fail when running from a portable directory, preventing the
+    // "invalid bitmap" assertion failure on tab switch.
+    m_frame->m_chartPreviewBitmap->SetBitmap(wxBitmap());
+
     // Set initial values on UI controls from default options
     auto default_opts = ParseChartOptions(ProgramOptions(), std::cerr);
     if (default_opts) {
