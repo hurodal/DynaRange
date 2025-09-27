@@ -4,7 +4,7 @@
  * @brief Implements the low-level Cairo drawing functions for the dynamic plot data.
  */
 #include "PlotData.hpp"
-#include "PlotBase.hpp" // <-- Ahora incluye PlotBase.hpp, que contiene MapToPixelCoords
+#include "PlotBase.hpp" 
 #include "Colour.hpp" 
 #include "../math/Math.hpp"
 #include <cmath>
@@ -19,14 +19,7 @@
 // Anonymous namespace for helper functions in this file
 namespace { 
 
-/**
- * @brief Draws a single SNR curve (polynomial fit) for one curve.
- * @param cr The Cairo context.
- * @param curve The curve data (coefficients, EV, dB).
- * @param bounds Plot boundaries.
- */
 void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
-    // Si no hay datos, no dibujamos nada para esta curva.
     if (curve.snr_db.empty()) {
         return;
     }
@@ -37,40 +30,27 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     PlotColors::cairo_set_source_red(cr);
     cairo_set_line_width(cr, 2.0);
 
-    // 1. Obtenemos el rango real de los datos de EV para ESTA curva.
-    auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
-    double min_ev_data = *min_max_ev.first;
-    double max_ev_data = *min_max_ev.second;
+    // Get the min/max range of the SNR data for this curve.
+    auto min_max_snr = std::minmax_element(curve.snr_db.begin(), curve.snr_db.end());
+    double min_snr_data = *min_max_snr.first;
+    double max_snr_data = *min_max_snr.second;
 
-    // 2. Calculamos el punto de inicio de la curva en el límite inferior de los datos.
-    double start_snr_poly = 0.0;
-    for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
-        start_snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(min_ev_data, curve.poly_coeffs.rows - 1 - j);
-    }
-    auto [start_x, start_y] = map_coords(min_ev_data, start_snr_poly);
+    // Evaluate the starting point of the curve.
+    double start_ev_poly = EvaluatePolynomial(curve.poly_coeffs, min_snr_data);
+    auto [start_x, start_y] = map_coords(start_ev_poly, min_snr_data);
     cairo_move_to(cr, start_x, start_y);
 
-    // 3. Iteramos únicamente dentro del rango de los datos reales.
-    for (double ev = min_ev_data; ev <= max_ev_data; ev += 0.1) {
-        double snr_poly = 0.0;
-        // Evalúa el polinomio SNR = f(EV)
-        for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
-            snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(ev, curve.poly_coeffs.rows - 1 - j);
-        }
-        auto [px, py] = map_coords(ev, snr_poly);
+    // Iterate over the SNR range to draw the curve EV = f(SNR_dB).
+    for (double snr_db = min_snr_data; snr_db <= max_snr_data; snr_db += 0.1) {
+        // Evaluate the polynomial EV = f(SNR_dB)
+        double ev_poly = EvaluatePolynomial(curve.poly_coeffs, snr_db);
+        auto [px, py] = map_coords(ev_poly, snr_db);
         cairo_line_to(cr, px, py);
     }
     cairo_stroke(cr);
 }
 
-/**
- * @brief Draws all data points (blue circles) for one curve.
- * @param cr The Cairo context.
- * @param curve The curve data (EV, dB).
- * @param bounds Plot boundaries.
- */
 void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
@@ -83,14 +63,7 @@ void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::str
     }
 }
 
-/**
- * @brief Draws the curve label (e.g., "ISO 200") near the end of the curve.
- * @param cr The Cairo context.
- * @param curve The curve data.
- * @param bounds Plot boundaries.
- */
 void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
@@ -104,15 +77,7 @@ void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::str
     cairo_show_text(cr, label.c_str());
 }
 
-/**
- * @brief Draws an intersection point with a given SNR threshold and its label.
- * @param cr The Cairo context.
- * @param curve The curve data.
- * @param bounds Plot boundaries.
- * @param threshold_db The SNR threshold in dB to find the intersection for.
- * @param label_prefix Text prefix for the label ("12dB" or "0dB").
- * @param draw_above Flag to alternate label position (up/down).
- */
+// This function existed previously and has been modified.
 void DrawThresholdIntersection(
     cairo_t* cr,
     const CurveData& curve,
@@ -121,22 +86,27 @@ void DrawThresholdIntersection(
     const char* label_prefix,
     bool& draw_above)
 {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
+
+    // Directly calculate EV from the polynomial EV = f(SNR_dB).
+    double ev_at_threshold = EvaluatePolynomial(curve.poly_coeffs, threshold_db);
+    
+    // Check if the calculated EV is within the data's original range to avoid extrapolation artifacts.
     auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
-    double min_ev = *min_max_ev.first;
-    double max_ev = *min_max_ev.second;
-    // --- CORRECCIÓN CLAVE: Usar FindIntersectionEV directamente ---
-    auto ev_opt = FindIntersectionEV(curve.poly_coeffs, threshold_db, min_ev, max_ev);
-    if (!ev_opt) return;
+    if (ev_at_threshold < *min_max_ev.first || ev_at_threshold > *min_max_ev.second) {
+        return; // Don't draw intersection if it's outside the data range.
+    }
+    
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << *ev_opt << "EV";
-    auto [px, py] = map_coords(*ev_opt, threshold_db);
-    // Alternate label position vertically
+    ss << std::fixed << std::setprecision(2) << ev_at_threshold << "EV";
+    auto [px, py] = map_coords(ev_at_threshold, threshold_db);
+
+    // Alternate label position vertically and horizontally
     double offset_x = draw_above ? 25.0 : 15.0;
     double offset_y = draw_above ? -10.0 : 15.0;
+
     // Label text: Black
     PlotColors::cairo_set_source_black(cr);
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
@@ -148,25 +118,23 @@ void DrawThresholdIntersection(
 
 } // end of anonymous namespace
 
-// ================== PUBLIC FUNCTION ==================
 void DrawCurvesAndData(
     cairo_t* cr,
     const PlotInfoBox& info_box,
     const std::vector<CurveData>& curves,
     const std::map<std::string, double>& bounds)
 {
-    // Dibuja la caja de información primero
     info_box.Draw(cr);
-    // Using a boolean to alternate is simpler and more robust.
     bool draw_above_12db = true;
     bool draw_above_0db = true;
     for (const auto& curve : curves) {
         if (curve.signal_ev.empty()) continue;
-        // Draw each component separately
+        
         DrawCurve(cr, curve, bounds);
         DrawDataPoints(cr, curve, bounds);
         DrawCurveLabel(cr, curve, bounds);
-        // Draw threshold intersections
+        
+        // Draw threshold intersections for default thresholds if they exist
         DrawThresholdIntersection(cr, curve, bounds, 12.0, "12dB", draw_above_12db);
         DrawThresholdIntersection(cr, curve, bounds, 0.0, "0dB", draw_above_0db);
     }

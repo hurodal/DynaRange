@@ -6,7 +6,15 @@
 #pragma once
 #include <opencv2/core.hpp>
 #include <vector>
-#include <optional>
+
+/**
+ * @brief Evaluates a polynomial at a given point.
+ * @param coeffs A cv::Mat (CV_64F) of size (order+1)x1 containing the polynomial coefficients.
+ * @param x The value at which to evaluate the polynomial.
+ * @return The calculated value of the polynomial P(x).
+ */
+double EvaluatePolynomial(const cv::Mat& coeffs, double x);
+
 /**
  * @brief Fits a polynomial of a specified order to a set of 2D points.
  * @param src_x A cv::Mat (CV_64F) of size Nx1 containing the x-coordinates.
@@ -15,23 +23,14 @@
  * @param order The order of the polynomial to fit.
  */
 void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order);
-/**
- * @brief Finds the x-value (EV) where a polynomial curve intersects a target y-value (SNR).
- * @details Solves the equation P(x) = target_snr_db for x within a given range.
- * Supports quadratic (order 2) and cubic (order 3) polynomials.
- * @param coeffs The polynomial coefficients, as calculated by PolyFit.
- * @param target_snr_db The target SNR value in dB to find the intersection for.
- * @param min_ev The minimum bound of the search range for the EV value.
- * @param max_ev The maximum bound of the search range for the EV value.
- * @return An optional containing the EV value at the intersection, or std::nullopt if not found.
- */
-std::optional<double> FindIntersectionEV(const cv::Mat& coeffs, double target_snr_db, double min_ev, double max_ev);
+
 /**
  * @brief Calculates the arithmetic mean of a vector of doubles.
  * @param data The vector of numbers.
  * @return The calculated mean, or 0.0 if the vector is empty.
  */
 double CalculateMean(const std::vector<double>& data);
+
 /**
  * @brief Calculates a specific quantile from a vector of doubles.
  * @param data The vector of numbers. Note: This vector may be reordered by the function.
