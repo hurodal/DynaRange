@@ -65,7 +65,7 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
-    src/core/graphics/ImageProcessing.cpp # <-- LÍNEA DUPLICADA ELIMINADA
+    src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
     src/core/graphics/PlotInfoBox.cpp
@@ -88,7 +88,6 @@ add_executable(rango
     src/cli/rango.cpp
     ${CORE_SOURCES}
 )
-# CORRECCIÓN 1: Añadir el fichero de recursos de forma condicional
 if(WIN32)
     target_sources(rango PRIVATE assets/windows/icono_owl.rc)
 endif()
@@ -98,6 +97,7 @@ target_include_directories(rango PRIVATE
     ${LIBRAW_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
@@ -119,7 +119,6 @@ add_executable(dynaRangeGui WIN32
     src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
 )
-# CORRECCIÓN 1: Añadir el fichero de recursos de forma condicional
 if(WIN32)
     target_sources(dynaRangeGui PRIVATE assets/windows/icono_noise.rc)
 endif()
@@ -130,6 +129,7 @@ target_include_directories(dynaRangeGui PRIVATE
     ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
