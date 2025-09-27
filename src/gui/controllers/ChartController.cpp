@@ -19,11 +19,11 @@ ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
     // This is the key to fixing the initial layout.
     m_frame->rightColChartPanel->Bind(wxEVT_SIZE, &ChartController::OnRightPanelSize, this);
 
-    // Explicitly set the bitmap to a default valid (but empty) state.
-    // This overrides any hardcoded relative path from the UI designer (wxFormBuilder)
-    // that would fail when running from a portable directory, preventing the
-    // "invalid bitmap" assertion failure on tab switch.
-    m_frame->m_chartPreviewBitmap->SetBitmap(wxBitmap());
+    // MODIFIED: Load the logo as the default image for the preview panel.
+    // This ensures the wxStaticBitmap always has a valid image upon creation,
+    // definitively solving the "invalid bitmap" error on Windows when switching
+    // to this tab. The logo will be replaced when the user clicks "Preview".
+    m_thumbnailViewer->ShowLogo();
 
     // Set initial values on UI controls from default options
     auto default_opts = ParseChartOptions(ProgramOptions(), std::cerr);

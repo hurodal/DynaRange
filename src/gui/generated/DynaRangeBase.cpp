@@ -690,7 +690,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	rightColChartPanel->SetSizer( chartPreviewImageSizer );
 	rightColChartPanel->Layout();
 	chartPreviewImageSizer->Fit( rightColChartPanel );
-	m_splitterChart->SplitVertically( leftColChartPanel, rightColChartPanel, 0 );
+	m_splitterChart->SplitVertically( leftColChartPanel, rightColChartPanel, 450 );
 	bSizer21->Add( m_splitterChart, 1, wxEXPAND, 5 );
 
 

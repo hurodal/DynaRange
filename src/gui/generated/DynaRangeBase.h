@@ -149,7 +149,7 @@ class MyFrameBase : public wxFrame
 
 		void m_splitterChartOnIdle( wxIdleEvent& )
 		{
-			m_splitterChart->SetSashPosition( 0 );
+			m_splitterChart->SetSashPosition( 450 );
 			m_splitterChart->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterChartOnIdle ), NULL, this );
 		}
 
