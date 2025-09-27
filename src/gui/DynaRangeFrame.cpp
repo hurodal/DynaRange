@@ -19,10 +19,6 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
-
-// File: src/gui/DynaRangeFrame.cpp
-
-// This function already existed and is now updated.
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
 {
     // --- Create Controllers for each tab ---
@@ -71,6 +67,16 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_chartDimHValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
+
+    // --- Bind Chart Coordinate Events from Input Tab ---
+    m_coordX1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordY1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordX2Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordY2Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordX3Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordY3Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordX4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    m_coordY4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
@@ -159,7 +165,9 @@ double DynaRangeFrame::GetDrNormalization() const { return m_inputController->Ge
 int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrder(); }
 int DynaRangeFrame::GetPlotMode() const { return m_inputController->GetPlotMode(); }
 std::vector<std::string> DynaRangeFrame::GetInputFiles() const { return m_inputController->GetInputFiles(); }
-
+std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_inputController->GetChartCoords(); }
+int DynaRangeFrame::GetChartPatchesM() const { return m_chartController->GetChartPatchesM(); }
+int DynaRangeFrame::GetChartPatchesN() const { return m_chartController->GetChartPatchesN(); }
 
 // =============================================================================
 // EVENT HANDLERS

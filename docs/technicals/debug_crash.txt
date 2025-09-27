@@ -1,0 +1,14 @@
+Compilar con:
+
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug 
+cmake --build build
+
+Depurar punto de ruptura con:
+
+gdb ./build/bin/dynaRangeGui
+catch throw
+run
+say 'no' to download libraries (very long)
+bt
+
+quit y salir

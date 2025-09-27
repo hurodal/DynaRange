@@ -38,10 +38,14 @@ public:
 
     /// @brief Gets the number of patch rows in the chart grid.
     int GetGridRows() const;
+    
+    /// @brief Checks if the profile was constructed with user-provided coordinates.
+    bool HasManualCoords() const;
 
 private:
     std::vector<cv::Point2d> m_corner_points;      ///< Source points for keystone.
     std::vector<cv::Point2d> m_destination_points; ///< Destination points for keystone.
     int m_grid_cols;                               ///< Number of columns of patches.
     int m_grid_rows;                               ///< Number of rows of patches.
+    bool m_has_manual_coords = false;              ///< True if user-provided coords were used.
 };

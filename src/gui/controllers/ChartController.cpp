@@ -1,4 +1,4 @@
-// File: gui/controllers/ChartController.cpp
+// File: src/gui/controllers/ChartController.cpp
 /**
  * @file gui/controllers/ChartController.cpp
  * @brief Implements the ChartController class.
@@ -11,7 +11,6 @@
 #include "../../core/utils/PathManager.hpp"
 #include <wx/msgdlg.h>
 
-// This function already existed and is now updated.
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
     m_thumbnailViewer = std::make_unique<ImageViewer>(m_frame->m_chartPreviewBitmap);
@@ -40,19 +39,16 @@ ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 
 ChartController::~ChartController() = default;
 
-ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
-    ChartGeneratorOptions opts{};
-    opts.R = m_frame->m_rParamSlider->GetValue();
-    opts.G = m_frame->m_gParamSlider->GetValue();
-    opts.B = m_frame->m_bParamSlider->GetValue();
-    m_frame->m_InvGammaValue->GetValue().ToDouble(&opts.invgamma);
-    long temp_val;
-    m_frame->m_chartDimXValue->GetValue().ToLong(&temp_val); opts.dim_x = temp_val;
-    m_frame->m_chartDimWValue->GetValue().ToLong(&temp_val); opts.aspect_w = temp_val;
-    m_frame->m_chartDimHValue->GetValue().ToLong(&temp_val); opts.aspect_h = temp_val;
-    m_frame->m_chartPatchRowValue->GetValue().ToLong(&temp_val); opts.patches_m = temp_val;
-    m_frame->m_chartPatchColValue->GetValue().ToLong(&temp_val); opts.patches_n = temp_val;
-    return opts;
+int ChartController::GetChartPatchesM() const {
+    long value = 0;
+    m_frame->m_chartPatchRowValue->GetValue().ToLong(&value);
+    return static_cast<int>(value);
+}
+
+int ChartController::GetChartPatchesN() const {
+    long value = 0;
+    m_frame->m_chartPatchColValue->GetValue().ToLong(&value);
+    return static_cast<int>(value);
 }
 
 void ChartController::OnPreviewClick(wxCommandEvent& event) {
@@ -91,7 +87,21 @@ void ChartController::OnInputChanged(wxCommandEvent& event) {
     // This can be used later to trigger live preview if desired.
 }
 
-// It replicates the logic from ResultsController to fix the initial layout issue.
+ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
+    ChartGeneratorOptions opts{};
+    opts.R = m_frame->m_rParamSlider->GetValue();
+    opts.G = m_frame->m_gParamSlider->GetValue();
+    opts.B = m_frame->m_bParamSlider->GetValue();
+    m_frame->m_InvGammaValue->GetValue().ToDouble(&opts.invgamma);
+    long temp_val;
+    m_frame->m_chartDimXValue->GetValue().ToLong(&temp_val); opts.dim_x = temp_val;
+    m_frame->m_chartDimWValue->GetValue().ToLong(&temp_val); opts.aspect_w = temp_val;
+    m_frame->m_chartDimHValue->GetValue().ToLong(&temp_val); opts.aspect_h = temp_val;
+    opts.patches_m = GetChartPatchesM();
+    opts.patches_n = GetChartPatchesN();
+    return opts;
+}
+
 void ChartController::OnRightPanelSize(wxSizeEvent& event) {
     // Schedule the update for the next event cycle. This ensures the panel's
     // layout has finished calculating and the image is repainted correctly.

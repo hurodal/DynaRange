@@ -12,7 +12,6 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
     const double patch_height = (double)imgcrop.rows / NROWS;
     const double safe_x = patch_width * (1.0 - patch_ratio) / 2.0;
     const double safe_y = patch_height * (1.0 - patch_ratio) / 2.0;
-
     for (int j = 0; j < NROWS; ++j) {
         for (int i = 0; i < NCOLS; ++i) {
             int x1 = round((double)i * patch_width + safe_x);
@@ -26,6 +25,7 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
             cv::Scalar mean, stddev;
             cv::meanStdDev(patch, mean, stddev);
             double S = mean[0], N = stddev[0];
+            
             int sat_count = cv::countNonZero(patch > 0.9);
             double sat_ratio = (double)sat_count / (patch.rows * patch.cols);
 

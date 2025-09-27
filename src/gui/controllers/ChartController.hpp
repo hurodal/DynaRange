@@ -23,6 +23,10 @@ public:
     void OnCreateClick(wxCommandEvent& event);
     void OnColorSliderChanged(wxCommandEvent& event);
     void OnInputChanged(wxCommandEvent& event);
+
+    int GetChartPatchesM() const; // Rows
+    int GetChartPatchesN() const; // Cols
+
 private:
     /**
      * @brief Reads all chart-related controls from the UI and creates an options struct.

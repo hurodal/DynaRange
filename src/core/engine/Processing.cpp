@@ -12,6 +12,7 @@
 #include <iostream>
 #include <atomic>
 #include <libintl.h>
+#include <opencv2/imgcodecs.hpp>
 
 #define _(string) gettext(string)
 
@@ -19,6 +20,7 @@ namespace fs = std::filesystem;
 
 // Anonymous namespace for internal helper functions.
 namespace {
+
 
 /**
  * @brief Loads a list of RAW file paths into RawFile objects.
@@ -57,27 +59,57 @@ SingleFileResult AnalyzeSingleRawFile(
     double camera_resolution_mpx)
 {
     log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
-    // 1. Call ImageProcessing module to prepare the image
-    cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
-    if (img_prepared.empty()) {
+    // 1. Get the normalized image directly from the RawFile
+    cv::Mat img_float = raw_file.GetNormalizedImage(opts.dark_value, opts.saturation_value);
+    if (img_float.empty()) {
+        log_stream << _("Error: Could not get normalized image for: ") << raw_file.GetFilename() << std::endl;
         return {};
     }
 
-    // 2. Call Analysis module to find patches
-    PatchAnalysisResult patch_data = AnalyzePatches(img_prepared.clone(), chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
+    // Extract the R channel (Bayer pattern)
+    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
+    for (int r = 0; r < imgBayer.rows; ++r) {
+        for (int c = 0; c < imgBayer.cols; ++c) {
+            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
+        }
+    }
+
+    // Apply keystone correction
+    cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
+
+    // Use the simple cropping logic from the old, working version to ensure identical results.
+    const auto& dst_pts = chart.GetDestinationPoints();
+    double xtl = dst_pts[0].x;
+    double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x;
+    double ybr = dst_pts[2].y;
+
+    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
+    
+    // Validate crop area before attempting to crop
+    if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
+        crop_area.x + crop_area.width > img_corrected.cols ||
+        crop_area.y + crop_area.height > img_corrected.rows) {
+        log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
+        return {};
+    }
+
+    cv::Mat img_cropped = img_corrected(crop_area);
+
+    // 2. Call Analysis module to find patches on the correctly cropped image
+    PatchAnalysisResult patch_data = AnalyzePatches(img_cropped, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
     if (patch_data.signal.empty()) {
         log_stream << _("Warning: No valid patches found for ") << raw_file.GetFilename() << std::endl;
         return {};
     }
 
-    // 3. Call Analysis module to perform calculations, now passing the camera resolution
+    // 3. Call Analysis module to perform calculations
     auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
     
     // 4. Assign the correct plot label from the map populated in the setup phase
     if(opts.plot_labels.count(raw_file.GetFilename())) {
         curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
     } else {
-        // Fallback in case something goes wrong
         curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
     }
     

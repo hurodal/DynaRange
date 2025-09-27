@@ -8,6 +8,7 @@
 #include <wx/filename.h>
 #include <filesystem>
 #include <algorithm> // For std::min
+#include <wx/dcgraph.h> // For wxGCDC Sharper preview
 
 namespace fs = std::filesystem;
 

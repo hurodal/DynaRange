@@ -5,10 +5,10 @@
  */
 #include "ArgumentManager.hpp"
 #include <CLI/CLI.hpp>
-#include <sstream>
-#include <iomanip>
 #include <filesystem>
+#include <iomanip>
 #include <libintl.h>
+#include <sstream>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -22,7 +22,8 @@ namespace fs = std::filesystem;
 namespace { // Anonymous namespace for internal helpers
 
 // Expands a single file pattern on Windows.
-void expand_single_wildcard(const std::string& pattern, std::vector<std::string>& expanded_files) {
+void expand_single_wildcard(const std::string& pattern, std::vector<std::string>& expanded_files)
+{
     WIN32_FIND_DATAA find_data;
     HANDLE h_find = FindFirstFileA(pattern.c_str(), &find_data);
     if (h_find != INVALID_HANDLE_VALUE) {
@@ -39,7 +40,8 @@ void expand_single_wildcard(const std::string& pattern, std::vector<std::string>
 }
 
 // Processes a list of file arguments and expands any that contain wildcards.
-std::vector<std::string> expand_wildcards_on_windows(const std::vector<std::string>& files) {
+std::vector<std::string> expand_wildcards_on_windows(const std::vector<std::string>& files)
+{
     std::vector<std::string> result_files;
     for (const auto& file_arg : files) {
         // An argument is a pattern if it contains '*' or '?'.
@@ -57,12 +59,14 @@ std::vector<std::string> expand_wildcards_on_windows(const std::vector<std::stri
 
 // --- ArgumentManager Implementation ---
 
-ArgumentManager& ArgumentManager::Instance() {
+ArgumentManager& ArgumentManager::Instance()
+{
     static ArgumentManager instance;
     return instance;
 }
 
-ArgumentManager::ArgumentManager() {
+ArgumentManager::ArgumentManager()
+{
     RegisterAllArguments();
     // Populate the values map with defaults immediately upon creation.
     for (const auto& [name, desc] : m_descriptors) {
@@ -89,9 +93,9 @@ void ArgumentManager::RegisterAllArguments() {
     // Chart arguments
     m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
-    m_descriptors["chart-patches"] = {"chart-patches", "M", _("specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
     m_descriptors["chart-coords"] = {"chart-coords", "x", _("Test chart defined by 4 corners: tl, bl, br, tr"), ArgType::DoubleVector, std::vector<double>()};
+    m_descriptors["chart-patches"] = {"chart-patches", "M", _("Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
 
     m_is_registered = true;
 }
@@ -107,10 +111,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     // Bind all options with correct short names
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(3);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
-    auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches_params, m_descriptors.at("chart-patches").help_text)->expected(2);
-    // Add the new option to the CLI parser, expecting exactly 8 values.
-    auto chart_coords_opt = app.add_option("-x,--chart-coords", temp_opts.chart_coords, m_descriptors.at("chart-coords").help_text)->expected(8);
-    
+    auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches, m_descriptors.at("chart-patches").help_text)->expected(2);
+    auto chart_coords_opt = app.add_option("-x,--chart-coords", temp_opts.chart_coords, m_descriptors.at("chart-coords").help_text)->expected(8);    
     auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text);
     auto black_file_opt = app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
     auto black_level_opt = app.add_option("-b,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
@@ -137,7 +139,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (chart_opt->count() > 0 || chart_colour_opt->count() > 0 || chart_patches_opt->count() > 0) {
         temp_opts.create_chart_mode = true;
     }
-
+    
     // If not in chart mode, input files are required
     if (!temp_opts.create_chart_mode) {
         input_opt->required();
@@ -149,15 +151,13 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     } catch (const CLI::ParseError &e) {
         exit(app.exit(e));
     }
-
+    
     // --- Update internal values map ---
     m_values["create-chart-mode"] = temp_opts.create_chart_mode;
     if (chart_opt->count() > 0) m_values["chart"] = temp_opts.chart_params;
     if (chart_colour_opt->count() > 0) m_values["chart-colour"] = temp_opts.chart_colour_params;
-    if (chart_patches_opt->count() > 0) m_values["chart-patches"] = temp_opts.chart_patches_params;
-    // Store the new coordinates if provided.
+    if (chart_patches_opt->count() > 0) m_values["chart-patches"] = temp_opts.chart_patches;
     if (chart_coords_opt->count() > 0) m_values["chart-coords"] = temp_opts.chart_coords;
-    
     if (black_file_opt->count() > 0) m_values["black-file"] = temp_opts.dark_file_path;
     if (black_level_opt->count() > 0) m_values["black-level"] = temp_opts.dark_value;
     if (sat_file_opt->count() > 0) m_values["saturation-file"] = temp_opts.sat_file_path;
@@ -176,22 +176,14 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     }
 }
 
-
-void ArgumentManager::Set(const std::string& long_name, std::any value) {
-    if (m_descriptors.count(long_name)) {
-        m_values[long_name] = std::move(value);
-    }
-}
-
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
     
     opts.create_chart_mode = Get<bool>("create-chart-mode");
     opts.chart_params = Get<std::vector<int>>("chart");
     opts.chart_colour_params = Get<std::vector<std::string>>("chart-colour");
-    opts.chart_patches_params = Get<std::vector<int>>("chart-patches");
     opts.chart_coords = Get<std::vector<double>>("chart-coords");
-    
+    opts.chart_patches = Get<std::vector<int>>("chart-patches");    
     opts.dark_value = Get<double>("black-level");
     opts.saturation_value = Get<double>("saturation-level");
     opts.dark_file_path = Get<std::string>("black-file");
@@ -212,7 +204,16 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     return opts;
 }
 
-std::string ArgumentManager::GenerateCommand(CommandFormat format) {
+
+void ArgumentManager::Set(const std::string& long_name, std::any value)
+{
+    if (m_descriptors.count(long_name)) {
+        m_values[long_name] = std::move(value);
+    }
+}
+
+std::string ArgumentManager::GenerateCommand(CommandFormat format)
+{
     std::stringstream command_ss;
     command_ss << "rango";
 
@@ -222,7 +223,7 @@ std::string ArgumentManager::GenerateCommand(CommandFormat format) {
         const auto& value = m_values.at(name);
         // Short names are used only for the PlotShort format. All others use long names.
         bool use_short = (format == CommandFormat::PlotShort);
-        
+
         command_ss << " " << (use_short ? "-" + desc.short_name : "--" + desc.long_name);
 
         // For flags, no value is added. For others, it is.
@@ -254,8 +255,7 @@ std::string ArgumentManager::GenerateCommand(CommandFormat format) {
     } else {
         add_arg("saturation-level");
     }
-    
-    // The output file is only relevant for the full, non-plot command
+
     if (format == CommandFormat::Full) {
         add_arg("output-file");
     }
@@ -269,17 +269,23 @@ std::string ArgumentManager::GenerateCommand(CommandFormat format) {
     add_arg("patch-ratio");
     add_arg("plot");
 
-    // The 'input-files' argument is now only added for the Full and GuiPreview formats
-    // to keep the command printed on the plot images clean.
+    // Add chart-coords argument if it has been set.
+    const auto& chart_coords = Get<std::vector<double>>("chart-coords");
+    if (!chart_coords.empty()) {
+        const auto& desc = m_descriptors.at("chart-coords");
+        command_ss << " --" << desc.long_name;
+        for (const auto& coord : chart_coords) {
+            // Use default precision for coordinates.
+            command_ss << " " << coord;
+        }
+    }
+
     if (format == CommandFormat::Full || format == CommandFormat::GuiPreview) {
         const auto& input_files = Get<std::vector<std::string>>("input-files");
         if (!input_files.empty()) {
             const auto& input_desc = m_descriptors.at("input-files");
-            // These formats always use long names for clarity.
             command_ss << " " << "--" + input_desc.long_name;
-
             for (const auto& file : input_files) {
-                // These formats always use the full path for the files.
                 command_ss << " \"" << file << "\"";
             }
         }

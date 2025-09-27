@@ -5,15 +5,13 @@
  */
 #pragma once
 #include "ProgramOptions.hpp"
-#include <string>
 #include <any>
-#include <optional>
 #include <map>
+#include <optional>
 #include <stdexcept> // For std::runtime_error
+#include <string>
 
-enum class ArgType {
-    Int, Double, String, StringVector, IntVector, DoubleVector, Flag
-};
+enum class ArgType { Int, Double, String, StringVector, IntVector, DoubleVector, Flag };
 
 struct ArgumentDescriptor {
     std::string long_name;
@@ -37,8 +35,8 @@ public:
     void Set(const std::string& long_name, std::any value);
 
     // This is a template function, so its definition must be in the header file.
-    template<typename T>
-    T Get(const std::string& long_name) const {
+    template <typename T> T Get(const std::string& long_name) const
+    {
         if (m_values.count(long_name)) {
             try {
                 return std::any_cast<T>(m_values.at(long_name));

@@ -9,20 +9,18 @@
 
 #define _(string) gettext(string)
 
-// This function already existed and is now updated.
 std::optional<ChartGeneratorOptions> ParseChartOptions(const ProgramOptions& opts, std::ostream& log_stream) {
     ChartGeneratorOptions chart_opts;
-    // Set default values from the user manual
-    chart_opts.R = 255;
-    chart_opts.G = 101;
-    chart_opts.B = 164;
+    // Set default values updated to match the latest R script.
+    chart_opts.R = 162;
+    chart_opts.G = 64;
+    chart_opts.B = 104;
     chart_opts.invgamma = 1.4;
     chart_opts.dim_x = 1920;
-    chart_opts.aspect_w = 4;
-    chart_opts.aspect_h = 3;
-    chart_opts.patches_m = 7;
-    chart_opts.patches_n = 11;
-
+    chart_opts.aspect_w = 3;
+    chart_opts.aspect_h = 2;
+    chart_opts.patches_m = 4; // Rows
+    chart_opts.patches_n = 6; // Cols
     try {
         // Parse colour params if provided
         if (!opts.chart_colour_params.empty() && !opts.chart_colour_params[0].empty()) {
@@ -37,15 +35,15 @@ std::optional<ChartGeneratorOptions> ParseChartOptions(const ProgramOptions& opt
             chart_opts.aspect_w = opts.chart_params[1];
             chart_opts.aspect_h = opts.chart_params[2];
         }
-        // Parse patches params if provided
-        if (!opts.chart_patches_params.empty()) {
-            chart_opts.patches_m = opts.chart_patches_params[0]; // Rows
-            chart_opts.patches_n = opts.chart_patches_params[1]; // Cols
+
+        if (!opts.chart_patches.empty()) {
+            chart_opts.patches_m = opts.chart_patches[0]; // Rows
+            chart_opts.patches_n = opts.chart_patches[1]; // Cols
         }
+
     } catch (const std::exception& e) {
         log_stream << _("Error: Invalid parameter for a chart argument.") << std::endl;
         return std::nullopt;
     }
-    
     return chart_opts;
 }

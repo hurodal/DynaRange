@@ -1,6 +1,6 @@
-// File: gui/InputController.hpp
+// File: gui/controllers/InputController.hpp
 /**
- * @file gui/InputController.hpp
+ * @file gui/controllers/InputController.hpp
  * @brief Declares a controller class for the InputPanel's logic.
  */
 #pragma once
@@ -31,6 +31,7 @@ public:
     int GetPolyOrder() const;
     int GetPlotMode() const;
     std::vector<std::string> GetInputFiles() const;
+    std::vector<double> GetChartCoords() const;
 
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);
@@ -39,7 +40,6 @@ public:
     void AddDroppedFiles(const wxArrayString& filenames);
 
     // Event handling logic, called by DynaRangeFrame's Bind()
-    // These must be public to be callable from DynaRangeFrame.
     void OnAddFilesClick(wxCommandEvent& event);
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
     void OnRemoveFilesClick(wxCommandEvent& event);

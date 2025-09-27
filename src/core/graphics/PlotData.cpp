@@ -18,6 +18,7 @@
 
 // Anonymous namespace for helper functions in this file
 namespace { 
+
 /**
  * @brief Draws a single SNR curve (polynomial fit) for one curve.
  * @param cr The Cairo context.
@@ -36,27 +37,27 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     PlotColors::cairo_set_source_red(cr);
     cairo_set_line_width(cr, 2.0);
 
-    // 1. Obtenemos el rango real de los datos de SNR para ESTA curva.
-    auto min_max_snr = std::minmax_element(curve.snr_db.begin(), curve.snr_db.end());
-    double min_db_data = *min_max_snr.first;
-    double max_db_data = *min_max_snr.second;
+    // 1. Obtenemos el rango real de los datos de EV para ESTA curva.
+    auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
+    double min_ev_data = *min_max_ev.first;
+    double max_ev_data = *min_max_ev.second;
 
     // 2. Calculamos el punto de inicio de la curva en el límite inferior de los datos.
-    double start_ev_poly = 0.0;
+    double start_snr_poly = 0.0;
     for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
-        start_ev_poly += curve.poly_coeffs.at<double>(j) * std::pow(min_db_data, curve.poly_coeffs.rows - 1 - j);
+        start_snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(min_ev_data, curve.poly_coeffs.rows - 1 - j);
     }
-    auto [start_x, start_y] = map_coords(start_ev_poly, min_db_data);
+    auto [start_x, start_y] = map_coords(min_ev_data, start_snr_poly);
     cairo_move_to(cr, start_x, start_y);
 
     // 3. Iteramos únicamente dentro del rango de los datos reales.
-    for (double db = min_db_data; db <= max_db_data; db += 0.1) {
-        double ev_poly = 0.0;
-        // Evalúa el polinomio EV = f(SNR_dB)
+    for (double ev = min_ev_data; ev <= max_ev_data; ev += 0.1) {
+        double snr_poly = 0.0;
+        // Evalúa el polinomio SNR = f(EV)
         for (int j = 0; j < curve.poly_coeffs.rows; ++j) {
-            ev_poly += curve.poly_coeffs.at<double>(j) * std::pow(db, curve.poly_coeffs.rows - 1 - j);
+            snr_poly += curve.poly_coeffs.at<double>(j) * std::pow(ev, curve.poly_coeffs.rows - 1 - j);
         }
-        auto [px, py] = map_coords(ev_poly, db);
+        auto [px, py] = map_coords(ev, snr_poly);
         cairo_line_to(cr, px, py);
     }
     cairo_stroke(cr);
@@ -127,7 +128,8 @@ void DrawThresholdIntersection(
     auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
     double min_ev = *min_max_ev.first;
     double max_ev = *min_max_ev.second;
-    auto ev_opt = CalculateEVFromSNR(curve.poly_coeffs, threshold_db);
+    // --- CORRECCIÓN CLAVE: Usar FindIntersectionEV directamente ---
+    auto ev_opt = FindIntersectionEV(curve.poly_coeffs, threshold_db, min_ev, max_ev);
     if (!ev_opt) return;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << *ev_opt << "EV";
@@ -143,6 +145,7 @@ void DrawThresholdIntersection(
     cairo_show_text(cr, ss.str().c_str());
     draw_above = !draw_above; // Toggle for next curve
 }
+
 } // end of anonymous namespace
 
 // ================== PUBLIC FUNCTION ==================
@@ -154,7 +157,6 @@ void DrawCurvesAndData(
 {
     // Dibuja la caja de información primero
     info_box.Draw(cr);
-    
     // Using a boolean to alternate is simpler and more robust.
     bool draw_above_12db = true;
     bool draw_above_0db = true;

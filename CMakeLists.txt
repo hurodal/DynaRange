@@ -18,6 +18,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(PORTABLE_DIR ${CMAKE_BINARY_DIR}/bin)
 
+# This line MUST be present to generate the compile_commands.json file.
+# compile_commands.json has info for clangd will find libraries to work with sublime-text
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
 # =============================================================================

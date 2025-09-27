@@ -51,7 +51,10 @@ public:
     double GetDrNormalization() const;
     int GetPolyOrder() const;
     int GetPlotMode() const;
+    std::vector<double> GetChartCoords() const;
     std::vector<std::string> GetInputFiles() const;
+    int GetChartPatchesM() const;
+    int GetChartPatchesN() const;
 
 protected:
     // --- Event Handlers ---

@@ -110,3 +110,32 @@ void InputController::AddDroppedFiles(const wxArrayString& filenames) {
         wxMessageBox(message, _("Unsupported Files Skipped"), wxOK | wxICON_INFORMATION, m_frame);
     }
 }
+
+std::vector<double> InputController::GetChartCoords() const {
+    std::vector<double> coords;
+    coords.reserve(8);
+
+    // List of all coordinate text controls
+    std::vector<wxTextCtrl*> controls = {
+        m_frame->m_coordX1Value, m_frame->m_coordY1Value,
+        m_frame->m_coordX2Value, m_frame->m_coordY2Value,
+        m_frame->m_coordX3Value, m_frame->m_coordY3Value,
+        m_frame->m_coordX4Value, m_frame->m_coordY4Value
+    };
+
+    for (wxTextCtrl* control : controls) {
+        wxString value_str = control->GetValue();
+        // If any field is empty, we consider the whole set invalid.
+        if (value_str.IsEmpty()) {
+            return {}; // Return empty vector
+        }
+        double val;
+        if (!value_str.ToDouble(&val)) {
+            // If conversion fails for any field, also return empty.
+            return {};
+        }
+        coords.push_back(val);
+    }
+
+    return coords;
+}

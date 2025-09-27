@@ -1,5 +1,6 @@
 # Ignorar la configuración del editor VS Code, Geany, Sublime-text
 .vscode
+.clang-format
 DynRange.geany
 rango.sublime-workspace
 
