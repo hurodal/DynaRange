@@ -55,10 +55,10 @@ SnrCurve CalculateSnrCurve(PatchAnalysisResult& patch_data, const ProgramOptions
     }
 
     // DEBUG POINT 3: Check final SNR range before fitting
-    auto min_max_snr = std::minmax_element(curve.snr_db.begin(), curve.snr_db.end());
-    std::cout << "DEBUG ACTUAL SNR - Valid Points: " << curve.snr_db.size() << "\n";
-    std::cout << "DEBUG ACTUAL SNR - Min SNR (dB): " << *min_max_snr.first << "\n";
-    std::cout << "DEBUG ACTUAL SNR - Max SNR (dB): " << *min_max_snr.second << "\n\n";
+    //auto min_max_snr = std::minmax_element(curve.snr_db.begin(), curve.snr_db.end());
+    //std::cout << "DEBUG ACTUAL SNR - Valid Points: " << curve.snr_db.size() << "\n";
+    //std::cout << "DEBUG ACTUAL SNR - Min SNR (dB): " << *min_max_snr.first << "\n";
+    //std::cout << "DEBUG ACTUAL SNR - Max SNR (dB): " << *min_max_snr.second << "\n\n";
 
     // 4. Fit polynomial to the final SNR_dB = f(EV) data.
     cv::Mat signal_mat_global(curve.signal_ev.size(), 1, CV_64F, curve.signal_ev.data());

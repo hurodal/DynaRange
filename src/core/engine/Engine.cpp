@@ -23,7 +23,6 @@ namespace DynaRange {
  * @param cancel_flag An atomic boolean flag that can be set from another thread to request cancellation.
  * @return A ReportOutput struct containing paths to the generated plots, or an empty struct on failure or cancellation.
  */
-// File: src/core/engine/Engine.cpp
 ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     // Phase 1: Preparation
     if (!InitializeAnalysis(opts, log_stream)) {

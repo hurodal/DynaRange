@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-27 13:30+0200\n"
+"POT-Creation-Date: 2025-09-27 14:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -506,7 +506,7 @@ msgstr ""
 msgid "Error: Invalid parameter for a chart argument."
 msgstr ""
 
-#: src/core/engine/Engine.cpp:38
+#: src/core/engine/Engine.cpp:37
 msgid "[INFO] Analysis cancelled by user."
 msgstr ""
 
@@ -618,6 +618,18 @@ msgstr ""
 
 #: src/core/engine/Processing.cpp:141
 msgid "Using optimized keystone: calculating parameters once for the series..."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:144
+msgid "Analyzing chart using a grid of "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:144
+msgid " columns by "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:144
+msgid " rows."
 msgstr ""
 
 #: src/core/engine/Reporting.cpp:32

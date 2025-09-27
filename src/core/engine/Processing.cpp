@@ -138,7 +138,11 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
 
     // 3. Orchestrate analysis for each file, respecting the keystone optimization setting.
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
-        log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << "\n" << std::endl;
+        log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << "\n";
+        
+        // Add a log message to inform the user about the grid dimensions being used.
+        log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << "\n" << std::endl;
+        
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
         
         for (const auto& raw_file : raw_files) {
