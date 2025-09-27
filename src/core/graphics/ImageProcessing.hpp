@@ -12,6 +12,17 @@
 #include <Eigen/Dense>
 
 /**
+ * @brief Normalizes a raw image to a [0.0, 1.0] float range.
+ * @details This is a pure processing function, taking raw data and calibration
+ * values to produce a normalized image.
+ * @param raw_image The 16-bit raw image data from the sensor.
+ * @param black_level The black level to subtract.
+ * @param sat_level The saturation level to use for normalization.
+ * @return A 32-bit floating-point cv::Mat. Returns an empty Mat on failure.
+ */
+cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
+
+/**
  * @brief Calculates keystone distortion parameters from four pairs of points.
  * @param src_points The four corner points in the distorted source image.
  * @param dst_points The corresponding four corner points in the target rectified image.
@@ -36,7 +47,8 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
  * @param keystone_params The pre-calculated keystone transformation parameters.
  * @param chart The chart profile defining the geometry.
  * @param log_stream Stream for logging messages.
- * @return A prepared cv::Mat, ready for patch analysis. Returns empty Mat on failure.
+ * @return A prepared cv::Mat, ready for patch analysis.
+ * Returns empty Mat on failure.
  */
 cv::Mat PrepareChartImage(
     const RawFile& raw_file, 

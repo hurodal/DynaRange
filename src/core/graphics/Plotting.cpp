@@ -64,8 +64,58 @@ void DrawGeneratedTimestamp(cairo_t* cr) {
     cairo_show_text(cr, generated_at_text.c_str());
 }
 
+/**
+ * @brief (New private function) Encapsulates the common plot generation logic.
+ * @details This function handles the entire Cairo workflow: surface creation,
+ * drawing all plot components (base, data, timestamp), and writing the final
+ * PNG file. It is called by the public-facing Generate...Plot functions.
+ * @return An optional string containing the path to the generated plot on success.
+ */
+std::optional<std::string> GeneratePlotInternal(
+    const std::string& output_filename,
+    const std::string& title,
+    const std::vector<CurveData>& curves_to_plot,
+    const ProgramOptions& opts,
+    const std::map<std::string, double>& bounds,
+    std::ostream& log_stream)
+{
+    // 1. Create Cairo surface and context
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
+    cairo_t *cr = cairo_create(surface);
+    if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
+        log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"." << std::endl;
+        cairo_surface_destroy(surface);
+        return std::nullopt;
+    }
+
+    // 2. Create and populate the PlotInfoBox
+    PlotInfoBox info_box;
+    std::stringstream black_ss, sat_ss;
+    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
+    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
+    info_box.AddItem(_("Black"), black_ss.str());
+    info_box.AddItem(_("Saturation"), sat_ss.str());
+
+    // 3. Draw all components
+    std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;
+    DrawPlotBase(cr, title, opts, bounds, command_text, opts.snr_thresholds_db);
+    DrawCurvesAndData(cr, info_box, curves_to_plot, bounds);
+    DrawGeneratedTimestamp(cr);
+
+    // 4. Write PNG and clean up
+    bool success = OutputWriter::WritePng(surface, output_filename, log_stream);
+    cairo_destroy(cr);
+    cairo_surface_destroy(surface);
+
+    if (success) {
+        return output_filename;
+    }
+    return std::nullopt;
+}
+
 } // end anonymous namespace
 
+// Esta función ya existía y ha sido modificada.
 void GenerateSnrPlot(
     const std::string& output_filename,
     const std::string& plot_title,
@@ -82,22 +132,11 @@ void GenerateSnrPlot(
     }
 
     if (signal_ev.size() < 2) {
-        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")."
-                   << std::endl;
+        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")." << std::endl;
         return;
     }
 
-    // Create Cairo surface and context
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
-    cairo_t *cr = cairo_create(surface);
-    if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << _("  - Error: Failed to create cairo context for plot \"") << plot_title << "\"."
-                   << std::endl;
-        cairo_surface_destroy(surface);
-        return;
-    }
-
-    // Calculate plot bounds based on data
+    // 1. Calculate plot bounds specific to this single curve
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
     double min_ev_data = *min_max_ev.first;
     double max_ev_data = *min_max_ev.second;
@@ -107,42 +146,22 @@ void GenerateSnrPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    // Create and populate the PlotInfoBox
-    PlotInfoBox info_box;
-    std::stringstream black_ss, sat_ss, patch_ss;
-    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;      // MODIFIED: Precision set to 2
-    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value; // MODIFIED: Precision set to 2
-    patch_ss << std::fixed << std::setprecision(2) << opts.patch_ratio;
-    info_box.AddItem(_("Black"), black_ss.str());
-    info_box.AddItem(_("Saturation"), sat_ss.str());
-    //info_box.AddItem("Patch Ratio", patch_ss.str());
-    
-    // Draw the static plot base (axes, grid, labels, thresholds)
-    DrawPlotBase(cr, _("SNR Curve - ") + plot_title, opts, bounds, opts.generated_command, opts.snr_thresholds_db);
-    
-    // Prepare the data for a single curve
+    // 2. Prepare the data for a single curve
     std::vector<CurveData> single_curve_vec = {{
         plot_title,
         curve_label,
-        "",
+        "", // camera_model not needed for individual plot title
         signal_ev,
         snr_db,
         poly_coeffs,
         opts.generated_command
     }};
-    
-    // Pass the info_box to the data drawing function
-    DrawCurvesAndData(cr, info_box, single_curve_vec, bounds);
-    
-    // Draw timestamp in bottom-left corner
-    DrawGeneratedTimestamp(cr);
-    
-    // Write PNG and clean up using the new writer
-    OutputWriter::WritePng(surface, output_filename, log_stream);
-    cairo_destroy(cr);
-    cairo_surface_destroy(surface);
+
+    // 3. Delegate the entire drawing process to the internal helper function
+    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, opts, bounds, log_stream);
 }
 
+// Esta función ya existía y ha sido modificada.
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_filename,
     const std::string& camera_name,
@@ -156,22 +175,11 @@ std::optional<std::string> GenerateSummaryPlot(
     }
 
     if (all_curves.empty()) {
-        log_stream << _("  - Warning: Skipping summary plot due to no curve data.")
-                   << std::endl;
+        log_stream << _("  - Warning: Skipping summary plot due to no curve data.") << std::endl;
         return std::nullopt;
     }
 
-    // Create Cairo surface and context
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
-    cairo_t *cr = cairo_create(surface);
-    if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << _("  - Error: Failed to create cairo context for summary plot.")
-                   << std::endl;
-        cairo_surface_destroy(surface);
-        return std::nullopt;
-    }
-
-    // Calculate global bounds across all curves
+    // 1. Calculate global bounds across all curves
     double min_ev_global = 1e6, max_ev_global = -1e6;
     for (const auto& curve : all_curves) {
         if (!curve.signal_ev.empty()) {
@@ -186,32 +194,9 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["min_db"] = -15.0;
     bounds["max_db"] = 25.0;
 
-    // Create and populate the PlotInfoBox
-    PlotInfoBox info_box;
-    std::stringstream black_ss, sat_ss;
-    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;      // MODIFIED: Precision set to 2
-    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value; // MODIFIED: Precision set to 2
-    info_box.AddItem(_("Black"), black_ss.str());
-    info_box.AddItem(_("Saturation"), sat_ss.str());
-    
-    // Draw the static plot base
+    // 2. Prepare title
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
-    
-    // The command to print on the plot is the one stored with the curve data.
-    // It's the same for all curves, so we can take it from the first one.
-    std::string command_to_print = all_curves.empty() ? "" : all_curves[0].generated_command;
-    DrawPlotBase(cr, title, opts, bounds, command_to_print, opts.snr_thresholds_db);
 
-    // Pass the info_box to the data drawing function
-    DrawCurvesAndData(cr, info_box, all_curves, bounds);
-    
-    // Draw timestamp in bottom-left corner
-    DrawGeneratedTimestamp(cr);
-    
-    // Write PNG and clean up using the new writer
-    OutputWriter::WritePng(surface, output_filename, log_stream);
-    cairo_destroy(cr);
-    cairo_surface_destroy(surface);
-
-    return output_filename;
+    // 3. Delegate the entire drawing process to the internal helper function
+    return GeneratePlotInternal(output_filename, title, all_curves, opts, bounds, log_stream);
 }

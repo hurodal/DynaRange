@@ -23,9 +23,11 @@
 
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "");
-    std::filesystem::path exe_path = argv[0];
-    std::filesystem::path locale_dir = exe_path.parent_path() / "locale";
-    bindtextdomain("dynaRange", locale_dir.string().c_str());
+
+    // Use PathManager to determine the locale directory path.
+    // An empty ProgramOptions is sufficient for the PathManager to find the app path.
+    PathManager path_manager(ProgramOptions{});
+    bindtextdomain("dynaRange", path_manager.GetLocaleDirectory().string().c_str());
     textdomain("dynaRange");
     
     LocaleManager locale_manager;
@@ -37,8 +39,7 @@ int main(int argc, char* argv[]) {
         // La responsabilidad de interpretar los parámetros se delega al parser.
         auto chart_options_opt = ParseChartOptions(opts, std::cerr);
         if (!chart_options_opt) {
-            return 1;
-        // El parser ya ha informado del error.
+            return 1; // El parser ya ha informado del error.
         }
         
         // Se usan las opciones ya validadas y parseadas.
@@ -46,7 +47,6 @@ int main(int argc, char* argv[]) {
 
         PathManager paths(opts);
         fs::path chart_output_path = paths.GetCsvOutputPath().parent_path() / "magentachart.png";
-        
         // The call to GenerateTestChart is corrected to pass the options struct directly.
         if (!GenerateTestChart(chart_opts, chart_output_path.string(), std::cout)) {
             return 1;

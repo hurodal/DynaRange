@@ -4,31 +4,13 @@
  * @brief Implements the OutputWriter module.
  */
 #include "OutputWriter.hpp"
+#include "../utils/Formatters.hpp"
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
 
 #define _(string) gettext(string)
-
-namespace { // Anonymous namespace for private helper functions
-
-// This helper function was previously in Reporting.cpp
-std::string GenerateCsvDataRow(const DynamicRangeResult& res, const ProgramOptions& opts) {
-    std::stringstream row_ss;
-    std::string filename = fs::path(res.filename).filename().string();
-    row_ss << filename;
-
-    for (const double threshold : opts.snr_thresholds_db) {
-        double value = res.dr_values_ev.count(threshold) ?
- res.dr_values_ev.at(threshold) : 0.0;
-        row_ss << "," << std::fixed << std::setprecision(4) << value;
-    }
-    row_ss << "," << res.patches_used;
-    return row_ss.str();
-}
-
-} // end anonymous namespace
 
 namespace OutputWriter {
 
@@ -58,18 +40,10 @@ bool WriteCsv(
         return false;
     }
 
-    std::stringstream header_csv;
-    header_csv << "raw_file";
-    for (const double threshold : opts.snr_thresholds_db) {
-        std::stringstream col_name_ss;
-        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
-        header_csv << "," << col_name_ss.str();
-    }
-    header_csv << ",patches_used";
-
-    csv_file << header_csv.str() << std::endl;
+    //Formatting logic is now delegated to the Formatters module.
+    csv_file << Formatters::FormatResultHeader(opts, Formatters::FormatType::Csv) << std::endl;
     for (const auto& res : all_results) {
-        csv_file << GenerateCsvDataRow(res, opts) << std::endl;
+        csv_file << Formatters::FormatResultRow(res, opts, Formatters::FormatType::Csv) << std::endl;
     }
 
     csv_file.close();

@@ -6,13 +6,37 @@
 #include "InputController.hpp"
 #include "../DynaRangeFrame.hpp" // To access frame members and their members
 #include "../GuiPresenter.hpp"   // To call presenter methods
+#include "../../core/arguments/ProgramOptions.hpp"
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <libraw/libraw.h>
 #include <vector>
 
-InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {}
+
+InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
+    // Dynamically populate the polynomial order choice control.
+    m_frame->m_PlotChoice->Clear();
+    for (const auto& order : VALID_POLY_ORDERS) {
+        m_frame->m_PlotChoice->Append(std::to_string(order));
+    }
+
+    // Set the default selection based on the default value
+    int default_index = -1;
+    for (size_t i = 0; i < std::size(VALID_POLY_ORDERS); ++i) {
+        if (VALID_POLY_ORDERS[i] == DEFAULT_POLY_ORDER) {
+            default_index = i;
+            break;
+        }
+    }
+    if (default_index != -1) {
+        m_frame->m_PlotChoice->SetSelection(default_index);
+    }
+    
+    // Programmatically set the default output filename from the
+    // central constant, ensuring consistency with the CLI.
+    m_frame->m_outputTextCtrl->SetValue(DEFAULT_OUTPUT_FILENAME);
+}
 
 // --- Getters ---
 std::string InputController::GetDarkFilePath() const { return std::string(m_frame->m_darkFilePicker->GetPath().mb_str()); }
@@ -23,7 +47,7 @@ double InputController::GetPatchRatio() const { return static_cast<double>(m_fra
 std::string InputController::GetOutputFilePath() const { return std::string(m_frame->m_outputTextCtrl->GetValue().mb_str()); }
 double InputController::GetSnrThreshold() const { return static_cast<double>(m_frame->m_snrThresholdslider->GetValue()); }
 double InputController::GetDrNormalization() const { return static_cast<double>(m_frame->m_drNormalizationSlider->GetValue()); }
-int InputController::GetPolyOrder() const { return m_frame->m_PlotChoice->GetSelection() + 2; }
+int InputController::GetPolyOrder() const { return PolyOrderFromIndex(m_frame->m_PlotChoice->GetSelection()); }
 int InputController::GetPlotMode() const { return m_frame->m_plotingChoice->GetSelection(); }
 std::vector<std::string> InputController::GetInputFiles() const {
     std::vector<std::string> files;

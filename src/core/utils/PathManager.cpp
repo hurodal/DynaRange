@@ -14,6 +14,19 @@
 #endif
 
 namespace { // Anonymous namespace for internal helpers
+
+fs::path GetExecutablePath() {
+#ifdef _WIN32
+    WCHAR path[MAX_PATH] = {0};
+    GetModuleFileNameW(NULL, path, MAX_PATH);
+    return fs::path(path);
+#else
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    return std::string(result, (count > 0) ? count : 0);
+#endif
+}
+
 // Helper function to get the user's documents directory in a cross-platform way.
 fs::path GetUserDocumentsDirectory() {
 #ifdef _WIN32
@@ -45,8 +58,11 @@ fs::path GetUserDocumentsDirectory() {
 } // end anonymous namespace
 
 PathManager::PathManager(const ProgramOptions& opts) {
+    
+    //Determine application directory once upon construction.
+    m_app_directory = GetExecutablePath().parent_path();
+    
     fs::path full_csv_path(opts.output_filename);
-
     // If the provided path has no parent (it's just a filename like "results.csv"),
     // then we build the path inside the user's Documents directory.
     if (full_csv_path.parent_path().empty()) {
@@ -89,4 +105,16 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name) const {
     std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
     std::string filename = "DR_summary_plot_" + safe_camera_name + ".png";
     return m_output_directory / filename;
+}
+
+fs::path PathManager::GetAppDirectory() const {
+    return m_app_directory;
+}
+
+fs::path PathManager::GetLocaleDirectory() const {
+    return m_app_directory / "locale";
+}
+
+fs::path PathManager::GetAssetPath(const std::string& asset_name) const {
+    return m_app_directory / asset_name;
 }

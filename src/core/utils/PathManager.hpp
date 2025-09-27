@@ -1,4 +1,4 @@
-// File: core/utils/PathManager.hpp
+// File: src/core/utils/PathManager.hpp
 /**
  * @file core/utils/PathManager.hpp
  * @brief Declares a utility class for managing output file paths.
@@ -24,6 +24,7 @@ public:
      * @details It intelligently determines the base output directory. If the output
      * filename in opts is a simple filename without a path, it prepends the user's
      * Documents directory. Otherwise, it respects the full or relative path provided.
+     * It also determines the application's executable path for resource loading.
      * @param opts The program options, used to determine base paths.
      */
     explicit PathManager(const ProgramOptions& opts);
@@ -48,7 +49,27 @@ public:
      */
     fs::path GetSummaryPlotPath(const std::string& camera_name) const;
 
+    /**
+     * @brief Gets the path to the application's executable directory.
+     * @return The filesystem path to the directory containing the running executable.
+     */
+    fs::path GetAppDirectory() const;
+
+    /**
+     * @brief Gets the path to the 'locale' directory for internationalization.
+     * @return The filesystem path to the locale directory.
+     */
+    fs::path GetLocaleDirectory() const;
+
+    /**
+     * @brief Gets the full path for a given asset file (e.g., "logo.png").
+     * @param asset_name The filename of the asset.
+     * @return The full filesystem path to the asset.
+     */
+    fs::path GetAssetPath(const std::string& asset_name) const;
+
 private:
+    fs::path m_app_directory;      ///< The directory where the application executable resides.
     fs::path m_output_directory; ///< The base directory for all outputs.
     fs::path m_csv_filename;     ///< The filename for the CSV report.
 };

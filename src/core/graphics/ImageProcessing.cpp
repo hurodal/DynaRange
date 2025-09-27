@@ -64,11 +64,64 @@ cv::Mat PrepareChartImage(
     const ChartProfile& chart, 
     std::ostream& log_stream) 
 {
-    cv::Mat img_float = raw_file.GetNormalizedImage(opts.dark_value, opts.saturation_value);
-    if(img_float.empty()){
-        log_stream << _("Error: Could not get normalized image for: ") << raw_file.GetFilename() << std::endl;
+    cv::Mat raw_img = raw_file.GetRawImage();
+    if(raw_img.empty()){
+        log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
         return {};
     }
+    cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
+    
+    // Extract a single bayer channel (e.g., Green) which is half the size.
+    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
+    for (int r = 0; r < imgBayer.rows; ++r) {
+        for (int c = 0; c < imgBayer.cols; ++c) {
+            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
+        }
+    }
+    
+    cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
+    const auto& dst_pts = chart.GetDestinationPoints();
+
+    // --- Active Logic: Original Simple Bounding Box Crop ---
+    // This is the old logic that was previously inside AnalyzeSingleRawFile.
+    // It performs a direct crop on the bounding box of the destination points
+    // without any safety gap. This logic produces the original "good" results.
+    double xtl = dst_pts[0].x;
+    double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x;
+    double ybr = dst_pts[2].y;
+    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
+
+    // --- Common Logic Continues ---
+    if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
+        crop_area.x + crop_area.width > img_corrected.cols ||
+        crop_area.y + crop_area.height > img_corrected.rows) {
+        log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
+        return {};
+    }
+
+    return img_corrected(crop_area);
+}
+
+/*
+// --- REFERENCE IMPLEMENTATION (Commented Out) ---
+// This is a complete, separate version of the function that contains the logic
+// aligned with the reference R script. It is kept here for documentation and
+// future reference. It produces slightly different numerical results due to a
+// more sophisticated cropping method that uses a safety "gap".
+cv::Mat PrepareChartImage(
+    const RawFile& raw_file, 
+    const ProgramOptions& opts, 
+    const Eigen::VectorXd& keystone_params,
+    const ChartProfile& chart, 
+    std::ostream& log_stream) 
+{
+    cv::Mat raw_img = raw_file.GetRawImage();
+    if(raw_img.empty()){
+        log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
+        return {};
+    }
+    cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
     
     // Extract a single bayer channel (e.g., Green) which is half the size.
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
@@ -81,7 +134,8 @@ cv::Mat PrepareChartImage(
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
     const auto& dst_pts = chart.GetDestinationPoints();
     
-    // --- Replicate R script's conditional cropping logic ---
+    // --- R-Script Aligned Cropping Logic ---
+    // R script reference: `imgcrop=imgc[round(ytl+GAPY):round(ybr-GAPY), round(xtl+GAPX):round(xbr-GAPX)]`
     double gap_x = 0.0;
     double gap_y = 0.0;
     
@@ -91,7 +145,9 @@ cv::Mat PrepareChartImage(
         const double xtl = dst_pts[0].x;
         const double ybr = dst_pts[2].y;
         const double ytl = dst_pts[0].y;
+        // R script reference: `GAPX=(xbr-xtl) / (NCOLS+1) / 2`
         gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
+        // R script reference: `GAPY=(ybr-ytl) / (NROWS+1) / 2`
         gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
     }
     
@@ -110,4 +166,18 @@ cv::Mat PrepareChartImage(
     }
 
     return img_corrected(crop_area);
+}
+*/
+
+cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
+{
+    if (raw_image.empty()) {
+        return {};
+    }
+    cv::Mat float_img;
+    raw_image.convertTo(float_img, CV_32F);
+
+    // Normalize the image to a 0.0-1.0 range
+    float_img = (float_img - black_level) / (sat_level - black_level);
+    return float_img;
 }

@@ -42,18 +42,6 @@ cv::Mat RawFile::GetRawImage() const {
     return m_raw_image_cache;
 }
 
-cv::Mat RawFile::GetNormalizedImage(double black_level, double sat_level) const {
-    if (!m_is_loaded) return {};
-
-    cv::Mat raw_img = GetRawImage();
-    cv::Mat float_img;
-    raw_img.convertTo(float_img, CV_32F);
-
-    // Normalize the image to a 0.0-1.0 range
-    float_img = (float_img - black_level) / (sat_level - black_level);
-    return float_img;
-}
-
 std::string RawFile::GetCameraModel() const {
     if (!m_is_loaded) return "";
     if (!m_camera_model_cache.empty()) return m_camera_model_cache;

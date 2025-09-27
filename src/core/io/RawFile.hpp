@@ -38,14 +38,6 @@ public:
     bool Load();
 
     /**
-     * @brief Gets the image data normalized to a [0.0, 1.0] float range.
-     * @param black_level The black level to subtract from the raw data.
-     * @param sat_level The saturation level to use for normalization.
-     * @return A 32-bit floating-point cv::Mat. Returns an empty Mat on failure.
-     */
-    cv::Mat GetNormalizedImage(double black_level, double sat_level) const;
-
-    /**
      * @brief Gets direct access to the raw 16-bit sensor data.
      * @details The data is cached internally after the first call.
      * @return A 16-bit unsigned cv::Mat. Returns an empty Mat on failure.

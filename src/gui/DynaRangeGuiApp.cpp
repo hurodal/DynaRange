@@ -6,6 +6,7 @@
 #include "DynaRangeGuiApp.hpp"
 #include "DynaRangeFrame.hpp"
 #include "../core/utils/LocaleManager.hpp"
+#include "../core/utils/PathManager.hpp"
 #include <wx/image.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
@@ -15,6 +16,7 @@
 wxIMPLEMENT_APP(DynaRangeGuiApp);
 
 bool DynaRangeGuiApp::OnInit() {
+
     // 1. Determine the language to use.
     int lang = wxLANGUAGE_DEFAULT;
     const char* lang_env = std::getenv("LANGUAGE");
@@ -29,11 +31,10 @@ bool DynaRangeGuiApp::OnInit() {
     // 2. Initialize the wxLocale system with the chosen language.
     m_locale.Init(lang);
 
-    // 3. Tell wxWidgets where to find our translation files (.mo).
-    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
-    wxFileName fn(exePath);
-    wxString localeDir = fn.GetPath() + wxFILE_SEP_PATH + "locale";
-    wxLocale::AddCatalogLookupPathPrefix(localeDir);
+    // 3. Tell wxWidgets where to find our translation files (.mo)
+    // using the centralized PathManager.
+    PathManager path_manager(ProgramOptions{});
+    wxLocale::AddCatalogLookupPathPrefix(path_manager.GetLocaleDirectory().wstring());
 
     // 4. Load our specific translation catalog.
     m_locale.AddCatalog("dynaRange");

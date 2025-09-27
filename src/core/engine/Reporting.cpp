@@ -7,6 +7,7 @@
 #include "../graphics/Plotting.hpp"
 #include "../utils/PathManager.hpp"
 #include "../io/OutputWriter.hpp"
+#include "../utils/Formatters.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -113,22 +114,14 @@ void GenerateLogReport(
     std::ostream& log_stream)
 {
     log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
-    // --- Generate Header for Log ---
-    std::stringstream header_log;
-    header_log << std::left << std::setw(30) << _("RAW File");
-    for (const double threshold : opts.snr_thresholds_db) {
-        std::stringstream col_name_ss;
-        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << _("dB)");
-        header_log << std::setw(20) << col_name_ss.str();
-    }
-    header_log << _("Patches");
-
-    // --- Print Header and Rows to Log ---
-    log_stream << header_log.str() << std::endl;
-    log_stream << std::string(header_log.str().length(), '-') << std::endl;
+    
+    // Formatting logic is now delegated to the Formatters module.
+    std::string header = Formatters::FormatResultHeader(opts, Formatters::FormatType::Log);
+    log_stream << header << std::endl;
+    log_stream << std::string(header.length(), '-') << std::endl;
     
     for (const auto& res : all_results) {
-        log_stream << GenerateDataRow(res, opts, true) << std::endl;
+        log_stream << Formatters::FormatResultRow(res, opts, Formatters::FormatType::Log) << std::endl;
     }
 }
 

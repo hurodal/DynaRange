@@ -4,6 +4,7 @@
  * @brief Implements the ImageViewer helper class.
  */
 #include "ImageViewer.hpp"
+#include "../../core/utils/PathManager.hpp"
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <filesystem>
@@ -34,13 +35,12 @@ wxString ImageViewer::ShowGraph(const std::string& path) {
 }
 
 wxString ImageViewer::ShowLogo() {
-    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
-    wxFileName fn(exePath);
-    wxString appDir = fn.GetPath();
-    wxString logoPath = appDir + wxFILE_SEP_PATH + "logo.png";
+    // Use PathManager to get the definitive path to the logo asset.
+    PathManager path_manager(ProgramOptions{});
+    fs::path logo_path = path_manager.GetAssetPath("logo.png");
     
     wxString label;
-    if (m_originalImage.LoadFile(logoPath, wxBITMAP_TYPE_PNG)) {
+    if (m_originalImage.LoadFile(logo_path.wstring(), wxBITMAP_TYPE_PNG)) {
         label = _("Welcome to Dynamic Range Calculator");
     } else {
         m_originalImage = wxImage(); // Invalidate the image object on failure
