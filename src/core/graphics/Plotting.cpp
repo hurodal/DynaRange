@@ -115,7 +115,6 @@ std::optional<std::string> GeneratePlotInternal(
 
 } // end anonymous namespace
 
-// Esta función ya existía y ha sido modificada.
 void GenerateSnrPlot(
     const std::string& output_filename,
     const std::string& plot_title,
@@ -161,7 +160,6 @@ void GenerateSnrPlot(
     GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, opts, bounds, log_stream);
 }
 
-// Esta función ya existía y ha sido modificada.
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_filename,
     const std::string& camera_name,

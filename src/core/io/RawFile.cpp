@@ -93,3 +93,30 @@ double RawFile::GetSensorResolutionMPx() const {
     double total_pixels = static_cast<double>(width) * height;
     return total_pixels / 1000000.0; // Convert to Mpx
 }
+
+cv::Mat RawFile::GetProcessedImage() {
+    if (!m_is_loaded) return {};
+
+    // Use LibRaw to process the image with default settings (demosaic, color space, etc.)
+    if (m_raw_processor.dcraw_process() != LIBRAW_SUCCESS) {
+        return {};
+    }
+
+    libraw_processed_image_t* processed_image = m_raw_processor.dcraw_make_mem_image();
+    if (processed_image == nullptr || processed_image->type != LIBRAW_IMAGE_BITMAP || processed_image->bits != 8 || processed_image->colors != 3) {
+        if (processed_image) LibRaw::dcraw_clear_mem(processed_image);
+        return {};
+    }
+
+    // Create an OpenCV Mat from the LibRaw data (which is RGB)
+    cv::Mat image_mat(processed_image->height, processed_image->width, CV_8UC3, processed_image->data);
+    
+    // OpenCV uses BGR order, so we need to convert the color space.
+    cv::Mat bgr_image;
+    cv::cvtColor(image_mat, bgr_image, cv::COLOR_RGB2BGR);
+
+    // LibRaw allocated this memory, so we must free it.
+    LibRaw::dcraw_clear_mem(processed_image);
+
+    return bgr_image;
+}

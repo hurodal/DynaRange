@@ -5,8 +5,8 @@ by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (al
 
 Usage: rango [OPTION]... [FILE]...
 
---chart               -c <DIMX W H M N>   : Create test chart in PNG format with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
---chart-colour        -C <R G B invgamma> : Create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+--chart               -c <DIMX W H M N>   : Create test chart in PNG format ("testchart.png") with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
+--chart-colour        -C <R G B invgamma> : Create test chart in PNG format ("testchart.png") ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 --chart-patches       -M <M N>            : Read test chart decoding MxN patches over rows (M) and columns (N) (default M=4, N=6)
 --chart-coords        -x <x1 y1 x2 y2 x3 y3 x4 y4> : Read test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
 --black-level         -b <float>          : Camera RAW black level
@@ -20,14 +20,15 @@ Usage: rango [OPTION]... [FILE]...
 --poly-fit            -f <int 2-3>        : Polynomic order to fit the SNR curve (default=3)
 --output-file         -o <file>           : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
 --plot                -p <int 0-3>        : Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)
+--print-patches       -P <file>           : Save keystone/ETTR/gamma corrected test chart in PNG format indicating the patches used for all calculations (default="printpatches.png")
 
 
 -----------------------------------------------
 
 --chart -c <DIMX W H M N>
-Definition: create test chart in PNG format with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
+Definition: create test chart in PNG format ("testchart.png") with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
 --chart-colour -C <R G B invgamma>
-Definition: create test chart in PNG format ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+Definition: create test chart in PNG format ("testchart.png") ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
 Explanation: these options allow to create a test chart ("magentachart.png") with patches exactly as rango will expect them to be located. This chart needs to be shot using the camera under test following precise focusing and exposure instructions
 Usage: if absolutely no chart parameters are specified, ALL the chart creation default values will be used to produce an optimized test chart in most standard displays
 Examples (first example is default and is equivalent to not specifying the parameter):
@@ -41,6 +42,7 @@ Definition: read test chart decoding MxN patches over rows (M) and columns (N) (
 --chart-coords -x <x1 y1 x2 y2 x3 y3 x4 y4>
 Definition: read test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
 Explanation: read patches on an arbitrarily sized or positioned test chart when automatic corner detection fails or cannot be used, or a specific number of patches were used
+Examples:
 --chart-patches -M 8 12 (decode a very dense 8x12 patches test chart)
 --chart-coords  -x 1 1 1 4000 6000 4000 6000 1 (decode a test chart occupying the entire frame on a 24 Mpx camera)
 
@@ -50,6 +52,7 @@ Definition: camera RAW black level / totally dark RAW file ideally shot at base 
 Explanation: setting this parameter is optional but it is VERY recommended since all SNR calculations are very sensitive to it. Knowing the black level is mandatory to linearize all sensor data by subtracting it from the RAW values in order to obtain accurate DR measurements
 Usage: the most reliable way to proceed is to capture a quick darkframe at base ISO ideally with the camera still cold (-B option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise black level (-b option). If none of the options are used, rango by default will calculate the lowest power of 2 value where information is found which can be risky
 Examples (first example is default and is equivalent to not specifying the parameter):
+--black-level -b
 --black-level -b 255       (provide a black level of 255 for the Olympus OM-1)
 --black-level -b 254.85    (provide a more precise black level of 254.85 for the Olympus OM-1)
 --black-file  -B black.dng (provide a darkframe RAW file so that rango calculates the black level)
@@ -60,6 +63,7 @@ Definition: camera RAW saturation level / totally clipped RAW file ideally shot 
 Explanation: not being as critical as the black level, setting this parameter is also very important to properly locate exposure values with respect to saturation in order to obtain accurate DR measurements
 Usage: the most reliable way to proceed is to capture a completely clipped RAW file ideally at base ISO (-S option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise saturation level (-s option). If none of the options are used, rango by default will calculate the end of the bitdepth scale from the highest ISO RAW file
 Examples (first example is default and is equivalent to not specifying the parameter):
+--saturation-level -s
 --saturation-level -s 3692    (provide a saturation level of 3692 for the Canon 5D)
 --saturation-level -s 16383   (provide a saturation level of 16383 for the Sony A7 II)
 --saturation-file  -S sat.dng (provide a clipped RAW file so that rango calculates the saturation level)
@@ -124,3 +128,32 @@ Examples (first example is default and is equivalent to not specifying the param
 --plot -p   (no plot export)
 --plot -p 1 (plot export of SNR curves in PNG format without CLI command)
 --plot -p 2 (plot export of SNR curves in PNG format adding CLI command)
+
+--print-patches -P <file>
+Definition: save keystone/ETTR/gamma corrected test chart in PNG format indicating the patches used for all calculations (default="printpatches.png")
+Explanation: to make sure patches are correctly being read from the test chart without taking data from neighbour patches, this function will create a keystone corrected and ETTR/gamma normalized image of the test chart, indicating the location and shape of all patches used. The lowest ISO/G1 RAW channel will be used
+Usage: the user can additionally supply a output name for the PNG file
+Examples (first example is default and is equivalent to not specifying the parameter):
+--print-patches -P                     (display used patches in "printpatches.png") 
+--print-patches -P patch_debugging.png (display used patches in "patch_debugging.png") 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

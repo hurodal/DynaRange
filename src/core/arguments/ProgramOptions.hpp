@@ -9,8 +9,7 @@
 #include <map>
 #include <cstddef> // For std::size
 
-// All key default values are now defined here as constexpr constants.
-// This file is now the single source of truth for program option defaults.
+// Default values for program options
 constexpr double DEFAULT_BLACK_LEVEL = 256.0;
 constexpr double DEFAULT_SATURATION_LEVEL = 4095.0;
 constexpr double DEFAULT_PATCH_RATIO = 0.5;
@@ -52,7 +51,6 @@ enum class CommandFormat {
  * @brief Holds all the configuration options for the dynamic range analysis.
  */
 struct ProgramOptions {
-    // All members are initialized from the central constants.
     double dark_value = DEFAULT_BLACK_LEVEL;
     double saturation_value = DEFAULT_SATURATION_LEVEL;
     std::string dark_file_path;
@@ -72,6 +70,7 @@ struct ProgramOptions {
     std::string generated_command;
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
+    bool print_patch_mode = false;
 
     int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }

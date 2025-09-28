@@ -29,7 +29,7 @@
 #include "../setup/SensorResolution.hpp"
 #include "../setup/FileSorter.hpp"
 #include "../setup/PlotLabelGenerator.hpp"
-#include "../utils/CommandGenerator.hpp" // MODIFIED: Added include for the new module
+#include "../utils/CommandGenerator.hpp"
 #include <set> 
 #include <iomanip>
 #include <libintl.h>

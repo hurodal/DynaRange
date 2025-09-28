@@ -10,7 +10,7 @@
 #include <optional>
 #include <ostream>
 
-// MODIFIED: All key default values for the test chart are now defined here.
+// All key default values for the test chart are now defined here.
 // This is now the single source of truth for the chart's default state.
 constexpr int DEFAULT_CHART_R = 162;
 constexpr int DEFAULT_CHART_G = 64;

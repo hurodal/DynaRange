@@ -165,7 +165,7 @@ void GuiPresenter::HandleGridCellClick(int row) {
         // The result index in our data vectors corresponds to the grid row minus 1.
         int result_index = row - 1;
 
-        // MODIFIED: Use the sorted results list (m_lastReport.dr_results) as the
+        // Use the sorted results list (m_lastReport.dr_results) as the
         // source of truth for the filename. This list is guaranteed to be in the
         // same order as the grid view, fixing the mismatch.
         if (result_index < m_lastReport.dr_results.size()) {

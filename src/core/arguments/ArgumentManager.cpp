@@ -31,7 +31,6 @@ ArgumentManager::ArgumentManager()
 void ArgumentManager::RegisterAllArguments() {
     if (m_is_registered) return;
 
-    // All default values are now taken from the central constants in ProgramOptions.hpp
     m_descriptors["black-level"] = {"black-level", "b", _("Camera RAW black level"), ArgType::Double, DEFAULT_BLACK_LEVEL};
     m_descriptors["black-file"] = {"black-file", "B", _("Totally dark RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
     m_descriptors["saturation-level"] = {"saturation-level", "s", _("Camera RAW saturation level"), ArgType::Double, DEFAULT_SATURATION_LEVEL};
@@ -44,7 +43,8 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
-    
+    m_descriptors["print-patch"] = {"print-patch", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::Flag, false};
+
     // Chart arguments
     m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
@@ -55,6 +55,9 @@ void ArgumentManager::RegisterAllArguments() {
     m_is_registered = true;
 }
 
+// File: src/core/arguments/ArgumentManager.cpp
+
+// Esta función ya existía y ha sido modificada.
 void ArgumentManager::ParseCli(int argc, char* argv[]) {
     CLI::App app{_("Calculates the dynamic range from a series of RAW images.")};
     auto fmt = app.get_formatter();
@@ -63,7 +66,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     
-    // Bind all options with correct short names
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(3);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
     auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches, m_descriptors.at("chart-patches").help_text)->expected(2);
@@ -80,34 +82,33 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
                             ->check(CLI::IsMember(std::vector<int>(std::begin(VALID_POLY_ORDERS), std::end(VALID_POLY_ORDERS))));
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
     auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
-    
+    auto print_patch_flag = app.add_flag("-P,--print-patch", temp_opts.print_patch_mode, m_descriptors.at("print-patch").help_text);
+
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
         exit(app.exit(e));
     }
 
-    // Wildcard expansion is now delegated to the PlatformUtils module.
     temp_opts.input_files = PlatformUtils::ExpandWildcards(temp_opts.input_files);
 
-    // Determine if we are in chart creation mode
-    if (chart_opt->count() > 0 || chart_colour_opt->count() > 0 || chart_patches_opt->count() > 0) {
+    // Chart creation mode should only be triggered by arguments that exclusively
+    // create a chart (--chart, --chart-colour), not by parameters that can also
+    // be used during analysis (--chart-patches).
+    if (chart_opt->count() > 0 || chart_colour_opt->count() > 0) {
         temp_opts.create_chart_mode = true;
     }
     
-    // If not in chart mode, input files are required
     if (!temp_opts.create_chart_mode) {
         input_opt->required();
     }
     
-    // Re-parse with the conditional requirement set
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
         exit(app.exit(e));
     }
     
-    // --- Update internal values map ---
     m_values["create-chart-mode"] = temp_opts.create_chart_mode;
     if (chart_opt->count() > 0) m_values["chart"] = temp_opts.chart_params;
     if (chart_colour_opt->count() > 0) m_values["chart-colour"] = temp_opts.chart_colour_params;
@@ -122,6 +123,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
     if (patch_ratio_opt->count() > 0) m_values["patch-ratio"] = temp_opts.patch_ratio;
     if (plot_opt->count() > 0) m_values["plot"] = temp_opts.plot_mode;
+    if (print_patch_flag->count() > 0) m_values["print-patch"] = temp_opts.print_patch_mode;
     
     m_values["input-files"] = temp_opts.input_files;
     if (snr_opt->count() > 0) {
@@ -129,8 +131,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["snr-threshold-is-default"] = false;
     }
 }
-
 ProgramOptions ArgumentManager::ToProgramOptions() {
+    
     ProgramOptions opts;
     
     opts.create_chart_mode = Get<bool>("create-chart-mode");
@@ -148,6 +150,7 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.dr_normalization_mpx = Get<double>("drnormalization-mpx");
     opts.patch_ratio = Get<double>("patch-ratio");
     opts.plot_mode = Get<int>("plot");
+    opts.print_patch_mode = Get<bool>("print-patch");
 
     if (Get<bool>("snr-threshold-is-default")) {
          opts.snr_thresholds_db = {12.0, 0.0};

@@ -7,12 +7,12 @@
  */
 #pragma once
 
-#include <string>
 #include <vector>
 #include <ostream>
 #include <filesystem>
 #include <cairo/cairo.h>
-#include "../engine/Processing.hpp" // For ProcessingResult
+#include <opencv2/core.hpp>
+#include "../analysis/Analysis.hpp"
 #include "../arguments/ProgramOptions.hpp"
 
 namespace fs = std::filesystem;
@@ -27,6 +27,17 @@ namespace OutputWriter {
  * @return true on success, false on failure.
  */
 bool WritePng(cairo_surface_t* surface, const fs::path& path, std::ostream& log_stream);
+
+/**
+ * @brief (New Function) Writes a floating-point OpenCV debug image to a file.
+ * @details Handles the conversion from a 32-bit float [0.0, 1.0] matrix to a
+ * standard 8-bit PNG image before saving.
+ * @param image The cv::Mat (CV_32F) to save.
+ * @param path The full filesystem path for the output PNG.
+ * @param log_stream A stream for logging success or error messages.
+ * @return true on success, false on failure.
+ */
+bool WriteDebugImage(const cv::Mat& image, const fs::path& path, std::ostream& log_stream);
 
 /**
  * @brief Writes the analysis results to a CSV file.

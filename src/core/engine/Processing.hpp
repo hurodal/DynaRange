@@ -14,10 +14,6 @@ namespace DynaRange {
 namespace EngineConfig {
     /**
      * @brief Compile-time switch to control keystone calculation optimization.
-     * @details If true, keystone parameters are calculated only once from the first image
-     * and then reused for all subsequent images in the series. This is faster.
-     * If false, parameters are recalculated for every image, which can be useful
-     * for debugging but is less efficient.
      */
     constexpr bool OPTIMIZE_KEYSTONE_CALCULATION = true;
 }
@@ -30,6 +26,7 @@ namespace EngineConfig {
 struct SingleFileResult {
     DynamicRangeResult dr_result; ///< The calculated dynamic range values.
     CurveData curve_data;         ///< The data required to plot the SNR curve.
+    cv::Mat final_debug_image;    ///< Debug image showing detected patches.
 };
 
 /**

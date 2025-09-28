@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-28 04:47+0200\n"
+"POT-Creation-Date: 2025-09-28 14:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -405,52 +405,56 @@ msgstr ""
 msgid "This may indicate underexposure or non-linear processing."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:35
+#: src/core/arguments/ArgumentManager.cpp:34
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:36
+#: src/core/arguments/ArgumentManager.cpp:35
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:37
+#: src/core/arguments/ArgumentManager.cpp:36
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:38
+#: src/core/arguments/ArgumentManager.cpp:37
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:39
+#: src/core/arguments/ArgumentManager.cpp:38
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:40
+#: src/core/arguments/ArgumentManager.cpp:39
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:41
+#: src/core/arguments/ArgumentManager.cpp:40
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:42
+#: src/core/arguments/ArgumentManager.cpp:41
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:43
+#: src/core/arguments/ArgumentManager.cpp:42
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:44
+#: src/core/arguments/ArgumentManager.cpp:43
 msgid "Output CSV text file(s) with all results..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:45
+#: src/core/arguments/ArgumentManager.cpp:44
 msgid "Export SNR curves in PNG format..."
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:46
+msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
 msgstr ""
 
 #: src/core/arguments/ArgumentManager.cpp:49
@@ -470,7 +474,7 @@ msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:59
+#: src/core/arguments/ArgumentManager.cpp:62
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
@@ -568,36 +572,59 @@ msgstr ""
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:37
+#: src/core/engine/Processing.cpp:39
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:61
+#: src/core/engine/Processing.cpp:63
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:68
+#: src/core/engine/Processing.cpp:67
 msgid "Error: Failed to prepare image for analysis: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:75
+#: src/core/engine/Processing.cpp:77
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:113
+#: src/core/engine/Processing.cpp:106
+msgid "Chart coordinates not provided. Attempting automatic detection..."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:119
+msgid "Automatic corner detection successful."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:131
+msgid "  - Detected Coords:"
+msgstr ""
+
+#: src/core/engine/Processing.cpp:141
+msgid ""
+"Warning: Automatic corner detection failed. Falling back to default "
+"coordinates."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:153
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:116
+#: src/core/engine/Processing.cpp:154
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:116
+#: src/core/engine/Processing.cpp:154
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:116
+#: src/core/engine/Processing.cpp:154
 msgid " rows."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:181 src/core/engine/Processing.cpp:220
+#: src/core/io/OutputWriter.cpp:65
+msgid "  - Info: Debug patch image saved to: "
 msgstr ""
 
 #: src/core/engine/Reporting.cpp:33
@@ -612,11 +639,11 @@ msgstr ""
 msgid "Dynamic Range Results"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:140 src/core/io/OutputWriter.cpp:39
+#: src/core/engine/Reporting.cpp:140 src/core/io/OutputWriter.cpp:38
 msgid "Error: Could not open CSV file for writing: "
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:161 src/core/io/OutputWriter.cpp:50
+#: src/core/engine/Reporting.cpp:161 src/core/io/OutputWriter.cpp:49
 msgid "Results saved to "
 msgstr ""
 
@@ -648,12 +675,16 @@ msgstr ""
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:69
+#: src/core/graphics/ImageProcessing.cpp:71
 msgid "Error: Could not get raw image for: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:99
+#: src/core/graphics/ImageProcessing.cpp:97
 msgid "Error: Invalid crop area calculated for keystone correction."
+msgstr ""
+
+#: src/core/graphics/ImageProcessing.cpp:247
+msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
 #: src/core/graphics/PlotBase.cpp:177
@@ -676,28 +707,32 @@ msgstr ""
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:135
+#: src/core/graphics/Plotting.cpp:134
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:135
+#: src/core/graphics/Plotting.cpp:134
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:161
+#: src/core/graphics/Plotting.cpp:160
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:178
+#: src/core/graphics/Plotting.cpp:176
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:198
+#: src/core/graphics/Plotting.cpp:196
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/io/OutputWriter.cpp:25
+#: src/core/io/OutputWriter.cpp:24
 msgid "  - Info: Plot saved to: "
+msgstr ""
+
+#: src/core/io/OutputWriter.cpp:69
+msgid "Error: OpenCV exception while saving debug image: "
 msgstr ""
 
 #: src/core/setup/FileSorter.cpp:43

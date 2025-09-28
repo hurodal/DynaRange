@@ -6,9 +6,8 @@
 #include "OutputWriter.hpp"
 #include "../utils/Formatters.hpp"
 #include <fstream>
-#include <iomanip>
-#include <sstream>
 #include <libintl.h>
+#include <opencv2/imgcodecs.hpp>
 
 #define _(string) gettext(string)
 
@@ -17,7 +16,7 @@ namespace OutputWriter {
 // This function existed previously and has been modified.
 bool WritePng(cairo_surface_t* surface, const fs::path& path, std::ostream& log_stream) {
     if (!surface) return false;
-    // MODIFIED: Use path.string().c_str() for cross-platform compatibility.
+    // Use path.string().c_str() for cross-platform compatibility.
     // This converts the path to a std::string (using char) before getting the C-style string,
     // which resolves the wchar_t* vs char* conflict on Windows.
     cairo_status_t status = cairo_surface_write_to_png(surface, path.string().c_str());
@@ -49,6 +48,27 @@ bool WriteCsv(
     csv_file.close();
     log_stream << "\n" << _("Results saved to ") << path.string() << std::endl;
     return true;
+}
+
+bool WriteDebugImage(const cv::Mat& image, const fs::path& path, std::ostream& log_stream)
+{
+    if (image.empty()) {
+        return false;
+    }
+    try {
+        // Convert the 32-bit float image (range 0.0-1.0) to an 8-bit unsigned
+        // integer image (range 0-255) for saving as a standard PNG.
+        cv::Mat output_image;
+        image.convertTo(output_image, CV_8U, 255.0);
+        
+        if (cv::imwrite(path.string(), output_image)) {
+            log_stream << _("  - Info: Debug patch image saved to: ") << path.string() << std::endl;
+            return true;
+        }
+    } catch (const cv::Exception& e) {
+        log_stream << _("Error: OpenCV exception while saving debug image: ") << e.what() << std::endl;
+    }
+    return false;
 }
 
 } // namespace OutputWriter
