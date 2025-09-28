@@ -411,7 +411,7 @@ for (image in 1:N) {
         # Save G1 channel (used to detect keystone correction corners)
         imgsave=imgBayer/max(imgBayer)  # ETTR data
         imgsave[imgsave<0]=0  # clip below 0 values
-        writeTIFF(imgsave^(1/2.2), paste0(NAME, "_G1chan.tif"), bits.per.sample=16)
+        writePNG(imgsave^(1/2.2), paste0(NAME, "_G1chan.png"))
         rm(imgsave)
 
         # Perform keystone distortion correction
@@ -542,8 +542,8 @@ for (image in 1:N) {
             imgsave=calc$imgcrop/MAXCROP  # ETTR data
             imgsave[imgsave<0]=0  # clip below 0 values
             imgsave[imgsave>1]=1  # clipp saturated values
-            writeTIFF(imgsave^(1/2.2), paste0("printpatches_RAW", rawchan,
-                        "_IMG", image, '_', NAME, ".tif"), bits.per.sample=16)
+            writePNG(imgsave^(1/2.2), paste0("printpatches_RAW", rawchan,
+                        "_IMG", image, '_', NAME, ".png"))
             rm(imgsave)
         }
         
