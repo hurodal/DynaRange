@@ -77,9 +77,11 @@ set(CORE_SOURCES
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
     src/core/setup/SensorResolution.cpp
+    src/core/utils/CommandGenerator.cpp
     src/core/utils/Formatters.cpp
     src/core/utils/LocaleManager.cpp
     src/core/utils/PathManager.cpp
+    src/core/utils/PlatformUtils.cpp 
 )
 
 # =============================================================================

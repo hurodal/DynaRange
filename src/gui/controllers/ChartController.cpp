@@ -14,48 +14,31 @@
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
     m_thumbnailViewer = std::make_unique<ImageViewer>(m_frame->m_chartPreviewBitmap);
-    
-    // Bind the size event of the panel to our new handler.
-    // This is the key to fixing the initial layout.
     m_frame->rightColChartPanel->Bind(wxEVT_SIZE, &ChartController::OnRightPanelSize, this);
-
-    // MODIFIED: Load the logo as the default image for the preview panel.
-    // This ensures the wxStaticBitmap always has a valid image upon creation,
-    // definitively solving the "invalid bitmap" error on Windows when switching
-    // to this tab. The logo will be replaced when the user clicks "Preview".
     m_thumbnailViewer->ShowLogo();
 
-    // Set initial values on UI controls from default options
-    auto default_opts = ParseChartOptions(ProgramOptions(), std::cerr);
-    if (default_opts) {
-        m_frame->m_rParamSlider->SetValue(default_opts->R);
-        m_frame->m_gParamSlider->SetValue(default_opts->G);
-        m_frame->m_bParamSlider->SetValue(default_opts->B);
-        m_frame->m_rParamValue->SetLabel(std::to_string(default_opts->R));
-        m_frame->m_gParamValue->SetLabel(std::to_string(default_opts->G));
-        m_frame->m_bParamValue->SetLabel(std::to_string(default_opts->B));
-        m_frame->m_InvGammaValue->SetValue(wxString::Format("%.1f", default_opts->invgamma));
-        m_frame->m_chartDimXValue->SetValue(std::to_string(default_opts->dim_x));
-        m_frame->m_chartDimWValue->SetValue(std::to_string(default_opts->aspect_w));
-        m_frame->m_chartDimHValue->SetValue(std::to_string(default_opts->aspect_h));
-        m_frame->m_chartPatchRowValue->SetValue(std::to_string(default_opts->patches_m));
-        m_frame->m_chartPatchColValue->SetValue(std::to_string(default_opts->patches_n));
-    }
+    // Set initial values on UI controls directly from a default-initialized
+    // ChartGeneratorOptions struct, which now holds the central default values.
+    ChartGeneratorOptions default_opts{};
+    m_frame->m_rParamSlider->SetValue(default_opts.R);
+    m_frame->m_gParamSlider->SetValue(default_opts.G);
+    m_frame->m_bParamSlider->SetValue(default_opts.B);
+    m_frame->m_rParamValue->SetLabel(std::to_string(default_opts.R));
+    m_frame->m_gParamValue->SetLabel(std::to_string(default_opts.G));
+    m_frame->m_bParamValue->SetLabel(std::to_string(default_opts.B));
+    m_frame->m_InvGammaValue->SetValue(wxString::Format("%.1f", default_opts.invgamma));
+    m_frame->m_chartDimXValue->SetValue(std::to_string(default_opts.dim_x));
+    m_frame->m_chartDimWValue->SetValue(std::to_string(default_opts.aspect_w));
+    m_frame->m_chartDimHValue->SetValue(std::to_string(default_opts.aspect_h));
+
+    // Initialize both sets of patch controls from the central source of truth.
+    m_frame->m_chartPatchRowValue->SetValue(std::to_string(default_opts.patches_m));
+    m_frame->m_chartPatchColValue->SetValue(std::to_string(default_opts.patches_n));
+    m_frame->m_chartPatchRowValue1->SetValue(std::to_string(default_opts.patches_m));
+    m_frame->m_chartPatchColValue1->SetValue(std::to_string(default_opts.patches_n));
 }
 
 ChartController::~ChartController() = default;
-
-int ChartController::GetChartPatchesM() const {
-    long value = 0;
-    m_frame->m_chartPatchRowValue->GetValue().ToLong(&value);
-    return static_cast<int>(value);
-}
-
-int ChartController::GetChartPatchesN() const {
-    long value = 0;
-    m_frame->m_chartPatchColValue->GetValue().ToLong(&value);
-    return static_cast<int>(value);
-}
 
 void ChartController::OnPreviewClick(wxCommandEvent& event) {
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
@@ -103,8 +86,10 @@ ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
     m_frame->m_chartDimXValue->GetValue().ToLong(&temp_val); opts.dim_x = temp_val;
     m_frame->m_chartDimWValue->GetValue().ToLong(&temp_val); opts.aspect_w = temp_val;
     m_frame->m_chartDimHValue->GetValue().ToLong(&temp_val); opts.aspect_h = temp_val;
-    opts.patches_m = GetChartPatchesM();
-    opts.patches_n = GetChartPatchesN();
+
+    // Calls are now correctly routed through the m_frame pointer.
+    opts.patches_m = m_frame->GetChartPatchesM();
+    opts.patches_n = m_frame->GetChartPatchesN();
     return opts;
 }
 
@@ -117,5 +102,29 @@ void ChartController::OnRightPanelSize(wxSizeEvent& event) {
         }
     });
     // Propagate the event to allow other layout calculations to proceed.
+    event.Skip();
+}
+
+void DynaRangeFrame::OnInputChartPatchChanged(wxCommandEvent& event) {
+    if (m_isUpdatingPatches) return;
+    m_isUpdatingPatches = true;
+
+    m_chartPatchRowValue->ChangeValue(m_chartPatchRowValue1->GetValue());
+    m_chartPatchColValue->ChangeValue(m_chartPatchColValue1->GetValue());
+    
+    m_presenter->UpdateCommandPreview();
+    m_isUpdatingPatches = false;
+    event.Skip();
+}
+
+void DynaRangeFrame::OnChartChartPatchChanged(wxCommandEvent& event) {
+    if (m_isUpdatingPatches) return;
+    m_isUpdatingPatches = true;
+
+    m_chartPatchRowValue1->ChangeValue(m_chartPatchRowValue->GetValue());
+    m_chartPatchColValue1->ChangeValue(m_chartPatchColValue->GetValue());
+
+    m_presenter->UpdateCommandPreview();
+    m_isUpdatingPatches = false;
     event.Skip();
 }

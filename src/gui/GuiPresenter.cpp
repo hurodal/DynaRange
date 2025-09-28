@@ -7,6 +7,7 @@
 #include "../core/arguments/ArgumentManager.hpp"
 #include "../core/engine/Engine.hpp"
 #include "DynaRangeFrame.hpp" // Include the full View definition
+#include "../core/utils/CommandGenerator.hpp"
 #include <algorithm>          // Needed for std::sort
 #include <ostream>
 #include <set>
@@ -62,19 +63,33 @@ void GuiPresenter::UpdateManagerFromView() {
   mgr.Set("black-level", m_view->GetDarkValue());
   mgr.Set("saturation-level", m_view->GetSaturationValue());
   mgr.Set("patch-ratio", m_view->GetPatchRatio());
-  mgr.Set("input-files",
-          m_view->GetInputFiles()); // Use the getter from the frame
+  mgr.Set("input-files", m_view->GetInputFiles());
   mgr.Set("output-file", m_view->GetOutputFilePath());
   mgr.Set("snrthreshold-db", m_view->GetSnrThreshold());
   mgr.Set("drnormalization-mpx", m_view->GetDrNormalization());
   mgr.Set("poly-fit", m_view->GetPolyOrder());
   mgr.Set("plot", m_view->GetPlotMode());
   mgr.Set("chart-coords", m_view->GetChartCoords());
-  mgr.Set("chart-patches-m", m_view->GetChartPatchesM());
-  mgr.Set("chart-patches-n", m_view->GetChartPatchesN());
+
+  // Correctly set the "chart-patches" argument as a vector of two integers.
+  std::vector<int> patches = {m_view->GetChartPatchesM(), m_view->GetChartPatchesN()};
+  mgr.Set("chart-patches", patches);
+}
+
+void GuiPresenter::UpdateCommandPreview() {
+
+  // First, sync the manager with the current state of the GUI controls
+  UpdateManagerFromView();
+
+  // The call to generate the command is now delegated to the new CommandGenerator module.
+  std::string command = CommandGenerator::GenerateCommand(CommandFormat::GuiPreview);
+  
+  // Update the view with the newly generated command
+  m_view->UpdateCommandPreview(command);
 }
 
 void GuiPresenter::StartAnalysis() {
+
   // 1. Update the manager with the current values from the GUI.
   UpdateManagerFromView();
 
@@ -133,18 +148,6 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string> &files_to_add) {
   // Update the view with the final, de-duplicated list.
   m_view->UpdateInputFileList(current_files);
   UpdateCommandPreview();
-}
-
-void GuiPresenter::UpdateCommandPreview() {
-  // First, sync the manager with the current state of the GUI controls
-  UpdateManagerFromView();
-  // The equivalent command preview in the GUI should always use long argument
-  // names and full paths for maximum clarity and for being able to copy-paste.
-  // We now use the dedicated GuiPreview format for this.
-  std::string command =
-      ArgumentManager::Instance().GenerateCommand(CommandFormat::GuiPreview);
-  // Update the view with the newly generated command
-  m_view->UpdateCommandPreview(command);
 }
 
 void GuiPresenter::HandleGridCellClick(int row) {

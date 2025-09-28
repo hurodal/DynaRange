@@ -13,7 +13,6 @@
 #include <libraw/libraw.h>
 #include <vector>
 
-
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     // Dynamically populate the polynomial order choice control.
     m_frame->m_PlotChoice->Clear();
@@ -33,9 +32,19 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
         m_frame->m_PlotChoice->SetSelection(default_index);
     }
     
-    // Programmatically set the default output filename from the
-    // central constant, ensuring consistency with the CLI.
+    // Use wxString::Format to set the value with 1-decimal precision.
+    m_frame->m_darkValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_BLACK_LEVEL));
+    m_frame->m_saturationValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_SATURATION_LEVEL));
+
+    // Programmatically set the default UI values from the central constants.
     m_frame->m_outputTextCtrl->SetValue(DEFAULT_OUTPUT_FILENAME);
+    m_frame->m_patchRatioSlider->SetValue(static_cast<int>(DEFAULT_PATCH_RATIO * 100));
+    m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", DEFAULT_PATCH_RATIO));
+    m_frame->m_snrThresholdslider->SetValue(static_cast<int>(DEFAULT_SNR_THRESHOLD_DB));
+    m_frame->m_snrThresholdValueText->SetLabel(wxString::Format("%.0fdB", DEFAULT_SNR_THRESHOLD_DB));
+    m_frame->m_drNormalizationSlider->SetValue(static_cast<int>(DEFAULT_DR_NORMALIZATION_MPX));
+    m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", DEFAULT_DR_NORMALIZATION_MPX));
+    m_frame->m_plotingChoice->SetSelection(DEFAULT_PLOT_MODE);
 }
 
 // --- Getters ---
@@ -162,4 +171,16 @@ std::vector<double> InputController::GetChartCoords() const {
     }
 
     return coords;
+}
+
+int InputController::GetChartPatchesM() const {
+    long value = 0;
+    m_frame->m_chartPatchRowValue1->GetValue().ToLong(&value);
+    return static_cast<int>(value);
+}
+
+int InputController::GetChartPatchesN() const {
+    long value = 0;
+    m_frame->m_chartPatchColValue1->GetValue().ToLong(&value);
+    return static_cast<int>(value);
 }

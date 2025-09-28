@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-28 01:00+0200\n"
+"POT-Creation-Date: 2025-09-28 03:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,24 +21,24 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:72
+#: src/gui/controllers/InputController.cpp:81
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:72
+#: src/gui/controllers/InputController.cpp:81
 msgid ""
 "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All "
 "files (*.*)|*.*"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:132
+#: src/gui/controllers/InputController.cpp:141
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:134
+#: src/gui/controllers/InputController.cpp:143
 msgid "Unsupported Files Skipped"
 msgstr ""
 
@@ -51,25 +51,25 @@ msgstr ""
 msgid "Generated Graph:"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:119 src/gui/GuiPresenter.cpp:84
+#: src/gui/DynaRangeFrame.cpp:130 src/gui/GuiPresenter.cpp:99
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:119
+#: src/gui/DynaRangeFrame.cpp:130
 msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:237
+#: src/gui/DynaRangeFrame.cpp:248
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:238
+#: src/gui/DynaRangeFrame.cpp:249
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:241
+#: src/gui/DynaRangeFrame.cpp:252
 msgid "Results loaded. Plot generation was not requested."
 msgstr ""
 
@@ -95,10 +95,6 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:54
-msgid "256.0"
-msgstr ""
-
 #: src/gui/generated/DynaRangeBase.cpp:64 src/core/graphics/Plotting.cpp:97
 msgid "Saturation"
 msgstr ""
@@ -109,10 +105,6 @@ msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:79
 msgid "Saturation Value:"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:83
-msgid "4095.0"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:96
@@ -200,12 +192,10 @@ msgid "Polynomic Order"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:290
-#: src/gui/generated/DynaRangeBase.cpp:613
 msgid "2"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:290
-#: src/gui/generated/DynaRangeBase.cpp:600
 msgid "3"
 msgstr ""
 
@@ -233,129 +223,116 @@ msgstr ""
 msgid "Ouput file"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:342
-msgid "Input RAW Files"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:351
-msgid "Add RAW Files..."
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:354
-msgid "Remove Selected"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:370
-msgid "Equivalent CLI command"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:390
-msgid "Execute"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:400
-msgid "Input"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:412
-msgid "Log"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:426
-msgid "CSV Output:"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:462
-msgid "Generated Graph (placeholder):"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:486
-msgid "Results"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:499
-msgid "Chart colors"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:504
-msgid "Red"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:513
-#: src/gui/generated/DynaRangeBase.cpp:532
-#: src/gui/generated/DynaRangeBase.cpp:551
-msgid "255"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:523
-msgid "Green"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:542
-msgid "Blue"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:561
-msgid "InvGamma"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:565
-msgid "1.4"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:575
-msgid "Chart dimensions"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:580
-msgid "DimX"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:584
-msgid "1920"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:596
-msgid "Width proportion"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:609
-msgid "Height proportion"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:626
+#: src/gui/generated/DynaRangeBase.cpp:329
+#: src/gui/generated/DynaRangeBase.cpp:664
 msgid "Chart patches"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:634
+#: src/gui/generated/DynaRangeBase.cpp:337
+#: src/gui/generated/DynaRangeBase.cpp:672
 msgid "Rows"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:638
-msgid "4"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:647
+#: src/gui/generated/DynaRangeBase.cpp:350
+#: src/gui/generated/DynaRangeBase.cpp:685
 msgid "Colums"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:651
-msgid "6"
+#: src/gui/generated/DynaRangeBase.cpp:380
+msgid "Input RAW Files"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:666
+#: src/gui/generated/DynaRangeBase.cpp:389
+msgid "Add RAW Files..."
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:392
+msgid "Remove Selected"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:408
+msgid "Equivalent CLI command"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:428
+msgid "Execute"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:438
+msgid "Input"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:450
+msgid "Log"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:464
+msgid "CSV Output:"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:500
+msgid "Generated Graph (placeholder):"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:524
+msgid "Results"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:537
+msgid "Chart colors"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:542
+msgid "Red"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:551
+#: src/gui/generated/DynaRangeBase.cpp:570
+#: src/gui/generated/DynaRangeBase.cpp:589
+msgid "255"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:561
+msgid "Green"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:580
+msgid "Blue"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:599
+msgid "InvGamma"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:613
+msgid "Chart dimensions"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:618
+msgid "DimX"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:634
+msgid "Width proportion"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:647
+msgid "Height proportion"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:704
 msgid "Create chart"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:672
+#: src/gui/generated/DynaRangeBase.cpp:710
 msgid "Preview chart"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:700
+#: src/gui/generated/DynaRangeBase.cpp:738
 msgid "Chart"
 msgstr ""
 
-#: src/gui/GuiPresenter.cpp:85
+#: src/gui/GuiPresenter.cpp:100
 msgid "Please select at least one input RAW file."
 msgstr ""
 
@@ -428,76 +405,76 @@ msgstr ""
 msgid "This may indicate underexposure or non-linear processing."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:81
+#: src/core/arguments/ArgumentManager.cpp:79
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:82
+#: src/core/arguments/ArgumentManager.cpp:80
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:83
+#: src/core/arguments/ArgumentManager.cpp:81
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:84
+#: src/core/arguments/ArgumentManager.cpp:82
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:85
+#: src/core/arguments/ArgumentManager.cpp:83
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:86
+#: src/core/arguments/ArgumentManager.cpp:84
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:87
+#: src/core/arguments/ArgumentManager.cpp:85
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:88
+#: src/core/arguments/ArgumentManager.cpp:86
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:89
+#: src/core/arguments/ArgumentManager.cpp:87
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:90
+#: src/core/arguments/ArgumentManager.cpp:88
 msgid "Output CSV text file(s) with all results..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:91
+#: src/core/arguments/ArgumentManager.cpp:89
 msgid "Export SNR curves in PNG format..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:95
+#: src/core/arguments/ArgumentManager.cpp:93
 msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:96
+#: src/core/arguments/ArgumentManager.cpp:94
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:98
+#: src/core/arguments/ArgumentManager.cpp:96
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:99
+#: src/core/arguments/ArgumentManager.cpp:97
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:105
+#: src/core/arguments/ArgumentManager.cpp:103
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/arguments/ChartOptionsParser.cpp:45
+#: src/core/arguments/ChartOptionsParser.cpp:37
 msgid "Error: Invalid parameter for a chart argument."
 msgstr ""
 
@@ -505,89 +482,89 @@ msgstr ""
 msgid "[INFO] Analysis cancelled by user."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:32
+#: src/core/engine/Initialization.cpp:50
 msgid "Warning: Duplicate input file ignored: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:41
+#: src/core/engine/Initialization.cpp:59
 msgid "Fatal error processing dark frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:46
+#: src/core/engine/Initialization.cpp:64
 msgid "Fatal error processing saturation frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:55
+#: src/core/engine/Initialization.cpp:71
 msgid "Error: None of the input files could be processed."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:80
+#: src/core/engine/Initialization.cpp:90
 msgid "[Final configuration]"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:81
+#: src/core/engine/Initialization.cpp:91
 msgid "Black level: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:82
+#: src/core/engine/Initialization.cpp:92
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:84
+#: src/core/engine/Initialization.cpp:94
 msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:84 src/core/engine/Initialization.cpp:91
+#: src/core/engine/Initialization.cpp:94 src/core/engine/Initialization.cpp:101
 #: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:86
+#: src/core/engine/Initialization.cpp:96
 msgid "SNR threshold(s): "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:90
+#: src/core/engine/Initialization.cpp:100
 msgid " dB"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:91
+#: src/core/engine/Initialization.cpp:101
 msgid "DR normalization: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:92
+#: src/core/engine/Initialization.cpp:102
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:93
+#: src/core/engine/Initialization.cpp:103
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:94
+#: src/core/engine/Initialization.cpp:104
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:96
+#: src/core/engine/Initialization.cpp:106
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:97
+#: src/core/engine/Initialization.cpp:107
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:98
+#: src/core/engine/Initialization.cpp:108
 msgid "Graphics with short command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:99
+#: src/core/engine/Initialization.cpp:109
 msgid "Graphics with long command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:101
+#: src/core/engine/Initialization.cpp:111
 msgid "Output file: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:102
+#: src/core/engine/Initialization.cpp:112
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 

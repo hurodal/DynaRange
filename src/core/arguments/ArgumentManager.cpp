@@ -5,18 +5,15 @@
  */
 #include "ArgumentManager.hpp"
 #include "ProgramOptions.hpp"
+#include "../utils/PlatformUtils.hpp"
 #include <CLI/CLI.hpp>
-#include <filesystem>
-#include <iomanip>
 #include <libintl.h>
-#include <sstream>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 #define _(string) gettext(string)
-namespace fs = std::filesystem;
 
 // --- Windows Wildcard Expansion Helpers ---
 #ifdef _WIN32
@@ -78,17 +75,18 @@ ArgumentManager::ArgumentManager()
 void ArgumentManager::RegisterAllArguments() {
     if (m_is_registered) return;
 
-    m_descriptors["black-level"] = {"black-level", "b", _("Camera RAW black level"), ArgType::Double, 0.0};
+    // All default values are now taken from the central constants in ProgramOptions.hpp
+    m_descriptors["black-level"] = {"black-level", "b", _("Camera RAW black level"), ArgType::Double, DEFAULT_BLACK_LEVEL};
     m_descriptors["black-file"] = {"black-file", "B", _("Totally dark RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
-    m_descriptors["saturation-level"] = {"saturation-level", "s", _("Camera RAW saturation level"), ArgType::Double, 16383.0};
+    m_descriptors["saturation-level"] = {"saturation-level", "s", _("Camera RAW saturation level"), ArgType::Double, DEFAULT_SATURATION_LEVEL};
     m_descriptors["saturation-file"] = {"saturation-file", "S", _("Totally clipped RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
     m_descriptors["input-files"] = {"input-files", "i", _("Input RAW files shot over the test chart ideally for every ISO"), ArgType::StringVector, std::vector<std::string>{}, false};
-    m_descriptors["patch-ratio"] = {"patch-ratio", "r", _("Relative patch width/height used to compute signal and noise readings (default=0.5)"), ArgType::Double, 0.5, false, 0.0, 1.0};
-    m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::Double, 12.0};
-    m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, 8.0};
-    m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, 3, false, 2, 3};
+    m_descriptors["patch-ratio"] = {"patch-ratio", "r", _("Relative patch width/height used to compute signal and noise readings (default=0.5)"), ArgType::Double, DEFAULT_PATCH_RATIO, false, 0.0, 1.0};
+    m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::Double, DEFAULT_SNR_THRESHOLD_DB};
+    m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, DEFAULT_DR_NORMALIZATION_MPX};
+    m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
-    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, 0, false, 0, 3};
+    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     
     // Chart arguments
@@ -122,8 +120,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto output_opt = app.add_option("-o,--output-file", temp_opts.output_filename, m_descriptors.at("output-file").help_text);
     auto snr_opt = app.add_option("-d,--snrthreshold-db", temp_snr_thresholds, m_descriptors.at("snrthreshold-db").help_text);
     auto dr_norm_opt = app.add_option("-m,--drnormalization-mpx", temp_opts.dr_normalization_mpx, m_descriptors.at("drnormalization-mpx").help_text);
-    // Instead of a hardcoded CLI::Range(2, 3), it checks if the input is a member
-    // of the `VALID_POLY_ORDERS` array.
     auto poly_fit_opt = app.add_option("-f,--poly-fit", temp_opts.poly_order, m_descriptors.at("poly-fit").help_text)
                             ->check(CLI::IsMember(std::vector<int>(std::begin(VALID_POLY_ORDERS), std::end(VALID_POLY_ORDERS))));
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
@@ -135,9 +131,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         exit(app.exit(e));
     }
 
-    #ifdef _WIN32
-        temp_opts.input_files = expand_wildcards_on_windows(temp_opts.input_files);
-    #endif
+    // Wildcard expansion is now delegated to the PlatformUtils module.
+    temp_opts.input_files = PlatformUtils::ExpandWildcards(temp_opts.input_files);
 
     // Determine if we are in chart creation mode
     if (chart_opt->count() > 0 || chart_colour_opt->count() > 0 || chart_patches_opt->count() > 0) {
@@ -178,6 +173,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["snr-threshold-is-default"] = false;
     }
 }
+
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
     
@@ -212,86 +208,4 @@ void ArgumentManager::Set(const std::string& long_name, std::any value)
     if (m_descriptors.count(long_name)) {
         m_values[long_name] = std::move(value);
     }
-}
-
-std::string ArgumentManager::GenerateCommand(CommandFormat format)
-{
-    std::stringstream command_ss;
-    command_ss << "rango";
-
-    // Helper lambda to dynamically add arguments based on format
-    auto add_arg = [&](const std::string& name) {
-        const auto& desc = m_descriptors.at(name);
-        const auto& value = m_values.at(name);
-        // Short names are used only for the PlotShort format. All others use long names.
-        bool use_short = (format == CommandFormat::PlotShort);
-
-        command_ss << " " << (use_short ? "-" + desc.short_name : "--" + desc.long_name);
-
-        // For flags, no value is added. For others, it is.
-        if (desc.type != ArgType::Flag) {
-            command_ss << " ";
-            if (desc.type == ArgType::String) {
-                std::string path_str = std::any_cast<std::string>(value);
-                // Use full paths for 'Full' and 'GuiPreview' formats.
-                bool use_full_path = (format == CommandFormat::Full || format == CommandFormat::GuiPreview);
-                std::string final_path = use_full_path ? path_str : fs::path(path_str).filename().string();
-                command_ss << "\"" << final_path << "\"";
-            } else if (desc.type == ArgType::Double) {
-                command_ss << std::fixed << std::setprecision(2) << std::any_cast<double>(value);
-            } else if (desc.type == ArgType::Int) {
-                command_ss << std::any_cast<int>(value);
-            }
-        }
-    };
-
-    // Logic to add arguments based on their state
-    if (!Get<std::string>("black-file").empty()) {
-        add_arg("black-file");
-    } else {
-        add_arg("black-level");
-    }
-
-    if (!Get<std::string>("saturation-file").empty()) {
-        add_arg("saturation-file");
-    } else {
-        add_arg("saturation-level");
-    }
-
-    if (format == CommandFormat::Full) {
-        add_arg("output-file");
-    }
-
-    if (!Get<bool>("snr-threshold-is-default")) {
-        add_arg("snrthreshold-db");
-    }
-
-    add_arg("drnormalization-mpx");
-    add_arg("poly-fit");
-    add_arg("patch-ratio");
-    add_arg("plot");
-
-    // Add chart-coords argument if it has been set.
-    const auto& chart_coords = Get<std::vector<double>>("chart-coords");
-    if (!chart_coords.empty()) {
-        const auto& desc = m_descriptors.at("chart-coords");
-        command_ss << " --" << desc.long_name;
-        for (const auto& coord : chart_coords) {
-            // Use default precision for coordinates.
-            command_ss << " " << coord;
-        }
-    }
-
-    if (format == CommandFormat::Full || format == CommandFormat::GuiPreview) {
-        const auto& input_files = Get<std::vector<std::string>>("input-files");
-        if (!input_files.empty()) {
-            const auto& input_desc = m_descriptors.at("input-files");
-            command_ss << " " << "--" + input_desc.long_name;
-            for (const auto& file : input_files) {
-                command_ss << " \"" << file << "\"";
-            }
-        }
-    }
-
-    return command_ss.str();
 }

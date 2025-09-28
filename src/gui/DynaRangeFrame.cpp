@@ -38,12 +38,9 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
     m_removeRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveFilesClick, this);
     m_rawFileslistBox->Bind(wxEVT_LISTBOX, &DynaRangeFrame::OnListBoxSelectionChanged, this);
     m_rawFileslistBox->Bind(wxEVT_KEY_DOWN, &DynaRangeFrame::OnListBoxKeyDown, this);
-    m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
-    m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnDrNormSliderChanged, this);
     m_PlotChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
     m_plotingChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
     m_outputTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
@@ -55,19 +52,28 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
     m_mainNotebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &DynaRangeFrame::OnNotebookPageChanged, this);
     
-    // --- Bind New Chart Tab Events ---
+    //  Reverted to the correct event types for sliders.
+    m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
+    m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
+    m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
+    m_snrThresholdslider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnSnrSliderChanged, this);
+    m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnDrNormSliderChanged, this);
+    m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnDrNormSliderChanged, this);
+    m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
+    m_rParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
+    m_gParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
+    m_gParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
+    m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
+    m_bParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
+    
+    // --- Bind Chart Tab Events ---
     chartButtonPreview->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartPreviewClick, this);
     chartButtonCreate->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartCreateClick, this);
-    m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_gParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
     m_InvGammaValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimXValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimWValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimHValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-
+    
     // --- Bind Chart Coordinate Events from Input Tab ---
     m_coordX1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordY1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
@@ -77,15 +83,20 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_coordY3Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordX4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordY4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    
+
+    m_chartPatchRowValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
+    m_chartPatchColValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
+    m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
+    m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
+
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
-    
+
     // Drag and Drop
     m_dropTarget = new FileDropTarget(this);
     SetDropTarget(m_dropTarget);
-    
+
     // --- Initial State Setup ---
     m_processingGauge->Hide();
     m_cvsGrid->Hide();
@@ -166,8 +177,8 @@ int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrde
 int DynaRangeFrame::GetPlotMode() const { return m_inputController->GetPlotMode(); }
 std::vector<std::string> DynaRangeFrame::GetInputFiles() const { return m_inputController->GetInputFiles(); }
 std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_inputController->GetChartCoords(); }
-int DynaRangeFrame::GetChartPatchesM() const { return m_chartController->GetChartPatchesM(); }
-int DynaRangeFrame::GetChartPatchesN() const { return m_chartController->GetChartPatchesN(); }
+int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
+int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN(); }
 
 // =============================================================================
 // EVENT HANDLERS
@@ -175,7 +186,7 @@ int DynaRangeFrame::GetChartPatchesN() const { return m_chartController->GetChar
 
 void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) { m_inputController->OnAddFilesClick(event); }
 
-void DynaRangeFrame::OnChartColorSliderChanged(wxCommandEvent& event) {
+void DynaRangeFrame::OnChartColorSliderChanged(wxScrollEvent& event) {
     if (m_chartController) m_chartController->OnColorSliderChanged(event);
 }
 
@@ -243,7 +254,6 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
 }
 
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) { m_logController->AppendText(event.GetString()); }
-
 
 // =============================================================================
 // HELPER CLASS IMPLEMENTATION

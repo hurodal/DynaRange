@@ -1,4 +1,4 @@
-// File: gui/controllers/InputController.hpp
+// File: src/gui/controllers/InputController.hpp
 /**
  * @file gui/controllers/InputController.hpp
  * @brief Declares a controller class for the InputPanel's logic.
@@ -33,6 +33,10 @@ public:
     std::vector<std::string> GetInputFiles() const;
     std::vector<double> GetChartCoords() const;
 
+    // Added getters for the new chart patch controls on the Input tab.
+    int GetChartPatchesM() const; // Rows
+    int GetChartPatchesN() const; // Cols
+
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
@@ -47,7 +51,6 @@ public:
     void OnListBoxKeyDown(wxKeyEvent& event);
     void OnSnrSliderChanged(wxScrollEvent& event);
     void OnDrNormSliderChanged(wxScrollEvent& event);
-
 private:
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);

@@ -1,4 +1,4 @@
-// File: gui/DynaRangeFrame.hpp
+// File: src/gui/DynaRangeFrame.hpp
 /**
  * @file gui/DynaRangeFrame.hpp
  * @brief Main frame of the DynaRange GUI application (The View).
@@ -29,7 +29,7 @@ class DynaRangeFrame : public MyFrameBase
 public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
-    
+
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
@@ -39,7 +39,7 @@ public:
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
     void LoadGraphImage(const std::string& image_path);
-    
+
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
@@ -59,7 +59,7 @@ public:
 protected:
     // --- Event Handlers ---
     void OnAddFilesClick(wxCommandEvent& event);
-    void OnChartColorSliderChanged(wxCommandEvent& event);
+    void OnChartColorSliderChanged(wxScrollEvent& event);
     void OnChartCreateClick(wxCommandEvent& event);
     void OnChartInputChanged(wxCommandEvent& event);
     void OnChartPreviewClick(wxCommandEvent& event);
@@ -80,12 +80,18 @@ protected:
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
     void OnWorkerUpdate(wxThreadEvent& event);
+    // Added new event handlers for synchronizing patch controls.
+    void OnInputChartPatchChanged(wxCommandEvent& event);
+    void OnChartChartPatchChanged(wxCommandEvent& event);
 
 private:
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
+    
+    // Added a flag to prevent infinite event loops during sync.
+    bool m_isUpdatingPatches = false;
 
     // --- Controller Class Members ---
     std::unique_ptr<InputController> m_inputController;

@@ -9,12 +9,17 @@
 #include <map>
 #include <cstddef> // For std::size
 
-/// @brief Default polynomial order for curve fitting.
+// All key default values are now defined here as constexpr constants.
+// This file is now the single source of truth for program option defaults.
+constexpr double DEFAULT_BLACK_LEVEL = 256.0;
+constexpr double DEFAULT_SATURATION_LEVEL = 4095.0;
+constexpr double DEFAULT_PATCH_RATIO = 0.5;
+constexpr double DEFAULT_SNR_THRESHOLD_DB = 12.0;
+constexpr double DEFAULT_DR_NORMALIZATION_MPX = 8.0;
+constexpr int DEFAULT_PLOT_MODE = 0;
 constexpr int DEFAULT_POLY_ORDER = 3;
-
-// MODIFIED: Added a constant for the default output filename.
-// This is now the single source of truth for this value.
 constexpr const char* DEFAULT_OUTPUT_FILENAME = "results.csv";
+constexpr const char* CLI_EXECUTABLE_NAME = "rango";
 
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
@@ -36,10 +41,10 @@ inline int PolyOrderFromIndex(int index) {
  * @brief Specifies the desired format for the generated command string.
  */
 enum class CommandFormat {
-    Full,       ///< Complete command with full paths and all arguments.
-    PlotShort,  ///< Abbreviated command for plots with short argument names (-f, -r).
-    PlotLong,   ///< Abbreviated command for plots with long argument names (--poly-fit, --patch-ratio).
-    GuiPreview  ///< Command for the GUI preview: long names and full paths for copy-pasting.
+    Full,
+    PlotShort,
+    PlotLong,
+    GuiPreview
 };
 
 /**
@@ -47,17 +52,18 @@ enum class CommandFormat {
  * @brief Holds all the configuration options for the dynamic range analysis.
  */
 struct ProgramOptions {
-    double dark_value = 0.0;
-    double saturation_value = 16383.0;
+    // All members are initialized from the central constants.
+    double dark_value = DEFAULT_BLACK_LEVEL;
+    double saturation_value = DEFAULT_SATURATION_LEVEL;
     std::string dark_file_path;
     std::string sat_file_path;
     std::string output_filename = DEFAULT_OUTPUT_FILENAME;
     std::vector<std::string> input_files;
     int poly_order = DEFAULT_POLY_ORDER;
-    double dr_normalization_mpx = 8.0;
+    double dr_normalization_mpx = DEFAULT_DR_NORMALIZATION_MPX;
     std::vector<double> snr_thresholds_db;
-    double patch_ratio = 0.5;
-    int plot_mode = 0;
+    double patch_ratio = DEFAULT_PATCH_RATIO;
+    int plot_mode = DEFAULT_PLOT_MODE;
     bool create_chart_mode = false;
     std::vector<std::string> chart_colour_params;
     std::vector<int> chart_params;
@@ -67,7 +73,6 @@ struct ProgramOptions {
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
 
-    // Getters para mantener la compatibilidad con la GUI y ChartProfile
     int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

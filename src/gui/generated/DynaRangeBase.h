@@ -88,6 +88,10 @@ class MyFrameBase : public wxFrame
 		wxChoice* m_plotingChoice;
 		wxStaticText* m_outputStaticText;
 		wxTextCtrl* m_outputTextCtrl;
+		wxStaticText* m_chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
 		wxPanel* left_column_panel_Down;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;

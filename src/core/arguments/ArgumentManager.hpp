@@ -29,12 +29,9 @@ public:
     static ArgumentManager& Instance();
 
     void ParseCli(int argc, char* argv[]);
-    std::string GenerateCommand(CommandFormat format = CommandFormat::Full);
     ProgramOptions ToProgramOptions();
-
     void Set(const std::string& long_name, std::any value);
 
-    // This is a template function, so its definition must be in the header file.
     template <typename T> T Get(const std::string& long_name) const
     {
         if (m_values.count(long_name)) {
@@ -50,7 +47,6 @@ public:
 private:
     ArgumentManager();
     ~ArgumentManager() = default;
-
     ArgumentManager(const ArgumentManager&) = delete;
     ArgumentManager& operator=(const ArgumentManager&) = delete;
 
