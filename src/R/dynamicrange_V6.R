@@ -649,7 +649,7 @@ print(DR_df)
 
 
 ##################################################################
-# POLYNOMIC FITTING
+# POLYNOMIC FITTING EXAMPLES
 
 # Create (x,y) samples
 set.seed(100)
