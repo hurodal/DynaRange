@@ -7,13 +7,9 @@ library(tiff)
 library(png)
 library(Cairo)
 library(Rcpp)
-# library(microbenchmark)
 
-
-################################
 
 # KEYSTONE CORRECTION (SAME FOR ALL IMAGES)
-
 # Undo distortion function
 calculate_keystone = function(xu, yu, xd, yd, DIMX, DIMY) {
     # Calculate the k parameters that define a keystone correction
@@ -41,13 +37,13 @@ calculate_keystone = function(xu, yu, xd, yd, DIMX, DIMY) {
     for (i in 1:4) print(undo_keystone_coords(xd[i], yd[i], k))
     
     # Plot trapezoids
-    # plot(c(xd, xd[1]), c(yd, yd[1]), type='l', col='red', asp=1,
-    #      xlab='X', ylab='Y', xlim=c(1,DIMX), ylim=c(DIMY,1))
-    # lines(c(xu, xu[1]), c(yu, yu[1]), type='l', col='blue')
-    # for (i in 1:4) {
-    #     lines(c(xd[i], xu[i]), c(yd[i], yu[i]), type='l', lty=3, col='darkgray')
-    # }
-    # abline(h=c(1,DIMY), v=c(1,DIMX))
+    plot(c(xd, xd[1]), c(yd, yd[1]), type='l', col='red', asp=1,
+         xlab='X', ylab='Y', xlim=c(1,DIMX), ylim=c(DIMY,1))
+    lines(c(xu, xu[1]), c(yu, yu[1]), type='l', col='blue')
+    for (i in 1:4) {
+        lines(c(xd[i], xu[i]), c(yd[i], yu[i]), type='l', lty=3, col='darkgray')
+    }
+    abline(h=c(1,DIMY), v=c(1,DIMX))
     
     return (k)
 }
@@ -58,26 +54,6 @@ undo_keystone_coords = function(xd, yd, k) {
     xu=(k[1]*xd + k[2]*yd + k[3]) / denom
     yu=(k[4]*xd + k[5]*yd + k[6]) / denom
     return(c(xu, yu))  # return pair (xu, yu)
-}
-
-undo_keystone = function(imgd, k) {
-    # Return the keystone correction of an image (matrix)
-    DIMX=ncol(imgd)
-    DIMY=nrow(imgd)
-    imgc=imgd*0
-    
-    for (x in 1:DIMX) {
-        for (y in 1:DIMY) {
-            denom=k[7]*x + k[8]*y + 1
-            xu=round((k[1]*x + k[2]*y + k[3]) / denom)
-            yu=round((k[4]*x + k[5]*y + k[6]) / denom)
-            
-            if (xu>=1 & xu<=DIMX & yu>=1 & yu<=DIMY)
-                imgc[y, x]=imgd[yu, xu]  # nearest neighbour interp
-        }
-    }
-    
-    return(imgc)
 }
 
 cppFunction('
@@ -104,10 +80,7 @@ NumericMatrix undo_keystone_cpp(NumericMatrix imgd, NumericVector k) {
 ')
 
 
-################################
-
 # SNR CALCULATION OVER THE PATCHES
-
 cppFunction('
 List analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS,
     double patch_ratio, double MIN_SNR_dB) {
@@ -194,8 +167,7 @@ List analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS,
 ')
 
 
-# QUANTILE
-
+# FUNCTION QUANTILE
 cppFunction('
     double quantilecpp(Rcpp::NumericVector xx, double q = 0.5) {
     // q=0.5 -> median, q=0.25 -> first quartile, ...
@@ -230,15 +202,13 @@ NROWS=4
 # --chart-coords x1 y1 x2 y2 x3 y3 x4 y4
 # Test chart defined by 4 corners: (x1,y1), (x2,y2), (x3,y3), (x4,y4)
 # being (0,0) the coordinates of top-left corner
-chartcoords=TRUE  # FALSE  # TRUE
+chartcoords=FALSE  # TRUE
 # Example: distorted points (source) from Sony A7 II
 xchart=c(1097, 1500, 5077, 4682)  # no need to be top-left, bottom-left, bottom-right, top-right
 ychart=c(1152, 3396, 2800, 568)  # they will be re-ordered
 
 
-
 ################################
-
 # OPTIONAL MAGENTA CHART GENERATION
 
 # Chart format (suited to CAMERA, not to monitor)
@@ -302,7 +272,7 @@ chart[y0[2]:y0[3], x0[2]:x0[3], 3]=0.75
 chart[y0[3]:y0[4], x0[3]:x0[4], 3]=0.75
 chart[y0[4]:y0[1], x0[4]:x0[1], 3]=0.75
 
-# Now draw 4 white circles radius: 1% of the whole Diagonal between circles
+# Now draw 4 white circles. Radius: 1% of the whole Diagonal between circles
 DIAG=(DIMX^2+DIMY^2)^0.5
 RADIUS=DIAG*0.01  # Radius=1% of the whole Diagonal
 AreaCircle=pi*RADIUS^2
@@ -329,7 +299,7 @@ writePNG(chart, CHARTNAME)
 
 # 0. BLACK AND SAT POINTS CALCULATION FROM DARKFRAME AND BLOWN RAW FILES
 
-# It is mandatory to use accurate BLACK (especially) and SAT values
+# It is mandatory to use accurate BLACK (especially), and accurate SAT values
 # to properly locate each pixel's level vs saturation
 
 # dcraw -v -D -t 0 -4 -T BLACK.DNG SAT.DNG
@@ -545,12 +515,7 @@ for (image in 1:N) {
             GAPY=(ybr-ytl) / (NROWS+1) / 2
         }
         imgcrop=imgc[round(ytl+GAPY):round(ybr-GAPY), round(xtl+GAPX):round(xbr-GAPX)]
-    
-        # Save corrected and cropped image
-        imgsave=imgcrop
-        imgsave[imgsave<0]=0
-        writeTIFF(imgsave, paste0("correctedcroppedchart_", rawchan, "_", NAME, ".tif"), bits.per.sample=16)
-        rm(imgsave)
+        MAXCROP=max(imgcrop)
 
         # Analyze imgcrop divided in NCOLS x NROWS patches leaving patch_ratio
         MIN_SNR_dB = -10; MIN_SNR_dB = -90
@@ -559,18 +524,23 @@ for (image in 1:N) {
         calc=analyze_patches(imgcrop, NCOLS, NROWS, patch_ratio, MIN_SNR_dB)
         Signal=c(Signal, calc$Signal)
         Noise=c(Noise, calc$Noise)
-        
-        imgcrop=calc$imgcrop
-        imgsave=imgcrop
-        imgsave[imgsave<0]=0
-        writeTIFF(imgsave, paste0("croppedchart_usedpatches_", rawchan, "_", NAME, ".tif"), bits.per.sample=16)
-        rm(imgsave)
-        
         patches_used[rawchan]=length(calc$Signal)  # total number of samples used in rawchan      
+        
+        # Save normalized and gamma corrected crop with used patches overlapped on the chart
+        if (image==1 && rawchan==1) {  # do it just once, although it can be calculated for every image
+            imgcrop=calc$imgcrop
+            imgsave=imgcrop
+            imgsave=imgsave/MAXCROP  # normalize to 0..1 original values in crop
+            imgsave[imgsave<0]=0  # clip below 0 values
+            imgsave[imgsave>1]=1  # clipp saturated values
+            writeTIFF(imgsave^(1/2.2), paste0("usedpatches_RAW", rawchan,
+                        "_IMG", image, '_', NAME, ".tif"), bits.per.sample=16)
+            rm(imgsave)
+        }
         
     }  # end loop through RAW channels
     
-    # Now order ALL samples from lower to higher SNR values (to plot beautifully)
+    # Now order ALL 4 channels samples from lower to higher SNR values (to plot beautifully)
     SNR=Signal/Noise
     neworder=order(SNR)  # SNR will be the independent variable in splines
     Signal=Signal[neworder]
@@ -660,5 +630,85 @@ dev.off()
 DR_df=DR_df[order(DR_df$tiff_file), ]
 write.csv2(DR_df, paste0("DR_SonyA7II.csv"))
 print(DR_df)
+
+
+
+
+
+
+
+#######################################
+# Polynomic fitting
+
+# Create (x,y) samples
+set.seed(100)
+dev1=0.2/2
+dev2=100/2
+x <- 1:10 + rnorm(length(x), sd=dev1)
+y <- 1000-(15-x)^3 + rnorm(length(x), sd=dev2)  # noisy cubic data
+
+# Fitting for y=f(x)
+neworder=order(x)
+x=x[neworder]
+y=y[neworder]
+
+# Fit cubic polynomial: y=f(x)
+fit <- lm(y ~ poly(x=x, degree=3, raw=TRUE))
+a=coef(fit)
+# y_pred <- predict(fit)
+x_new <- seq(min(x), max(x), length.out = 500)
+y_new <- predict(fit, newdata = data.frame(x = x_new))
+
+plot(x, y, main="Cubic polynomial fit y=f(x)", pch=19)
+lines(x_new, y_new, col=rgb(1,0,0,0.1), lwd=12)
+lines(x_new, a[1] + a[2]*x_new + a[3]*x_new^2 + a[4]*x_new^3, col='red')
+
+xfwd=x_new; yfwd=y_new
+
+
+# Fitting for x=f(y)
+neworder=order(y)
+x=x[neworder]
+y=y[neworder]
+
+# Fit cubic polynomial: x=f(y)
+fit <- lm(x ~ poly(x=y, degree=3, raw=TRUE))
+a=coef(fit)
+# x_pred <- predict(fit)
+y_new <- seq(min(y), max(y), length.out = 500)
+x_new <- predict(fit, newdata = data.frame(y = y_new))
+
+plot(x, y, main="Cubic polynomial fit x=f(y)", pch=19)
+lines(x_new, y_new, col=rgb(0,0,1,0.2), lwd=12)
+lines(a[1] + a[2]*y_new + a[3]*y_new^2 + a[4]*y_new^3, y_new, , col='blue')
+
+xbkd=x_new; ybkd=y_new
+
+
+# Plot both polynomials: y=f(x) and x=f(y)
+plot(x, y, main="Forward vs Backward xubic polynomial fit comparison", pch=19)
+lines(xfwd, yfwd, col="red", lwd=1)
+lines(xbkd, ybkd, col="blue", lwd=1)
+
+
+
+################################
+# (Exposicion,SNR) example
+
+# Data: (Exposicion, SNR) pairs
+set.seed(10)
+Exposicion <- 1:10-12 + rnorm(10, sd=0.15)
+SNR <- (15000-(15-Exposicion)^3 + rnorm(10, sd=80))/400  # noisy cubic data
+plot(Exposicion, SNR)
+
+# Fit cubic polynomial: Exposicion=f(SNR)
+# fit <- lm(y ~ poly(x, 3, raw=TRUE)) -> y=Exposicion, x=SNR
+fit <- lm(Exposicion ~ poly(SNR, 3, raw=TRUE))  # cubic polynomial fit
+Exposicion_pred <- predict(fit)
+plot(Exposicion, SNR, main="Cubic polynomial fit", pch=19)
+lines(Exposicion_pred, SNR, col="red", lwd=2)
+
+RD <- -predict(fit, newdata = data.frame(SNR = c(0,12)))
+abline(h=c(0,12), v=-RD,, lty='dotted')
 
 

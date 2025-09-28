@@ -171,9 +171,6 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
-    // Populate the new dr_results member with the sorted results.
-    output.dr_results = results.dr_results;
-
     output.final_csv_path = paths.GetCsvOutputPath().string();
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     

@@ -40,9 +40,16 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
 
     // Phase 3: Validate SNR data before final reporting
     ValidateSnrResults(results, opts, log_stream);
-    
+
     // Phase 4: Generation of final reports
-    return FinalizeAndReport(results, opts, log_stream);
+    ReportOutput report = FinalizeAndReport(results, opts, log_stream);
+
+    // Populate the new dr_results member with the sorted results.
+    // for combining the report artifacts with the numerical results
+    // Needed when click event on grid results.csv and show graphic at GUI
+    report.dr_results = results.dr_results;
+
+    return report;
 }
 
 } // namespace DynaRange
