@@ -202,11 +202,10 @@ NROWS=4
 # --chart-coords x1 y1 x2 y2 x3 y3 x4 y4
 # Test chart defined by 4 corners: (x1,y1), (x2,y2), (x3,y3), (x4,y4)
 # being (0,0) the coordinates of top-left corner
-chartcoords=TRUE  # FALSE  # TRUE
+chartcoords=FALSE  # TRUE
 # Example: distorted points (source) from Sony A7 II
 xchart=c(1097, 1500, 5077, 4682)  # no need to be top-left, bottom-left, bottom-right, top-right
 ychart=c(1152, 3396, 2800, 568)  # they will be re-ordered
-
 
 
 ################################
@@ -516,12 +515,7 @@ for (image in 1:N) {
             GAPY=(ybr-ytl) / (NROWS+1) / 2
         }
         imgcrop=imgc[round(ytl+GAPY):round(ybr-GAPY), round(xtl+GAPX):round(xbr-GAPX)]
-    
-        # Save corrected and cropped image
-        imgsave=imgcrop
-        imgsave[imgsave<0]=0
-        writeTIFF(imgsave, paste0("correctedcroppedchart_", rawchan, "_", NAME, ".tif"), bits.per.sample=16)
-        rm(imgsave)
+        MAXCROP=max(imgcrop)
 
         # Analyze imgcrop divided in NCOLS x NROWS patches leaving patch_ratio
         MIN_SNR_dB = -10; MIN_SNR_dB = -90
@@ -530,18 +524,23 @@ for (image in 1:N) {
         calc=analyze_patches(imgcrop, NCOLS, NROWS, patch_ratio, MIN_SNR_dB)
         Signal=c(Signal, calc$Signal)
         Noise=c(Noise, calc$Noise)
-        
-        imgcrop=calc$imgcrop
-        imgsave=imgcrop
-        imgsave[imgsave<0]=0
-        writeTIFF(imgsave, paste0("croppedchart_usedpatches_", rawchan, "_", NAME, ".tif"), bits.per.sample=16)
-        rm(imgsave)
-        
         patches_used[rawchan]=length(calc$Signal)  # total number of samples used in rawchan      
+        
+        # Save normalized and gamma corrected crop with used patches overlapped on the chart
+        if (image==1 && rawchan==1) {  # do it just once, although it can be calculated for every image
+            imgcrop=calc$imgcrop
+            imgsave=imgcrop
+            imgsave=imgsave/MAXCROP  # normalize to 0..1 original values in crop
+            imgsave[imgsave<0]=0  # clip below 0 values
+            imgsave[imgsave>1]=1  # clipp saturated values
+            writeTIFF(imgsave^(1/2.2), paste0("usedpatches_RAW", rawchan,
+                        "_IMG", image, '_', NAME, ".tif"), bits.per.sample=16)
+            rm(imgsave)
+        }
         
     }  # end loop through RAW channels
     
-    # Now order ALL samples from lower to higher SNR values (to plot beautifully)
+    # Now order ALL 4 channels samples from lower to higher SNR values (to plot beautifully)
     SNR=Signal/Noise
     neworder=order(SNR)  # SNR will be the independent variable in splines
     Signal=Signal[neworder]
@@ -631,6 +630,9 @@ dev.off()
 DR_df=DR_df[order(DR_df$tiff_file), ]
 write.csv2(DR_df, paste0("DR_SonyA7II.csv"))
 print(DR_df)
+
+
+
 
 
 
