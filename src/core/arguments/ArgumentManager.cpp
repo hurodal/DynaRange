@@ -9,51 +9,7 @@
 #include <CLI/CLI.hpp>
 #include <libintl.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #define _(string) gettext(string)
-
-// --- Windows Wildcard Expansion Helpers ---
-#ifdef _WIN32
-namespace { // Anonymous namespace for internal helpers
-
-// Expands a single file pattern on Windows.
-void expand_single_wildcard(const std::string& pattern, std::vector<std::string>& expanded_files)
-{
-    WIN32_FIND_DATAA find_data;
-    HANDLE h_find = FindFirstFileA(pattern.c_str(), &find_data);
-    if (h_find != INVALID_HANDLE_VALUE) {
-        fs::path pattern_path(pattern);
-        fs::path parent_dir = pattern_path.parent_path();
-        do {
-            // Ensure we only add files, not directories.
-            if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-                expanded_files.push_back((parent_dir / find_data.cFileName).string());
-            }
-        } while (FindNextFileA(h_find, &find_data) != 0);
-        FindClose(h_find);
-    }
-}
-
-// Processes a list of file arguments and expands any that contain wildcards.
-std::vector<std::string> expand_wildcards_on_windows(const std::vector<std::string>& files)
-{
-    std::vector<std::string> result_files;
-    for (const auto& file_arg : files) {
-        // An argument is a pattern if it contains '*' or '?'.
-        if (file_arg.find_first_of("*?") != std::string::npos) {
-            expand_single_wildcard(file_arg, result_files);
-        } else {
-            // If it has no wildcards, add it directly.
-            result_files.push_back(file_arg);
-        }
-    }
-    return result_files;
-}
-} // end anonymous namespace
-#endif
 
 // --- ArgumentManager Implementation ---
 
@@ -201,7 +157,6 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
 
     return opts;
 }
-
 
 void ArgumentManager::Set(const std::string& long_name, std::any value)
 {

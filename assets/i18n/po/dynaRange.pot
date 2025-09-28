@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-28 03:48+0200\n"
+"POT-Creation-Date: 2025-09-28 04:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -405,72 +405,72 @@ msgstr ""
 msgid "This may indicate underexposure or non-linear processing."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:79
+#: src/core/arguments/ArgumentManager.cpp:35
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:80
+#: src/core/arguments/ArgumentManager.cpp:36
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:81
+#: src/core/arguments/ArgumentManager.cpp:37
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:82
+#: src/core/arguments/ArgumentManager.cpp:38
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:83
+#: src/core/arguments/ArgumentManager.cpp:39
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:84
+#: src/core/arguments/ArgumentManager.cpp:40
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:85
+#: src/core/arguments/ArgumentManager.cpp:41
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:86
+#: src/core/arguments/ArgumentManager.cpp:42
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:87
+#: src/core/arguments/ArgumentManager.cpp:43
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:88
+#: src/core/arguments/ArgumentManager.cpp:44
 msgid "Output CSV text file(s) with all results..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:89
+#: src/core/arguments/ArgumentManager.cpp:45
 msgid "Export SNR curves in PNG format..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:93
+#: src/core/arguments/ArgumentManager.cpp:49
 msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:94
+#: src/core/arguments/ArgumentManager.cpp:50
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:96
+#: src/core/arguments/ArgumentManager.cpp:52
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:97
+#: src/core/arguments/ArgumentManager.cpp:53
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:103
+#: src/core/arguments/ArgumentManager.cpp:59
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
