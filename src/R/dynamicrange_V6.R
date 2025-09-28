@@ -16,7 +16,7 @@ calculate_keystone = function(xu, yu, xd, yd, DIMX, DIMY) {
     # from 4 pairs of (xu,yu) coords + 4 pairs of (xd,yd) coords
     
     # NOTE: we swap the distorted and undistorted trapezoids because
-    # we want to model the transformation
+    # we want to model the pixel per pixel mapping
     # FROM CORRECTED coords (DST) -> TO UNCORRECTED coords (ORG)
     # DIMX, DIMY not needed for calculations, just to plot the trapezoids
     
@@ -184,32 +184,10 @@ cppFunction('
     ')
 
 
-################################
-# RANGO CLI PARAMETERS
+##################################################################
+# MAGENTA CHART GENERATION
 
-# --patch-ratio -r <float>
-patch_ratio=0.5  # portion of width/height used on each patch
-
-# --drnormalization-mpx -m <float>
-normalize=FALSE  # TRUE
-drnormalization_mpx=8  # 8Mpx normalization
-
-# Number of patches in test chart
-NCOLS=6
-NROWS=4
-
-
-# --chart-coords x1 y1 x2 y2 x3 y3 x4 y4
-# Test chart defined by 4 corners: (x1,y1), (x2,y2), (x3,y3), (x4,y4)
-# being (0,0) the coordinates of top-left corner
-chartcoords=FALSE  # TRUE
-# Example: distorted points (source) from Sony A7 II
-xchart=c(1097, 1500, 5077, 4682)  # no need to be top-left, bottom-left, bottom-right, top-right
-ychart=c(1152, 3396, 2800, 568)  # they will be re-ordered
-
-
-################################
-# OPTIONAL MAGENTA CHART GENERATION
+# This section implements the magenta chart creation functionality
 
 # Chart format (suited to CAMERA, not to monitor)
 Format=3/2  # 4/3  # 1
@@ -252,7 +230,7 @@ for (j in 1:NROWS) {
         y1=(j-1)*HEIGHT + OFFSETY + HEIGHT/2
         y2= j   *HEIGHT + OFFSETY + HEIGHT/2
         patch=which(row(chart[,,1])>=y1 & row(chart[,,1])<=y2 &
-                    col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
+                        col(chart[,,1])>=x1 & col(chart[,,1])<=x2)
         
         chart[,,1][patch]=val[p] * R/RGBMAX  # R
         chart[,,2][patch]=val[p] * G/RGBMAX  # G
@@ -282,7 +260,7 @@ THRESHOLD=1-Quantile/4  # THESHOLD to be used for quantile on corner detection
 
 for (i in 1:4) {
     indices=which( ((row(chart[,,1])-y0[i])/RADIUS)^2 +
-                   ((col(chart[,,1])-x0[i])/RADIUS)^2 < 1 )
+                       ((col(chart[,,1])-x0[i])/RADIUS)^2 < 1 )
     chart[,,1][indices]=1
     chart[,,2][indices]=1 
     chart[,,3][indices]=1 
@@ -293,6 +271,35 @@ CHARTNAME=paste0("magentachart_", NCOLS, "x", NROWS, "_",
                  round(Format,2), "_", invgamma*10, ".png")
 writePNG(chart, CHARTNAME)
 
+
+
+##################################################################
+# DYNAMIC RANGE ANALYSIS
+
+################################
+# RANGO CLI PARAMETERS
+
+# This section tries to mimic rango CLI parameters to implement them in code
+
+
+# --patch-ratio -r <float>
+patch_ratio=0.5  # portion of width/height used on each patch
+
+# --drnormalization-mpx -m <float>
+normalize=FALSE  # TRUE
+drnormalization_mpx=8  # 8Mpx normalization
+
+# Number of patches in test chart
+NCOLS=6
+NROWS=4
+
+# --chart-coords x1 y1 x2 y2 x3 y3 x4 y4
+# Test chart defined by 4 corners: (x1,y1), (x2,y2), (x3,y3), (x4,y4)
+# being (0,0) the coordinates of top-left corner
+chartcoords=FALSE  # TRUE
+# Example: distorted points (source) from Sony A7 II
+xchart=c(1097, 1500, 5077, 4682)  # no need to be top-left, bottom-left, bottom-right, top-right
+ychart=c(1152, 3396, 2800, 568)  # they will be re-ordered
 
 
 ################################
@@ -306,7 +313,7 @@ writePNG(chart, CHARTNAME)
 imgblack=readTIFF("BLACK.tiff", as.is=TRUE)  # read unmodified integer RAW data
 imgsat=readTIFF("SAT.tiff", as.is=TRUE)  # read unmodified integer RAW data
 
-# BLACK level
+# Per-channel deep analysis of BLACK levels
 for (rawchan in c('R', 'G1', 'G2', 'B')) {
     if (rawchan=='R') {
         imgBayerB=imgblack[row(imgblack)%%2 & col(imgblack)%%2]
@@ -337,6 +344,8 @@ BLACK=mean(imgblack)  # 512.178 (Sony A7 IV) / 254.85 (Olympus OM-1)
 BLACKV=c(512.177394540242, 512.154956138962, 512.143174113528, 512.236610063994)
 SAT=median(imgsat)  # 16383
 
+
+# In the end we can use this approximation for testing purposes
 BLACK=512
 SAT=16383
 
@@ -371,16 +380,12 @@ for (image in 1:N) {
     
     # Read RAW data
     img=readTIFF(NAME, as.is=TRUE)  # read unmodified integer RAW data
-    # hist(img, breaks=800, main=paste0('"', NAME, '" RAW histogram'))
-    # abline(v=BLACK, col='red')
-    
-    # Normalize to floating point 0..1 range (negative values are allowed)
-    # img=img-BLACK
-    img=img-BLACK  # V[1]
+
+    # Normalize to floating point 0..1 range (negative values allowed and needed)
+    img=img-BLACK
+    # img=img-BLACKV[1]  # in case we want to differentiate black point per channel
     img=img/(SAT-BLACK)
-    # hist(img, breaks=800)
-    # abline(v=0, col='red')
-    
+
 
 ################################
     
@@ -397,14 +402,20 @@ for (image in 1:N) {
         # on those cameras the G channel needs to be derived from metadata
         imgBayer=img[row(img)%%2 & !col(img)%%2]  # G1
         imgBayer[imgBayer<0]=0
+
+        # imgBayer is a grayscale matrix with half dimensions as the RAW file
         dim(imgBayer)=dim(img)/2
-        writeTIFF(imgBayer, paste0(NAME, "_G1chan.tif"), bits.per.sample=16)
-        
-        # imgBayer is a grayscale matrix
         DIMX=ncol(imgBayer)
         DIMY=nrow(imgBayer)
         
-        xu=c(NA, NA, NA, NA)
+        # Save G1 channel (used to detect keystone correction corners)
+        imgsave=imgBayer/max(imgBayer)  # ETTR data
+        imgsave[imgsave<0]=0  # clip below 0 values
+        writeTIFF(imgsave^(1/2.2), paste0(NAME, "_G1chan.tif"), bits.per.sample=16)
+        rm(imgsave)
+
+        # Perform keystone distortion correction
+        xu=c(NA, NA, NA, NA)  # (xu,yu) are the 'undistorted' original points
         yu=c(NA, NA, NA, NA)
         if (chartcoords) {  # chart coordinates were provided in xchart, ychart
             # Reorder provided coordinates according to:
@@ -480,7 +491,7 @@ for (image in 1:N) {
         xbr=(xu[3] + xu[4]) / 2
         ybr=(yu[2] + yu[3]) / 2
         
-        xd=c(xtl, xtl, xbr, xbr)
+        xd=c(xtl, xtl, xbr, xbr)  # (xd,yd) are the 'distorted' destination points
         yd=c(ytl, ybr, ybr, ytl)
         
         keystone=calculate_keystone(xu, yu, xd, yd, DIMX, DIMY)
@@ -522,15 +533,13 @@ for (image in 1:N) {
         if (normalize) MIN_SNR_dB = MIN_SNR_dB - 20*log10((camresolution_mpx / drnormalization_mpx)^(1/2))
         
         calc=analyze_patches(imgcrop, NCOLS, NROWS, patch_ratio, MIN_SNR_dB)
-        Signal=c(Signal, calc$Signal)
-        Noise=c(Noise, calc$Noise)
+        Signal=c(Signal, calc$Signal)  # add signal values to Signal vector
+        Noise=c(Noise, calc$Noise)  # add noise values to Noise vector
         patches_used[rawchan]=length(calc$Signal)  # total number of samples used in rawchan      
         
         # Save normalized and gamma corrected crop with used patches overlapped on the chart
-        if (image==1 && rawchan==1) {  # do it just once, although it can be calculated for every image
-            imgcrop=calc$imgcrop
-            imgsave=imgcrop
-            imgsave=imgsave/MAXCROP  # normalize to 0..1 original values in crop
+        if (image==1 && rawchan==1) {  # do it just once, although it can be calculated for every image/chan
+            imgsave=calc$imgcrop/MAXCROP  # ETTR data
             imgsave[imgsave<0]=0  # clip below 0 values
             imgsave[imgsave>1]=1  # clipp saturated values
             writeTIFF(imgsave^(1/2.2), paste0("usedpatches_RAW", rawchan,
@@ -542,7 +551,7 @@ for (image in 1:N) {
     
     # Now order ALL 4 channels samples from lower to higher SNR values (to plot beautifully)
     SNR=Signal/Noise
-    neworder=order(SNR)  # SNR will be the independent variable in splines
+    neworder=order(SNR)  # SNR will be the independent variable in the regression curve
     Signal=Signal[neworder]
     Noise=Noise[neworder]
     SNR=SNR[neworder]
@@ -588,6 +597,7 @@ for (image in 1:N) {
     valuesx=predict(spline_fit, 20*log10(SNR))$y
     valuesy=20*log10(SNR)
     lines(valuesx, valuesy, col='red', type='l')
+    # Label each curve with its ISO value
     text(max(valuesx), max(valuesy)+0.5, labels=filenamesISO[image], col='red')
     
     # Now calculate the Dynamic Range for a given SNR threshold criteria
@@ -602,7 +612,7 @@ for (image in 1:N) {
              labels=paste0(round(DR_EV[threshold],1), "EV"))
     }
 
-    # Create dataframe with all calculated DR
+    # Create dataframe with all calculated DR values
     if (image==1) {
         DR_df=data.frame(tiff_file=NAME,
                          DR_EV_12dB=DR_EV[1], DR_EV_0dB=DR_EV[2],
@@ -621,6 +631,7 @@ for (image in 1:N) {
     }
 }
 
+# Label DR calculations
 text(-16+0.1, 12+0.5, labels="Photographic DR (SNR>12dB)", adj=0)
 text(-16+0.1,  0+0.5, labels="Engineering DR (SNR>0dB)", adj=0)
 
@@ -628,7 +639,7 @@ dev.off()
 
 # Print calculated DR for each ISO
 DR_df=DR_df[order(DR_df$tiff_file), ]
-write.csv2(DR_df, paste0("DR_SonyA7II.csv"))
+write.csv2(DR_df, paste0("results_SonyA7II.csv"))
 print(DR_df)
 
 
@@ -637,8 +648,8 @@ print(DR_df)
 
 
 
-#######################################
-# Polynomic fitting
+##################################################################
+# POLYNOMIC FITTING
 
 # Create (x,y) samples
 set.seed(100)
