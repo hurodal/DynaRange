@@ -267,7 +267,7 @@ for (i in 1:4) {
 }
 
 # Write chart
-CHARTNAME=paste0("magentachart_", NCOLS, "x", NROWS, "_",
+CHARTNAME=paste0("testchart_", NCOLS, "x", NROWS, "_",
                  round(Format,2), "_", invgamma*10, ".png")
 writePNG(chart, CHARTNAME)
 
@@ -542,7 +542,7 @@ for (image in 1:N) {
             imgsave=calc$imgcrop/MAXCROP  # ETTR data
             imgsave[imgsave<0]=0  # clip below 0 values
             imgsave[imgsave>1]=1  # clipp saturated values
-            writeTIFF(imgsave^(1/2.2), paste0("usedpatches_RAW", rawchan,
+            writeTIFF(imgsave^(1/2.2), paste0("printpatches_RAW", rawchan,
                         "_IMG", image, '_', NAME, ".tif"), bits.per.sample=16)
             rm(imgsave)
         }
