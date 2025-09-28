@@ -151,21 +151,32 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string> &files_to_add) {
 }
 
 void GuiPresenter::HandleGridCellClick(int row) {
-  // The header is in row 0. Any click on it should show the summary plot.
-  if (row < 1) {
-    if (m_lastReport.summary_plot_path.has_value()) {
-      m_view->LoadGraphImage(*m_lastReport.summary_plot_path);
+    // wxGrid returns -1 for a click on the actual column labels. This should do nothing.
+    if (row < 0) {
+        return;
     }
-  } else { // Data rows start from index 1
-    // The result index is the grid row minus 1 (to account for the header row)
-    int result_index = row - 1;
-    if (result_index < m_lastRunOptions.input_files.size()) {
-      std::string filename = m_lastRunOptions.input_files[result_index];
-      if (m_lastReport.individual_plot_paths.count(filename)) {
-        m_view->LoadGraphImage(m_lastReport.individual_plot_paths.at(filename));
-      }
+
+    // Row 0 is the first data row, containing the header text. This shows the summary plot.
+    if (row == 0) {
+        if (m_lastReport.summary_plot_path.has_value()) {
+            m_view->LoadGraphImage(*m_lastReport.summary_plot_path);
+        }
+    } else { // Data rows (iso00200.dng, etc.) start from grid row index 1.
+        // The result index in our data vectors corresponds to the grid row minus 1.
+        int result_index = row - 1;
+
+        // MODIFIED: Use the sorted results list (m_lastReport.dr_results) as the
+        // source of truth for the filename. This list is guaranteed to be in the
+        // same order as the grid view, fixing the mismatch.
+        if (result_index < m_lastReport.dr_results.size()) {
+            // Get the filename directly from the sorted results list.
+            std::string filename = m_lastReport.dr_results[result_index].filename;
+            
+            if (m_lastReport.individual_plot_paths.count(filename)) {
+                m_view->LoadGraphImage(m_lastReport.individual_plot_paths.at(filename));
+            }
+        }
     }
-  }
 }
 
 void GuiPresenter::RemoveInputFiles(const std::vector<int> &indices) {

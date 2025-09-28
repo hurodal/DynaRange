@@ -163,7 +163,6 @@ void GenerateCsvReport(
 
 } // end anonymous namespace
 
-// This function already existed and is now updated.
 ReportOutput FinalizeAndReport(
     const ProcessingResult& results,
     const ProgramOptions& opts,
@@ -172,14 +171,16 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
+    // Populate the new dr_results member with the sorted results.
+    output.dr_results = results.dr_results;
+
     output.final_csv_path = paths.GetCsvOutputPath().string();
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     
     GenerateLogReport(results.dr_results, opts, log_stream);
-
     // The logic for generating the CSV is now delegated to the OutputWriter.
     OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
-
+    
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
 
     return output;

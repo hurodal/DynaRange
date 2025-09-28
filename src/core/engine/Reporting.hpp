@@ -18,10 +18,14 @@ struct ReportOutput {
     std::optional<std::string> summary_plot_path; 
     
     /// @brief Maps each source RAW filename to the path of its generated individual plot.
-    std::map<std::string, std::string> individual_plot_paths; 
+    std::map<std::string, std::string> individual_plot_paths;
 
     /// @brief The final, absolute path where the CSV results file was saved.
-    std::string final_csv_path;    
+    std::string final_csv_path;
+    
+    // Added the vector of results to this struct. This ensures the final,
+    // sorted list of results is available to the GUI presenter.
+    std::vector<DynamicRangeResult> dr_results;
 };
 
 /**
