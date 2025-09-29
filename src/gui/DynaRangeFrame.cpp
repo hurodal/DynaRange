@@ -19,6 +19,7 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
+// File: src/gui/DynaRangeFrame.cpp
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
 {
     // --- Create Controllers for each tab ---
@@ -29,7 +30,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     
     // --- Create the Presenter ---
     m_presenter = std::make_unique<GuiPresenter>(this);
-    
     // --- Bind top-level and inter-controller events ---
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
@@ -51,8 +51,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_DOUBLECLICKED, &DynaRangeFrame::OnSplitterSashDClick, this);
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
     m_mainNotebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &DynaRangeFrame::OnNotebookPageChanged, this);
-    
-    //  Reverted to the correct event types for sliders.
     m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
     m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
     m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
@@ -73,7 +71,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_chartDimXValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimWValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimHValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    
     // --- Bind Chart Coordinate Events from Input Tab ---
     m_coordX1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordY1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
@@ -83,23 +80,23 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_coordY3Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordX4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordY4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-
     m_chartPatchRowValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
     m_chartPatchColValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
     m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
 
-    // Bind debug Patches
+    // Binds para los nuevos controles de --print-patches
     m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnDebugPatchesCheckBoxChanged, this);
+    m_debugPatchesFileNameValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
-
+    
     // Drag and Drop
     m_dropTarget = new FileDropTarget(this);
     SetDropTarget(m_dropTarget);
-
+    
     // --- Initial State Setup ---
     m_processingGauge->Hide();
     m_cvsGrid->Hide();
@@ -257,7 +254,13 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
 }
 
 void DynaRangeFrame::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
+    // Primero, se le dice al controlador que actualice la lógica de la UI
+    // (habilitar/deshabilitar el campo de texto, poner el valor por defecto, etc.).
     m_inputController->OnDebugPatchesCheckBoxChanged(event);
+    
+    // Después, se le ordena explícitamente al presenter que actualice
+    // el "Equivalent CLI command", asegurando que el cambio se refleje.
+    m_presenter->UpdateCommandPreview();
 }
 
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) { m_logController->AppendText(event.GetString()); }

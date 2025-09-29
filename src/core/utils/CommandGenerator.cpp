@@ -56,6 +56,11 @@ std::string GenerateCommand(CommandFormat format)
     command_ss << " --patch-ratio " << mgr.Get<double>("patch-ratio");
     command_ss << " --plot " << mgr.Get<int>("plot");
 
+    const auto& print_patches_file = mgr.Get<std::string>("print-patches");
+    if (!print_patches_file.empty()) {
+        command_ss << " --print-patches \"" << print_patches_file << "\"";
+    }
+
     const auto& chart_coords = mgr.Get<std::vector<double>>("chart-coords");
     if (!chart_coords.empty()) {
         command_ss << " --chart-coords";
@@ -73,7 +78,6 @@ std::string GenerateCommand(CommandFormat format)
         if (!input_files.empty()) {
             command_ss << " --input-files";
             for (const auto& file : input_files) {
-                // Se utiliza la ruta completa 'file' en lugar de solo el nombre del fichero.
                 command_ss << " \"" << file << "\"";
             }
         }

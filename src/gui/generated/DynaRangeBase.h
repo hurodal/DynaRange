@@ -20,10 +20,10 @@
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
+#include <wx/checkbox.h>
 #include <wx/panel.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
-#include <wx/checkbox.h>
 #include <wx/listbox.h>
 #include <wx/button.h>
 #include <wx/bitmap.h>
@@ -57,22 +57,20 @@ class MyFrameBase : public wxFrame
 		wxFilePickerCtrl* m_saturationFilePicker;
 		wxStaticText* m_saturationValueStaticText;
 		wxTextCtrl* m_saturationValueTextCtrl;
-		wxStaticText* m_coordX1StaticText;
 		wxTextCtrl* m_coordX1Value;
-		wxStaticText* m_coordY1StaticText;
 		wxTextCtrl* m_coordY1Value;
-		wxStaticText* m_coordX2StaticText;
 		wxTextCtrl* m_coordX2Value;
-		wxStaticText* m_coordY2StaticText;
 		wxTextCtrl* m_coordY2Value;
-		wxStaticText* m_coordX4StaticText;
-		wxTextCtrl* m_coordX4Value;
-		wxStaticText* m_coordY4StaticText;
-		wxTextCtrl* m_coordY4Value;
-		wxStaticText* m_coordX3StaticText;
 		wxTextCtrl* m_coordX3Value;
-		wxStaticText* m_coordY3StaticText;
 		wxTextCtrl* m_coordY3Value;
+		wxTextCtrl* m_coordX4Value;
+		wxTextCtrl* m_coordY4Value;
+		wxStaticText* m_chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
 		wxPanel* right_column_panel_Up;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
@@ -89,12 +87,6 @@ class MyFrameBase : public wxFrame
 		wxChoice* m_plotingChoice;
 		wxStaticText* m_outputStaticText;
 		wxTextCtrl* m_outputTextCtrl;
-		wxStaticText* m_chartPatchRowStaticText1;
-		wxTextCtrl* m_chartPatchRowValue1;
-		wxStaticText* chartPatchColStaticText1;
-		wxTextCtrl* m_chartPatchColValue1;
-		wxCheckBox* m_debugPatchesCheckBox;
-		wxTextCtrl* m_debugPatchesFileNameValue;
 		wxPanel* left_column_panel_Down;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;

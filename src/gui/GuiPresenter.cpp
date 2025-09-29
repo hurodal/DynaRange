@@ -74,6 +74,7 @@ void GuiPresenter::UpdateManagerFromView() {
   // Correctly set the "chart-patches" argument as a vector of two integers.
   std::vector<int> patches = {m_view->GetChartPatchesM(), m_view->GetChartPatchesN()};
   mgr.Set("chart-patches", patches);
+  // Añadir el valor de print-patches al manager
   mgr.Set("print-patches", m_view->GetPrintPatchesFilename());
 }
 

@@ -201,6 +201,4 @@ void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
     if (is_checked && m_frame->m_debugPatchesFileNameValue->GetValue().IsEmpty()) {
         m_frame->m_debugPatchesFileNameValue->SetValue("printpatches.png");
     }
-    
-    m_frame->OnInputChanged(event);
 }
