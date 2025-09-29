@@ -39,16 +39,16 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
 
     for (int y = 0; y < DIMY; ++y) {
         for (int x = 0; x < DIMX; ++x) {
-            double xd = x + 1.0, yd = y + 1.0;
-            // RESTORED LOGIC: Use integer literal '1' for denominator.
-            double denom = k(6) * xd + k(7) * yd + 1;
+            // Usamos 'x' e 'y' (base 0) directamente,
+            // sin sumarles 1.0. Esto alinea el cálculo con el script de referencia.
+            double denom = k(6) * x + k(7) * y + 1;
             if (std::abs(denom) < 1e-9) continue;
 
-            // RESTORED LOGIC: Subtract 1.0 from the coordinate BEFORE rounding.
-            double xu = (k(0) * xd + k(1) * yd + k(2)) / denom - 1;
-            double yu = (k(3) * xd + k(4) * yd + k(5)) / denom - 1;
-            
-            // RESTORED LOGIC: Round the final coordinate without a second subtraction.
+            // Se eliminan las restas de '- 1' al final
+            // para una correspondencia directa de coordenadas.
+            double xu = (k(0) * x + k(1) * y + k(2)) / denom;
+            double yu = (k(3) * x + k(4) * y + k(5)) / denom;
+
             int x_src = static_cast<int>(round(xu));
             int y_src = static_cast<int>(round(yu));
 
@@ -73,13 +73,14 @@ cv::Mat PrepareChartImage(
         return {};
     }
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
-    
-    // This logic now consistently extracts the G1 (Green) channel, which is
-    // used for both corner detection and patch analysis, aligning with the R script.
+
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     for (int r = 0; r < imgBayer.rows; ++r) {
         for (int c = 0; c < imgBayer.cols; ++c) {
-            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
+            // Revertimos a la fórmula original de 'arguments'.
+            // (c * 2) en lugar de (c * 2 + 1) para seleccionar el canal Rojo (R)
+            // en un sensor RGGB, en vez del Verde (G1).
+            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
         }
     }
     
@@ -91,7 +92,7 @@ cv::Mat PrepareChartImage(
     double xbr = dst_pts[2].x;
     double ybr = dst_pts[2].y;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
-
+    
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {

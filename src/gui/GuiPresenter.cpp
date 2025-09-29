@@ -151,23 +151,19 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string> &files_to_add) {
 }
 
 void GuiPresenter::HandleGridCellClick(int row) {
-    // wxGrid returns -1 for a click on the actual column labels. This should do nothing.
-    if (row < 0) {
-        return;
-    }
-
-    // Row 0 is the first data row, containing the header text. This shows the summary plot.
-    if (row == 0) {
+    // A click on the column header labels (row < 0) or the first data row
+    // (row == 0), which also contains the headers, displays the summary plot.
+    if (row <= 0) {
         if (m_lastReport.summary_plot_path.has_value()) {
             m_view->LoadGraphImage(*m_lastReport.summary_plot_path);
         }
-    } else { // Data rows (iso00200.dng, etc.) start from grid row index 1.
+    } else { // Data rows (e.g., iso00200.dng) start from grid row index 1.
         // The result index in our data vectors corresponds to the grid row minus 1.
         int result_index = row - 1;
-
+        
         // Use the sorted results list (m_lastReport.dr_results) as the
         // source of truth for the filename. This list is guaranteed to be in the
-        // same order as the grid view, fixing the mismatch.
+        // same order as the grid view.
         if (result_index < m_lastReport.dr_results.size()) {
             // Get the filename directly from the sorted results list.
             std::string filename = m_lastReport.dr_results[result_index].filename;

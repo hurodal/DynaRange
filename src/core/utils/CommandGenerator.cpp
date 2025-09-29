@@ -8,8 +8,10 @@
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
+#include <filesystem>
 
 #define _(string) gettext(string)
+namespace fs = std::filesystem;
 
 namespace CommandGenerator {
 
@@ -37,13 +39,15 @@ std::string GenerateCommand(CommandFormat format)
     };
     
     if (!mgr.Get<std::string>("black-file").empty()) {
-        command_ss << " --black-file \"" << mgr.Get<std::string>("black-file") << "\"";
+        fs::path black_path(mgr.Get<std::string>("black-file"));
+        command_ss << " --black-file \"" << black_path.filename().string() << "\"";
     } else {
         command_ss << " --black-level " << std::fixed << std::setprecision(2) << mgr.Get<double>("black-level");
     }
 
     if (!mgr.Get<std::string>("saturation-file").empty()) {
-        command_ss << " --saturation-file \"" << mgr.Get<std::string>("saturation-file") << "\"";
+        fs::path sat_path(mgr.Get<std::string>("saturation-file"));
+        command_ss << " --saturation-file \"" << sat_path.filename().string() << "\"";
     } else {
         command_ss << " --saturation-level " << std::fixed << std::setprecision(2) << mgr.Get<double>("saturation-level");
     }
@@ -77,7 +81,10 @@ std::string GenerateCommand(CommandFormat format)
         const auto& input_files = mgr.Get<std::vector<std::string>>("input-files");
         if (!input_files.empty()) {
             command_ss << " --input-files";
-            for (const auto& file : input_files) command_ss << " \"" << file << "\"";
+            for (const auto& file : input_files) {
+                fs::path input_path(file);
+                command_ss << " \"" << input_path.filename().string() << "\"";
+            }
         }
     }
 

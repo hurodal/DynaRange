@@ -10,6 +10,7 @@
 #include "../arguments/ProgramOptions.hpp"
 #include <opencv2/core.hpp>
 #include <Eigen/Dense>
+#include <optional>
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
@@ -37,3 +38,5 @@ cv::Mat PrepareChartImage(
     const Eigen::VectorXd& keystone_params,
     const ChartProfile& chart, 
     std::ostream& log_stream);
+
+std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream);
