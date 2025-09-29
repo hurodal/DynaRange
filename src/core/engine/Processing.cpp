@@ -88,9 +88,13 @@ SingleFileResult AnalyzeSingleRawFile(
 
     // 6. Create the final gamma-corrected debug image.
     cv::Mat final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
+    if (final_debug_image.empty() && !opts.print_patch_filename.empty()) {
+        log_stream << "  - " << _("Warning: Could not generate debug patch image for this file. Input data may be invalid (e.g., bad keystone correction).") << std::endl;
+    }
 
     return {dr_result, curve_data, final_debug_image};
 }
+
 } // end of anonymous namespace
 
 // File: src/core/engine/Processing.cpp
