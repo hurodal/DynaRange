@@ -325,6 +325,9 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	right_column_sizer->Add( analysisParamsSizer, 1, wxALL|wxEXPAND, 5 );
 
+	wxBoxSizer* patchesSizer;
+	patchesSizer = new wxBoxSizer( wxHORIZONTAL );
+
 	wxStaticBoxSizer* chartPatchStaticSizer1;
 	chartPatchStaticSizer1 = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Chart patches") ), wxVERTICAL );
 
@@ -361,7 +364,33 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	chartPatchStaticSizer1->Add( chartPatchSizer1, 0, 0, 5 );
 
 
-	right_column_sizer->Add( chartPatchStaticSizer1, 0, wxALL|wxEXPAND, 5 );
+	patchesSizer->Add( chartPatchStaticSizer1, 0, wxEXPAND, 5 );
+
+
+	patchesSizer->Add( 20, 0, 0, wxEXPAND, 5 );
+
+	wxStaticBoxSizer* debugPatchesStaticSizer;
+	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Debug patches") ), wxVERTICAL );
+
+	wxBoxSizer* m_debugPatchesSizer;
+	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesFileNameValue->Enable( false );
+
+	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 0, wxALL, 5 );
+
+
+	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
+
+
+	patchesSizer->Add( debugPatchesStaticSizer, 1, wxEXPAND, 5 );
+
+
+	right_column_sizer->Add( patchesSizer, 0, wxALL|wxEXPAND, 5 );
 
 
 	right_column_panel_Up->SetSizer( right_column_sizer );

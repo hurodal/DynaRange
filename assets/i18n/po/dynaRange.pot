@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 13:46+0200\n"
+"POT-Creation-Date: 2025-09-29 16:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -576,66 +576,50 @@ msgstr ""
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:35
+#: src/core/engine/Processing.cpp:38
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:59
+#: src/core/engine/Processing.cpp:62
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:65
+#: src/core/engine/Processing.cpp:68
 msgid "Error: Failed to prepare image for analysis: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:72
+#: src/core/engine/Processing.cpp:75
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:92
+#: src/core/engine/Processing.cpp:95
 msgid ""
 "Warning: Could not generate debug patch image for this file. Input data may "
 "be invalid (e.g., bad keystone correction)."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:108
+#: src/core/engine/Processing.cpp:111
 msgid ""
-"Manual coordinates not provided, attempting iterative corner detection..."
+"Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:132
-msgid "Attempting detection with brightness threshold > "
-msgstr ""
-
-#: src/core/engine/Processing.cpp:135
-msgid "Detection successful at "
-msgstr ""
-
-#: src/core/engine/Processing.cpp:135
-msgid "threshold."
-msgstr ""
-
-#: src/core/engine/Processing.cpp:139
-msgid "Detection failed, lowering threshold..."
-msgstr ""
-
-#: src/core/engine/Processing.cpp:154
+#: src/core/engine/Processing.cpp:155
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:155
+#: src/core/engine/Processing.cpp:156
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:155
+#: src/core/engine/Processing.cpp:156
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:155
+#: src/core/engine/Processing.cpp:156
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:160
+#: src/core/engine/Processing.cpp:161
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
@@ -687,15 +671,15 @@ msgstr ""
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:73
+#: src/core/graphics/ImageProcessing.cpp:72
 msgid "Error: Could not get raw image for: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:100
+#: src/core/graphics/ImageProcessing.cpp:114
 msgid "Error: Invalid crop area calculated for keystone correction."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:247
+#: src/core/graphics/ImageProcessing.cpp:263
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
@@ -727,15 +711,15 @@ msgstr ""
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:160
+#: src/core/graphics/Plotting.cpp:166
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:176
+#: src/core/graphics/Plotting.cpp:182
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:196
+#: src/core/graphics/Plotting.cpp:207
 msgid "SNR Curves - Summary ("
 msgstr ""
 
@@ -743,7 +727,11 @@ msgstr ""
 msgid "  - Info: Plot saved to: "
 msgstr ""
 
-#: src/core/io/OutputWriter.cpp:69
+#: src/core/io/OutputWriter.cpp:66
+msgid "  - Info: Debug patch image saved to: "
+msgstr ""
+
+#: src/core/io/OutputWriter.cpp:70
 msgid "Error: OpenCV exception while saving debug image: "
 msgstr ""
 

@@ -65,14 +65,13 @@ struct ProgramOptions {
     std::vector<std::string> chart_colour_params;
     std::vector<int> chart_params;
     std::vector<double> chart_coords;
-    std::vector<int> chart_patches;
-    // [M, N]
+    std::vector<int> chart_patches; // [M, N]
     std::string generated_command;
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
     std::string print_patch_filename;
     int min_corner_brightness = DEFAULT_MIN_BRIGHTNESS;
-    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
-    }
+
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

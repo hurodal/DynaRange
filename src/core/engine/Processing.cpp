@@ -9,10 +9,13 @@
 #include "../setup/ChartProfile.hpp"
 #include "../analysis/ImageAnalyzer.hpp"
 #include "../utils/PathManager.hpp"
+#include "../io/OutputWriter.hpp"
+#include "../DebugConfig.hpp" 
 #include <filesystem>
 #include <iostream>
 #include <atomic>
 #include <libintl.h>
+#include <opencv2/imgproc.hpp>
 
 #define _(string) gettext(string)
 
@@ -105,40 +108,38 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     // 2. Attempt automatic corner detection if no manual coordinates are provided.
     std::optional<std::vector<cv::Point2d>> detected_corners_opt;
     if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
-        log_stream << _("Manual coordinates not provided, attempting iterative corner detection...") << std::endl;
+        log_stream << _("Manual coordinates not provided, attempting automatic corner detection...") << std::endl;
         cv::Mat raw_img = raw_files[0].GetRawImage();
         cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
         int bayer_rows = img_float.rows / 2;
         int bayer_cols = img_float.cols / 2;
-        cv::Mat mono_bayer = cv::Mat::zeros(bayer_rows, bayer_cols, CV_32FC1);
+
+        cv::Mat g1_bayer = cv::Mat::zeros(bayer_rows, bayer_cols, CV_32FC1);
         for (int r = 0; r < bayer_rows; ++r) {
             for (int c = 0; c < bayer_cols; ++c) {
-                float r_pix  = img_float.at<float>(r * 2,     c * 2);
-                float g1_pix = img_float.at<float>(r * 2,     c * 2 + 1);
-                float g2_pix = img_float.at<float>(r * 2 + 1, c * 2);
-                float b_pix  = img_float.at<float>(r * 2 + 1, c * 2 + 1);
-                mono_bayer.at<float>(r, c) = (r_pix + g1_pix + g2_pix + b_pix) / 4.0f;
+                g1_bayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
             }
         }
         
-        // Apply gamma correction to the monochrome image to enhance contrast for detection.
-        cv::Mat gamma_corrected_bayer;
-        cv::pow(mono_bayer, 1.0 / 2.2, gamma_corrected_bayer);
+        cv::threshold(g1_bayer, g1_bayer, 0.0, 0.0, cv::THRESH_TOZERO);
+        
+        detected_corners_opt = DetectChartCorners(g1_bayer, log_stream);
 
-        // Detection loop with decreasing thresholds on the gamma-corrected image.
-        for (int threshold_percent = 80; threshold_percent >= opts.min_corner_brightness; threshold_percent -= 10) {
-            double threshold = static_cast<double>(threshold_percent) / 100.0;
-            log_stream << "  - " << _("Attempting detection with brightness threshold > ") << threshold_percent << "%..." << std::endl;
-            detected_corners_opt = DetectChartCorners(gamma_corrected_bayer, threshold, log_stream);
-            if (detected_corners_opt.has_value()) {
-                log_stream << "  - " << _("Detection successful at ") << threshold_percent << "% " << _("threshold.") << std::endl;
-                break; // Exit loop on success.
-            }
-            if (threshold_percent > opts.min_corner_brightness) {
-                 log_stream << "  - " << _("Detection failed, lowering threshold...") << std::endl;
-            }
+        #if DYNA_RANGE_DEBUG_MODE == 1
+        if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG && detected_corners_opt.has_value()) {
+            log_stream << "  - [DEBUG] Saving corner detection visual confirmation to 'debug_corners_detected.png'..." << std::endl;
+            
+            cv::Mat image_with_markers = DrawCornerMarkers(g1_bayer, *detected_corners_opt);
+            
+            cv::Mat final_debug_image;
+            cv::pow(image_with_markers, 1.0 / 2.2, final_debug_image);
+            
+            PathManager paths(opts);
+            fs::path debug_path = paths.GetCsvOutputPath().parent_path() / "debug_corners_detected.png";
+            OutputWriter::WriteDebugImage(final_debug_image, debug_path, log_stream);
         }
+        #endif
     }
 
     // 3. Define the context for the analysis (e.g., which chart to use)

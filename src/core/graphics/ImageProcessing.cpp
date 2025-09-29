@@ -9,7 +9,6 @@
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
-#include <iomanip>
 
 #define _(string) gettext(string)
 
@@ -78,9 +77,6 @@ cv::Mat PrepareChartImage(
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     for (int r = 0; r < imgBayer.rows; ++r) {
         for (int c = 0; c < imgBayer.cols; ++c) {
-            // Revertimos a la fórmula original de 'arguments'.
-            // (c * 2) en lugar de (c * 2 + 1) para seleccionar el canal Rojo (R)
-            // en un sensor RGGB, en vez del Verde (G1).
             imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
         }
     }
@@ -88,12 +84,30 @@ cv::Mat PrepareChartImage(
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
     const auto& dst_pts = chart.GetDestinationPoints();
 
-    double xtl = dst_pts[0].x;
-    double ytl = dst_pts[0].y;
-    double xbr = dst_pts[2].x;
-    double ybr = dst_pts[2].y;
-    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
+    // Lógica de recorte alineada con el script de R (con margen de seguridad).
+    double gap_x = 0.0;
+    double gap_y = 0.0;
     
+    // Si NO se usan coordenadas manuales, se aplica un margen de seguridad.
+    if (!chart.HasManualCoords()) {
+        const double xbr = dst_pts[2].x;
+        const double xtl = dst_pts[0].x;
+        const double ybr = dst_pts[2].y;
+        const double ytl = dst_pts[0].y;
+        
+        // R script reference: GAPX=(xbr-xtl) / (NCOLS+1) / 2
+        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
+        // R script reference: GAPY=(ybr-ytl) / (NROWS+1) / 2
+        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
+    }
+
+    cv::Rect crop_area(
+        round(dst_pts[0].x + gap_x), 
+        round(dst_pts[0].y + gap_y), 
+        round(dst_pts[2].x - dst_pts[0].x - 2 * gap_x), 
+        round(dst_pts[2].y - dst_pts[0].y - 2 * gap_y)
+    );
+
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {
@@ -203,40 +217,42 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     return gamma_corrected_image;
 }
 
-std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, double brightness_threshold, std::ostream& log_stream)
+std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream)
 {
     if (bayer_image.empty()) return std::nullopt;
     const int DIMX = bayer_image.cols;
     const int DIMY = bayer_image.rows;
     std::vector<cv::Point2d> detected_points;
 
-    // Define the four quadrants of the image
     std::vector<cv::Rect> sectors = {
-        {0, 0, DIMX / 2, DIMY / 2},                             // Top-Left
-        {0, DIMY / 2, DIMX / 2, DIMY / 2},                      // Bottom-Left
-        {DIMX / 2, DIMY / 2, DIMX / 2, DIMY / 2},               // Bottom-Right
-        {DIMX / 2, 0, DIMX / 2, DIMY / 2}                       // Top-Right
+        {0, 0, DIMX / 2, DIMY / 2},
+        {0, DIMY / 2, DIMX / 2, DIMY / 2},
+        {DIMX / 2, DIMY / 2, DIMX / 2, DIMY / 2},
+        {DIMX / 2, 0, DIMX / 2, DIMY / 2}
     };
-    // R-Script logic: circle radius is 1% of the image diagonal.
-    // This is used to calculate how many pixels to select (quantile).
     const double diag = std::sqrt(static_cast<double>(DIMX * DIMX + DIMY * DIMY));
     const double radius = diag * 0.01;
     const double circle_area = M_PI * radius * radius;
     const double quadrant_area = (DIMX / 2.0) * (DIMY / 2.0);
-    const double quantile_threshold = 1.0 - (circle_area / quadrant_area);
+    const double quantile_fraction = circle_area / quadrant_area;
+    const double quantile_threshold = 1.0 - (quantile_fraction / 4.0);
 
     for (const auto& sector_rect : sectors) {
-        // Added .clone() to create a continuous memory block for the quadrant.
-        // This is necessary for the subsequent .reshape() call to work correctly.
         cv::Mat quadrant = bayer_image(sector_rect).clone();
         if (quadrant.empty() || quadrant.total() == 0) continue;
 
-        // 1. Find the brightness threshold using a quantile
         std::vector<double> pixels;
         quadrant.reshape(1, 1).convertTo(pixels, CV_64F);
         double brightness_q_threshold = CalculateQuantile(pixels, quantile_threshold);
 
-        // 2. Find all pixels brighter than the threshold
+        #if DYNA_RANGE_DEBUG_MODE == 1
+        if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG) {
+            log_stream << "  - [DEBUG] Quadrant [" << sector_rect.x << "," << sector_rect.y << "]:"
+                       << " Quantile=" << std::fixed << std::setprecision(4) << quantile_threshold 
+                       << ", Brightness Cutoff=" << brightness_q_threshold << std::endl;
+        }
+        #endif
+
         cv::Mat mask;
         cv::threshold(quadrant, mask, brightness_q_threshold, 1.0, cv::THRESH_BINARY);
         mask.convertTo(mask, CV_8U);
@@ -248,7 +264,6 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
             return std::nullopt;
         }
 
-        // 3. Calculate the median coordinate
         std::vector<int> x_coords, y_coords;
         x_coords.reserve(bright_pixels.size());
         y_coords.reserve(bright_pixels.size());
@@ -259,26 +274,23 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         std::sort(x_coords.begin(), x_coords.end());
         std::sort(y_coords.begin(), y_coords.end());
         
-        // 4. Validate that the detected point is actually white.
         double median_x_local = static_cast<double>(x_coords[x_coords.size() / 2]);
         double median_y_local = static_cast<double>(y_coords[y_coords.size() / 2]);
-        double median_brightness = quadrant.at<float>(median_y_local, median_x_local);
         
-        if (median_brightness < brightness_threshold) {
-            log_stream << "  - Corner in quadrant not bright enough ("
-                       << std::fixed << std::setprecision(2) << median_brightness << " < " << brightness_threshold
-                       << ")." << std::endl;
-            return std::nullopt; // Falla este intento, pero el bucle puede probar con un umbral más bajo.
+        #if DYNA_RANGE_DEBUG_MODE == 1
+        if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG) {
+            double median_brightness = quadrant.at<float>(median_y_local, median_x_local);
+            log_stream << "  - [DEBUG] Brightest point found at (" << static_cast<int>(median_x_local) << ", " << static_cast<int>(median_y_local) << ")"
+                       << " with brightness=" << std::fixed << std::setprecision(4) << median_brightness << std::endl;
         }
+        #endif
         
-        // 5. Adjust local coordinates to full image space and store the point
         double median_x = median_x_local + sector_rect.x;
         double median_y = median_y_local + sector_rect.y;
         detected_points.emplace_back(median_x, median_y);
     }
     
     if (detected_points.size() == 4) {
-        // Reorder points to TL, BL, BR, TR to match ChartProfile's expectations
         cv::Point2d tl = detected_points[0];
         cv::Point2d bl = detected_points[1];
         cv::Point2d br = detected_points[2];
@@ -314,4 +326,17 @@ cv::Mat UndoKeystoneColor(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
         }
     }
     return imgCorrected;
+}
+
+cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners)
+{
+    // Convert the single-channel float image to a 3-channel BGR image to draw color markers.
+    cv::Mat color_image;
+    cv::cvtColor(image, color_image, cv::COLOR_GRAY2BGR);
+
+    for (const auto& point : corners) {
+        // Draw a white cross marker at each corner coordinate.
+        cv::drawMarker(color_image, point, cv::Scalar(1.0, 1.0, 1.0), cv::MARKER_CROSS, 40, 2);
+    }
+    return color_image;
 }

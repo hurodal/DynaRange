@@ -23,6 +23,7 @@
 #include <wx/panel.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
+#include <wx/checkbox.h>
 #include <wx/listbox.h>
 #include <wx/button.h>
 #include <wx/bitmap.h>
@@ -92,6 +93,8 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_chartPatchRowValue1;
 		wxStaticText* chartPatchColStaticText1;
 		wxTextCtrl* m_chartPatchColValue1;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
 		wxPanel* left_column_panel_Down;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;

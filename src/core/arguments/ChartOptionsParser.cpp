@@ -26,8 +26,14 @@ std::optional<ChartGeneratorOptions> ParseChartOptions(const ProgramOptions& opt
             chart_opts.dim_x = opts.chart_params[0];
             chart_opts.aspect_w = opts.chart_params[1];
             chart_opts.aspect_h = opts.chart_params[2];
+            // Si el usuario proporcionó 5 argumentos para --chart, usamos los dos últimos para los parches.
+            if (opts.chart_params.size() == 5) {
+                chart_opts.patches_m = opts.chart_params[3]; // Rows
+                chart_opts.patches_n = opts.chart_params[4]; // Cols
+            }
         }
 
+        // --chart-patches (-M) tiene prioridad si también se especifica.
         if (!opts.chart_patches.empty()) {
             chart_opts.patches_m = opts.chart_patches[0]; // Rows
             chart_opts.patches_n = opts.chart_patches[1]; // Cols

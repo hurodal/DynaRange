@@ -61,7 +61,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     
-    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(3);
+    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(5);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
     auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches, m_descriptors.at("chart-patches").help_text)->expected(2);
     auto chart_coords_opt = app.add_option("-x,--chart-coords", temp_opts.chart_coords, m_descriptors.at("chart-coords").help_text)->expected(8);
@@ -125,7 +125,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["snr-threshold-is-default"] = false;
     }
 }
-
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
     

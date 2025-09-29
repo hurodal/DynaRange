@@ -131,19 +131,25 @@ void GenerateSnrPlot(
     }
 
     if (signal_ev.size() < 2) {
-        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")." << std::endl;
+        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")."
+                   << std::endl;
         return;
     }
 
-    // 1. Calculate plot bounds specific to this single curve
+    // 1. Calculate dynamic plot bounds for both axes.
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
     double min_ev_data = *min_max_ev.first;
     double max_ev_data = *min_max_ev.second;
+
+    auto min_max_db = std::minmax_element(snr_db.begin(), snr_db.end());
+    double min_db_data = *min_max_db.first;
+    double max_db_data = *min_max_db.second;
+
     std::map<std::string, double> bounds;
     bounds["min_ev"] = floor(min_ev_data) - 1.0;
     bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
-    bounds["min_db"] = -15.0;
-    bounds["max_db"] = 25.0;
+    bounds["min_db"] = floor(min_db_data / 5.0) * 5.0; // Round down to nearest 5
+    bounds["max_db"] = ceil(max_db_data / 5.0) * 5.0;  // Round up to nearest 5
 
     // 2. Prepare the data for a single curve
     std::vector<CurveData> single_curve_vec = {{
@@ -177,24 +183,29 @@ std::optional<std::string> GenerateSummaryPlot(
         return std::nullopt;
     }
 
-    // 1. Calculate global bounds across all curves
+    // 1. Calculate global bounds across all curves for both axes.
     double min_ev_global = 1e6, max_ev_global = -1e6;
+    double min_db_global = 1e6, max_db_global = -1e6;
     for (const auto& curve : all_curves) {
         if (!curve.signal_ev.empty()) {
             min_ev_global = std::min(min_ev_global, *std::min_element(curve.signal_ev.begin(), curve.signal_ev.end()));
             max_ev_global = std::max(max_ev_global, *std::max_element(curve.signal_ev.begin(), curve.signal_ev.end()));
+        }
+        if (!curve.snr_db.empty()) {
+            min_db_global = std::min(min_db_global, *std::min_element(curve.snr_db.begin(), curve.snr_db.end()));
+            max_db_global = std::max(max_db_global, *std::max_element(curve.snr_db.begin(), curve.snr_db.end()));
         }
     }
 
     std::map<std::string, double> bounds;
     bounds["min_ev"] = floor(min_ev_global) - 1.0;
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
-    bounds["min_db"] = -15.0;
-    bounds["max_db"] = 25.0;
+    bounds["min_db"] = floor(min_db_global / 5.0) * 5.0; // Round down to nearest 5
+    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;  // Round up to nearest 5
 
     // 2. Prepare title
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
-
+    
     // 3. Delegate the entire drawing process to the internal helper function
     return GeneratePlotInternal(output_filename, title, all_curves, opts, bounds, log_stream);
 }
