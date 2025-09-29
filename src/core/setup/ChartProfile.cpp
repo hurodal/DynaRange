@@ -97,16 +97,16 @@ void ChartProfile::LogCornerPoints(const std::vector<cv::Point2d>& points, const
     // Use stringstreams to build perfectly formatted lines
     std::stringstream header, line1, line2;
     
-    // Build Header line with precise padding to align the 'x' and 'y' characters
-    // with the units digit of the numbers below.
-    header << "       " // 7 spaces to match "  TL-> ["
-           << std::string(4, ' ') << "x"
-           << "  "      // 2 spaces to match ", " separator
-           << std::string(4, ' ') << "y"
-           << "     "   // 5 spaces to match " ]   ["
-           << std::string(4, ' ') << "x"
-           << "  "      // 2 spaces to match ", " separator
-           << std::string(4, ' ') << "y";
+    // Build Header line with final corrected padding.
+    header << std::string(7, ' ') // Mimics the width of "  TL-> "
+           << " " // Mimics the width of "["
+           << std::right << std::setw(5) << "x"
+           << "  " // Mimics the width of ", "
+           << std::right << std::setw(5) << "y"
+           << "      " // Corrected: 6 spaces to mimic " ]   ["
+           << std::right << std::setw(5) << "x"
+           << "  " // Mimics the width of ", "
+           << std::right << std::setw(5) << "y";
 
     // Build Top line (TL, TR) WITH brackets
     line1 << "  TL-> [" << std::right << std::setw(5) << static_cast<int>(round(tl.x * 2.0))
