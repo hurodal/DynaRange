@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 16:34+0200\n"
+"POT-Creation-Date: 2025-09-29 17:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,24 +21,24 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:81
+#: src/gui/controllers/InputController.cpp:83
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:81
+#: src/gui/controllers/InputController.cpp:83
 msgid ""
 "RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All "
 "files (*.*)|*.*"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:141
+#: src/gui/controllers/InputController.cpp:143
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:143
+#: src/gui/controllers/InputController.cpp:145
 msgid "Unsupported Files Skipped"
 msgstr ""
 
@@ -51,25 +51,25 @@ msgstr ""
 msgid "Generated Graph:"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:130 src/gui/GuiPresenter.cpp:99
+#: src/gui/DynaRangeFrame.cpp:133 src/gui/GuiPresenter.cpp:100
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:130
+#: src/gui/DynaRangeFrame.cpp:133
 msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:248
+#: src/gui/DynaRangeFrame.cpp:251
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:249
+#: src/gui/DynaRangeFrame.cpp:252
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:252
+#: src/gui/DynaRangeFrame.cpp:255
 msgid "Results loaded. Plot generation was not requested."
 msgstr ""
 
@@ -223,116 +223,120 @@ msgstr ""
 msgid "Ouput file"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:329
-#: src/gui/generated/DynaRangeBase.cpp:664
+#: src/gui/generated/DynaRangeBase.cpp:332
+#: src/gui/generated/DynaRangeBase.cpp:693
 msgid "Chart patches"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:337
-#: src/gui/generated/DynaRangeBase.cpp:672
+#: src/gui/generated/DynaRangeBase.cpp:340
+#: src/gui/generated/DynaRangeBase.cpp:701
 msgid "Rows"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:350
-#: src/gui/generated/DynaRangeBase.cpp:685
+#: src/gui/generated/DynaRangeBase.cpp:353
+#: src/gui/generated/DynaRangeBase.cpp:714
 msgid "Colums"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:380
+#: src/gui/generated/DynaRangeBase.cpp:373
+msgid "Debug patches"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:409
 msgid "Input RAW Files"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:389
+#: src/gui/generated/DynaRangeBase.cpp:418
 msgid "Add RAW Files..."
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:392
+#: src/gui/generated/DynaRangeBase.cpp:421
 msgid "Remove Selected"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:408
+#: src/gui/generated/DynaRangeBase.cpp:437
 msgid "Equivalent CLI command"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:428
+#: src/gui/generated/DynaRangeBase.cpp:457
 msgid "Execute"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:438
+#: src/gui/generated/DynaRangeBase.cpp:467
 msgid "Input"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:450
+#: src/gui/generated/DynaRangeBase.cpp:479
 msgid "Log"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:464
+#: src/gui/generated/DynaRangeBase.cpp:493
 msgid "CSV Output:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:500
+#: src/gui/generated/DynaRangeBase.cpp:529
 msgid "Generated Graph (placeholder):"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:524
+#: src/gui/generated/DynaRangeBase.cpp:553
 msgid "Results"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:537
+#: src/gui/generated/DynaRangeBase.cpp:566
 msgid "Chart colors"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:542
+#: src/gui/generated/DynaRangeBase.cpp:571
 msgid "Red"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:551
-#: src/gui/generated/DynaRangeBase.cpp:570
-#: src/gui/generated/DynaRangeBase.cpp:589
+#: src/gui/generated/DynaRangeBase.cpp:580
+#: src/gui/generated/DynaRangeBase.cpp:599
+#: src/gui/generated/DynaRangeBase.cpp:618
 msgid "255"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:561
+#: src/gui/generated/DynaRangeBase.cpp:590
 msgid "Green"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:580
+#: src/gui/generated/DynaRangeBase.cpp:609
 msgid "Blue"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:599
+#: src/gui/generated/DynaRangeBase.cpp:628
 msgid "InvGamma"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:613
+#: src/gui/generated/DynaRangeBase.cpp:642
 msgid "Chart dimensions"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:618
+#: src/gui/generated/DynaRangeBase.cpp:647
 msgid "DimX"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:634
+#: src/gui/generated/DynaRangeBase.cpp:663
 msgid "Width proportion"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:647
+#: src/gui/generated/DynaRangeBase.cpp:676
 msgid "Height proportion"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:704
+#: src/gui/generated/DynaRangeBase.cpp:733
 msgid "Create chart"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:710
+#: src/gui/generated/DynaRangeBase.cpp:739
 msgid "Preview chart"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:738
+#: src/gui/generated/DynaRangeBase.cpp:767
 msgid "Chart"
 msgstr ""
 
-#: src/gui/GuiPresenter.cpp:100
+#: src/gui/GuiPresenter.cpp:101
 msgid "Please select at least one input RAW file."
 msgstr ""
 
@@ -478,7 +482,7 @@ msgstr ""
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/arguments/ChartOptionsParser.cpp:37
+#: src/core/arguments/ChartOptionsParser.cpp:43
 msgid "Error: Invalid parameter for a chart argument."
 msgstr ""
 

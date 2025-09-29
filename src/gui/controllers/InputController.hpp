@@ -32,7 +32,8 @@ public:
     int GetPlotMode() const;
     std::vector<std::string> GetInputFiles() const;
     std::vector<double> GetChartCoords() const;
-
+    std::string GetPrintPatchesFilename() const;
+    
     // Added getters for the new chart patch controls on the Input tab.
     int GetChartPatchesM() const; // Rows
     int GetChartPatchesN() const; // Cols
@@ -51,6 +52,8 @@ public:
     void OnListBoxKeyDown(wxKeyEvent& event);
     void OnSnrSliderChanged(wxScrollEvent& event);
     void OnDrNormSliderChanged(wxScrollEvent& event);
+    void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
+
 private:
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);

@@ -89,6 +89,9 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
     m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
 
+    // Bind debug Patches
+    m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnDebugPatchesCheckBoxChanged, this);
+    
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
@@ -179,7 +182,7 @@ std::vector<std::string> DynaRangeFrame::GetInputFiles() const { return m_inputC
 std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_inputController->GetChartCoords(); }
 int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN(); }
-
+std::string DynaRangeFrame::GetPrintPatchesFilename() const { return m_inputController->GetPrintPatchesFilename(); }
 // =============================================================================
 // EVENT HANDLERS
 // =============================================================================
@@ -251,6 +254,10 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
         m_resultsController->LoadLogoImage();
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
     }
+}
+
+void DynaRangeFrame::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
+    m_inputController->OnDebugPatchesCheckBoxChanged(event);
 }
 
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) { m_logController->AppendText(event.GetString()); }

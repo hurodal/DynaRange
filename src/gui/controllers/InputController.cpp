@@ -45,6 +45,8 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->m_drNormalizationSlider->SetValue(static_cast<int>(DEFAULT_DR_NORMALIZATION_MPX));
     m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", DEFAULT_DR_NORMALIZATION_MPX));
     m_frame->m_plotingChoice->SetSelection(DEFAULT_PLOT_MODE);
+    m_frame->m_debugPatchesCheckBox->SetValue(false);
+    m_frame->m_debugPatchesFileNameValue->Enable(false);
 }
 
 // --- Getters ---
@@ -183,4 +185,22 @@ int InputController::GetChartPatchesN() const {
     long value = 0;
     m_frame->m_chartPatchColValue1->GetValue().ToLong(&value);
     return static_cast<int>(value);
+}
+
+std::string InputController::GetPrintPatchesFilename() const {
+    if (m_frame->m_debugPatchesCheckBox->IsChecked()) {
+        return std::string(m_frame->m_debugPatchesFileNameValue->GetValue().mb_str());
+    }
+    return "";
+}
+
+void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
+    bool is_checked = m_frame->m_debugPatchesCheckBox->IsChecked();
+    m_frame->m_debugPatchesFileNameValue->Enable(is_checked);
+
+    if (is_checked && m_frame->m_debugPatchesFileNameValue->GetValue().IsEmpty()) {
+        m_frame->m_debugPatchesFileNameValue->SetValue("printpatches.png");
+    }
+    
+    m_frame->OnInputChanged(event);
 }

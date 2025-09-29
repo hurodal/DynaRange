@@ -55,6 +55,7 @@ public:
     std::vector<std::string> GetInputFiles() const;
     int GetChartPatchesM() const;
     int GetChartPatchesN() const;
+    std::string GetPrintPatchesFilename() const;
 
 protected:
     // --- Event Handlers ---
@@ -80,6 +81,7 @@ protected:
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
     void OnWorkerUpdate(wxThreadEvent& event);
+    void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
     // Added new event handlers for synchronizing patch controls.
     void OnInputChartPatchChanged(wxCommandEvent& event);
     void OnChartChartPatchChanged(wxCommandEvent& event);
