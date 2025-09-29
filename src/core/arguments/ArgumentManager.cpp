@@ -43,21 +43,16 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
-    m_descriptors["print-patch"] = {"print-patch", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::Flag, false};
-
+    m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
     // Chart arguments
     m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
     m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
     m_descriptors["chart-coords"] = {"chart-coords", "x", _("Test chart defined by 4 corners: tl, bl, br, tr"), ArgType::DoubleVector, std::vector<double>()};
     m_descriptors["chart-patches"] = {"chart-patches", "M", _("Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
-    
     m_is_registered = true;
 }
 
-// File: src/core/arguments/ArgumentManager.cpp
-
-// Esta función ya existía y ha sido modificada.
 void ArgumentManager::ParseCli(int argc, char* argv[]) {
     CLI::App app{_("Calculates the dynamic range from a series of RAW images.")};
     auto fmt = app.get_formatter();
@@ -82,7 +77,9 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
                             ->check(CLI::IsMember(std::vector<int>(std::begin(VALID_POLY_ORDERS), std::end(VALID_POLY_ORDERS))));
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
     auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
-    auto print_patch_flag = app.add_flag("-P,--print-patch", temp_opts.print_patch_mode, m_descriptors.at("print-patch").help_text);
+    auto print_patch_opt = app.add_option("-P,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
+                                ->expected(0,1)
+                                ->default_str("chartpatches.png");
 
     try {
         app.parse(argc, argv);
@@ -92,9 +89,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
 
     temp_opts.input_files = PlatformUtils::ExpandWildcards(temp_opts.input_files);
 
-    // Chart creation mode should only be triggered by arguments that exclusively
-    // create a chart (--chart, --chart-colour), not by parameters that can also
-    // be used during analysis (--chart-patches).
     if (chart_opt->count() > 0 || chart_colour_opt->count() > 0) {
         temp_opts.create_chart_mode = true;
     }
@@ -123,7 +117,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
     if (patch_ratio_opt->count() > 0) m_values["patch-ratio"] = temp_opts.patch_ratio;
     if (plot_opt->count() > 0) m_values["plot"] = temp_opts.plot_mode;
-    if (print_patch_flag->count() > 0) m_values["print-patch"] = temp_opts.print_patch_mode;
+    if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
     
     m_values["input-files"] = temp_opts.input_files;
     if (snr_opt->count() > 0) {
@@ -131,8 +125,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["snr-threshold-is-default"] = false;
     }
 }
+
 ProgramOptions ArgumentManager::ToProgramOptions() {
-    
     ProgramOptions opts;
     
     opts.create_chart_mode = Get<bool>("create-chart-mode");
@@ -150,7 +144,7 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.dr_normalization_mpx = Get<double>("drnormalization-mpx");
     opts.patch_ratio = Get<double>("patch-ratio");
     opts.plot_mode = Get<int>("plot");
-    opts.print_patch_mode = Get<bool>("print-patch");
+    opts.print_patch_filename = Get<std::string>("print-patches");
 
     if (Get<bool>("snr-threshold-is-default")) {
          opts.snr_thresholds_db = {12.0, 0.0};

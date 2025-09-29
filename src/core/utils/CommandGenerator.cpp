@@ -19,20 +19,11 @@ std::string GenerateCommand(CommandFormat format)
 {
     std::stringstream command_ss;
     command_ss << CLI_EXECUTABLE_NAME;
-
-    // This logic is almost identical to the old ArgumentManager::GenerateCommand
-    // but now uses the public Get<> interface of the manager.
     auto& mgr = ArgumentManager::Instance();
 
-    // Helper lambda to dynamically add arguments based on format
     auto add_arg = [&](const std::string& name) {
-        // This helper needs access to the descriptors, which are private.
-        // For now, we will assume a simplified version.
-        // A future refactor could expose descriptors or use a different pattern.
         bool use_short = (format == CommandFormat::PlotShort);
         
-        // This is a simplified reconstruction. A more robust implementation
-        // might need access to short names from ArgumentManager.
         if (name == "poly-fit") command_ss << (use_short ? " -f" : " --poly-fit");
         else if (name == "patch-ratio") command_ss << (use_short ? " -r" : " --patch-ratio");
         else command_ss << " --" << name;
@@ -82,8 +73,8 @@ std::string GenerateCommand(CommandFormat format)
         if (!input_files.empty()) {
             command_ss << " --input-files";
             for (const auto& file : input_files) {
-                fs::path input_path(file);
-                command_ss << " \"" << input_path.filename().string() << "\"";
+                // Se utiliza la ruta completa 'file' en lugar de solo el nombre del fichero.
+                command_ss << " \"" << file << "\"";
             }
         }
     }

@@ -61,10 +61,10 @@ bool WriteDebugImage(const cv::Mat& image, const fs::path& path, std::ostream& l
         cv::Mat output_image;
         image.convertTo(output_image, CV_8U, 255.0);
         
-        if (cv::imwrite(path.string(), output_image)) {
-            log_stream << _("  - Info: Debug patch image saved to: ") << path.string() << std::endl;
-            return true;
-        }
+        //if (cv::imwrite(path.string(), output_image)) {
+        //    log_stream << _("  - Info: Debug patch image saved to: ") << path.string() << std::endl;
+        //    return true;
+        //}
     } catch (const cv::Exception& e) {
         log_stream << _("Error: OpenCV exception while saving debug image: ") << e.what() << std::endl;
     }

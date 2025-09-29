@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 10:17+0200\n"
+"POT-Creation-Date: 2025-09-29 12:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -457,24 +457,24 @@ msgstr ""
 msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:49
+#: src/core/arguments/ArgumentManager.cpp:48
 msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:50
+#: src/core/arguments/ArgumentManager.cpp:49
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:52
+#: src/core/arguments/ArgumentManager.cpp:51
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:53
+#: src/core/arguments/ArgumentManager.cpp:52
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:62
+#: src/core/arguments/ArgumentManager.cpp:57
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
@@ -486,97 +486,101 @@ msgstr ""
 msgid "[INFO] Analysis cancelled by user."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:50
+#: src/core/engine/Initialization.cpp:34
 msgid "Warning: Duplicate input file ignored: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:59
+#: src/core/engine/Initialization.cpp:42
 msgid "Fatal error processing dark frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:64
+#: src/core/engine/Initialization.cpp:47
 msgid "Fatal error processing saturation frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:71
+#: src/core/engine/Initialization.cpp:52
+msgid "Pre-analyzing files to determine sorting order..."
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:55
 msgid "Error: None of the input files could be processed."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:90
+#: src/core/engine/Initialization.cpp:86
 msgid "[Final configuration]"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:91
+#: src/core/engine/Initialization.cpp:87
 msgid "Black level: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:92
+#: src/core/engine/Initialization.cpp:88
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:94
+#: src/core/engine/Initialization.cpp:90
 msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:94 src/core/engine/Initialization.cpp:101
+#: src/core/engine/Initialization.cpp:90 src/core/engine/Initialization.cpp:97
 #: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:96
+#: src/core/engine/Initialization.cpp:92
 msgid "SNR threshold(s): "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:100
+#: src/core/engine/Initialization.cpp:96
 msgid " dB"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:101
+#: src/core/engine/Initialization.cpp:97
 msgid "DR normalization: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:102
+#: src/core/engine/Initialization.cpp:98
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:103
+#: src/core/engine/Initialization.cpp:99
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:104
+#: src/core/engine/Initialization.cpp:100
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:106
+#: src/core/engine/Initialization.cpp:102
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:107
+#: src/core/engine/Initialization.cpp:103
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:108
+#: src/core/engine/Initialization.cpp:104
 msgid "Graphics with short command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:109
+#: src/core/engine/Initialization.cpp:105
 msgid "Graphics with long command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:111
+#: src/core/engine/Initialization.cpp:107
 msgid "Output file: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:112
+#: src/core/engine/Initialization.cpp:108
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:34
+#: src/core/engine/Processing.cpp:35
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:57
+#: src/core/engine/Processing.cpp:59
 msgid "Processing \""
 msgstr ""
 
@@ -588,25 +592,29 @@ msgstr ""
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:101
+#: src/core/engine/Processing.cpp:105
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:126
+#: src/core/engine/Processing.cpp:128
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:128
+#: src/core/engine/Processing.cpp:129
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:128
+#: src/core/engine/Processing.cpp:129
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:128
+#: src/core/engine/Processing.cpp:129
 msgid " rows."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:135
+msgid "Debug patch image will be saved to: "
 msgstr ""
 
 #: src/core/engine/Reporting.cpp:33
@@ -665,7 +673,7 @@ msgstr ""
 msgid "Error: Invalid crop area calculated for keystone correction."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:248
+#: src/core/graphics/ImageProcessing.cpp:247
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
@@ -713,10 +721,6 @@ msgstr ""
 msgid "  - Info: Plot saved to: "
 msgstr ""
 
-#: src/core/io/OutputWriter.cpp:65
-msgid "  - Info: Debug patch image saved to: "
-msgstr ""
-
 #: src/core/io/OutputWriter.cpp:69
 msgid "Error: OpenCV exception while saving debug image: "
 msgstr ""
@@ -762,22 +766,6 @@ msgstr ""
 msgid "Using final file order from: Image Brightness (List A)"
 msgstr ""
 
-#: src/core/setup/MetadataExtractor.cpp:18
-msgid "Pre-analyzing files to determine sorting order..."
-msgstr ""
-
-#: src/core/setup/MetadataExtractor.cpp:37
-msgid "  - File: "
-msgstr ""
-
-#: src/core/setup/MetadataExtractor.cpp:38
-msgid ", Brightness: "
-msgstr ""
-
-#: src/core/setup/MetadataExtractor.cpp:39
-msgid ", ISO: "
-msgstr ""
-
 #: src/core/setup/SensorResolution.cpp:23
 msgid "Sensor resolution detected from RAW metadata: "
 msgstr ""
@@ -786,10 +774,10 @@ msgstr ""
 msgid "Sensor resolution inferred from RAW dimensions: "
 msgstr ""
 
-#: src/core/utils/Formatters.cpp:23
+#: src/core/utils/Formatters.cpp:24
 msgid "RAW File"
 msgstr ""
 
-#: src/core/utils/Formatters.cpp:39
+#: src/core/utils/Formatters.cpp:31
 msgid "Patches"
 msgstr ""

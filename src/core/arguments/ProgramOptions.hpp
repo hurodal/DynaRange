@@ -22,7 +22,6 @@ constexpr const char* CLI_EXECUTABLE_NAME = "rango";
 
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
-
 /**
  * @brief Helper function to convert a UI selection index to a polynomial order value.
  * @param index The zero-based index from the wxChoice control.
@@ -45,7 +44,6 @@ enum class CommandFormat {
     PlotLong,
     GuiPreview
 };
-
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
@@ -66,12 +64,13 @@ struct ProgramOptions {
     std::vector<std::string> chart_colour_params;
     std::vector<int> chart_params;
     std::vector<double> chart_coords;
-    std::vector<int> chart_patches; // [M, N]
+    std::vector<int> chart_patches;
+    // [M, N]
     std::string generated_command;
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
-    bool print_patch_mode = false;
-
-    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
+    std::string print_patch_filename;
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
+    }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

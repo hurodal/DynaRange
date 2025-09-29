@@ -28,14 +28,15 @@ struct DynamicRangeResult {
  * @struct PatchAnalysisResult
  * @brief Holds the raw signal and noise data extracted from the chart patches.
  * @details The 'signal' and 'noise' vectors are non-const to allow for normalization
- *          based on sensor resolution and target Mpx before curve fitting.
- *          This ensures consistency between the EV axis (based on normalized signal)
- *          and the SNR values (also normalized).
+ * based on sensor resolution and target Mpx before curve fitting.
+ * This ensures consistency between the EV axis (based on normalized signal)
+ * and the SNR values (also normalized).
  */
 struct PatchAnalysisResult {
     std::vector<double> signal; ///< A vector of mean signal values from each patch.
     std::vector<double> noise;  ///< A vector of noise (stddev) values from each patch.
     cv::Mat image_with_patches; ///< A debug image showing the detected patches.
+    double max_pixel_value = 1.0; ///< Max pixel value before drawing overlays.
 };
 
 /**

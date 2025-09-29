@@ -9,8 +9,10 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <atomic>
+#include <optional>
 
 namespace DynaRange {
+
 namespace EngineConfig {
     /**
      * @brief Compile-time switch to control keystone calculation optimization.
@@ -36,6 +38,7 @@ struct SingleFileResult {
 struct ProcessingResult {
     std::vector<DynamicRangeResult> dr_results; ///< Collection of DR results for each file.
     std::vector<CurveData> curve_data;          ///< Collection of curve data for each file.
+    std::optional<cv::Mat> debug_patch_image;   ///< The final debug image for --print-patches.
 };
 
 /**

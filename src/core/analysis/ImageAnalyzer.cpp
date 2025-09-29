@@ -8,6 +8,11 @@
 
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio) {
     std::vector<double> signal_vec, noise_vec;
+
+    // Find max pixel value for normalization before drawing overlays.
+    double max_val = 0.0;
+    cv::minMaxLoc(imgcrop, nullptr, &max_val);
+
     const double patch_width = (double)imgcrop.cols / NCOLS;
     const double patch_height = (double)imgcrop.rows / NROWS;
     const double safe_x = patch_width * (1.0 - patch_ratio) / 2.0;
@@ -20,7 +25,6 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
             int y2 = round((double)(j + 1) * patch_height - safe_y);
 
             if (x1 >= x2 || y1 >= y2) continue;
-
             cv::Mat patch = imgcrop(cv::Rect(x1, y1, x2 - x1, y2 - y1));
             cv::Scalar mean, stddev;
             cv::meanStdDev(patch, mean, stddev);
@@ -37,5 +41,5 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
             }
         }
     }
-    return {signal_vec, noise_vec, imgcrop};
+    return {signal_vec, noise_vec, imgcrop, max_val};
 }

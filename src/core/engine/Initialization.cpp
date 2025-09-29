@@ -10,31 +10,15 @@
 #include "../setup/SensorResolution.hpp"
 #include "../setup/FileSorter.hpp"
 #include "../setup/PlotLabelGenerator.hpp"
-#include "../utils/CommandGenerator.hpp" 
-#include <set> 
-#include <iomanip>
-#include <libintl.h>
-
-#define _(string) gettext(string)
-
-// File: src/core/engine/Initialization.cpp
-/**
- * @file src/core/engine/Initialization.cpp
- * @brief Implementation of the analysis initialization process.
- */
-#include "Initialization.hpp"
-#include "../arguments/ArgumentManager.hpp"
-#include "../analysis/RawProcessor.hpp"
-#include "../setup/MetadataExtractor.hpp"
-#include "../setup/SensorResolution.hpp"
-#include "../setup/FileSorter.hpp"
-#include "../setup/PlotLabelGenerator.hpp"
 #include "../utils/CommandGenerator.hpp"
 #include <set> 
 #include <iomanip>
+#include <filesystem>
 #include <libintl.h>
 
 #define _(string) gettext(string)
+
+namespace fs = std::filesystem;
 
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
@@ -53,7 +37,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         opts.input_files = unique_files;
     }
 
-    // --- The rest of the function continues below ---
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
         if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false; }
@@ -66,16 +49,24 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     }
 
     // --- SETUP PROCESS ORCHESTRATION ---
+    log_stream << _("Pre-analyzing files to determine sorting order...") << std::endl;
     auto file_info = ExtractFileInfo(opts.input_files, log_stream);
     if (file_info.empty()) {
         log_stream << _("Error: None of the input files could be processed.") << std::endl;
         return false;
     }
-    
-    if (opts.sensor_resolution_mpx == 0.0) {
-        opts.sensor_resolution_mpx = DetectSensorResolution(opts.input_files, log_stream);
-    }
 
+    // Print Pre-analysis data as a formatted table
+    log_stream << "  " << std::left << std::setw(20) << "File"
+               << std::right << std::setw(10) << "Brightness"
+               << std::right << std::setw(10) << "ISO" << std::endl;
+    log_stream << "  " << std::string(40, '-') << std::endl;
+    for (const auto& info : file_info) {
+        log_stream << "  " << std::left << std::setw(20) << fs::path(info.filename).filename().string()
+                   << std::right << std::setw(10) << std::fixed << std::setprecision(2) << info.mean_brightness
+                   << std::right << std::setw(10) << std::fixed << std::setprecision(0) << info.iso_speed << std::endl;
+    }
+    
     FileOrderResult order = DetermineFileOrder(file_info, log_stream);
     std::map<std::string, std::string> labels = GeneratePlotLabels(
         order.sorted_filenames,
@@ -84,6 +75,11 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     );
     opts.input_files = order.sorted_filenames;
     opts.plot_labels = labels;
+
+    // Detect sensor resolution after sorting messages have been printed.
+    if (opts.sensor_resolution_mpx == 0.0) {
+        opts.sensor_resolution_mpx = DetectSensorResolution(opts.input_files, log_stream);
+    }
 
     // --- PRINT FINAL CONFIGURATION ---
     log_stream << std::fixed << std::setprecision(2);
@@ -111,8 +107,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
     log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
     
-    // Generate command string based on the selected plot mode.
-    // The call now uses the new CommandGenerator module.
     if (opts.plot_mode == 2) {
         opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);
     } else if (opts.plot_mode == 3) {

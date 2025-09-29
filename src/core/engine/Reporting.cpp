@@ -171,13 +171,18 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
+    // Save the debug patch image if it was requested and generated
+    if (!opts.print_patch_filename.empty() && results.debug_patch_image.has_value()) {
+        fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
+        // The message is now just for confirmation, as the user was already notified.
+        OutputWriter::WriteDebugImage(*results.debug_patch_image, debug_path, log_stream);
+    }
+
     output.final_csv_path = paths.GetCsvOutputPath().string();
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
     
     GenerateLogReport(results.dr_results, opts, log_stream);
-    // The logic for generating the CSV is now delegated to the OutputWriter.
     OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
-    
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
 
     return output;

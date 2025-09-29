@@ -8,6 +8,7 @@
 #include "../graphics/ImageProcessing.hpp"
 #include "../setup/ChartProfile.hpp"
 #include "../analysis/ImageAnalyzer.hpp"
+#include "../utils/PathManager.hpp"
 #include <filesystem>
 #include <iostream>
 #include <atomic>
@@ -36,6 +37,7 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
     }
     return raw_files;
 }
+
 /**
  * @brief (Orchestrator) Analyzes a single RAW file by calling the appropriate modules.
  * @param raw_file The RawFile object to be analyzed.
@@ -55,10 +57,8 @@ SingleFileResult AnalyzeSingleRawFile(
     double camera_resolution_mpx)
 {
     log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
-    
     // All image preparation logic is now delegated to the ImageProcessing module,
     // making this function a pure orchestrator, thus adhering to SRP.
-    
     // 1. Prepare the image for analysis.
     cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
     if (img_prepared.empty()) {
@@ -85,11 +85,15 @@ SingleFileResult AnalyzeSingleRawFile(
     
     // 5. Store the numeric ISO speed for the individual plot title.
     curve_data.iso_speed = raw_file.GetIsoSpeed();
-    return {dr_result, curve_data};
-}
 
+    // 6. Create the final gamma-corrected debug image.
+    cv::Mat final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
+
+    return {dr_result, curve_data, final_debug_image};
+}
 } // end of anonymous namespace
 
+// File: src/core/engine/Processing.cpp
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
     // 1. Load files (I/O Responsibility)
@@ -102,11 +106,9 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         cv::Mat raw_img = raw_files[0].GetRawImage();
         cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
-        // Extract a single bayer channel (e.g., Green) which is half the size.
         cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
         for (int r = 0; r < imgBayer.rows; ++r) {
             for (int c = 0; c < imgBayer.cols; ++c) {
-                // Use G1 channel for detection, as it's often the cleanest.
                 imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
             }
         }
@@ -114,7 +116,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     }
 
     // 3. Define the context for the analysis (e.g., which chart to use)
-    // The ChartProfile is now constructed with program options and potential auto-detection results.
     ChartProfile chart(opts, detected_corners_opt, log_stream);
     std::string camera_model_name;
     if(!raw_files.empty() && raw_files[0].IsLoaded()){
@@ -122,16 +123,29 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     }
 
     // 4. Orchestrate analysis for each file, respecting the keystone optimization setting.
+    bool first_file_processed = false;
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
         log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << std::endl;
-        // Add a log message to inform the user about the grid dimensions being used.
-        log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << "" << std::endl;
+        log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << std::endl;
+        
+        // Announce that the debug patch image will be saved.
+        if (!opts.print_patch_filename.empty()) {
+            PathManager paths(opts);
+            fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
+            log_stream << _("Debug patch image will be saved to: ") << debug_path.string() << std::endl;
+        }
+
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
         for (const auto& raw_file : raw_files) {
             if (cancel_flag) return {};
-            // Cancellation check
             if (!raw_file.IsLoaded()) continue;
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
+            
+            if (!first_file_processed && !file_result.final_debug_image.empty()) {
+                result.debug_patch_image = file_result.final_debug_image;
+                first_file_processed = true;
+            }
+
             if (!file_result.dr_result.filename.empty()) {
                 file_result.curve_data.camera_model = camera_model_name;
                 result.dr_results.push_back(file_result.dr_result);
@@ -142,7 +156,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         log_stream << "Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
         for (const auto& raw_file : raw_files) {
             if (cancel_flag) return {};
-            // Cancellation check
             if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);

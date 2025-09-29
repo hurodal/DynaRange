@@ -30,7 +30,7 @@ ChartProfile::ChartProfile(const ProgramOptions& opts, const std::optional<std::
             [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
         constexpr double epsilon = 1e-6; // To prevent division by zero
 
-        // CORRECTED LOGIC: Use division (x/y) to find BL and TR corners, matching the R script.
+        // Use division (x/y) to find BL and TR corners, matching the R script.
         auto bl_it = std::min_element(points.begin(), points.end(),
             [epsilon](const cv::Point2d& a, const cv::Point2d& b) {
                 return a.x / (a.y + epsilon) < b.x / (b.y + epsilon);
@@ -88,19 +88,40 @@ bool ChartProfile::HasManualCoords() const {
 void ChartProfile::LogCornerPoints(const std::vector<cv::Point2d>& points, const std::string& source_msg, std::ostream& log_stream) const {
     log_stream << source_msg << std::endl;
 
-    auto format_point_str = [](const cv::Point2d& p) {
-        std::stringstream ss;
-        ss << "[" << std::right << std::setw(5) << static_cast<int>(round(p.x * 2.0))
-           << ", " << std::right << std::setw(5) << static_cast<int>(round(p.y * 2.0)) << " ]";
-        return ss.str();
-    };
-
     // Standard order is TL, BL, BR, TR
-    std::string tl_str = "  TL-> " + format_point_str(points[0]);
-    std::string tr_str = format_point_str(points[3]) + " <-TR";
-    std::string bl_str = "  BL-> " + format_point_str(points[1]);
-    std::string br_str = format_point_str(points[2]) + " <-BR";
+    const auto& tl = points[0];
+    const auto& bl = points[1];
+    const auto& br = points[2];
+    const auto& tr = points[3];
 
-    log_stream << tl_str << "\t" << tr_str << std::endl;
-    log_stream << bl_str << "\t" << br_str << std::endl;
+    // Use stringstreams to build perfectly formatted lines
+    std::stringstream header, line1, line2;
+    
+    // Build Header line with precise padding to align the 'x' and 'y' characters
+    // with the units digit of the numbers below.
+    header << "       " // 7 spaces to match "  TL-> ["
+           << std::string(4, ' ') << "x"
+           << "  "      // 2 spaces to match ", " separator
+           << std::string(4, ' ') << "y"
+           << "     "   // 5 spaces to match " ]   ["
+           << std::string(4, ' ') << "x"
+           << "  "      // 2 spaces to match ", " separator
+           << std::string(4, ' ') << "y";
+
+    // Build Top line (TL, TR) WITH brackets
+    line1 << "  TL-> [" << std::right << std::setw(5) << static_cast<int>(round(tl.x * 2.0))
+          << ", " << std::right << std::setw(5) << static_cast<int>(round(tl.y * 2.0)) << " ]   ["
+          << std::right << std::setw(5) << static_cast<int>(round(tr.x * 2.0))
+          << ", " << std::right << std::setw(5) << static_cast<int>(round(tr.y * 2.0)) << " ] <-TR";
+
+    // Build Bottom line (BL, BR) WITH brackets
+    line2 << "  BL-> [" << std::right << std::setw(5) << static_cast<int>(round(bl.x * 2.0))
+          << ", " << std::right << std::setw(5) << static_cast<int>(round(bl.y * 2.0)) << " ]   ["
+          << std::right << std::setw(5) << static_cast<int>(round(br.x * 2.0))
+          << ", " << std::right << std::setw(5) << static_cast<int>(round(br.y * 2.0)) << " ] <-BR";
+    
+    // Print the formatted lines to the log stream
+    log_stream << header.str() << std::endl;
+    log_stream << line1.str() << std::endl;
+    log_stream << line2.str() << std::endl;
 }

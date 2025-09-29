@@ -203,7 +203,6 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     return gamma_corrected_image;
 }
 
-// File: src/core/graphics/ImageProcessing.cpp
 std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream)
 {
     if (bayer_image.empty()) return std::nullopt;
@@ -267,9 +266,9 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         const double MIN_CIRCLE_BRIGHTNESS = 0.8; // A white circle should be brighter than 80% grey.
 
         if (median_brightness < MIN_CIRCLE_BRIGHTNESS) {
-            log_stream << "  - Corner detection failed in a quadrant: detected point is not bright enough ("
-                       << std::fixed << std::setprecision(2) << median_brightness << " < " << MIN_CIRCLE_BRIGHTNESS
-                       << "). Check for white circles in the chart image." << std::endl;
+        //    log_stream << "  - Corner detection failed in a quadrant: detected point is not bright enough ("
+        //               << std::fixed << std::setprecision(2) << median_brightness << " < " << MIN_CIRCLE_BRIGHTNESS
+        //               << "). Check for white circles in the chart image." << std::endl;
             return std::nullopt; // Fail the entire detection process.
         }
         
