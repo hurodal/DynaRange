@@ -1,80 +1,19 @@
 TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
-0: PARA PENSAR SOBRE ELLO (ONLY GUILLERMO'S EYES)
-	- Modo "Sensor performance" con múltiples exposiciones al mismo ISO: juntar datos de capturas al mismo ISO. TIPO DE CURVA?
-	- Gráfica de RD con recta de ISO invarianza
-	- Simplificar el parámetro umbral --snrthreshold-db: que no saque 0dB y 12dB por defecto, sino solo 12dB. O polo opuesto: poder especificar una lista de umbrales
+1: MULTICANALIDAD: USAR LOS 4 CANALES DEL RAW, VER SI CALCULAMOS RD POR CANAL/CÓMO AFECTA EL DIFERENTE RENDIMIENTO POR CANAL
 
+2: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
 
-1:	NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
+3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
-	--drnormalization-mpx -m <float>
-	Definition: number of Mpx for DR normalization (default=8Mpx)
-	Explanation: in order to properly and fairly compare different resolution cameras, the SNR values need to be normalized to a given output resolution before calculating the DR. This means DR figures will vary according to this resolution normalization, obtaining higher values the lower the number of Mpx specified
-	Usage: by default a 8Mpx based DR is calculated. If no normalization is wanted (per-pixel DR) a value of 0 must be set for this parameter
-	Examples (first example is default and is equivalent to not specifying the parameter):
-	--drnormalization-mpx      (DR normalized to 8Mpx)
-	--drnormalization-mpx 21.5 (DR normalized to 21.5Mpx)
-	--drnormalization-mpx 0    (no normalization, per-pixel DR)
+4: DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
 
-	################################
-	# RANGO PARAMETERS
+5: SIMPLIFICAR PARÁMETRO --snrthreshold-db: SOLO CALCULA PARA 12dB / POLO OPUESTO: SUMINISTRAR LISTA DE UMBRALES
 
-	# --patch-ratio -r <float>
-	patch_ratio=0.1  # portion of width/height used on each patch
+6: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
 
-	# --drnormalization-mpx -m <float>
-	normalize=FALSE  # TRUE
-	drnormalization_mpx=8  # 8Mpx normalization
+7: SUSTUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO
 
-	# Number of patches in test chart
-	NCOLS=11
-	NROWS=7
-
-	MIN_SNR_dB = -10
-	if (normalize) MIN_SNR_dB = MIN_SNR_dB - 20*log10((camresolution_mpx / drnormalization_mpx)^(1/2))
-	calc=analyze_patches(imgcrop, NCOLS=11, NROWS=7, patch_ratio, MIN_SNR_dB)  # SAFE=80
-	Signal=calc$Signal
-	Noise=calc$Noise
-	SNR=Signal/Noise
-	# SNR normalization to drnormalization_mpx Mpx
-	# Linear: SNR_norm = SNR_perpixel * (Mpx / 8)^(1/2)
-	# Log:    SNR_norm dB = SNR_perpixel dB + 20 * log10[(Mpx / 8)^(1/2)]
-	if (normalize) SNR = SNR * (camresolution_mpx / drnormalization_mpx)^(1/2)
-
-	NOTAS SOBRE LA NORMALIZACIÓN:
-
-	Al normalizar todas las curvas se desplazan (hacia arriba si normalizamos por menos Mpx de los que tenemos). Eso significa que para determinada normalización podemos quedarnos sin datos suficientes para obtener el RD, porque no quede ningún punto por debajo de la curva. Tanto si se normaliza como si no, para cada curva ISO hay que asegurar que:
-	- La muestra (parche) de menor relación S/N de esa curva, una vez normalizada (corregida), está por debajo del umbral de dB con el que calculamos el RD
-	- La muestra (parche) de mayor relación S/N, una vez normalizada (corregida) está por encima del umbral de dB con el que calculamos el RD
-
-	En caso contrario para ese ISO no se calcula el RD y el programa emite un mensaje tipo "Warning: insufficient data to calculate 12dB dynamic range at 8Mpx normalization, test chart was subexposed/underexposed". Lo meto hoy en el código porque es muy importante, no solo para la normalización sino para detectar cartas mal expuestas. Las de Hugo estaban muy bien expuestas pero aquí es fácil que un usuario meta la pata.
-	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
-
-
-3:	DETECCIÓN ESQUINAS CARTA MAGENTA
-
-	Sobre el canal G* del RAW de la toma menos expuesta (menor ISO), se busca en cada cuadrante de la imagen (canal G del RAW) el 0,05% de píxeles de mayor nivel. Obtenidos, el centro del círculo del cuadrante será la mediana de las coordenadas X e Y de todos los píxeles que entran en ese grupo del 0,05% más brillante. Comprobar que los parches magenta más luminosos no compiten en luminosidad con los testigos. Si diera problemas podemos "capar" la luminosidad máxima de esos parches.
-
-	*NOTA: para empezar puedes asumir RG/GB que es como son casi todas las cámaras. Más adelante localizar el canal G del RAW puede hacerse de 2 modos:
-	- Metadatos: si LibRAW nos da la estructura RG/GB, GB/RG,... del RAW
-	- Analizando qué posición de la matriz de Bayer adquiere más niveles (serán los 2 canales G, da igual uno que otro)
-
-	Ver código R
-
-	La función quantile() se puede implementar en C++ con:
-
-        cppFunction('
-                    double quantilecpp(Rcpp::NumericVector xx, double perc) {
-                    Rcpp::NumericVector x = Rcpp::clone(xx);
-                    std::size_t n = x.size() * perc;
-                    std::nth_element(x.begin(), x.begin() + n, x.end());
-                    return x[n]; 
-                    }
-                    ')
-
-
-4:	DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
 
 
 
