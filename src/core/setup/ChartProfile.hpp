@@ -1,4 +1,4 @@
-// File: core/ChartProfile.hpp
+// File: src/core/setup/ChartProfile.hpp
 /**
  * @file core/ChartProfile.hpp
  * @brief Defines a profile for a test chart's geometric properties.
@@ -6,7 +6,9 @@
 #pragma once
 
 #include <vector>
+#include <optional>
 #include <opencv2/core.hpp>
+#include <ostream>
 #include "../arguments/ProgramOptions.hpp" // Needed for the constructor
 
 /**
@@ -20,12 +22,17 @@
 class ChartProfile {
 public:
     /**
-     * @brief Constructs a chart profile based on program options.
-     * @details If manual coordinates are provided in opts, they are used.
-     * Otherwise, hardcoded default coordinates are used as a fallback.
+     * @brief Constructs a chart profile based on program options and auto-detection results.
+     * @details It follows a clear priority:
+     * 1. Uses manual coordinates from `opts` if available.
+     * 2. Uses `detected_corners` if manual coordinates are not present and detection was successful.
+     * 3. Falls back to hardcoded default coordinates if both above are unavailable.
+     * It also logs which set of coordinates is being used.
      * @param opts The program options containing potential manual coordinates.
+     * @param detected_corners An optional vector with coordinates from automatic detection.
+     * @param log_stream The output stream for logging messages.
      */
-    explicit ChartProfile(const ProgramOptions& opts);
+    explicit ChartProfile(const ProgramOptions& opts, const std::optional<std::vector<cv::Point2d>>& detected_corners, std::ostream& log_stream);
 
     /// @brief Gets the four corner points of the chart for keystone correction.
     const std::vector<cv::Point2d>& GetCornerPoints() const;
@@ -38,11 +45,19 @@ public:
 
     /// @brief Gets the number of patch rows in the chart grid.
     int GetGridRows() const;
-    
+
     /// @brief Checks if the profile was constructed with user-provided coordinates.
     bool HasManualCoords() const;
 
 private:
+    /**
+     * @brief Logs the corner coordinates used for the analysis.
+     * @param points The vector of 4 corner points (TL, BL, BR, TR).
+     * @param source_msg A message indicating the source of the coordinates.
+     * @param log_stream The output stream for logging.
+     */
+    void LogCornerPoints(const std::vector<cv::Point2d>& points, const std::string& source_msg, std::ostream& log_stream) const;
+
     std::vector<cv::Point2d> m_corner_points;      ///< Source points for keystone.
     std::vector<cv::Point2d> m_destination_points; ///< Destination points for keystone.
     int m_grid_cols;                               ///< Number of columns of patches.

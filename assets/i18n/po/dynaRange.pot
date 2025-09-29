@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 08:53+0200\n"
+"POT-Creation-Date: 2025-09-29 10:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -588,19 +588,24 @@ msgstr ""
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:110
+#: src/core/engine/Processing.cpp:101
+msgid ""
+"Manual coordinates not provided, attempting automatic corner detection..."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:126
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:112
+#: src/core/engine/Processing.cpp:128
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:112
+#: src/core/engine/Processing.cpp:128
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:112
+#: src/core/engine/Processing.cpp:128
 msgid " rows."
 msgstr ""
 
@@ -652,15 +657,15 @@ msgstr ""
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:72
+#: src/core/graphics/ImageProcessing.cpp:73
 msgid "Error: Could not get raw image for: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:99
+#: src/core/graphics/ImageProcessing.cpp:100
 msgid "Error: Invalid crop area calculated for keystone correction."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:249
+#: src/core/graphics/ImageProcessing.cpp:248
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
@@ -714,6 +719,24 @@ msgstr ""
 
 #: src/core/io/OutputWriter.cpp:69
 msgid "Error: OpenCV exception while saving debug image: "
+msgstr ""
+
+#: src/core/setup/ChartProfile.cpp:43
+msgid "Using manually specified coordinates:"
+msgstr ""
+
+#: src/core/setup/ChartProfile.cpp:49
+msgid "Using automatically detected coordinates:"
+msgstr ""
+
+#: src/core/setup/ChartProfile.cpp:55
+msgid ""
+"Warning: Automatic corner detection failed or was not possible. Falling back "
+"to default coordinates."
+msgstr ""
+
+#: src/core/setup/ChartProfile.cpp:56
+msgid "Using hardcoded default coordinates:"
 msgstr ""
 
 #: src/core/setup/FileSorter.cpp:43

@@ -9,6 +9,7 @@
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
+#include <iomanip>
 
 #define _(string) gettext(string)
 
@@ -202,10 +203,10 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     return gamma_corrected_image;
 }
 
+// File: src/core/graphics/ImageProcessing.cpp
 std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream)
 {
     if (bayer_image.empty()) return std::nullopt;
-
     const int DIMX = bayer_image.cols;
     const int DIMY = bayer_image.rows;
     std::vector<cv::Point2d> detected_points;
@@ -217,7 +218,6 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         {DIMX / 2, DIMY / 2, DIMX / 2, DIMY / 2},               // Bottom-Right
         {DIMX / 2, 0, DIMX / 2, DIMY / 2}                       // Top-Right
     };
-
     // R-Script logic: circle radius is 1% of the image diagonal.
     // This is used to calculate how many pixels to select (quantile).
     const double diag = std::sqrt(static_cast<double>(DIMX * DIMX + DIMY * DIMY));
@@ -244,7 +244,6 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         
         std::vector<cv::Point> bright_pixels;
         cv::findNonZero(mask, bright_pixels);
-
         if (bright_pixels.empty()) {
             log_stream << _("Warning: No corner circle found in one of the quadrants.") << std::endl;
             return std::nullopt;
@@ -260,10 +259,23 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         }
         std::sort(x_coords.begin(), x_coords.end());
         std::sort(y_coords.begin(), y_coords.end());
+        
+        // 4. Validate that the detected point is actually white.
+        double median_x_local = static_cast<double>(x_coords[x_coords.size() / 2]);
+        double median_y_local = static_cast<double>(y_coords[y_coords.size() / 2]);
+        double median_brightness = quadrant.at<float>(median_y_local, median_x_local);
+        const double MIN_CIRCLE_BRIGHTNESS = 0.8; // A white circle should be brighter than 80% grey.
 
-        // 4. Adjust local coordinates to full image space and store the point
-        double median_x = static_cast<double>(x_coords[x_coords.size() / 2]) + sector_rect.x;
-        double median_y = static_cast<double>(y_coords[y_coords.size() / 2]) + sector_rect.y;
+        if (median_brightness < MIN_CIRCLE_BRIGHTNESS) {
+            log_stream << "  - Corner detection failed in a quadrant: detected point is not bright enough ("
+                       << std::fixed << std::setprecision(2) << median_brightness << " < " << MIN_CIRCLE_BRIGHTNESS
+                       << "). Check for white circles in the chart image." << std::endl;
+            return std::nullopt; // Fail the entire detection process.
+        }
+        
+        // 5. Adjust local coordinates to full image space and store the point
+        double median_x = median_x_local + sector_rect.x;
+        double median_y = median_y_local + sector_rect.y;
         detected_points.emplace_back(median_x, median_y);
     }
     

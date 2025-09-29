@@ -92,27 +92,44 @@ SingleFileResult AnalyzeSingleRawFile(
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
-
     // 1. Load files (I/O Responsibility)
     std::vector<RawFile> raw_files = LoadRawFiles(opts.input_files, log_stream);
 
-    // 2. Define the context for the analysis (e.g., which chart to use)
-    // The ChartProfile is now constructed with the program options,
-    // allowing it to use custom coordinates if they were provided.
-    ChartProfile chart(opts);
+    // 2. Attempt automatic corner detection if no manual coordinates are provided.
+    std::optional<std::vector<cv::Point2d>> detected_corners_opt;
+    if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
+        log_stream << _("Manual coordinates not provided, attempting automatic corner detection...") << std::endl;
+        cv::Mat raw_img = raw_files[0].GetRawImage();
+        cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
+
+        // Extract a single bayer channel (e.g., Green) which is half the size.
+        cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
+        for (int r = 0; r < imgBayer.rows; ++r) {
+            for (int c = 0; c < imgBayer.cols; ++c) {
+                // Use G1 channel for detection, as it's often the cleanest.
+                imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
+            }
+        }
+        detected_corners_opt = DetectChartCorners(imgBayer, log_stream);
+    }
+
+    // 3. Define the context for the analysis (e.g., which chart to use)
+    // The ChartProfile is now constructed with program options and potential auto-detection results.
+    ChartProfile chart(opts, detected_corners_opt, log_stream);
     std::string camera_model_name;
     if(!raw_files.empty() && raw_files[0].IsLoaded()){
         camera_model_name = raw_files[0].GetCameraModel();
     }
 
-    // 3. Orchestrate analysis for each file, respecting the keystone optimization setting.
+    // 4. Orchestrate analysis for each file, respecting the keystone optimization setting.
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
         log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << std::endl;
         // Add a log message to inform the user about the grid dimensions being used.
         log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << "" << std::endl;
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
         for (const auto& raw_file : raw_files) {
-            if (cancel_flag) return {}; // Cancellation check
+            if (cancel_flag) return {};
+            // Cancellation check
             if (!raw_file.IsLoaded()) continue;
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
             if (!file_result.dr_result.filename.empty()) {
@@ -124,7 +141,8 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     } else {
         log_stream << "Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
         for (const auto& raw_file : raw_files) {
-            if (cancel_flag) return {}; // Cancellation check
+            if (cancel_flag) return {};
+            // Cancellation check
             if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
