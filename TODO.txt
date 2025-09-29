@@ -1,50 +1,10 @@
 Varios comentarios:
 
-TODO 1: CÁLCULO DE BLACK/SAT DESDE FICHEROS RAW -> (HECHO)
-    
-    Entiendo que de momento solo funciona con valores black/sat pasados por el usuario.
-Faltaría añadir la posibilidad de obtenerlos de fichero RAW. Para black sería la media de todos
-los píxeles del RAW darkframe. Para sat el cuantil 5% (o incluso 1%) del RAW saturado obtenido
-con la función simplona que te pasé. 
-
-        He simplificado la función del cálculo del percentil 5% parametrizándola
-         (perc=0.5 es la mediana de toda la vida, perc=0.05 es el percentil 5%, etc...):
-
-        cppFunction('
-                    double quantilecpp(Rcpp::NumericVector xx, double perc) {
-                    Rcpp::NumericVector x = Rcpp::clone(xx);
-                    std::size_t n = x.size() * perc;
-                    std::nth_element(x.begin(), x.begin() + n, x.end());
-                    return x[n]; 
-                    }
-                    ')
-
-        set.seed(10)
-        x=rnorm(24000000)  # sensor de 24Mpx
-
-        median1=quantile(x, probs=0.05) |> as.numeric()
-        median2=quantilecpp(x, 0.05)
-
 TODO 8: VALORES DE BLACK/SAT POR DEFECTO: APROXIMACIÓN DESDE LAS CAPTURAS DE LA CARTA A ISO BASE
 
     Código para obtención valores por defecto BLACK y SAT si el usuario no los aporta 
     BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
     SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
-
-
-TODO 9: PARAMETRIZAR LOS PÍXELES DE SEGURIDAD EN CADA PARCHE
-
-    Con un valor relativo: patch-ratio=0.5 -> solo el recorte central de alto y ancho la mitad del parche se usa
-
-TODO 10: USAR LOS 4 CANALES RAW
-
-   Ejecutar el procesado 4 veces uno para cada canal:
-    imgBayer=img[row(img)%%2 & col(img)%%2]  # R
-    imgBayer=img[row(img)%%2 & !col(img)%%2]  # G1
-    imgBayer=img[!row(img)%%2 & col(img)%%2]  # G2
-    imgBayer=img[!row(img)%%2 & !col(img)%%2]  # B
-
-    Los puntos proporcionados por cada canal son 100% compatibles entre sí, así que pueden aproximarse polinómicamente todos juntos
 
 
 TODO 11: pequeñas correcciones en el GUI:
@@ -98,12 +58,3 @@ En este ejemplo, la clave está en rawProcessor.imgdata.other.iso_speed.
 La librería organiza la información en la estructura libraw_processed_image_t y sus subestructuras,
 donde imgdata es un miembro de la clase LibRaw y other es una sub-estructura que contiene datos misceláneos, como la velocidad ISO.
 
-
-TODO 13: estudiar bien cómo lidiar bien con la falta de datos/Normalización del umbral inferior (-10dB)
-         Decidir si antes la falta de datos se EXTRAPOLA o se emite un aviso de insuficiencia de datos (se puede incluso sugerir la sobreexposición/subexposición requerida)
-
-
-TODO 14: Creación/Uso de carta con número de parches MxN parametrizables.
-
-
-TODO 15: Posibilidad de meterle coordenadas y número de parches MxN ad-hoc para usar cualquier carta rectangular
