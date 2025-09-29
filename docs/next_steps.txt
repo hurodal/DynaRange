@@ -2,13 +2,8 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 0: PARA PENSAR SOBRE ELLO (ONLY GUILLERMO'S EYES)
 	- Modo "Sensor performance" con múltiples exposiciones al mismo ISO: juntar datos de capturas al mismo ISO. TIPO DE CURVA?
-	- Parametrizar creación de Carta Multiformato (3:2, 4:3, 1:1), multidimensiones MxN:
-      * Cálculo óptimo del radio de los círculos en función del quantil usado
-      * Optimizar la gamma (aplicar la de Hugo)
-      * Definir la carta ESTÁNDAR óptima en MxN una vez hayamos visto cómo queda usar todos los canales RAW y optimizar la gamma
 	- Gráfica de RD con recta de ISO invarianza
 	- Simplificar el parámetro umbral --snrthreshold-db: que no saque 0dB y 12dB por defecto, sino solo 12dB. O polo opuesto: poder especificar una lista de umbrales
-	- Detalle cosmético: intercambiar nombres de parámetros: -b/-B y -s/-S, y acortar algunos nombres: --sat-level, --sat-file, --drnorm-mpx
 
 
 1:	NORMALIZACIÓN A CUALQUIER RESOLUCIÓN PEDIDA (POR DEFECTO 8Mpx)
@@ -21,8 +16,6 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	--drnormalization-mpx      (DR normalized to 8Mpx)
 	--drnormalization-mpx 21.5 (DR normalized to 21.5Mpx)
 	--drnormalization-mpx 0    (no normalization, per-pixel DR)
-
-	Cambios en el código (dynamicrange_V2_Sony.R):
 
 	################################
 	# RANGO PARAMETERS
@@ -59,25 +52,6 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 	Normalizar para una resolución u otra, es equivalente a cambiar el umbral en dB para calcular el RD. Es totalmente posible que los RAW que tenemos sirvan para una normalización o umbral en dB, y no sirvan para otra normalización o umbral en dB
 
 
-2:	PARAMETRIZACIÓN DE --patch-ratio -r
-
-	Implementar la opción --patch-ratio -r <float>: relative patch width/height used to compute signal and noise readings (default=0.5)
-	Ahora mismo creo que aún la tienes hard coded como SAFE=50 píxeles. patch_ratio indica el tanto por 1 de píxeles a usar en cada eje (p.ej. 0.5 significa que se usan la mitad en cada eje, 25% en superficie).
-	Lo tienes implementado en el código "dynamicrange_V2_Sony.R", función analyze_patches(NumericMatrix imgcrop, int NCOLS, int NROWS, double patch_ratio, double MIN_SNR_dB):
-
-      double x1 = (i - 1) * DIMX / NCOLS;
-      double x2 = i * DIMX / NCOLS;
-      double EMPTYX = (x2 - x1) * (1 - patch_ratio) / 2;
-      x1 = round((i - 1) * DIMX / NCOLS + EMPTYX);
-      x2 = round(i * DIMX / NCOLS - EMPTYX);
-      
-      double y1 = (j - 1) * DIMY / NROWS;
-      double y2 = j * DIMY / NROWS;
-      double EMPTYY = (y2 - y1) * (1 - patch_ratio) / 2;    
-      y1 = round((j - 1) * DIMY / NROWS + EMPTYY);
-      y2 = round(j * DIMY / NROWS - EMPTYY); 
-
-
 3:	DETECCIÓN ESQUINAS CARTA MAGENTA
 
 	Sobre el canal G* del RAW de la toma menos expuesta (menor ISO), se busca en cada cuadrante de la imagen (canal G del RAW) el 0,05% de píxeles de mayor nivel. Obtenidos, el centro del círculo del cuadrante será la mediana de las coordenadas X e Y de todos los píxeles que entran en ese grupo del 0,05% más brillante. Comprobar que los parches magenta más luminosos no compiten en luminosidad con los testigos. Si diera problemas podemos "capar" la luminosidad máxima de esos parches.
@@ -101,6 +75,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
 
 4:	DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
+
 
 
 
