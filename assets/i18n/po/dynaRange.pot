@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 13:13+0200\n"
+"POT-Creation-Date: 2025-09-29 13:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -598,28 +598,44 @@ msgid ""
 "be invalid (e.g., bad keystone correction)."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:109
+#: src/core/engine/Processing.cpp:108
 msgid ""
-"Manual coordinates not provided, attempting automatic corner detection..."
+"Manual coordinates not provided, attempting iterative corner detection..."
 msgstr ""
 
 #: src/core/engine/Processing.cpp:132
-msgid "Using optimized keystone: calculating parameters once for the series..."
+msgid "Attempting detection with brightness threshold > "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:133
-msgid "Analyzing chart using a grid of "
+#: src/core/engine/Processing.cpp:135
+msgid "Detection successful at "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:133
-msgid " columns by "
-msgstr ""
-
-#: src/core/engine/Processing.cpp:133
-msgid " rows."
+#: src/core/engine/Processing.cpp:135
+msgid "threshold."
 msgstr ""
 
 #: src/core/engine/Processing.cpp:139
+msgid "Detection failed, lowering threshold..."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:154
+msgid "Using optimized keystone: calculating parameters once for the series..."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:155
+msgid "Analyzing chart using a grid of "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:155
+msgid " columns by "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:155
+msgid " rows."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:160
 msgid "Debug patch image will be saved to: "
 msgstr ""
 

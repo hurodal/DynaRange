@@ -203,7 +203,7 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     return gamma_corrected_image;
 }
 
-std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream)
+std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, double brightness_threshold, std::ostream& log_stream)
 {
     if (bayer_image.empty()) return std::nullopt;
     const int DIMX = bayer_image.cols;
@@ -234,11 +234,11 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         // 1. Find the brightness threshold using a quantile
         std::vector<double> pixels;
         quadrant.reshape(1, 1).convertTo(pixels, CV_64F);
-        double brightness_threshold = CalculateQuantile(pixels, quantile_threshold);
+        double brightness_q_threshold = CalculateQuantile(pixels, quantile_threshold);
 
         // 2. Find all pixels brighter than the threshold
         cv::Mat mask;
-        cv::threshold(quadrant, mask, brightness_threshold, 1.0, cv::THRESH_BINARY);
+        cv::threshold(quadrant, mask, brightness_q_threshold, 1.0, cv::THRESH_BINARY);
         mask.convertTo(mask, CV_8U);
         
         std::vector<cv::Point> bright_pixels;
@@ -263,13 +263,12 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         double median_x_local = static_cast<double>(x_coords[x_coords.size() / 2]);
         double median_y_local = static_cast<double>(y_coords[y_coords.size() / 2]);
         double median_brightness = quadrant.at<float>(median_y_local, median_x_local);
-        const double MIN_CIRCLE_BRIGHTNESS = 0.8; // A white circle should be brighter than 80% grey.
-
-        if (median_brightness < MIN_CIRCLE_BRIGHTNESS) {
-        //    log_stream << "  - Corner detection failed in a quadrant: detected point is not bright enough ("
-        //               << std::fixed << std::setprecision(2) << median_brightness << " < " << MIN_CIRCLE_BRIGHTNESS
-        //               << "). Check for white circles in the chart image." << std::endl;
-            return std::nullopt; // Fail the entire detection process.
+        
+        if (median_brightness < brightness_threshold) {
+            log_stream << "  - Corner in quadrant not bright enough ("
+                       << std::fixed << std::setprecision(2) << median_brightness << " < " << brightness_threshold
+                       << ")." << std::endl;
+            return std::nullopt; // Falla este intento, pero el bucle puede probar con un umbral más bajo.
         }
         
         // 5. Adjust local coordinates to full image space and store the point
@@ -289,7 +288,6 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
 
     return std::nullopt;
 }
-
 
 cv::Mat UndoKeystoneColor(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     int DIMX = imgSrc.cols;

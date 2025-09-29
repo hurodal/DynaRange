@@ -19,6 +19,7 @@ constexpr int DEFAULT_PLOT_MODE = 0;
 constexpr int DEFAULT_POLY_ORDER = 3;
 constexpr const char* DEFAULT_OUTPUT_FILENAME = "results.csv";
 constexpr const char* CLI_EXECUTABLE_NAME = "rango";
+constexpr int DEFAULT_MIN_BRIGHTNESS = 40;
 
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
@@ -70,6 +71,7 @@ struct ProgramOptions {
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
     std::string print_patch_filename;
+    int min_corner_brightness = DEFAULT_MIN_BRIGHTNESS;
     int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
     }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }

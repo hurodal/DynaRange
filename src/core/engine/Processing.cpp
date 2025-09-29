@@ -97,7 +97,6 @@ SingleFileResult AnalyzeSingleRawFile(
 
 } // end of anonymous namespace
 
-// File: src/core/engine/Processing.cpp
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
     // 1. Load files (I/O Responsibility)
@@ -106,17 +105,40 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     // 2. Attempt automatic corner detection if no manual coordinates are provided.
     std::optional<std::vector<cv::Point2d>> detected_corners_opt;
     if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
-        log_stream << _("Manual coordinates not provided, attempting automatic corner detection...") << std::endl;
+        log_stream << _("Manual coordinates not provided, attempting iterative corner detection...") << std::endl;
         cv::Mat raw_img = raw_files[0].GetRawImage();
         cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
-        cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
-        for (int r = 0; r < imgBayer.rows; ++r) {
-            for (int c = 0; c < imgBayer.cols; ++c) {
-                imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
+        int bayer_rows = img_float.rows / 2;
+        int bayer_cols = img_float.cols / 2;
+        cv::Mat mono_bayer = cv::Mat::zeros(bayer_rows, bayer_cols, CV_32FC1);
+        for (int r = 0; r < bayer_rows; ++r) {
+            for (int c = 0; c < bayer_cols; ++c) {
+                float r_pix  = img_float.at<float>(r * 2,     c * 2);
+                float g1_pix = img_float.at<float>(r * 2,     c * 2 + 1);
+                float g2_pix = img_float.at<float>(r * 2 + 1, c * 2);
+                float b_pix  = img_float.at<float>(r * 2 + 1, c * 2 + 1);
+                mono_bayer.at<float>(r, c) = (r_pix + g1_pix + g2_pix + b_pix) / 4.0f;
             }
         }
-        detected_corners_opt = DetectChartCorners(imgBayer, log_stream);
+        
+        // Apply gamma correction to the monochrome image to enhance contrast for detection.
+        cv::Mat gamma_corrected_bayer;
+        cv::pow(mono_bayer, 1.0 / 2.2, gamma_corrected_bayer);
+
+        // Detection loop with decreasing thresholds on the gamma-corrected image.
+        for (int threshold_percent = 80; threshold_percent >= opts.min_corner_brightness; threshold_percent -= 10) {
+            double threshold = static_cast<double>(threshold_percent) / 100.0;
+            log_stream << "  - " << _("Attempting detection with brightness threshold > ") << threshold_percent << "%..." << std::endl;
+            detected_corners_opt = DetectChartCorners(gamma_corrected_bayer, threshold, log_stream);
+            if (detected_corners_opt.has_value()) {
+                log_stream << "  - " << _("Detection successful at ") << threshold_percent << "% " << _("threshold.") << std::endl;
+                break; // Exit loop on success.
+            }
+            if (threshold_percent > opts.min_corner_brightness) {
+                 log_stream << "  - " << _("Detection failed, lowering threshold...") << std::endl;
+            }
+        }
     }
 
     // 3. Define the context for the analysis (e.g., which chart to use)
@@ -132,7 +154,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << std::endl;
         log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << std::endl;
         
-        // Announce that the debug patch image will be saved.
         if (!opts.print_patch_filename.empty()) {
             PathManager paths(opts);
             fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;

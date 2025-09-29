@@ -22,6 +22,7 @@ Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_poin
  * @return A new cv::Mat containing the rectified image.
  */
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
+
 /**
  * @brief (New Function) Applies an inverse keystone correction to a 3-channel color image.
  * @param imgSrc The source image (CV_8UC3) to be corrected.
@@ -36,10 +37,12 @@ cv::Mat PrepareChartImage(
     const Eigen::VectorXd& keystone_params,
     const ChartProfile& chart,
     std::ostream& log_stream);
+
 /**
  * @brief Detects the four corner points of the test chart from a single-channel Bayer image.
  * @param bayer_image The input single-channel image (e.g., Green channel), half the size of the original RAW.
+ * @param brightness_threshold The minimum brightness (0.0-1.0) for a point to be considered a valid corner.
  * @param log_stream The output stream for logging messages.
  * @return An optional containing a vector of 4 corner points (TL, BL, BR, TR) on success, or std::nullopt on failure.
  */
-std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream);
+std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, double brightness_threshold, std::ostream& log_stream);
