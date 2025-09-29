@@ -16,7 +16,7 @@ Usage: rango [OPTION]... [FILE]...
 --input-files         -i <files>          : Input RAW files shot over the test chart ideally for every ISO
 --patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
 --snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB "Photographic DR")
---drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx)
+--drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)
 --poly-fit            -f <int 2-3>        : Polynomic order to fit the SNR curve (default=3)
 --output-file         -o <file>           : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
 --plot                -p <int 0-3>        : Export SNR curves in PNG format with/without the CLI command that generated them (default=0, don't plot)
@@ -94,7 +94,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --snrthreshold-db -d 6.5 (only a 6.5dB threshold is used)
 
 --drnormalization-mpx -m <float>
-Definition: number of Mpx for DR normalization (default=8Mpx)
+Definition: number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)
 Explanation: in order to properly and fairly compare different resolution cameras, the SNR values need to be normalized to a given output resolution before calculating the DR. This means DR figures will vary according to this resolution normalization, obtaining higher values the lower the number of Mpx specified
 Usage: by default a 8Mpx based DR is calculated. If no normalization is wanted (per-pixel DR) a value of 0 must be set for this parameter
 Examples (first example is default and is equivalent to not specifying the parameter):
@@ -136,6 +136,7 @@ Usage: the user can additionally supply a output name for the PNG file
 Examples (first example is default and is equivalent to not specifying the parameter):
 --print-patches -P                     (display used patches in "printpatches.png") 
 --print-patches -P patch_debugging.png (display used patches in "patch_debugging.png") 
+
 
 
 
