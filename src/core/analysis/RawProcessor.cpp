@@ -25,13 +25,29 @@ std::optional<double> ProcessDarkFrame(const std::string &filename,
   if (raw_img.empty())
     return std::nullopt;
 
-  // Convert cv::Mat to vector for statistical analysis
-  std::vector<double> pixels;
-  pixels.reserve(raw_img.total());
-  raw_img.reshape(1, 1).convertTo(pixels, CV_64F);
+  cv::Rect active_area(
+      dark_file.GetLeftMargin(),
+      dark_file.GetTopMargin(),
+      dark_file.GetActiveWidth(),
+      dark_file.GetActiveHeight()
+  );
 
-  double mean_value = CalculateMean(pixels);
-  log_stream << _("Black level obtained: ") << std::fixed
+  if (active_area.width <= 0 || active_area.height <= 0 || 
+      (active_area.x + active_area.width) > raw_img.cols ||
+      (active_area.y + active_area.height) > raw_img.rows) {
+      log_stream << _("Warning: Invalid active area defined in RAW metadata. Using global mean as fallback.") << std::endl;
+      double global_mean_value = cv::mean(raw_img)[0];
+      log_stream << _("Black level obtained (global mean): ") << std::fixed
+                 << std::setprecision(2) << global_mean_value << std::endl;
+      return global_mean_value;
+  }
+  
+  // Se crea una copia explícita (.clone()) para asegurar que la memoria es continua.
+  cv::Mat active_img = raw_img(active_area).clone();
+
+  double mean_value = cv::mean(active_img)[0];
+
+  log_stream << _("Black level obtained (active area mean): ") << std::fixed
              << std::setprecision(2) << mean_value << std::endl;
   return mean_value;
 }
@@ -47,63 +63,37 @@ std::optional<double> ProcessSaturationFrame(const std::string &filename,
   cv::Mat raw_img = sat_file.GetRawImage();
   if (raw_img.empty())
     return std::nullopt;
+  
+  cv::Rect active_area(
+      sat_file.GetLeftMargin(),
+      sat_file.GetTopMargin(),
+      sat_file.GetActiveWidth(),
+      sat_file.GetActiveHeight()
+  );
+
+  if (active_area.width <= 0 || active_area.height <= 0 || 
+      (active_area.x + active_area.width) > raw_img.cols ||
+      (active_area.y + active_area.height) > raw_img.rows) {
+      log_stream << _("Warning: Invalid active area defined in RAW metadata. Using global median as fallback.") << std::endl;
+      std::vector<double> pixels;
+      pixels.reserve(raw_img.total());
+      raw_img.reshape(1, 1).convertTo(pixels, CV_64F);
+      double global_median = CalculateQuantile(pixels, 0.5);
+      log_stream << _("Saturation point obtained (global median): ") << std::fixed
+                 << std::setprecision(2) << global_median << std::endl;
+      return global_median;
+  }
+  
+  // Se crea una copia explícita (.clone()) para asegurar que la memoria es continua.
+  cv::Mat active_img = raw_img(active_area).clone();
 
   std::vector<double> pixels;
-  pixels.reserve(raw_img.total());
-  raw_img.reshape(1, 1).convertTo(pixels, CV_64F);
+  pixels.reserve(active_img.total());
+  active_img.reshape(1, 1).convertTo(pixels, CV_64F);
 
-  // Using 5th percentile of the brightest pixels to avoid sensor defects
-  double quantile_value = CalculateQuantile(pixels, 0.05);
-  log_stream << _("Saturation point obtained (5th percentile): ") << std::fixed
-             << std::setprecision(2) << quantile_value << std::endl;
-  return quantile_value;
-}
+  double median_value = CalculateQuantile(pixels, 0.5);
 
-std::optional<double> OldProcessSaturationFrame(const std::string &filename,
-                                                std::ostream &log_stream) {
-  log_stream << _("Calculating saturation point from: ") << filename << "..."
-             << std::endl;
-  RawFile sat_file(filename);
-  if (!sat_file.Load())
-    return std::nullopt;
-
-  // int bit_depth = sat_file.GetBitDepth();
-  int bit_depth = 0;
-  if (bit_depth == 0) {
-    log_stream << _("[WARNING] Could not determine bit depth from RAW "
-                    "metadata. Assuming 14-bit.")
-               << std::endl;
-    bit_depth = 14;
-  }
-
-  cv::Mat raw_img = sat_file.GetRawImage();
-  if (raw_img.empty())
-    return std::nullopt;
-
-  std::vector<double> pixels;
-  pixels.reserve(raw_img.total());
-  raw_img.reshape(1, 1).convertTo(pixels, CV_64F);
-
-  // Using 5th percentile of the brightest pixels to avoid sensor defects
-  double quantile_value = CalculateQuantile(pixels, 0.05);
-
-  // Log the detected bit depth and expected saturation value
-  double expected_saturation = (1 << bit_depth) - 1; // 2^bit_depth - 1
-  log_stream << _("Detected bit depth: ") << bit_depth << _(" bits")
-             << std::endl;
-  log_stream << _("Expected saturation level: ") << expected_saturation
-             << std::endl;
-  log_stream << _("Measured saturation (5th percentile): ") << std::fixed
-             << std::setprecision(2) << quantile_value << std::endl;
-
-  // If measured value is suspiciously low (e.g., ~4095 for 14-bit), warn user
-  if (bit_depth == 14 && quantile_value < 10000) {
-    log_stream << _("[WARNING] Measured saturation (") << quantile_value
-               << _(") is much lower than expected (") << expected_saturation
-               << _("). ")
-               << _("This may indicate underexposure or non-linear processing.")
-               << std::endl;
-  }
-
-  return quantile_value;
+  log_stream << _("Saturation point obtained (active area median): ") << std::fixed
+             << std::setprecision(2) << median_value << std::endl;
+  return median_value;
 }

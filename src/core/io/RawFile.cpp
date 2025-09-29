@@ -17,7 +17,6 @@ RawFile::~RawFile() {
 
 bool RawFile::Load() {
     if (m_is_loaded) return true;
-
     if (m_raw_processor.open_file(m_filename.c_str()) != LIBRAW_SUCCESS) {
         return false;
     }
@@ -76,27 +75,19 @@ bool RawFile::IsLoaded() const {
     return m_is_loaded;
 }
 
-/**
- * @brief Gets the sensor resolution in megapixels from the RAW file's metadata.
- * @return The sensor resolution in Mpx (e.g., 16.0 for Olympus OM-1). 
- *         Returns 0.0 if unavailable or invalid.
- */
 double RawFile::GetSensorResolutionMPx() const {
     if (!m_is_loaded) return 0.0;
 
     int width = m_raw_processor.imgdata.sizes.raw_width;
     int height = m_raw_processor.imgdata.sizes.raw_height;
-
     if (width <= 0 || height <= 0) return 0.0;
-
-    // Calculate total pixels in megapixels
+    
     double total_pixels = static_cast<double>(width) * height;
     return total_pixels / 1000000.0; // Convert to Mpx
 }
 
 cv::Mat RawFile::GetProcessedImage() {
     if (!m_is_loaded) return {};
-
     // Use LibRaw to process the image with default settings (demosaic, color space, etc.)
     if (m_raw_processor.dcraw_process() != LIBRAW_SUCCESS) {
         return {};
@@ -114,9 +105,30 @@ cv::Mat RawFile::GetProcessedImage() {
     // OpenCV uses BGR order, so we need to convert the color space.
     cv::Mat bgr_image;
     cv::cvtColor(image_mat, bgr_image, cv::COLOR_RGB2BGR);
-
+    
     // LibRaw allocated this memory, so we must free it.
     LibRaw::dcraw_clear_mem(processed_image);
 
     return bgr_image;
+}
+
+int RawFile::GetBlackLevelFromMetadata() const {
+    if (!m_is_loaded) return 0;
+    return m_raw_processor.imgdata.color.black;
+}
+
+int RawFile::GetActiveWidth() const {
+    return m_is_loaded ? m_raw_processor.imgdata.sizes.width : 0;
+}
+
+int RawFile::GetActiveHeight() const {
+    return m_is_loaded ? m_raw_processor.imgdata.sizes.height : 0;
+}
+
+int RawFile::GetTopMargin() const {
+    return m_is_loaded ? m_raw_processor.imgdata.sizes.top_margin : 0;
+}
+
+int RawFile::GetLeftMargin() const {
+    return m_is_loaded ? m_raw_processor.imgdata.sizes.left_margin : 0;
 }

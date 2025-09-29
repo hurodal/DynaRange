@@ -18,13 +18,11 @@ public:
     explicit RawFile(std::string filename);
     ~RawFile();
     bool Load();
-    
     /**
      * @brief Gets direct access to the raw 16-bit sensor data.
      * @return A 16-bit unsigned cv::Mat. Returns an empty Mat on failure.
      */
     cv::Mat GetRawImage() const;
-
     /**
      * @brief Gets a processed, 8-bit, 3-channel sRGB image.
      * @details This performs a full demosaic and color space conversion using
@@ -32,7 +30,7 @@ public:
      * @return A CV_8UC3 cv::Mat in BGR order, ready for display or saving.
      */
     cv::Mat GetProcessedImage();
-
+    
     // --- Metadata Getters ---
     std::string GetCameraModel() const;
     int GetWidth() const;
@@ -41,6 +39,11 @@ public:
     bool IsLoaded() const;
     float GetIsoSpeed() const;
     double GetSensorResolutionMPx() const;
+    int GetBlackLevelFromMetadata() const;
+    int GetActiveWidth() const;
+    int GetActiveHeight() const;
+    int GetTopMargin() const;
+    int GetLeftMargin() const;
 
 private:
     std::string m_filename;

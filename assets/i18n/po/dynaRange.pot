@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-29 21:31+0200\n"
+"POT-Creation-Date: 2025-09-29 23:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -331,53 +331,36 @@ msgstr ""
 msgid "Calculating black level from: "
 msgstr ""
 
-#: src/core/analysis/RawProcessor.cpp:34
-msgid "Black level obtained: "
+#: src/core/analysis/RawProcessor.cpp:38
+msgid ""
+"Warning: Invalid active area defined in RAW metadata. Using global mean as "
+"fallback."
 msgstr ""
 
-#: src/core/analysis/RawProcessor.cpp:41 src/core/analysis/RawProcessor.cpp:64
-msgid "Calculating saturation point from: "
+#: src/core/analysis/RawProcessor.cpp:40
+msgid "Black level obtained (global mean): "
+msgstr ""
+
+#: src/core/analysis/RawProcessor.cpp:50
+msgid "Black level obtained (active area mean): "
 msgstr ""
 
 #: src/core/analysis/RawProcessor.cpp:57
-msgid "Saturation point obtained (5th percentile): "
+msgid "Calculating saturation point from: "
 msgstr ""
 
-#: src/core/analysis/RawProcessor.cpp:73
+#: src/core/analysis/RawProcessor.cpp:77
 msgid ""
-"[WARNING] Could not determine bit depth from RAW metadata. Assuming 14-bit."
+"Warning: Invalid active area defined in RAW metadata. Using global median as "
+"fallback."
 msgstr ""
 
-#: src/core/analysis/RawProcessor.cpp:92
-msgid "Detected bit depth: "
-msgstr ""
-
-#: src/core/analysis/RawProcessor.cpp:92
-msgid " bits"
-msgstr ""
-
-#: src/core/analysis/RawProcessor.cpp:94
-msgid "Expected saturation level: "
+#: src/core/analysis/RawProcessor.cpp:82
+msgid "Saturation point obtained (global median): "
 msgstr ""
 
 #: src/core/analysis/RawProcessor.cpp:96
-msgid "Measured saturation (5th percentile): "
-msgstr ""
-
-#: src/core/analysis/RawProcessor.cpp:101
-msgid "[WARNING] Measured saturation ("
-msgstr ""
-
-#: src/core/analysis/RawProcessor.cpp:102
-msgid ") is much lower than expected ("
-msgstr ""
-
-#: src/core/analysis/RawProcessor.cpp:103
-msgid "). "
-msgstr ""
-
-#: src/core/analysis/RawProcessor.cpp:104
-msgid "This may indicate underexposure or non-linear processing."
+msgid "Saturation point obtained (active area median): "
 msgstr ""
 
 #: src/core/arguments/ArgumentManager.cpp:34
