@@ -6,7 +6,7 @@
  * (the View).
  */
 #pragma once
-#include "../core/arguments/ProgramOptions.hpp"
+#include "../core/arguments/ArgumentsOptions.hpp"
 #include "../core/engine/Reporting.hpp" // For ReportOutput
 #include <atomic>
 #include <string>

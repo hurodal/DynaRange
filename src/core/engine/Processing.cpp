@@ -126,12 +126,21 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         
         detected_corners_opt = DetectChartCorners(g1_bayer, log_stream);
 
+        // Si la detección tuvo éxito y el modo debug está activo, guarda la imagen con las cruces.
+        // Este bloque ahora se compila condicionalmente.
         #if DYNA_RANGE_DEBUG_MODE == 1
         if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG && detected_corners_opt.has_value()) {
             log_stream << "  - [DEBUG] Saving corner detection visual confirmation to 'debug_corners_detected.png'..." << std::endl;
             
-            cv::Mat image_with_markers = DrawCornerMarkers(g1_bayer, *detected_corners_opt);
+            // Se crea una copia de la imagen lineal para procesarla visualmente.
+            cv::Mat viewable_image;
+            // Se auto-normaliza para estirar el contraste y hacerla visible.
+            cv::normalize(g1_bayer, viewable_image, 0.0, 1.0, cv::NORM_MINMAX);
             
+            // Se dibujan las cruces sobre la imagen ya normalizada y visible.
+            cv::Mat image_with_markers = DrawCornerMarkers(viewable_image, *detected_corners_opt);
+            
+            // Se aplica una corrección gamma final para mejorar los tonos medios.
             cv::Mat final_debug_image;
             cv::pow(image_with_markers, 1.0 / 2.2, final_debug_image);
             

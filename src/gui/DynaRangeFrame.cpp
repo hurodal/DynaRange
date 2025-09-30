@@ -36,6 +36,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
     m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
+    m_clearDarkFileButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnClearDarkFile, this);
+    m_clearSaturationFileButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnClearSaturationFile, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_removeRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveFilesClick, this);
@@ -251,6 +253,15 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
         m_resultsController->LoadLogoImage();
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
     }
+}
+
+void DynaRangeFrame::OnClearDarkFile(wxCommandEvent& event) {
+    m_darkFilePicker->SetPath(""); // Vacía la selección
+    OnInputChanged(event);         // Actualiza el comando CLI
+}
+void DynaRangeFrame::OnClearSaturationFile(wxCommandEvent& event) {
+    m_saturationFilePicker->SetPath(""); // Vacía la selección
+    OnInputChanged(event);         // Actualiza el comando CLI
 }
 
 void DynaRangeFrame::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {

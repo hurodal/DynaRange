@@ -35,7 +35,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	darkFrameSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Dark Frame") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer1;
-	fgSizer1 = new wxFlexGridSizer( 0, 2, 5, 5 );
+	fgSizer1 = new wxFlexGridSizer( 0, 3, 5, 5 );
 	fgSizer1->AddGrowableRow( 1 );
 	fgSizer1->SetFlexibleDirection( wxBOTH );
 	fgSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
@@ -46,6 +46,13 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_darkFilePicker = new wxFilePickerCtrl( darkFrameSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE );
 	fgSizer1->Add( m_darkFilePicker, 1, wxALL|wxEXPAND, 2 );
+
+	m_clearDarkFileButton = new wxButton( darkFrameSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_clearDarkFileButton->SetBitmap( wxBitmap( wxT("assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
+	m_clearDarkFileButton->SetMaxSize( wxSize( 28,28 ) );
+
+	fgSizer1->Add( m_clearDarkFileButton, 0, wxALL, 5 );
 
 	m_darkValueStaticText = new wxStaticText( darkFrameSbSizer->GetStaticBox(), wxID_ANY, _("Dark Value:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_darkValueStaticText->Wrap( -1 );
@@ -64,7 +71,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	saturationSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Saturation") ), wxVERTICAL );
 
 	wxFlexGridSizer* fgSizer2;
-	fgSizer2 = new wxFlexGridSizer( 0, 2, 5, 5 );
+	fgSizer2 = new wxFlexGridSizer( 0, 3, 5, 5 );
 	fgSizer2->AddGrowableRow( 1 );
 	fgSizer2->SetFlexibleDirection( wxBOTH );
 	fgSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
@@ -75,6 +82,13 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_saturationFilePicker = new wxFilePickerCtrl( saturationSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, _("Select a file"), _("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE );
 	fgSizer2->Add( m_saturationFilePicker, 1, wxALL|wxEXPAND, 2 );
+
+	m_clearSaturationFileButton = new wxButton( saturationSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_clearSaturationFileButton->SetBitmap( wxBitmap( wxT("assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
+	m_clearSaturationFileButton->SetMaxSize( wxSize( 28,28 ) );
+
+	fgSizer2->Add( m_clearSaturationFileButton, 0, wxALL, 5 );
 
 	m_saturationValueStaticText = new wxStaticText( saturationSbSizer->GetStaticBox(), wxID_ANY, _("Sat. Value:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_saturationValueStaticText->Wrap( -1 );

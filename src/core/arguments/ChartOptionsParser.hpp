@@ -6,7 +6,7 @@
  * chart-specific parameters from the command line.
  */
 #pragma once
-#include "ProgramOptions.hpp"
+#include "ArgumentsOptions.hpp"
 #include <optional>
 #include <ostream>
 

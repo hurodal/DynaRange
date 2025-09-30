@@ -9,7 +9,7 @@
 #include <optional>
 #include <opencv2/core.hpp>
 #include <ostream>
-#include "../arguments/ProgramOptions.hpp" // Needed for the constructor
+#include "../arguments/ArgumentsOptions.hpp" // Needed for the constructor
 
 /**
  * @class ChartProfile

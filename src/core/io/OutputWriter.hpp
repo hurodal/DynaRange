@@ -13,7 +13,7 @@
 #include <cairo/cairo.h>
 #include <opencv2/core.hpp>
 #include "../analysis/Analysis.hpp"
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 
 namespace fs = std::filesystem;
 

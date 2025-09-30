@@ -4,7 +4,6 @@
  * @brief Implementation of the analysis initialization process.
  */
 #include "Initialization.hpp"
-#include "../arguments/ArgumentManager.hpp"
 #include "../analysis/RawProcessor.hpp"
 #include "../setup/MetadataExtractor.hpp"
 #include "../setup/SensorResolution.hpp"
@@ -15,11 +14,13 @@
 #include <iomanip>
 #include <filesystem>
 #include <libintl.h>
+#include <cstring>
 
 #define _(string) gettext(string)
 
 namespace fs = std::filesystem;
 
+// File: src/core/engine/Initialization.cpp
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     // --- Deduplicate Input Files ---
@@ -56,15 +57,39 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         return false;
     }
 
-    // Print Pre-analysis data as a formatted table
-    log_stream << "  " << std::left << std::setw(20) << "File"
-               << std::right << std::setw(10) << "Brightness"
-               << std::right << std::setw(10) << "ISO" << std::endl;
-    log_stream << "  " << std::string(40, '-') << std::endl;
+    // --- Impresión de tabla con anchos dinámicos ---
+    // 1. Medir anchos máximos
+    size_t max_file_width = strlen("File");
+    size_t max_bright_width = strlen("Brightness");
+    size_t max_iso_width = strlen("ISO");
+
     for (const auto& info : file_info) {
-        log_stream << "  " << std::left << std::setw(20) << fs::path(info.filename).filename().string()
-                   << std::right << std::setw(10) << std::fixed << std::setprecision(2) << info.mean_brightness
-                   << std::right << std::setw(10) << std::fixed << std::setprecision(0) << info.iso_speed << std::endl;
+        max_file_width = std::max(max_file_width, fs::path(info.filename).filename().string().length());
+        
+        std::stringstream bright_ss;
+        bright_ss << std::fixed << std::setprecision(2) << info.mean_brightness;
+        max_bright_width = std::max(max_bright_width, bright_ss.str().length());
+
+        std::stringstream iso_ss;
+        iso_ss << static_cast<int>(info.iso_speed);
+        max_iso_width = std::max(max_iso_width, iso_ss.str().length());
+    }
+
+    // Añadir un padding de 2 espacios
+    max_file_width += 2;
+    max_bright_width += 2;
+    max_iso_width += 2;
+
+    // 2. Imprimir la tabla
+    log_stream << "  " << std::left << std::setw(max_file_width) << "File"
+               << std::right << std::setw(max_bright_width) << "Brightness"
+               << std::right << std::setw(max_iso_width) << "ISO" << std::endl;
+    log_stream << "  " << std::string(max_file_width + max_bright_width + max_iso_width, '-') << std::endl;
+
+    for (const auto& info : file_info) {
+        log_stream << "  " << std::left << std::setw(max_file_width) << fs::path(info.filename).filename().string()
+                   << std::right << std::setw(max_bright_width) << std::fixed << std::setprecision(2) << info.mean_brightness
+                   << std::right << std::setw(max_iso_width) << static_cast<int>(info.iso_speed) << std::endl;
     }
     
     FileOrderResult order = DetermineFileOrder(file_info, log_stream);

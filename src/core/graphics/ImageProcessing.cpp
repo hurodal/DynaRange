@@ -6,9 +6,11 @@
 #include "ImageProcessing.hpp"
 #include "../io/RawFile.hpp"
 #include "../math/Math.hpp"
+#include "../DebugConfig.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
+#include <iomanip>
 
 #define _(string) gettext(string)
 
@@ -330,13 +332,25 @@ cv::Mat UndoKeystoneColor(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
 
 cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners)
 {
-    // Convert the single-channel float image to a 3-channel BGR image to draw color markers.
+    // Convierte la imagen de un canal a una de 3 canales para poder dibujar en color.
     cv::Mat color_image;
     cv::cvtColor(image, color_image, cv::COLOR_GRAY2BGR);
 
+    #if DYNA_RANGE_DEBUG_MODE == 1
+    // El color se define ahora en DebugConfig.hpp
+    const cv::Scalar marker_color = cv::Scalar(
+        DynaRange::Debug::CORNER_MARKER_COLOR[0],
+        DynaRange::Debug::CORNER_MARKER_COLOR[1],
+        DynaRange::Debug::CORNER_MARKER_COLOR[2]
+    );
+    #else
+    // Color por defecto si la depuración está desactivada (aunque este código no se compilará)
+    const cv::Scalar marker_color = cv::Scalar(1.0, 1.0, 1.0); // Blanco
+    #endif
+
     for (const auto& point : corners) {
-        // Draw a white cross marker at each corner coordinate.
-        cv::drawMarker(color_image, point, cv::Scalar(1.0, 1.0, 1.0), cv::MARKER_CROSS, 40, 2);
+        // Dibuja una cruz (+) del color especificado en cada coordenada.
+        cv::drawMarker(color_image, point, marker_color, cv::MARKER_CROSS, 40, 2);
     }
     return color_image;
 }

@@ -12,7 +12,7 @@
 #include <vector>
 #include <optional>
 #include <ostream>
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include "../analysis/Analysis.hpp"
 
 /**

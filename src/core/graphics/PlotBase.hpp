@@ -4,7 +4,7 @@
  * @brief Declares the function to draw the static base of a plot (axes, grid, titles, etc.).
  */
 #pragma once
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>

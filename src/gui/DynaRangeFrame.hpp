@@ -86,6 +86,9 @@ protected:
     void OnInputChartPatchChanged(wxCommandEvent& event);
     void OnChartChartPatchChanged(wxCommandEvent& event);
 
+    void OnClearDarkFile(wxCommandEvent& event);
+    void OnClearSaturationFile(wxCommandEvent& event);
+    
 private:
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;

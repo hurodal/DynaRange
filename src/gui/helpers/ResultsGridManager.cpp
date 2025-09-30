@@ -36,7 +36,6 @@ bool ResultsGridManager::LoadFromCsv(const std::string& csv_path) {
         std::string cell;
         int num_cols = std::count(line.begin(), line.end(), ',') + 1;
         m_gridControl->AppendCols(num_cols);
-
         for(int i = 0; i < num_cols; ++i) m_gridControl->SetColLabelValue(i, "");
         m_gridControl->SetColLabelSize(WXGRID_DEFAULT_COL_LABEL_HEIGHT);
         m_gridControl->AppendRows(1); // Row for header
@@ -57,6 +56,24 @@ bool ResultsGridManager::LoadFromCsv(const std::string& csv_path) {
         while (std::getline(ss, cell, ',')) {
             m_gridControl->SetCellValue(grid_row, col, cell);
             m_gridControl->SetReadOnly(grid_row, col++, true);
+        }
+    }
+
+    // Alinear a la derecha todas las columnas excepto la primera (nombres de fichero).
+    int num_cols = m_gridControl->GetNumberCols();
+    for (int col = 1; col < num_cols; ++col) {
+        // Se crea un nuevo atributo para la columna.
+        // El grid se hace propietario de este puntero.
+        wxGridCellAttr* attr = new wxGridCellAttr();
+        attr->SetAlignment(wxALIGN_RIGHT, wxALIGN_CENTER); // Alinear a la derecha horizontalmente
+        m_gridControl->SetColAttr(col, attr);
+    }
+    
+    // Alinear también las cabeceras de las columnas numéricas.
+    if (num_cols > 0) {
+        m_gridControl->SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER); // Cabecera del nombre de fichero a la izquierda
+        for (int col = 1; col < num_cols; ++col) {
+            m_gridControl->SetColLabelAlignment(wxALIGN_RIGHT, wxALIGN_CENTER);
         }
     }
 

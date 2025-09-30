@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <string>
 
 namespace CommandGenerator {

@@ -8,35 +8,33 @@
 #pragma once
 
 #include "../analysis/Analysis.hpp"
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <string>
+#include <vector>
 
 namespace Formatters {
 
 /**
- * @enum FormatType
- * @brief Specifies the target format for the string output.
+ * @brief Formats the entire results table for console log output with dynamic column widths.
+ * @param all_results The vector of all DynamicRangeResult structs.
+ * @param opts The program options, used to get SNR thresholds.
+ * @return A single string containing the fully formatted table.
  */
-enum class FormatType {
-    Log, ///< Format for fixed-width console log output.
-    Csv  ///< Format for comma-separated value file output.
-};
+std::string FormatResultsTable(const std::vector<DynamicRangeResult>& all_results, const ProgramOptions& opts);
 
 /**
- * @brief Formats the header for the results table.
- * @param opts The program options, used to get SNR thresholds.
- * @param type The target format (Log or Csv).
+ * @brief Formats a header row for a CSV file.
+ * @param opts The program options.
  * @return A string containing the formatted header row.
  */
-std::string FormatResultHeader(const ProgramOptions& opts, FormatType type);
+std::string FormatCsvHeader(const ProgramOptions& opts);
 
 /**
- * @brief Formats a single result data row for the results table.
+ * @brief Formats a single data row for a CSV file.
  * @param res The DynamicRangeResult for the row.
- * @param opts The program options, used to get SNR thresholds.
- * @param type The target format (Log or Csv).
+ * @param opts The program options.
  * @return A string containing the formatted data row.
  */
-std::string FormatResultRow(const DynamicRangeResult& res, const ProgramOptions& opts, FormatType type);
+std::string FormatCsvRow(const DynamicRangeResult& res, const ProgramOptions& opts);
 
 } // namespace Formatters

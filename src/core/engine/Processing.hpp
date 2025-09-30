@@ -5,7 +5,7 @@
  */
 #pragma once
 #include "../analysis/Analysis.hpp" 
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <vector>
 #include <Eigen/Dense>
 #include <atomic>

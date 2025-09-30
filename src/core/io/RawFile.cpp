@@ -132,3 +132,34 @@ int RawFile::GetTopMargin() const {
 int RawFile::GetLeftMargin() const {
     return m_is_loaded ? m_raw_processor.imgdata.sizes.left_margin : 0;
 }
+
+cv::Mat RawFile::GetActiveRawImage() const {
+    if (!m_is_loaded) return {};
+    // If the active image is already in the cache, return it directly.
+    if (!m_active_raw_image_cache.empty()) return m_active_raw_image_cache;
+
+    // Get the full raw image.
+    cv::Mat full_raw_image = GetRawImage();
+    if (full_raw_image.empty()) return {};
+
+    // Define the active area using the getters that already exist.
+    cv::Rect active_area(
+        GetLeftMargin(),
+        GetTopMargin(),
+        GetActiveWidth(),
+        GetActiveHeight()
+    );
+
+    // Check the validity of the area.
+    if (active_area.width <= 0 || active_area.height <= 0 ||
+        (active_area.x + active_area.width) > full_raw_image.cols ||
+        (active_area.y + active_area.height) > full_raw_image.rows) {
+        // If the area is not valid, return the full image as a fallback.
+        m_active_raw_image_cache = full_raw_image.clone();
+        return m_active_raw_image_cache;
+    }
+
+    // Crop, clone (to ensure continuous memory), and cache.
+    m_active_raw_image_cache = full_raw_image(active_area).clone();
+    return m_active_raw_image_cache;
+}

@@ -7,7 +7,7 @@
 
 #include "../io/RawFile.hpp"
 #include "../setup/ChartProfile.hpp"
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <opencv2/core.hpp>
 #include <Eigen/Dense>
 #include <optional>

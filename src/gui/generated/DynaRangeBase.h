@@ -17,6 +17,10 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/filepicker.h>
+#include <wx/button.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/icon.h>
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
@@ -25,10 +29,6 @@
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/listbox.h>
-#include <wx/button.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
-#include <wx/icon.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/statbmp.h>
@@ -51,10 +51,12 @@ class MyFrameBase : public wxFrame
 		wxPanel* left_column_panel_Up;
 		wxStaticText* m_darkFileStaticText;
 		wxFilePickerCtrl* m_darkFilePicker;
+		wxButton* m_clearDarkFileButton;
 		wxStaticText* m_darkValueStaticText;
 		wxTextCtrl* m_darkValueTextCtrl;
 		wxStaticText* m_saturationFileStaticText;
 		wxFilePickerCtrl* m_saturationFilePicker;
+		wxButton* m_clearSaturationFileButton;
 		wxStaticText* m_saturationValueStaticText;
 		wxTextCtrl* m_saturationValueTextCtrl;
 		wxTextCtrl* m_coordX1Value;

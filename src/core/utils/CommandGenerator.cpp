@@ -5,6 +5,7 @@
  */
 #include "CommandGenerator.hpp"
 #include "../arguments/ArgumentManager.hpp"
+#include "../Constants.hpp" 
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
@@ -12,13 +13,12 @@
 
 #define _(string) gettext(string)
 namespace fs = std::filesystem;
-
 namespace CommandGenerator {
 
 std::string GenerateCommand(CommandFormat format)
 {
     std::stringstream command_ss;
-    command_ss << CLI_EXECUTABLE_NAME;
+    command_ss << DynaRange::Constants::CLI_EXECUTABLE_NAME;
     auto& mgr = ArgumentManager::Instance();
 
     auto add_arg = [&](const std::string& name) {
@@ -29,16 +29,26 @@ std::string GenerateCommand(CommandFormat format)
         else command_ss << " --" << name;
     };
     
-    if (!mgr.Get<std::string>("black-file").empty()) {
-        fs::path black_path(mgr.Get<std::string>("black-file"));
-        command_ss << " --black-file \"" << black_path.filename().string() << "\"";
+    std::string black_file = mgr.Get<std::string>("black-file");
+    if (!black_file.empty()) {
+        // Lógica condicional para el path de black-file
+        if (format == CommandFormat::GuiPreview || format == CommandFormat::Full) {
+            command_ss << " --black-file \"" << black_file << "\"";
+        } else { // PlotShort y PlotLong
+            command_ss << " --black-file \"" << fs::path(black_file).filename().string() << "\"";
+        }
     } else {
         command_ss << " --black-level " << std::fixed << std::setprecision(2) << mgr.Get<double>("black-level");
     }
 
-    if (!mgr.Get<std::string>("saturation-file").empty()) {
-        fs::path sat_path(mgr.Get<std::string>("saturation-file"));
-        command_ss << " --saturation-file \"" << sat_path.filename().string() << "\"";
+    std::string sat_file = mgr.Get<std::string>("saturation-file");
+    if (!sat_file.empty()) {
+        // Lógica condicional para el path de saturation-file
+        if (format == CommandFormat::GuiPreview || format == CommandFormat::Full) {
+            command_ss << " --saturation-file \"" << sat_file << "\"";
+        } else { // PlotShort y PlotLong
+            command_ss << " --saturation-file \"" << fs::path(sat_file).filename().string() << "\"";
+        }
     } else {
         command_ss << " --saturation-level " << std::fixed << std::setprecision(2) << mgr.Get<double>("saturation-level");
     }
@@ -73,6 +83,7 @@ std::string GenerateCommand(CommandFormat format)
         for (const auto& val : chart_patches) command_ss << " " << val;
     }
 
+    // --input-files solo se muestra en la GUI o en formato Full.
     if (format == CommandFormat::Full || format == CommandFormat::GuiPreview) {
         const auto& input_files = mgr.Get<std::vector<std::string>>("input-files");
         if (!input_files.empty()) {

@@ -22,9 +22,11 @@ std::vector<FileInfo> ExtractFileInfo(const std::vector<std::string>& input_file
         FileInfo info;
         info.filename = name;
 
-        cv::Mat raw_img = raw_file.GetRawImage();
-        if (!raw_img.empty()) {
-            info.mean_brightness = cv::mean(raw_img)[0];
+        // Get the active image area directly.
+        cv::Mat active_img = raw_file.GetActiveRawImage();
+        if (!active_img.empty()) {
+            // The mean brightness is calculated only on the active pixels.
+            info.mean_brightness = cv::mean(active_img)[0];
         }
         info.iso_speed = raw_file.GetIsoSpeed();
 

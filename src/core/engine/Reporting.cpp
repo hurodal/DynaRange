@@ -114,15 +114,8 @@ void GenerateLogReport(
     std::ostream& log_stream)
 {
     log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
-    
-    // Formatting logic is now delegated to the Formatters module.
-    std::string header = Formatters::FormatResultHeader(opts, Formatters::FormatType::Log);
-    log_stream << header << std::endl;
-    log_stream << std::string(header.length(), '-') << std::endl;
-    
-    for (const auto& res : all_results) {
-        log_stream << Formatters::FormatResultRow(res, opts, Formatters::FormatType::Log) << std::endl;
-    }
+    // Se delega toda la construcción de la tabla al módulo Formatters.
+    log_stream << Formatters::FormatResultsTable(all_results, opts);
 }
 
 /**

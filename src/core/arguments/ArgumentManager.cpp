@@ -4,7 +4,7 @@
  * @brief Implements the centralized argument management system.
  */
 #include "ArgumentManager.hpp"
-#include "ProgramOptions.hpp"
+#include "ArgumentsOptions.hpp"
 #include "../utils/PlatformUtils.hpp"
 #include <CLI/CLI.hpp>
 #include <libintl.h>

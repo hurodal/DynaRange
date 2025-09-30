@@ -24,6 +24,11 @@ public:
      */
     cv::Mat GetRawImage() const;
     /**
+     * @brief Gets a cv::Mat containing only the active (non-masked) area of the raw sensor data.
+     * @return A 16-bit unsigned, continuous cv::Mat. Returns an empty Mat on failure.
+     */
+    cv::Mat GetActiveRawImage() const;
+    /**
      * @brief Gets a processed, 8-bit, 3-channel sRGB image.
      * @details This performs a full demosaic and color space conversion using
      * LibRaw's internal pipeline to produce a standard viewable image.
@@ -51,6 +56,7 @@ private:
     mutable LibRaw m_raw_processor;
     libraw_processed_image_t* m_decoded_image = nullptr;
     mutable cv::Mat m_raw_image_cache;
+    mutable cv::Mat m_active_raw_image_cache; // Caché para la imagen activa
     mutable std::string m_camera_model_cache;
     mutable float m_iso_speed_cache = 0.0f;
 };

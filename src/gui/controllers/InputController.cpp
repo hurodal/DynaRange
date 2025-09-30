@@ -6,12 +6,65 @@
 #include "InputController.hpp"
 #include "../DynaRangeFrame.hpp" // To access frame members and their members
 #include "../GuiPresenter.hpp"   // To call presenter methods
-#include "../../core/arguments/ProgramOptions.hpp"
+#include "../../core/arguments/ArgumentsOptions.hpp"
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <libraw/libraw.h>
+#include <libraw/libraw_version.h> // Se añade la cabecera que faltaba para la macro
 #include <vector>
+#include <set>
+#include <string>
+
+namespace { // Anonymous namespace for internal helpers
+
+const std::vector<std::string>& GetSupportedRawExtensions() {
+    static std::vector<std::string> extensions;
+    if (extensions.empty()) {
+        // Verificamos si la versión de LibRaw es >= 0.22.0 usando macros oficiales
+        #if defined(LIBRAW_MAJOR_VERSION) && defined(LIBRAW_MINOR_VERSION)
+            #if LIBRAW_MAJOR_VERSION > 0 || (LIBRAW_MAJOR_VERSION == 0 && LIBRAW_MINOR_VERSION >= 22)
+                // LibRaw 0.22.0+ → usamos la API dinámica
+                LibRaw proc;
+                int count = 0;
+                const char** ext_list = proc.get_supported_extensions_list(&count);
+                if (ext_list) {
+                    std::set<std::string> unique;
+                    for (int i = 0; i < count; ++i) {
+                        if (!ext_list[i]) continue;
+                        std::string ext(ext_list[i]);
+                        if (!ext.empty() && ext[0] == '.') {
+                            ext = ext.substr(1);
+                        }
+                        std::transform(ext.begin(), ext.end(), ext.begin(),
+                            [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
+                        if (!ext.empty()) {
+                            unique.insert(ext);
+                        }
+                    }
+                    extensions.assign(unique.begin(), unique.end());
+                }
+            #endif
+        #endif
+
+        // Si no se pudo obtener dinámicamente (versión antigua o fallo), usar fallback
+        if (extensions.empty()) {
+            // Lista completa de extensiones soportadas por LibRaw (hasta 0.21.4)
+            static const std::vector<std::string> fallback = {
+                "3fr", "ari", "arw", "bay", "crw", "cr2", "cr3",
+                "cap", "data", "dcs", "dcr", "dng", "drf", "eip",
+                "erf", "fff", "gpr", "iiq", "k25", "kdc", "mdc",
+                "mef", "mos", "mrw", "nef", "nrw", "obm", "orf",
+                "pef", "ptx", "pxn", "r3d", "raf", "raw", "rwl",
+                "rw2", "rwz", "sr2", "srf", "srw", "x3f"
+            };
+            extensions = fallback;
+        }
+    }
+    return extensions;
+}
+
+} // end anonymous namespace
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     // Dynamically populate the polynomial order choice control.
@@ -32,11 +85,9 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
         m_frame->m_PlotChoice->SetSelection(default_index);
     }
     
-    // Use wxString::Format to set the value with 1-decimal precision.
     m_frame->m_darkValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_BLACK_LEVEL));
     m_frame->m_saturationValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_SATURATION_LEVEL));
 
-    // Programmatically set the default UI values from the central constants.
     m_frame->m_outputTextCtrl->SetValue(DEFAULT_OUTPUT_FILENAME);
     m_frame->m_patchRatioSlider->SetValue(static_cast<int>(DEFAULT_PATCH_RATIO * 100));
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", DEFAULT_PATCH_RATIO));
@@ -80,12 +131,38 @@ void InputController::EnableExecuteButton(bool enable) { m_frame->m_executeButto
 
 // --- Event Logic ---
 void InputController::OnAddFilesClick(wxCommandEvent& event) {
-    wxFileDialog openFileDialog(m_frame, _("Select RAW files"), "", "", _("RAW files (*.dng;*.cr2;*.nef;*.orf;*.arw)|*.dng;*.cr2;*.nef;*.orf;*.arw|All files (*.*)|*.*"), wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    // 1. Obtener la lista de extensiones dinámicamente.
+    const auto& supported_extensions = GetSupportedRawExtensions();
+
+    // 2. Construir la cadena de comodines (wildcard).
+    wxString wildcard;
+    for (size_t i = 0; i < supported_extensions.size(); ++i) {
+        wxString ext_lower = supported_extensions[i];
+        wxString ext_upper = ext_lower.Upper();
+        
+        wildcard += wxString::Format("*.%s;*.%s", ext_lower, ext_upper);
+        
+        if (i < supported_extensions.size() - 1) {
+            wildcard += ";";
+        }
+    }
+
+    // 3. Construir la cadena de filtro final para el diálogo.
+    wxString filter = wxString::Format(
+        _("RAW files (%s)|%s|All files (*.*)|*.*"),
+        wildcard, wildcard
+    );
+
+    // 4. Crear y mostrar el diálogo de selección de ficheros.
+    wxFileDialog openFileDialog(m_frame, _("Select RAW files"), "", "", filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    
     if (openFileDialog.ShowModal() == wxID_CANCEL) { return; }
+    
     wxArrayString paths;
     openFileDialog.GetPaths(paths);
     AddDroppedFiles(paths);
 }
+
 void InputController::OnPatchRatioSliderChanged(wxScrollEvent& event) {
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", GetPatchRatio()));
     m_frame->OnInputChanged(event); // Notify frame to update preview
