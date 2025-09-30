@@ -543,7 +543,7 @@ for (image in 1:N) {
         RAWchan=c(RAWchan, rep(rawchan, patches_used[rawchan]))  # inform which RAW channel
         
         # Save normalized and gamma corrected crop with used patches overlapped on the chart
-        if (image==1 && rawchan==1) {  # do it just once, although it can be calculated for every image/chan
+        if (image==1 & rawchan==1) {  # do it just once, although it can be calculated for every image/chan
             imgsave=calc$imgcrop/MAXCROP  # ETTR data
             imgsave[imgsave<0]=0  # clip below 0 values
             imgsave[imgsave>1]=1  # clipp saturated values
@@ -565,7 +565,7 @@ for (image in 1:N) {
     # SNR curves in dB, plot coloured scatter points
     for (rawchan in 1:4) {
         i=which(RAWchan==rawchan)  # plot each RAW channel separately
-        if (image==1 && rawchan==1) {
+        if (image==1 & rawchan==1) {
             plot(log2(Signal[i]), 20*log10(SNR[i]),
                  # xlim=c(-18,0), ylim=c(-20,30),
                  xlim=c(-16,-7), ylim=c(-10,25),
@@ -631,20 +631,20 @@ for (image in 1:N) {
         }
     
         # Create dataframe with all calculated DR values
-        if (image==1 && rawchan==1) {
+        if (image==1 & rawchan==1) {
             DR_df=data.frame(tiff_file=paste0(NAME, '_', rawchan),
                              DR_EV_12dB=DR_EV[1], DR_EV_0dB=DR_EV[2],
-                             samples_R =patches_used[1],
-                             samples_G1=patches_used[2],
-                             samples_G2=patches_used[3],
-                             samples_B =patches_used[4])        
+                             samples_R =ifelse(rawchan %in% c(1, 5), patches_used[1], 0),
+                             samples_G1=ifelse(rawchan %in% c(2, 5), patches_used[2], 0),
+                             samples_G2=ifelse(rawchan %in% c(3, 5), patches_used[3], 0),
+                             samples_B =ifelse(rawchan %in% c(4, 5), patches_used[4], 0))        
         } else {
             new_row=data.frame(tiff_file=paste0(NAME, '_', rawchan),
                                DR_EV_12dB=DR_EV[1], DR_EV_0dB=DR_EV[2],
-                               samples_R =patches_used[1],
-                               samples_G1=patches_used[2],
-                               samples_G2=patches_used[3],
-                               samples_B =patches_used[4])
+                               samples_R =ifelse(rawchan %in% c(1, 5), patches_used[1], 0),
+                               samples_G1=ifelse(rawchan %in% c(2, 5), patches_used[2], 0),
+                               samples_G2=ifelse(rawchan %in% c(3, 5), patches_used[3], 0),
+                               samples_B =ifelse(rawchan %in% c(4, 5), patches_used[4], 0))
             DR_df=rbind(DR_df, new_row)
         }
     }
