@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 19:14+0200\n"
+"POT-Creation-Date: 2025-10-01 20:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:97
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:98
 msgid "Saturation"
 msgstr ""
 
@@ -614,23 +614,23 @@ msgstr ""
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:33
+#: src/core/engine/Reporting.cpp:34
 msgid "Generating individual SNR plots..."
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:44 src/core/setup/PlotLabelGenerator.cpp:31
+#: src/core/engine/Reporting.cpp:45 src/core/setup/PlotLabelGenerator.cpp:31
 msgid "ISO "
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:116
+#: src/core/engine/Reporting.cpp:126
 msgid "Dynamic Range Results"
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:133 src/core/io/OutputWriter.cpp:38
+#: src/core/engine/Reporting.cpp:143 src/core/io/OutputWriter.cpp:38
 msgid "Error: Could not open CSV file for writing: "
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:154 src/core/io/OutputWriter.cpp:49
+#: src/core/engine/Reporting.cpp:164 src/core/io/OutputWriter.cpp:49
 msgid "Results saved to "
 msgstr ""
 
@@ -686,35 +686,35 @@ msgstr ""
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:86
+#: src/core/graphics/Plotting.cpp:87
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:96
+#: src/core/graphics/Plotting.cpp:97
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:134
+#: src/core/graphics/Plotting.cpp:136
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:134
+#: src/core/graphics/Plotting.cpp:136
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:166
+#: src/core/graphics/Plotting.cpp:170
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:178
+#: src/core/graphics/Plotting.cpp:183
 msgid "Plot generation skipped as per user request (--plot 0)."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:183
+#: src/core/graphics/Plotting.cpp:188
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:208
+#: src/core/graphics/Plotting.cpp:213
 msgid "SNR Curves - Summary ("
 msgstr ""
 

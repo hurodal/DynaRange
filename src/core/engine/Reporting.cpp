@@ -25,6 +25,7 @@ namespace { // Anonymous namespace for internal helper functions
  */
 std::map<std::string, std::string> GenerateIndividualPlots(
     const std::vector<CurveData>& all_curves_data,
+    const std::vector<DynamicRangeResult>& all_dr_results,
     const ProgramOptions& opts,
     const PathManager& paths,
     std::ostream& log_stream)
@@ -46,7 +47,16 @@ std::map<std::string, std::string> GenerateIndividualPlots(
             title_ss << ")";
         }
 
-        GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, opts, log_stream);
+        // Find the corresponding DR result for the current curve to pass to the plot function.
+        DynamicRangeResult current_dr_result;
+        for(const auto& res : all_dr_results) {
+            if (res.filename == curve.filename) {
+                current_dr_result = res;
+                break;
+            }
+        }
+        
+        GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, current_dr_result, opts, log_stream);
     }
     return plot_paths_map;
 }
@@ -56,6 +66,7 @@ std::map<std::string, std::string> GenerateIndividualPlots(
  */
 std::optional<std::string> GenerateSummaryPlotReport(
     const std::vector<CurveData>& all_curves_data,
+    const std::vector<DynamicRangeResult>& all_dr_results,
     const ProgramOptions& opts,
     const PathManager& paths,
     std::ostream& log_stream)
@@ -66,8 +77,7 @@ std::optional<std::string> GenerateSummaryPlotReport(
     std::string camera_name = all_curves_data[0].camera_model;
     fs::path summary_plot_path = paths.GetSummaryPlotPath(camera_name);
     
-    // The GenerateSummaryPlot from Plotting.cpp returns the path, so we return it upwards.
-    return GenerateSummaryPlot(summary_plot_path.string(), camera_name, all_curves_data, opts, log_stream);
+    return GenerateSummaryPlot(summary_plot_path.string(), camera_name, all_curves_data, all_dr_results, opts, log_stream);
 }
 
 /**
@@ -172,11 +182,12 @@ ReportOutput FinalizeAndReport(
     }
 
     output.final_csv_path = paths.GetCsvOutputPath().string();
-    output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, opts, paths, log_stream);
+    output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, results.dr_results, opts, paths, log_stream);
     
     GenerateLogReport(results.dr_results, opts, log_stream);
     OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
-    output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, opts, paths, log_stream);
+    
+    output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, results.dr_results, opts, paths, log_stream);
 
     return output;
 }

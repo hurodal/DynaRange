@@ -104,48 +104,49 @@ void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::str
  * @brief Draws an intersection point with a threshold line and labels it.
  * @param cr The cairo drawing context.
  * @param curve The CurveData struct containing the curve's data.
+ * @param dr_result The dynamic range results, used for getting the intersection EV value.
  * @param bounds A map containing the plot boundaries to correctly map data coordinates.
  * @param threshold_db The SNR threshold value (e.g., 12.0).
- * @param label_prefix A string prefix for the label (e.g., "12dB").
  * @param draw_above A boolean flag to alternate the vertical position of the label.
  */
 void DrawThresholdIntersection(cairo_t* cr,
                                const CurveData& curve,
+                               const DynamicRangeResult& dr_result,
                                const std::map<std::string, double>& bounds,
                                double threshold_db,
-                               const char* label_prefix,
                                bool& draw_above) {
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
 
-    // Directly calculate EV from the polynomial: EV = f(SNR_dB).
-    double ev_at_threshold = EvaluatePolynomial(curve.poly_coeffs, threshold_db);
+    // Use the pre-calculated DR value instead of trying to re-calculate it.
+    if (dr_result.dr_values_ev.count(threshold_db)) {
+        double dr_value = dr_result.dr_values_ev.at(threshold_db);
+        if (dr_value <= 0) return;
 
-    // Check if the calculated EV is within the data range.
-    auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
-    double min_ev_data = *min_max_ev.first;
-    double max_ev_data = *min_max_ev.second;
+        double ev_at_threshold = -dr_value; // by definition, DR = -EV
 
-    if (ev_at_threshold < min_ev_data || ev_at_threshold > max_ev_data) {
-        return; // Don't draw intersection if it's outside the data range.
+        // Check if the intersection is within the plotted data range before drawing.
+        auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
+        if (curve.signal_ev.empty() || ev_at_threshold < *min_max_ev.first || ev_at_threshold > *min_max_ev.second) {
+            return;
+        }
+
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << dr_value << "EV";
+        auto [px, py] = map_coords(ev_at_threshold, threshold_db);
+
+        double offset_x = 25.0; 
+        double offset_y = draw_above ? -10.0 : 20.0;
+
+        // Label text: Black
+        PlotColors::cairo_set_source_black(cr);
+        cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(cr, 12.0);
+        cairo_move_to(cr, px + offset_x, py + offset_y);
+        cairo_show_text(cr, ss.str().c_str());
+        draw_above = !draw_above;
     }
-
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << ev_at_threshold << "EV";
-    auto [px, py] = map_coords(ev_at_threshold, threshold_db);
-
-    // Alternate label position vertically and horizontally.
-    double offset_x = draw_above ? 25.0 : 15.0;
-    double offset_y = draw_above ? -10.0 : 15.0;
-
-    // Label text: Black
-    PlotColors::cairo_set_source_black(cr);
-    cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12.0);
-    cairo_move_to(cr, px + offset_x, py + offset_y);
-    cairo_show_text(cr, ss.str().c_str());
-    draw_above = !draw_above; // Toggle for next curve.
 }
 
 } // end of anonymous namespace
@@ -155,22 +156,30 @@ void DrawThresholdIntersection(cairo_t* cr,
  * @param cr The cairo drawing context.
  * @param info_box An object containing information to display in a box on the plot.
  * @param curves A vector of CurveData structs, each representing a curve to draw.
+ * @param results A vector of DynamicRangeResult, containing DR data for labels.
  * @param bounds A map containing the plot boundaries to correctly map data coordinates.
  */
 void DrawCurvesAndData(cairo_t* cr,
                        const PlotInfoBox& info_box,
                        const std::vector<CurveData>& curves,
+                       const std::vector<DynamicRangeResult>& results,
                        const std::map<std::string, double>& bounds) {
     info_box.Draw(cr);
     bool draw_above_12db = true;
     bool draw_above_0db = true;
-    for (const auto& curve : curves) {
+
+    for (size_t i = 0; i < curves.size(); ++i) {
+        const auto& curve = curves[i];
         if (curve.signal_ev.empty()) continue;
-        DrawCurve(cr, curve, bounds); // This now works!
+
+        DrawCurve(cr, curve, bounds);
         DrawDataPoints(cr, curve, bounds);
         DrawCurveLabel(cr, curve, bounds);
-        // Draw threshold intersections for default thresholds if they exist.
-        DrawThresholdIntersection(cr, curve, bounds, 12.0, "12dB", draw_above_12db);
-        DrawThresholdIntersection(cr, curve, bounds, 0.0, "0dB", draw_above_0db);
+
+        if (i < results.size()) {
+            const auto& result = results[i];
+            DrawThresholdIntersection(cr, curve, result, bounds, 12.0, draw_above_12db);
+            DrawThresholdIntersection(cr, curve, result, bounds, 0.0, draw_above_0db);
+        }
     }
 }

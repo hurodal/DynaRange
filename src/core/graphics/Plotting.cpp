@@ -75,6 +75,7 @@ std::optional<std::string> GeneratePlotInternal(
     const std::string& output_filename,
     const std::string& title,
     const std::vector<CurveData>& curves_to_plot,
+    const std::vector<DynamicRangeResult>& results_to_plot,
     const ProgramOptions& opts,
     const std::map<std::string, double>& bounds,
     std::ostream& log_stream)
@@ -99,7 +100,7 @@ std::optional<std::string> GeneratePlotInternal(
     // 3. Draw all components
     std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;
     DrawPlotBase(cr, title, opts, bounds, command_text, opts.snr_thresholds_db);
-    DrawCurvesAndData(cr, info_box, curves_to_plot, bounds);
+    DrawCurvesAndData(cr, info_box, curves_to_plot, results_to_plot, bounds);
     DrawGeneratedTimestamp(cr);
 
     // 4. Write PNG and clean up
@@ -122,6 +123,7 @@ void GenerateSnrPlot(
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
+    const DynamicRangeResult& dr_result,
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
@@ -162,14 +164,17 @@ void GenerateSnrPlot(
         opts.generated_command
     }};
 
+    std::vector<DynamicRangeResult> single_result_vec = {dr_result};
+
     // 3. Delegate the entire drawing process to the internal helper function
-    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, opts, bounds, log_stream);
+    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, bounds, log_stream);
 }
 
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_filename,
     const std::string& camera_name,
     const std::vector<CurveData>& all_curves,
+    const std::vector<DynamicRangeResult>& all_results,
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
@@ -207,5 +212,5 @@ std::optional<std::string> GenerateSummaryPlot(
     // 2. Prepare title
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     // 3. Delegate the entire drawing process to the internal helper function
-    return GeneratePlotInternal(output_filename, title, all_curves, opts, bounds, log_stream);
+    return GeneratePlotInternal(output_filename, title, all_curves, all_results, opts, bounds, log_stream);
 }
