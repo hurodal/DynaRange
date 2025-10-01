@@ -82,9 +82,7 @@ SingleFileResult AnalyzeSingleRawFile(
     #endif
     // --- FIN PUNTO DE CONTROL 4 ---    
     // 2. Call Analysis module to find patches on the prepared image.
-    std::cout << "\n--- Just before call AnalyzePatches() ---\n";
     PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
-    std::cout << "\n--- Just after call AnalyzePatches() ---\n";
     if (patch_data.signal.empty()) {
         log_stream << _("Warning: No valid patches found for ") << raw_file.GetFilename() << std::endl;
         return {};

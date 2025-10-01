@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 21:07+0200\n"
+"POT-Creation-Date: 2025-10-01 22:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -563,54 +563,54 @@ msgstr ""
 msgid "Error: Failed to prepare image for analysis: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:89
+#: src/core/engine/Processing.cpp:87
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:131
+#: src/core/engine/Processing.cpp:129
 msgid ""
 "Warning: Could not generate debug patch image for this file. Input data may "
 "be invalid (e.g., bad keystone correction)."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:148
+#: src/core/engine/Processing.cpp:146
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:181
+#: src/core/engine/Processing.cpp:179
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:183
+#: src/core/engine/Processing.cpp:181
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:185
+#: src/core/engine/Processing.cpp:183
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:225
+#: src/core/engine/Processing.cpp:223
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:226
+#: src/core/engine/Processing.cpp:224
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:226
+#: src/core/engine/Processing.cpp:224
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:226
+#: src/core/engine/Processing.cpp:224
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:230
+#: src/core/engine/Processing.cpp:228
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:232
+#: src/core/engine/Processing.cpp:230
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
