@@ -22,13 +22,7 @@ Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_poin
  * @return A new cv::Mat containing the rectified image.
  */
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
-/**
- * @brief (New Function) Applies an inverse keystone correction to a 3-channel color image.
- * @param imgSrc The source image (CV_8UC3) to be corrected.
- * @param k An Eigen::VectorXd containing the 8 transformation parameters.
- * @return A new cv::Mat containing the rectified color image.
- */
-cv::Mat UndoKeystoneColor(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
+
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value);
 cv::Mat PrepareChartImage(
     const RawFile& raw_file,

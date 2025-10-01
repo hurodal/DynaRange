@@ -10,6 +10,7 @@
 #include "../setup/FileSorter.hpp"
 #include "../setup/PlotLabelGenerator.hpp"
 #include "../utils/CommandGenerator.hpp"
+#include "../Constants.hpp"
 #include <set> 
 #include <iomanip>
 #include <filesystem>
@@ -20,7 +21,6 @@
 
 namespace fs = std::filesystem;
 
-// File: src/core/engine/Initialization.cpp
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     // --- Deduplicate Input Files ---
@@ -40,12 +40,14 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
-        if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false; }
+        if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false;
+        }
         opts.dark_value = *dark_val_opt;
     }
     if (!opts.sat_file_path.empty()) {
         auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
-        if (!sat_val_opt) { log_stream << _("Fatal error processing saturation frame.") << std::endl; return false; }
+        if (!sat_val_opt) { log_stream << _("Fatal error processing saturation frame.") << std::endl; return false;
+        }
         opts.saturation_value = *sat_val_opt;
     }
 
@@ -65,7 +67,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     for (const auto& info : file_info) {
         max_file_width = std::max(max_file_width, fs::path(info.filename).filename().string().length());
-        
         std::stringstream bright_ss;
         bright_ss << std::fixed << std::setprecision(2) << info.mean_brightness;
         max_bright_width = std::max(max_bright_width, bright_ss.str().length());
@@ -85,7 +86,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
                << std::right << std::setw(max_bright_width) << "Brightness"
                << std::right << std::setw(max_iso_width) << "ISO" << std::endl;
     log_stream << "  " << std::string(max_file_width + max_bright_width + max_iso_width, '-') << std::endl;
-
     for (const auto& info : file_info) {
         log_stream << "  " << std::left << std::setw(max_file_width) << fs::path(info.filename).filename().string()
                    << std::right << std::setw(max_bright_width) << std::fixed << std::setprecision(2) << info.mean_brightness
@@ -111,6 +111,28 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "\n" << _("[Final configuration]") << std::endl;
     log_stream << _("Black level: ") << opts.dark_value << std::endl;
     log_stream << _("Saturation point: ") << opts.saturation_value << std::endl;
+
+    // Add a log message to indicate which Bayer channel is being used.
+    std::string channel_name;
+    switch (DynaRange::Constants::BAYER_CHANNEL_TO_ANALYZE) {
+        case DynaRange::Constants::BayerChannel::R:
+            channel_name = "Red (R)";
+            break;
+        case DynaRange::Constants::BayerChannel::G1:
+            channel_name = "Green 1 (G1)";
+            break;
+        case DynaRange::Constants::BayerChannel::G2:
+            channel_name = "Green 2 (G2)";
+            break;
+        case DynaRange::Constants::BayerChannel::B:
+            channel_name = "Blue (B)";
+            break;
+        default:
+            channel_name = "Unknown";
+            break;
+    }
+    log_stream << _("Analysis channel: ") << channel_name << std::endl;
+
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }
@@ -124,13 +146,13 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
     log_stream << _("Plotting: ");
     switch (opts.plot_mode) {
-        case 0: log_stream << _("No graphics") << std::endl; break;
+        case 0: log_stream << _("No graphics") << std::endl;
+        break;
         case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
         case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
         case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
     }    
     log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
-    log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
     
     if (opts.plot_mode == 2) {
         opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);

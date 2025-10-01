@@ -7,6 +7,7 @@
 #include "../io/RawFile.hpp"
 #include "../math/Math.hpp"
 #include "../DebugConfig.hpp"
+#include "../Constants.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
@@ -41,13 +42,10 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
 
     for (int y = 0; y < DIMY; ++y) {
         for (int x = 0; x < DIMX; ++x) {
-            // Usamos 'x' e 'y' (base 0) directamente,
-            // sin sumarles 1.0. Esto alinea el cálculo con el script de referencia.
+            // This implementation uses the original, direct 0-based coordinate transformation logic.
             double denom = k(6) * x + k(7) * y + 1;
             if (std::abs(denom) < 1e-9) continue;
 
-            // Se eliminan las restas de '- 1' al final
-            // para una correspondencia directa de coordenadas.
             double xu = (k(0) * x + k(1) * y + k(2)) / denom;
             double yu = (k(3) * x + k(4) * y + k(5)) / denom;
 
@@ -61,6 +59,8 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     }
     return imgCorrected;
 }
+
+// File: src/core/graphics/ImageProcessing.cpp
 
 cv::Mat PrepareChartImage(
     const RawFile& raw_file, 
@@ -77,38 +77,69 @@ cv::Mat PrepareChartImage(
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
-    for (int r = 0; r < imgBayer.rows; ++r) {
-        for (int c = 0; c < imgBayer.cols; ++c) {
-            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
-        }
-    }
     
+    // Select the Bayer channel to analyze based on the global constant.
+    switch (DynaRange::Constants::BAYER_CHANNEL_TO_ANALYZE) {
+        case DynaRange::Constants::BayerChannel::R: // Red channel
+            for (int r = 0; r < imgBayer.rows; ++r) {
+                for (int c = 0; c < imgBayer.cols; ++c) {
+                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
+                }
+            }
+            break;
+        case DynaRange::Constants::BayerChannel::G1: // First Green channel
+            for (int r = 0; r < imgBayer.rows; ++r) {
+                for (int c = 0; c < imgBayer.cols; ++c) {
+                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
+                }
+            }
+            break;
+        case DynaRange::Constants::BayerChannel::G2: // Second Green channel
+            for (int r = 0; r < imgBayer.rows; ++r) {
+                for (int c = 0; c < imgBayer.cols; ++c) {
+                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2);
+                }
+            }
+            break;
+        case DynaRange::Constants::BayerChannel::B: // Blue channel
+            for (int r = 0; r < imgBayer.rows; ++r) {
+                for (int c = 0; c < imgBayer.cols; ++c) {
+                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2 + 1);
+                }
+            }
+            break;
+    }
+    // --- START CONTROL POINT 5.1 ---
+    #if DEBUG_IA_ON == 1
+        cv::Scalar mean_val_before, stddev_val_before;
+        cv::meanStdDev(imgBayer, mean_val_before, stddev_val_before);
+        log_stream << "--- DEBUG IA: Pre-Keystone Stats (Point 5.1) ---\n";
+        log_stream << "imgBayer Mean:   " << std::fixed << std::setprecision(8) << mean_val_before[0] << std::endl;
+        log_stream << "imgBayer StdDev: " << std::fixed << std::setprecision(8) << stddev_val_before[0] << std::endl;
+        log_stream << "--------------------------------------------------\n";
+    #endif
+    // --- END CONTROL POINT 5.1 ---
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
+
+    // --- START CONTROL POINT 5.2 ---
+    #if DEBUG_IA_ON == 1
+        cv::Scalar mean_val_after, stddev_val_after;
+        cv::meanStdDev(img_corrected, mean_val_after, stddev_val_after);
+        log_stream << "--- DEBUG IA: Post-Keystone Stats (Point 5.2) ---\n";
+        log_stream << "img_corrected Mean:   " << std::fixed << std::setprecision(8) << mean_val_after[0] << std::endl;
+        log_stream << "img_corrected StdDev: " << std::fixed << std::setprecision(8) << stddev_val_after[0] << std::endl;
+        log_stream << "---------------------------------------------------\n";
+    #endif
+    // --- END CONTROL POINT 5.2 ---
+
     const auto& dst_pts = chart.GetDestinationPoints();
 
-    // Lógica de recorte alineada con el script de R (con margen de seguridad).
-    double gap_x = 0.0;
-    double gap_y = 0.0;
-    
-    // Si NO se usan coordenadas manuales, se aplica un margen de seguridad.
-    if (!chart.HasManualCoords()) {
-        const double xbr = dst_pts[2].x;
-        const double xtl = dst_pts[0].x;
-        const double ybr = dst_pts[2].y;
-        const double ytl = dst_pts[0].y;
-        
-        // R script reference: GAPX=(xbr-xtl) / (NCOLS+1) / 2
-        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
-        // R script reference: GAPY=(ybr-ytl) / (NROWS+1) / 2
-        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
-    }
-
-    cv::Rect crop_area(
-        round(dst_pts[0].x + gap_x), 
-        round(dst_pts[0].y + gap_y), 
-        round(dst_pts[2].x - dst_pts[0].x - 2 * gap_x), 
-        round(dst_pts[2].y - dst_pts[0].y - 2 * gap_y)
-    );
+    // --- MODIFICATION: Using the simple cropping logic from the old version ---
+    double xtl = dst_pts[0].x;
+    double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x;
+    double ybr = dst_pts[2].y;
+    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
 
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
@@ -116,10 +147,21 @@ cv::Mat PrepareChartImage(
         log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
         return {};
     }
-
+    // --- START CONTROL POINT 5.3 (ADAPTED) ---
+    #if DEBUG_IA_ON == 1
+        log_stream << "--- DEBUG IA: Cropping Variables (Point 5.3) ---\n";
+        log_stream << std::fixed << std::setprecision(4);
+        // This version of the function does not use gap_x or gap_y, so they are not printed.
+        log_stream << "crop_area: [x=" << crop_area.x << ", y=" << crop_area.y 
+                   << ", width=" << crop_area.width << ", height=" << crop_area.height << "]" << std::endl;
+        log_stream << "------------------------------------------------\n";
+        log_stream << "--- DEBUG IA: Finalizing program at control point. ---\n" << std::endl;
+        //exit(0);
+    #endif
+    // --- END CONTROL POINT 5.3 ---
+    
     return img_corrected(crop_area);
 }
-
 /*
 // --- REFERENCE IMPLEMENTATION (Commented Out) ---
 // This is a complete, separate version of the function that contains the logic

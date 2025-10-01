@@ -25,7 +25,7 @@ namespace {
  * @param bounds A map containing the plot boundaries to correctly map data coordinates.
  */
 void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
-    if (curve.snr_db.empty()) {
+    if (curve.snr_db.empty() || curve.poly_coeffs.empty()) {
         return;
     }
 
@@ -36,25 +36,22 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     PlotColors::cairo_set_source_red(cr);
     cairo_set_line_width(cr, 2.0);
 
-    // Get the min/max range of the SNR data for this curve.
-    auto min_max_snr = std::minmax_element(curve.snr_db.begin(), curve.snr_db.end());
-    double min_snr_data = *min_max_snr.first;
-    double max_snr_data = *min_max_snr.second;
+    // Iterate over the independent variable (EV) range, not the SNR range.
+    auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
+    double min_ev_data = *min_max_ev.first;
+    double max_ev_data = *min_max_ev.second;
 
-    // Evaluate the starting point of the curve.
-    double start_ev_poly = EvaluatePolynomial(curve.poly_coeffs, min_snr_data);
-    auto [start_x, start_y] = map_coords(start_ev_poly, min_snr_data);
-
-    // Start the path at the first point.
+    // Start the path at the first evaluated point of the polynomial.
+    double start_snr_poly = EvaluatePolynomial(curve.poly_coeffs, min_ev_data);
+    auto [start_x, start_y] = map_coords(min_ev_data, start_snr_poly);
     cairo_move_to(cr, start_x, start_y);
 
-    // Generate a series of points along the curve by evaluating the polynomial
-    // over a dense grid of SNR values.
-    const int NUM_POINTS = 100; // Use 100 points for smoothness.
+    // Generate a series of points along the curve by evaluating SNR = f(EV).
+    const int NUM_POINTS = 100;
     for (int i = 1; i <= NUM_POINTS; ++i) {
-        double snr_step = min_snr_data + (i * (max_snr_data - min_snr_data) / NUM_POINTS);
-        double ev_at_snr = EvaluatePolynomial(curve.poly_coeffs, snr_step);
-        auto [x, y] = map_coords(ev_at_snr, snr_step);
+        double ev_step = min_ev_data + (i * (max_ev_data - min_ev_data) / NUM_POINTS);
+        double snr_at_ev = EvaluatePolynomial(curve.poly_coeffs, ev_step);
+        auto [x, y] = map_coords(ev_step, snr_at_ev);
         cairo_line_to(cr, x, y);
     }
 

@@ -9,7 +9,7 @@
 // Pon a 1 para activar todas las características de depuración de abajo.
 // Pon a 0 para compilarlas fuera del código y generar una versión de lanzamiento (release).
 #define DYNA_RANGE_DEBUG_MODE 1
-
+#define DEBUG_IA_ON 1
 
 #if DYNA_RANGE_DEBUG_MODE == 1
     // --- Banderas de Características de Depuración Individuales ---

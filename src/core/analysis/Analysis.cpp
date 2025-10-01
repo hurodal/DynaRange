@@ -10,16 +10,16 @@
 std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
     PatchAnalysisResult &patch_data, const ProgramOptions &opts,
     const std::string &filename, double camera_resolution_mpx) {
+
   // Pass all necessary info to the curve calculation function
   SnrCurve snr_curve = CurveCalculator::CalculateSnrCurve(
       patch_data, opts, camera_resolution_mpx);
-
   DynamicRangeResult dr_result;
   dr_result.filename = filename;
   dr_result.patches_used = (int)patch_data.signal.size();
-  dr_result.dr_values_ev =
-      CurveCalculator::CalculateDynamicRange(snr_curve, opts.snr_thresholds_db);
 
+  // Se actualiza la llamada para coincidir con la nueva firma de la función.
+  dr_result.dr_values_ev = CurveCalculator::CalculateDynamicRange(snr_curve, opts.snr_thresholds_db);
   CurveData curve_data = {filename,
                           "", // plot_label (se rellenará en Processing.cpp)
                           "", // camera_model (se rellenará en Processing.cpp)
@@ -27,6 +27,6 @@ std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
                           snr_curve.snr_db,
                           snr_curve.poly_coeffs.clone(),
                           opts.generated_command};
-
+                          
   return {dr_result, curve_data};
 }

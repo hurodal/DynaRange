@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 08:42+0200\n"
+"POT-Creation-Date: 2025-10-01 19:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -468,15 +468,15 @@ msgstr ""
 msgid "Fatal error processing dark frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:48
+#: src/core/engine/Initialization.cpp:49
 msgid "Fatal error processing saturation frame."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:53
+#: src/core/engine/Initialization.cpp:55
 msgid "Pre-analyzing files to determine sorting order..."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:56
+#: src/core/engine/Initialization.cpp:58
 msgid "Error: None of the input files could be processed."
 msgstr ""
 
@@ -492,63 +492,63 @@ msgstr ""
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:115
+#: src/core/engine/Initialization.cpp:134
+msgid "Analysis channel: "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:137
 msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:115
-#: src/core/engine/Initialization.cpp:122
+#: src/core/engine/Initialization.cpp:137
+#: src/core/engine/Initialization.cpp:144
 #: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:117
+#: src/core/engine/Initialization.cpp:139
 msgid "SNR threshold(s): "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:121
+#: src/core/engine/Initialization.cpp:143
 msgid " dB"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:122
+#: src/core/engine/Initialization.cpp:144
 msgid "DR normalization: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:123
+#: src/core/engine/Initialization.cpp:145
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:124
+#: src/core/engine/Initialization.cpp:146
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:125
+#: src/core/engine/Initialization.cpp:147
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:127
+#: src/core/engine/Initialization.cpp:149
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:128
+#: src/core/engine/Initialization.cpp:151
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:129
+#: src/core/engine/Initialization.cpp:152
 msgid "Graphics with short command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:130
+#: src/core/engine/Initialization.cpp:153
 msgid "Graphics with long command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:132
+#: src/core/engine/Initialization.cpp:155
 msgid "Output file: "
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:133
-msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
 #: src/core/engine/Processing.cpp:39
@@ -563,51 +563,55 @@ msgstr ""
 msgid "Error: Failed to prepare image for analysis: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:76
+#: src/core/engine/Processing.cpp:89
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:96
+#: src/core/engine/Processing.cpp:131
 msgid ""
 "Warning: Could not generate debug patch image for this file. Input data may "
 "be invalid (e.g., bad keystone correction)."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:111
+#: src/core/engine/Processing.cpp:148
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:136
+#: src/core/engine/Processing.cpp:181
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:138
+#: src/core/engine/Processing.cpp:183
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:140
+#: src/core/engine/Processing.cpp:185
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:178
+#: src/core/engine/Processing.cpp:225
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:179
+#: src/core/engine/Processing.cpp:226
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:179
+#: src/core/engine/Processing.cpp:226
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:179
+#: src/core/engine/Processing.cpp:226
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:183
+#: src/core/engine/Processing.cpp:230
 msgid "Debug patch image will be saved to: "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:232
+msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
 #: src/core/engine/Reporting.cpp:33
@@ -662,11 +666,11 @@ msgstr ""
 msgid "Error: Could not get raw image for: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:116
+#: src/core/graphics/ImageProcessing.cpp:147
 msgid "Error: Invalid crop area calculated for keystone correction."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:265
+#: src/core/graphics/ImageProcessing.cpp:307
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 

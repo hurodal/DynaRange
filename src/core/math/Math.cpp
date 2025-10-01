@@ -24,14 +24,12 @@ double EvaluatePolynomial(const cv::Mat& coeffs, double x) {
 void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order) {
     CV_Assert(src_x.rows > 0 && src_y.rows > 0 && src_x.total() == src_y.total() && src_x.rows >= order + 1);
     cv::Mat A = cv::Mat::zeros(src_x.rows, order + 1, CV_64F);
-    for (int i = 0; i < src_x.rows; ++i) {
-        for (int j = 0; j <= order; ++j) {
-            A.at<double>(i, j) = std::pow(src_x.at<double>(i), j);
+    for (int i = 0; i < src_x.rows; i++) {
+        for (int j = 0; j <= order; j++) {
+            A.at<double>(i, j) = pow(src_x.at<double>(i), (double)(order - j));
         }
     }
-    cv::Mat A_flipped;
-    cv::flip(A, A_flipped, 1);
-    cv::solve(A_flipped, src_y, dst, cv::DECOMP_SVD);
+    cv::solve(A, src_y, dst, cv::DECOMP_SVD);
 }
 
 double CalculateMean(const std::vector<double>& data) {

@@ -69,13 +69,48 @@ SingleFileResult AnalyzeSingleRawFile(
         log_stream << _("Error: Failed to prepare image for analysis: ") << raw_file.GetFilename() << std::endl;
         return {};
     }
-    
+    // --- PUNTO DE CONTROL 4 ---
+    #if DEBUG_IA_ON == 1
+        cv::Scalar mean_val, stddev_val;
+        cv::meanStdDev(img_prepared, mean_val, stddev_val);
+        log_stream << "--- DEBUG IA: Final Image Stats (Point 4) ---" << std::endl;
+        log_stream << "Image Mean:   " << std::fixed << std::setprecision(8) << mean_val[0] << std::endl;
+        log_stream << "Image StdDev: " << std::fixed << std::setprecision(8) << stddev_val[0] << std::endl;
+        log_stream << "-----------------------------------------------" << std::endl;
+        log_stream << "--- DEBUG IA: Finalizando el programa en el punto de control. ---" << std::endl;
+        //exit(0);
+    #endif
+    // --- FIN PUNTO DE CONTROL 4 ---    
     // 2. Call Analysis module to find patches on the prepared image.
+    std::cout << "\n--- Just before call AnalyzePatches() ---\n";
     PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
+    std::cout << "\n--- Just after call AnalyzePatches() ---\n";
     if (patch_data.signal.empty()) {
         log_stream << _("Warning: No valid patches found for ") << raw_file.GetFilename() << std::endl;
         return {};
     }
+    
+    // --- PUNTO DE CONTROL 2 ---
+        #if DEBUG_IA_ON == 1
+        if (!patch_data.signal.empty()) {
+            // Usamos el ostream del log para mantener la salida ordenada
+            log_stream << "--- DEBUG IA: AnalyzePatches Output for " << fs::path(raw_file.GetFilename()).filename().string() << " ---" << std::endl;
+            log_stream << "Signal values (" << patch_data.signal.size() << " patches): ";
+            for (const auto& s : patch_data.signal) {
+                log_stream << std::fixed << std::setprecision(4) << s << " ";
+            }
+            log_stream << std::endl;
+
+            log_stream << "Noise values (" << patch_data.noise.size() << " patches):  ";
+            for (const auto& n : patch_data.noise) {
+                log_stream << std::fixed << std::setprecision(4) << n << " ";
+            }
+            log_stream << std::endl;
+            log_stream << "--------------------------------------------------------" << std::endl;
+            //exit(0);
+        }
+        #endif
+    // --- FIN PUNTO DE CONTROL 2 ---
     
     // 3. Call Analysis module to perform calculations.
     auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
@@ -101,6 +136,8 @@ SingleFileResult AnalyzeSingleRawFile(
 
 } // end of anonymous namespace
 
+// File: src/core/engine/Processing.cpp
+
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
     // 1. Load files (I/O Responsibility)
@@ -125,10 +162,18 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         cv::threshold(g1_bayer, g1_bayer, 0.0, 0.0, cv::THRESH_TOZERO);
         detected_corners_opt = DetectChartCorners(g1_bayer, log_stream);
 
+        // --- VALIDATION LOGIC ---
         // If corners were detected, validate their area.
         if (detected_corners_opt.has_value()) {
+
+            // Convert Point2d (double) to Point2f (float) for contourArea compatibility ---
+            std::vector<cv::Point2f> corners_float;
+            for (const auto& pt : *detected_corners_opt) {
+                corners_float.push_back(cv::Point2f(static_cast<float>(pt.x), static_cast<float>(pt.y)));
+            }
+
             double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
-            double detected_chart_area = cv::contourArea(*detected_corners_opt);
+            double detected_chart_area = cv::contourArea(corners_float); // Use the converted vector
             double area_percentage = (detected_chart_area / total_image_area);
 
             // Check if the detected area is smaller than the required minimum.
@@ -143,7 +188,9 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
                 detected_corners_opt.reset();
             }
         }
-        
+        // --- END OF VALIDATION LOGIC ---
+
+
         // Si la detección tuvo éxito y el modo debug está activo, guarda la imagen con las cruces.
         // Este bloque ahora se compila condicionalmente.
         #if DYNA_RANGE_DEBUG_MODE == 1
@@ -182,8 +229,19 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
             log_stream << _("Debug patch image will be saved to: ") << debug_path.string() << std::endl;
         }
+        log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
 
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
+        // --- PUNTO DE CONTROL 3 ---
+        #if DEBUG_IA_ON == 1
+            log_stream << "--- DEBUG IA: Keystone Parameters (Point 3) ---" << std::endl;
+            log_stream << std::fixed << std::setprecision(8) << keystone_params << std::endl;
+            log_stream << "-----------------------------------------------" << std::endl;
+            log_stream << "--- DEBUG IA: Finalizando el programa en el punto de control. ---" << std::endl;
+            //exit(0);
+        #endif
+        // --- FIN PUNTO DE CONTROL 3 ---
+
         for (const auto& raw_file : raw_files) {
             if (cancel_flag) return {};
             if (!raw_file.IsLoaded()) continue;
