@@ -175,6 +175,7 @@ std::optional<std::string> GenerateSummaryPlot(
 {
     // Do not generate plot if plot_mode is 0
     if (opts.plot_mode == 0) {
+        log_stream << "\n" << _("Plot generation skipped as per user request (--plot 0).") << std::endl;
         return std::nullopt;
     }
 
@@ -201,11 +202,10 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["min_ev"] = floor(min_ev_global) - 1.0;
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = floor(min_db_global / 5.0) * 5.0; // Round down to nearest 5
-    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;  // Round up to nearest 5
+    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0; // Round up to nearest 5
 
     // 2. Prepare title
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
-    
     // 3. Delegate the entire drawing process to the internal helper function
     return GeneratePlotInternal(output_filename, title, all_curves, opts, bounds, log_stream);
 }

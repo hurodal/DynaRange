@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-30 12:30+0200\n"
+"POT-Creation-Date: 2025-10-01 08:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -551,23 +551,23 @@ msgstr ""
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:38
+#: src/core/engine/Processing.cpp:39
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:62
+#: src/core/engine/Processing.cpp:63
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:68
+#: src/core/engine/Processing.cpp:69
 msgid "Error: Failed to prepare image for analysis: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:75
+#: src/core/engine/Processing.cpp:76
 msgid "Warning: No valid patches found for "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:95
+#: src/core/engine/Processing.cpp:96
 msgid ""
 "Warning: Could not generate debug patch image for this file. Input data may "
 "be invalid (e.g., bad keystone correction)."
@@ -578,23 +578,35 @@ msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:164
+#: src/core/engine/Processing.cpp:136
+msgid "Warning: Automatic corner detection found an area covering only "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:138
+msgid "% of the image. This is below the required threshold of "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:140
+msgid " %. Discarding detected corners and falling back to defaults."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:178
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:165
+#: src/core/engine/Processing.cpp:179
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:165
+#: src/core/engine/Processing.cpp:179
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:165
+#: src/core/engine/Processing.cpp:179
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:170
+#: src/core/engine/Processing.cpp:183
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
@@ -690,11 +702,15 @@ msgstr ""
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:182
+#: src/core/graphics/Plotting.cpp:178
+msgid "Plot generation skipped as per user request (--plot 0)."
+msgstr ""
+
+#: src/core/graphics/Plotting.cpp:183
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:207
+#: src/core/graphics/Plotting.cpp:208
 msgid "SNR Curves - Summary ("
 msgstr ""
 

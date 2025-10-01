@@ -11,6 +11,7 @@
 #include "../utils/PathManager.hpp"
 #include "../io/OutputWriter.hpp"
 #include "../DebugConfig.hpp" 
+#include "../Constants.hpp"
 #include <filesystem>
 #include <iostream>
 #include <atomic>
@@ -104,7 +105,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     ProcessingResult result;
     // 1. Load files (I/O Responsibility)
     std::vector<RawFile> raw_files = LoadRawFiles(opts.input_files, log_stream);
-
     // 2. Attempt automatic corner detection if no manual coordinates are provided.
     std::optional<std::vector<cv::Point2d>> detected_corners_opt;
     if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
@@ -123,27 +123,41 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         }
         
         cv::threshold(g1_bayer, g1_bayer, 0.0, 0.0, cv::THRESH_TOZERO);
-        
         detected_corners_opt = DetectChartCorners(g1_bayer, log_stream);
 
+        // If corners were detected, validate their area.
+        if (detected_corners_opt.has_value()) {
+            double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
+            double detected_chart_area = cv::contourArea(*detected_corners_opt);
+            double area_percentage = (detected_chart_area / total_image_area);
+
+            // Check if the detected area is smaller than the required minimum.
+            if (area_percentage < DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
+                log_stream << _("Warning: Automatic corner detection found an area covering only ")
+                           << std::fixed << std::setprecision(1) << (area_percentage * 100.0)
+                           << _("% of the image. This is below the required threshold of ")
+                           << (DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE * 100.0)
+                           << _(" %. Discarding detected corners and falling back to defaults.") << std::endl;
+                
+                // Discard the detected corners by resetting the optional.
+                detected_corners_opt.reset();
+            }
+        }
+        
         // Si la detección tuvo éxito y el modo debug está activo, guarda la imagen con las cruces.
         // Este bloque ahora se compila condicionalmente.
         #if DYNA_RANGE_DEBUG_MODE == 1
         if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG && detected_corners_opt.has_value()) {
             log_stream << "  - [DEBUG] Saving corner detection visual confirmation to 'debug_corners_detected.png'..." << std::endl;
-            
             // Se crea una copia de la imagen lineal para procesarla visualmente.
             cv::Mat viewable_image;
             // Se auto-normaliza para estirar el contraste y hacerla visible.
             cv::normalize(g1_bayer, viewable_image, 0.0, 1.0, cv::NORM_MINMAX);
-            
             // Se dibujan las cruces sobre la imagen ya normalizada y visible.
             cv::Mat image_with_markers = DrawCornerMarkers(viewable_image, *detected_corners_opt);
-            
             // Se aplica una corrección gamma final para mejorar los tonos medios.
             cv::Mat final_debug_image;
             cv::pow(image_with_markers, 1.0 / 2.2, final_debug_image);
-            
             PathManager paths(opts);
             fs::path debug_path = paths.GetCsvOutputPath().parent_path() / "debug_corners_detected.png";
             OutputWriter::WriteDebugImage(final_debug_image, debug_path, log_stream);
@@ -163,7 +177,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
         log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << std::endl;
         log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << std::endl;
-        
         if (!opts.print_patch_filename.empty()) {
             PathManager paths(opts);
             fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
@@ -175,7 +188,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             if (cancel_flag) return {};
             if (!raw_file.IsLoaded()) continue;
             auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
-            
             if (!first_file_processed && !file_result.final_debug_image.empty()) {
                 result.debug_patch_image = file_result.final_debug_image;
                 first_file_processed = true;
