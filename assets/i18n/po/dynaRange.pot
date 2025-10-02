@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-02 18:11+0200\n"
+"POT-Creation-Date: 2025-10-02 18:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:110
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:107
 msgid "Saturation"
 msgstr ""
 
@@ -428,7 +428,7 @@ msgid "Export SNR curves in PNG format..."
 msgstr ""
 
 #: src/core/arguments/ArgumentManager.cpp:45
-msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
+msgid "Saves a debug image ('printpatches.png') with the patch overlay."
 msgstr ""
 
 #: src/core/arguments/ArgumentManager.cpp:53
@@ -513,7 +513,9 @@ msgstr ""
 msgid "Black level: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:134 src/core/graphics/Plotting.cpp:103
+#: src/core/engine/Initialization.cpp:134
+#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:100
+#: src/core/graphics/Plotting.cpp:106
 msgid " (estimated)"
 msgstr ""
 
@@ -521,62 +523,62 @@ msgstr ""
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:145
+#: src/core/engine/Initialization.cpp:146
 msgid "Analysis channel: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:147
+#: src/core/engine/Initialization.cpp:148
 msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:147
-#: src/core/engine/Initialization.cpp:154
+#: src/core/engine/Initialization.cpp:148
+#: src/core/engine/Initialization.cpp:155
 #: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:149
+#: src/core/engine/Initialization.cpp:150
 msgid "SNR threshold(s): "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:153
+#: src/core/engine/Initialization.cpp:154
 msgid " dB"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:154
+#: src/core/engine/Initialization.cpp:155
 msgid "DR normalization: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:155
+#: src/core/engine/Initialization.cpp:156
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:156
+#: src/core/engine/Initialization.cpp:157
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:157
+#: src/core/engine/Initialization.cpp:158
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:159
+#: src/core/engine/Initialization.cpp:160
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:160
+#: src/core/engine/Initialization.cpp:161
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:161
+#: src/core/engine/Initialization.cpp:162
 msgid "Graphics with short command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:162
+#: src/core/engine/Initialization.cpp:163
 msgid "Graphics with long command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:164
+#: src/core/engine/Initialization.cpp:165
 msgid "Output file: "
 msgstr ""
 
@@ -715,35 +717,35 @@ msgstr ""
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:89
+#: src/core/graphics/Plotting.cpp:88
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:105
+#: src/core/graphics/Plotting.cpp:101
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:148
+#: src/core/graphics/Plotting.cpp:145
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:148
+#: src/core/graphics/Plotting.cpp:145
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:189
+#: src/core/graphics/Plotting.cpp:186
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:202
+#: src/core/graphics/Plotting.cpp:199
 msgid "Plot generation skipped as per user request (--plot 0)."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:207
+#: src/core/graphics/Plotting.cpp:204
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:239
+#: src/core/graphics/Plotting.cpp:236
 msgid "SNR Curves - Summary ("
 msgstr ""
 

@@ -42,7 +42,7 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
-    m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
+    m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('printpatches.png') with the patch overlay."), ArgType::String, std::string("")};
     
     // Internal flags
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
@@ -85,7 +85,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
     auto print_patch_opt = app.add_option("-P,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
                                 ->expected(0,1)
-                                ->default_str("chartpatches.png");
+                                ->default_str("printpatches.png");
 
     try {
         app.parse(argc, argv);
@@ -124,7 +124,10 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["black-level-is-default"] = false;
     }
 
-    if (sat_file_opt->count() > 0) m_values["saturation-file"] = temp_opts.sat_file_path;
+    if (sat_file_opt->count() > 0) {
+        m_values["saturation-file"] = temp_opts.sat_file_path;
+        m_values["saturation-level-is-default"] = false;
+    }
     if (sat_level_opt->count() > 0) {
         m_values["saturation-level"] = temp_opts.saturation_value;
         m_values["saturation-level-is-default"] = false;

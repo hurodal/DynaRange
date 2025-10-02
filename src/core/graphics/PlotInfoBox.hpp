@@ -9,7 +9,6 @@
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
-#include <utility>
 
 class PlotInfoBox {
 public:

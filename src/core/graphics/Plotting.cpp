@@ -72,7 +72,6 @@ void DrawGeneratedTimestamp(cairo_t* cr) {
  * PNG file. It is called by the public-facing Generate...Plot functions.
  * @return An optional string containing the path to the generated plot on success.
  */
-// Esta función (privada) existía y ha sido modificada.
 std::optional<std::string> GeneratePlotInternal(
     const std::string& output_filename,
     const std::string& title,
@@ -98,16 +97,14 @@ std::optional<std::string> GeneratePlotInternal(
     // Prepare Black level string and its optional annotation
     std::stringstream black_ss;
     black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
-    std::string black_annotation = "";
-    if (opts.black_level_is_default) {
-        black_annotation = _(" (estimated)");
-    }
+    std::string black_annotation = opts.black_level_is_default ? _(" (estimated)") : "";
     info_box.AddItem(_("Black"), black_ss.str(), black_annotation);
 
-    // Prepare Saturation level string (no annotation needed for this one)
+    // Prepare Saturation level string and its optional annotation
     std::stringstream sat_ss;
     sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
-    info_box.AddItem(_("Saturation"), sat_ss.str());
+    std::string sat_annotation = opts.saturation_level_is_default ? _(" (estimated)") : "";
+    info_box.AddItem(_("Saturation"), sat_ss.str(), sat_annotation);
 
     // 3. Draw all components
     std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;

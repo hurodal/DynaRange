@@ -132,7 +132,8 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << "\n" << _("[Final configuration]") << std::endl;
     log_stream << _("Black level: ") << opts.dark_value 
                << (opts.black_level_is_default ? _(" (estimated)") : "") << std::endl;
-    log_stream << _("Saturation point: ") << opts.saturation_value << std::endl;
+    log_stream << _("Saturation point: ") << opts.saturation_value 
+               << (opts.saturation_level_is_default ? _(" (estimated)") : "") << std::endl;
 
     std::string channel_name;
     switch (DynaRange::Constants::BAYER_CHANNEL_TO_ANALYZE) {
