@@ -13,6 +13,7 @@
 #include "PlotData.hpp"
 #include "PlotInfoBox.hpp"
 #include "../io/OutputWriter.hpp"
+#include "PlotDataGenerator.hpp" 
 #include <cairo/cairo.h>
 #include <iostream>
 #include <algorithm>
@@ -134,7 +135,7 @@ void GenerateSnrPlot(
 
     if (signal_ev.size() < 2) {
         log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")."
-                   << std::endl;
+ << std::endl;
         return;
     }
 
@@ -150,20 +151,27 @@ void GenerateSnrPlot(
     std::map<std::string, double> bounds;
     bounds["min_ev"] = floor(min_ev_data) - 1.0;
     bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
-    bounds["min_db"] = floor(min_db_data / 5.0) * 5.0; // Round down to nearest 5
-    bounds["max_db"] = ceil(max_db_data / 5.0) * 5.0;  // Round up to nearest 5
+    bounds["min_db"] = floor(min_db_data / 5.0) * 5.0;
+    // Round down to nearest 5
+    bounds["max_db"] = ceil(max_db_data / 5.0) * 5.0;
+    // Round up to nearest 5
 
     // 2. Prepare the data for a single curve
-    std::vector<CurveData> single_curve_vec = {{
+    CurveData single_curve_data = {
         plot_title,
         curve_label,
         "", // camera_model not needed for individual plot title
         signal_ev,
         snr_db,
         poly_coeffs,
+        {}, // curve_points will be generated next
         opts.generated_command
-    }};
+    };
+    
+    // Generate plottable points for the curve
+    single_curve_data.curve_points = PlotDataGenerator::GenerateCurvePoints(single_curve_data);
 
+    std::vector<CurveData> single_curve_vec = {single_curve_data};
     std::vector<DynamicRangeResult> single_result_vec = {dr_result};
 
     // 3. Delegate the entire drawing process to the internal helper function
@@ -189,10 +197,16 @@ std::optional<std::string> GenerateSummaryPlot(
         return std::nullopt;
     }
 
+    // Create a mutable copy to add generated points
+    std::vector<CurveData> curves_with_points = all_curves;
+    for (auto& curve : curves_with_points) {
+        curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
+    }
+
     // 1. Calculate global bounds across all curves for both axes.
     double min_ev_global = 1e6, max_ev_global = -1e6;
     double min_db_global = 1e6, max_db_global = -1e6;
-    for (const auto& curve : all_curves) {
+    for (const auto& curve : curves_with_points) {
         if (!curve.signal_ev.empty()) {
             min_ev_global = std::min(min_ev_global, *std::min_element(curve.signal_ev.begin(), curve.signal_ev.end()));
             max_ev_global = std::max(max_ev_global, *std::max_element(curve.signal_ev.begin(), curve.signal_ev.end()));
@@ -207,10 +221,12 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["min_ev"] = floor(min_ev_global) - 1.0;
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = floor(min_db_global / 5.0) * 5.0; // Round down to nearest 5
-    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0; // Round up to nearest 5
+    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
+    // Round up to nearest 5
 
     // 2. Prepare title
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
+
     // 3. Delegate the entire drawing process to the internal helper function
-    return GeneratePlotInternal(output_filename, title, all_curves, all_results, opts, bounds, log_stream);
+    return GeneratePlotInternal(output_filename, title, curves_with_points, all_results, opts, bounds, log_stream);
 }

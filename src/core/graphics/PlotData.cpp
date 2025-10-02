@@ -6,7 +6,6 @@
 #include "PlotData.hpp"
 #include "PlotBase.hpp"
 #include "Colour.hpp"
-#include "../math/Math.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
@@ -19,13 +18,14 @@
 namespace {
 
 /**
- * @brief Draws a single SNR curve using a polynomial fit.
+ * @brief Draws a single SNR curve using a pre-calculated set of points.
  * @param cr The cairo drawing context.
- * @param curve The CurveData struct containing the curve's data and coefficients.
+ * @param curve The CurveData struct containing the curve's pre-calculated points.
  * @param bounds A map containing the plot boundaries to correctly map data coordinates.
  */
 void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
-    if (curve.snr_db.empty() || curve.poly_coeffs.empty()) {
+    // The curve points are now pre-calculated and stored in the CurveData struct.
+    if (curve.curve_points.empty()) {
         return;
     }
 
@@ -36,22 +36,15 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     PlotColors::cairo_set_source_red(cr);
     cairo_set_line_width(cr, 2.0);
 
-    // Iterate over the independent variable (EV) range, not the SNR range.
-    auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
-    double min_ev_data = *min_max_ev.first;
-    double max_ev_data = *min_max_ev.second;
-
-    // Start the path at the first evaluated point of the polynomial.
-    double start_snr_poly = EvaluatePolynomial(curve.poly_coeffs, min_ev_data);
-    auto [start_x, start_y] = map_coords(min_ev_data, start_snr_poly);
+    // Start the path at the first point.
+    const auto& first_point = curve.curve_points[0];
+    auto [start_x, start_y] = map_coords(first_point.first, first_point.second);
     cairo_move_to(cr, start_x, start_y);
 
-    // Generate a series of points along the curve by evaluating SNR = f(EV).
-    const int NUM_POINTS = 100;
-    for (int i = 1; i <= NUM_POINTS; ++i) {
-        double ev_step = min_ev_data + (i * (max_ev_data - min_ev_data) / NUM_POINTS);
-        double snr_at_ev = EvaluatePolynomial(curve.poly_coeffs, ev_step);
-        auto [x, y] = map_coords(ev_step, snr_at_ev);
+    // Draw lines to the subsequent points.
+    for (size_t i = 1; i < curve.curve_points.size(); ++i) {
+        const auto& point = curve.curve_points[i];
+        auto [x, y] = map_coords(point.first, point.second);
         cairo_line_to(cr, x, y);
     }
 

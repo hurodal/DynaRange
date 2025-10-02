@@ -7,7 +7,7 @@
 
 namespace DynaRange::Constants {
 
-    // Nombre del ejecutable para la línea de comandos.
+    // Command-line executable name.
     constexpr const char* CLI_EXECUTABLE_NAME = "rango";
 
     /**
@@ -15,6 +15,20 @@ namespace DynaRange::Constants {
      * chart must occupy to be considered valid.
      */
     constexpr double MINIMUM_CHART_AREA_PERCENTAGE = 0.50; // 50%
+
+    /**
+     * @enum PlottingModel
+     * @brief Defines the mathematical model used for generating plot curve points.
+     */
+    enum class PlottingModel {
+        SNR_equals_f_EV, ///< C++ Model: SNR_dB = f(EV)
+        EV_equals_f_SNR  ///< R Model (Future): EV = f(SNR_dB)
+    };
+
+    /**
+     * @brief The model to be used for generating the SNR curve for plotting.
+     */
+    constexpr PlottingModel PLOTTING_MODEL = PlottingModel::SNR_equals_f_EV;
 
     /**
      * @enum BayerChannel

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 22:17+0200\n"
+"POT-Creation-Date: 2025-10-02 15:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:98
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:99
 msgid "Saturation"
 msgstr ""
 
@@ -682,39 +682,39 @@ msgstr ""
 msgid "SNR (dB)"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:48
+#: src/core/graphics/Plotting.cpp:49
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:87
+#: src/core/graphics/Plotting.cpp:88
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:97
+#: src/core/graphics/Plotting.cpp:98
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:136
+#: src/core/graphics/Plotting.cpp:137
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:136
+#: src/core/graphics/Plotting.cpp:137
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:170
+#: src/core/graphics/Plotting.cpp:178
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:183
+#: src/core/graphics/Plotting.cpp:191
 msgid "Plot generation skipped as per user request (--plot 0)."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:188
+#: src/core/graphics/Plotting.cpp:196
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:213
+#: src/core/graphics/Plotting.cpp:228
 msgid "SNR Curves - Summary ("
 msgstr ""
 
