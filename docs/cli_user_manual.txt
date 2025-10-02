@@ -105,8 +105,8 @@ Examples (first example is default and is equivalent to not specifying the param
 
 --raw-channel -w <R G1 G2 B AVG>
 Definition: specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
-Explanation: Bayer image sensors consists of 4 RAW channels (R, G1, G2, B) following a 2x2 colur filter array. Also expected and desirable, nothing states these 4 channel will have the same performance. This command allows to separately calculate the scatterplot, SNR curves and DR values for each channel. The corresponding differentiated colour will be used in the plots for each channel
-Usage: the most obvious and standard usage of this command is to perform the average (AVG) of all 4 RAW channel, so all of them are equally taken into account. For any other specific analysis this command must be used
+Explanation: Bayer image sensors consist of 4 RAW channels (R, G1, G2, B) following a 2x2 colour filter array. Both expected and desirable, nothing states these 4 channels will have the same performance. This command allows to separately calculate the scatterplot, SNR curves and DR values for each channel to find out. The corresponding differentiated colour will be used in the plots for each channel
+Usage: the most obvious and standard usage of this command is to perform the average (AVG) of all 4 RAW channels, so all of them are equally taken into account. For any other specific analysis this command can be used
 Examples (first example is default and is equivalent to not specifying the parameter):
 --raw-channel -w           (average 4 RAW channels)
 --raw-channel -w 0 0 0 0 1 (average 4 RAW channels)
@@ -148,6 +148,7 @@ Usage: the user can additionally supply a output name for the PNG file
 Examples (first example is default and is equivalent to not specifying the parameter):
 --print-patches -P                     (display used patches in "printpatches.png") 
 --print-patches -P patch_debugging.png (display used patches in "patch_debugging.png") 
+
 
 
 
