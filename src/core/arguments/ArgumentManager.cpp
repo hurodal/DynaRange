@@ -42,14 +42,20 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
-    m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
+    
+    // Internal flags
+    m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
+    m_descriptors["black-level-is-default"] = {"black-level-is-default", "", "", ArgType::Flag, true};
+    m_descriptors["saturation-level-is-default"] = {"saturation-level-is-default", "", "", ArgType::Flag, true};
+
     // Chart arguments
     m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
     m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
     m_descriptors["chart-coords"] = {"chart-coords", "x", _("Test chart defined by 4 corners: tl, bl, br, tr"), ArgType::DoubleVector, std::vector<double>()};
     m_descriptors["chart-patches"] = {"chart-patches", "M", _("Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
+    
     m_is_registered = true;
 }
 
@@ -108,10 +114,22 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (chart_colour_opt->count() > 0) m_values["chart-colour"] = temp_opts.chart_colour_params;
     if (chart_patches_opt->count() > 0) m_values["chart-patches"] = temp_opts.chart_patches;
     if (chart_coords_opt->count() > 0) m_values["chart-coords"] = temp_opts.chart_coords;
-    if (black_file_opt->count() > 0) m_values["black-file"] = temp_opts.dark_file_path;
-    if (black_level_opt->count() > 0) m_values["black-level"] = temp_opts.dark_value;
+
+    if (black_file_opt->count() > 0) {
+        m_values["black-file"] = temp_opts.dark_file_path;
+        m_values["black-level-is-default"] = false;
+    }
+    if (black_level_opt->count() > 0) {
+        m_values["black-level"] = temp_opts.dark_value;
+        m_values["black-level-is-default"] = false;
+    }
+
     if (sat_file_opt->count() > 0) m_values["saturation-file"] = temp_opts.sat_file_path;
-    if (sat_level_opt->count() > 0) m_values["saturation-level"] = temp_opts.saturation_value;
+    if (sat_level_opt->count() > 0) {
+        m_values["saturation-level"] = temp_opts.saturation_value;
+        m_values["saturation-level-is-default"] = false;
+    }
+
     if (output_opt->count() > 0) m_values["output-file"] = temp_opts.output_filename;
     if (dr_norm_opt->count() > 0) m_values["drnormalization-mpx"] = temp_opts.dr_normalization_mpx;
     if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
@@ -120,11 +138,13 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
     
     m_values["input-files"] = temp_opts.input_files;
+
     if (snr_opt->count() > 0) {
         m_values["snrthreshold-db"] = temp_snr_thresholds[0];
         m_values["snr-threshold-is-default"] = false;
     }
 }
+
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
     
@@ -144,6 +164,9 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.patch_ratio = Get<double>("patch-ratio");
     opts.plot_mode = Get<int>("plot");
     opts.print_patch_filename = Get<std::string>("print-patches");
+
+    opts.black_level_is_default = Get<bool>("black-level-is-default");
+    opts.saturation_level_is_default = Get<bool>("saturation-level-is-default");
 
     if (Get<bool>("snr-threshold-is-default")) {
          opts.snr_thresholds_db = {12.0, 0.0};

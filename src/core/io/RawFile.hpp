@@ -8,6 +8,7 @@
 #include <string>
 #include <libraw/libraw.h>
 #include <opencv2/core/mat.hpp>
+#include <optional> // Required for std::optional
 
 /**
  * @class RawFile
@@ -35,7 +36,6 @@ public:
      * @return A CV_8UC3 cv::Mat in BGR order, ready for display or saving.
      */
     cv::Mat GetProcessedImage();
-    
     // --- Metadata Getters ---
     std::string GetCameraModel() const;
     int GetWidth() const;
@@ -49,6 +49,7 @@ public:
     int GetActiveHeight() const;
     int GetTopMargin() const;
     int GetLeftMargin() const;
+    std::optional<int> GetBitDepth() const;
 
 private:
     std::string m_filename;
@@ -56,7 +57,8 @@ private:
     mutable LibRaw m_raw_processor;
     libraw_processed_image_t* m_decoded_image = nullptr;
     mutable cv::Mat m_raw_image_cache;
-    mutable cv::Mat m_active_raw_image_cache; // Caché para la imagen activa
+    mutable cv::Mat m_active_raw_image_cache;
+    // Cache for the active image
     mutable std::string m_camera_model_cache;
     mutable float m_iso_speed_cache = 0.0f;
 };

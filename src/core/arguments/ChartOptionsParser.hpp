@@ -12,9 +12,9 @@
 
 // All key default values for the test chart are now defined here.
 // This is now the single source of truth for the chart's default state.
-constexpr int DEFAULT_CHART_R = 162;
-constexpr int DEFAULT_CHART_G = 64;
-constexpr int DEFAULT_CHART_B = 104;
+constexpr int DEFAULT_CHART_R = 255;
+constexpr int DEFAULT_CHART_G = 101;
+constexpr int DEFAULT_CHART_B = 164;
 constexpr double DEFAULT_CHART_INV_GAMMA = 1.4;
 constexpr int DEFAULT_CHART_DIM_X = 1920;
 constexpr int DEFAULT_CHART_ASPECT_W = 3;

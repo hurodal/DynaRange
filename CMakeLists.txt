@@ -72,6 +72,7 @@ set(CORE_SOURCES
     src/core/io/OutputWriter.cpp
     src/core/io/RawFile.cpp
     src/core/math/Math.cpp
+    src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
     src/core/setup/FileSorter.cpp
     src/core/setup/MetadataExtractor.cpp

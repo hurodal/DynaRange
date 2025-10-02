@@ -40,7 +40,7 @@ namespace DynaRange::Constants {
      * @brief The Bayer channel to be used for the dynamic range analysis.
      * @details 0 = R, 1 = G1 (first green), 2 = G2 (second green), 3 = B.
      */
-    constexpr BayerChannel BAYER_CHANNEL_TO_ANALYZE = BayerChannel::B;
+    constexpr BayerChannel BAYER_CHANNEL_TO_ANALYZE = BayerChannel::R;
 
     // --- Patch Filtering Thresholds ---
 

@@ -72,6 +72,7 @@ void DrawGeneratedTimestamp(cairo_t* cr) {
  * PNG file. It is called by the public-facing Generate...Plot functions.
  * @return An optional string containing the path to the generated plot on success.
  */
+// Esta función (privada) existía y ha sido modificada.
 std::optional<std::string> GeneratePlotInternal(
     const std::string& output_filename,
     const std::string& title,
@@ -85,17 +86,27 @@ std::optional<std::string> GeneratePlotInternal(
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"." << std::endl;
+        log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"."
+ << std::endl;
         cairo_surface_destroy(surface);
         return std::nullopt;
     }
 
     // 2. Create and populate the PlotInfoBox
     PlotInfoBox info_box;
-    std::stringstream black_ss, sat_ss;
+    
+    // Prepare Black level string and its optional annotation
+    std::stringstream black_ss;
     black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
+    std::string black_annotation = "";
+    if (opts.black_level_is_default) {
+        black_annotation = _(" (estimated)");
+    }
+    info_box.AddItem(_("Black"), black_ss.str(), black_annotation);
+
+    // Prepare Saturation level string (no annotation needed for this one)
+    std::stringstream sat_ss;
     sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
-    info_box.AddItem(_("Black"), black_ss.str());
     info_box.AddItem(_("Saturation"), sat_ss.str());
 
     // 3. Draw all components
@@ -103,12 +114,12 @@ std::optional<std::string> GeneratePlotInternal(
     DrawPlotBase(cr, title, opts, bounds, command_text, opts.snr_thresholds_db);
     DrawCurvesAndData(cr, info_box, curves_to_plot, results_to_plot, bounds);
     DrawGeneratedTimestamp(cr);
-
+    
     // 4. Write PNG and clean up
     bool success = OutputWriter::WritePng(surface, output_filename, log_stream);
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
-
+    
     if (success) {
         return output_filename;
     }

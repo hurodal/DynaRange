@@ -112,9 +112,33 @@ cv::Mat RawFile::GetProcessedImage() {
     return bgr_image;
 }
 
+// Esta función existía y ha sido modificada para hacerla más robusta.
 int RawFile::GetBlackLevelFromMetadata() const {
     if (!m_is_loaded) return 0;
-    return m_raw_processor.imgdata.color.black;
+
+    // 1. Try the generic black level field first. This is the main value calculated by LibRaw.
+    int black_level = m_raw_processor.imgdata.color.black;
+    if (black_level > 0) {
+        return black_level;
+    }
+
+    // 2. If it fails, iterate through the entire `cblack` array to find any non-zero
+    // per-channel values and average them. This is a much more robust fallback.
+    double sum = 0;
+    int count = 0;
+    // Iterate through the whole array provided by the LibRaw macro.
+    for (int i = 0; i < LIBRAW_CBLACK_SIZE; ++i) {
+        if (m_raw_processor.imgdata.color.cblack[i] > 0) {
+            sum += m_raw_processor.imgdata.color.cblack[i];
+            count++;
+        }
+    }
+    if (count > 0) {
+        return static_cast<int>(std::round(sum / count));
+    }
+
+    // 3. If all methods fail, return 0 to signal that no value was found.
+    return 0;
 }
 
 int RawFile::GetActiveWidth() const {
@@ -162,4 +186,22 @@ cv::Mat RawFile::GetActiveRawImage() const {
     // Crop, clone (to ensure continuous memory), and cache.
     m_active_raw_image_cache = full_raw_image(active_area).clone();
     return m_active_raw_image_cache;
+}
+
+std::optional<int> RawFile::GetBitDepth() const {
+    if (!m_is_loaded) return std::nullopt;
+
+    // Use the maximum value from the color data metadata. This is the most
+    // compatible and reliable field across different LibRaw versions.
+    int max_val = m_raw_processor.imgdata.color.maximum;
+    
+    if (max_val > 0) {
+        // Calculate bit depth as the ceiling of log base 2 of the max value.
+        // e.g., log2(4095) = 11.99 -> 12 bits. log2(16383) = 13.99 -> 14 bits.
+        return static_cast<int>(std::ceil(std::log2(static_cast<double>(max_val))));
+    }
+
+    // If no metadata was found (`max_val` is 0), return an empty optional
+    // to signal that a fallback value must be used by the caller.
+    return std::nullopt; 
 }

@@ -5,12 +5,13 @@
  */
 #include "Initialization.hpp"
 #include "../analysis/RawProcessor.hpp"
-#include "../setup/MetadataExtractor.hpp"
-#include "../setup/SensorResolution.hpp"
-#include "../setup/FileSorter.hpp"
-#include "../setup/PlotLabelGenerator.hpp"
-#include "../utils/CommandGenerator.hpp"
 #include "../Constants.hpp"
+#include "../setup/CalibrationEstimator.hpp"
+#include "../setup/FileSorter.hpp"
+#include "../setup/MetadataExtractor.hpp"
+#include "../setup/PlotLabelGenerator.hpp"
+#include "../setup/SensorResolution.hpp"
+#include "../utils/CommandGenerator.hpp"
 #include <set> 
 #include <iomanip>
 #include <filesystem>
@@ -23,7 +24,7 @@ namespace fs = std::filesystem;
 
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
-    // --- Deduplicate Input Files ---
+    // --- 1. Deduplicate Input Files ---
     if (!opts.input_files.empty()) {
         std::vector<std::string> unique_files;
         std::set<std::string> seen_files;
@@ -38,29 +39,51 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         opts.input_files = unique_files;
     }
 
-    if (!opts.dark_file_path.empty()) {
-        auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
-        if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false;
-        }
-        opts.dark_value = *dark_val_opt;
-    }
-    if (!opts.sat_file_path.empty()) {
-        auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
-        if (!sat_val_opt) { log_stream << _("Fatal error processing saturation frame.") << std::endl; return false;
-        }
-        opts.saturation_value = *sat_val_opt;
-    }
-
-    // --- SETUP PROCESS ORCHESTRATION ---
-    log_stream << _("Pre-analyzing files to determine sorting order...") << std::endl;
+    // --- 2. Pre-analysis of all files to get metadata (moved to the beginning) ---
+    log_stream << _("Pre-analyzing files to extract metadata...") << std::endl;
     auto file_info = ExtractFileInfo(opts.input_files, log_stream);
     if (file_info.empty()) {
         log_stream << _("Error: None of the input files could be processed.") << std::endl;
         return false;
     }
 
-    // --- Impresión de tabla con anchos dinámicos ---
-    // 1. Medir anchos máximos
+    // --- 3. DEFAULT CALIBRATION ESTIMATION (now uses pre-analyzed data) ---
+    if (opts.dark_file_path.empty() && opts.black_level_is_default) {
+        log_stream << _("[INFO] Black level not specified. Attempting to estimate from RAW file...") << std::endl;
+        auto estimated_black = CalibrationEstimator::EstimateBlackLevel(opts, file_info, log_stream);
+        if (estimated_black) {
+            opts.dark_value = *estimated_black;
+        } else {
+            log_stream << _("[Warning] Could not estimate black level. Using fallback default value: ") 
+                       << opts.dark_value << std::endl;
+        }
+    }
+
+    if (opts.sat_file_path.empty() && opts.saturation_level_is_default) {
+        log_stream << _("[INFO] Saturation level not specified. Attempting to estimate from RAW file...") << std::endl;
+        auto estimated_sat = CalibrationEstimator::EstimateSaturationLevel(opts, file_info, log_stream);
+        if (estimated_sat) {
+            opts.saturation_value = *estimated_sat;
+        } else {
+            log_stream << _("[Warning] Could not estimate saturation level. Using fallback default value: ")
+                       << opts.saturation_value << std::endl;
+        }
+    }
+
+    // --- 4. CALIBRATION FROM EXPLICIT FILES ---
+    if (!opts.dark_file_path.empty()) {
+        auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
+        if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false; }
+        opts.dark_value = *dark_val_opt;
+    }
+    if (!opts.sat_file_path.empty()) {
+        auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
+        if (!sat_val_opt) { log_stream << _("Fatal error processing saturation frame.") << std::endl; return false; }
+        opts.saturation_value = *sat_val_opt;
+    }
+
+    // --- 5. SETUP PROCESS ORCHESTRATION (using already extracted metadata) ---
+    // --- Print table with dynamic widths ---
     size_t max_file_width = strlen("File");
     size_t max_bright_width = strlen("Brightness");
     size_t max_iso_width = strlen("ISO");
@@ -76,12 +99,11 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         max_iso_width = std::max(max_iso_width, iso_ss.str().length());
     }
 
-    // Añadir un padding de 2 espacios
     max_file_width += 2;
     max_bright_width += 2;
     max_iso_width += 2;
 
-    // 2. Imprimir la tabla
+    log_stream << "\n" << _("Sorting files based on pre-analyzed data:") << std::endl;
     log_stream << "  " << std::left << std::setw(max_file_width) << "File"
                << std::right << std::setw(max_bright_width) << "Brightness"
                << std::right << std::setw(max_iso_width) << "ISO" << std::endl;
@@ -101,38 +123,26 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     opts.input_files = order.sorted_filenames;
     opts.plot_labels = labels;
 
-    // Detect sensor resolution after sorting messages have been printed.
     if (opts.sensor_resolution_mpx == 0.0) {
         opts.sensor_resolution_mpx = DetectSensorResolution(opts.input_files, log_stream);
     }
 
-    // --- PRINT FINAL CONFIGURATION ---
+    // --- 6. PRINT FINAL CONFIGURATION ---
     log_stream << std::fixed << std::setprecision(2);
     log_stream << "\n" << _("[Final configuration]") << std::endl;
-    log_stream << _("Black level: ") << opts.dark_value << std::endl;
+    log_stream << _("Black level: ") << opts.dark_value 
+               << (opts.black_level_is_default ? _(" (estimated)") : "") << std::endl;
     log_stream << _("Saturation point: ") << opts.saturation_value << std::endl;
 
-    // Add a log message to indicate which Bayer channel is being used.
     std::string channel_name;
     switch (DynaRange::Constants::BAYER_CHANNEL_TO_ANALYZE) {
-        case DynaRange::Constants::BayerChannel::R:
-            channel_name = "Red (R)";
-            break;
-        case DynaRange::Constants::BayerChannel::G1:
-            channel_name = "Green 1 (G1)";
-            break;
-        case DynaRange::Constants::BayerChannel::G2:
-            channel_name = "Green 2 (G2)";
-            break;
-        case DynaRange::Constants::BayerChannel::B:
-            channel_name = "Blue (B)";
-            break;
-        default:
-            channel_name = "Unknown";
-            break;
+        case DynaRange::Constants::BayerChannel::R: channel_name = "Red (R)"; break;
+        case DynaRange::Constants::BayerChannel::G1: channel_name = "Green 1 (G1)"; break;
+        case DynaRange::Constants::BayerChannel::G2: channel_name = "Green 2 (G2)"; break;
+        case DynaRange::Constants::BayerChannel::B: channel_name = "Blue (B)"; break;
+        default: channel_name = "Unknown"; break;
     }
     log_stream << _("Analysis channel: ") << channel_name << std::endl;
-
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }
@@ -146,14 +156,12 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
     log_stream << _("Plotting: ");
     switch (opts.plot_mode) {
-        case 0: log_stream << _("No graphics") << std::endl;
-        break;
+        case 0: log_stream << _("No graphics") << std::endl; break;
         case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
         case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
         case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
     }    
     log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
-    
     if (opts.plot_mode == 2) {
         opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);
     } else if (opts.plot_mode == 3) {

@@ -43,6 +43,7 @@ enum class CommandFormat {
     PlotLong,
     GuiPreview
 };
+
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
@@ -69,6 +70,10 @@ struct ProgramOptions {
     double sensor_resolution_mpx = 0.0;
     std::string print_patch_filename;
 
+    // --- Internal Flags ---
+    bool black_level_is_default = true;
+    bool saturation_level_is_default = true;
+    
     int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

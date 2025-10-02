@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-02 15:22+0200\n"
+"POT-Creation-Date: 2025-10-02 18:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:99
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:110
 msgid "Saturation"
 msgstr ""
 
@@ -427,28 +427,28 @@ msgstr ""
 msgid "Export SNR curves in PNG format..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:46
+#: src/core/arguments/ArgumentManager.cpp:45
 msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:48
+#: src/core/arguments/ArgumentManager.cpp:53
 msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:49
+#: src/core/arguments/ArgumentManager.cpp:54
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:51
+#: src/core/arguments/ArgumentManager.cpp:56
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:52
+#: src/core/arguments/ArgumentManager.cpp:57
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:57
+#: src/core/arguments/ArgumentManager.cpp:63
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
@@ -460,94 +460,123 @@ msgstr ""
 msgid "[INFO] Analysis cancelled by user."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:35
+#: src/core/engine/Initialization.cpp:36
 msgid "Warning: Duplicate input file ignored: "
 msgstr ""
 
 #: src/core/engine/Initialization.cpp:43
-msgid "Fatal error processing dark frame."
+msgid "Pre-analyzing files to extract metadata..."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:49
-msgid "Fatal error processing saturation frame."
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:55
-msgid "Pre-analyzing files to determine sorting order..."
-msgstr ""
-
-#: src/core/engine/Initialization.cpp:58
+#: src/core/engine/Initialization.cpp:46
 msgid "Error: None of the input files could be processed."
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:111
+#: src/core/engine/Initialization.cpp:52
+msgid ""
+"[INFO] Black level not specified. Attempting to estimate from RAW file..."
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:57
+msgid ""
+"[Warning] Could not estimate black level. Using fallback default value: "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:63
+msgid ""
+"[INFO] Saturation level not specified. Attempting to estimate from RAW "
+"file..."
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:68
+msgid ""
+"[Warning] Could not estimate saturation level. Using fallback default value: "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:76
+msgid "Fatal error processing dark frame."
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:81
+msgid "Fatal error processing saturation frame."
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:106
+msgid "Sorting files based on pre-analyzed data:"
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:132
 msgid "[Final configuration]"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:112
+#: src/core/engine/Initialization.cpp:133
 msgid "Black level: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:113
+#: src/core/engine/Initialization.cpp:134 src/core/graphics/Plotting.cpp:103
+msgid " (estimated)"
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:135
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:134
+#: src/core/engine/Initialization.cpp:145
 msgid "Analysis channel: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:137
+#: src/core/engine/Initialization.cpp:147
 msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:137
-#: src/core/engine/Initialization.cpp:144
+#: src/core/engine/Initialization.cpp:147
+#: src/core/engine/Initialization.cpp:154
 #: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:139
+#: src/core/engine/Initialization.cpp:149
 msgid "SNR threshold(s): "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:143
+#: src/core/engine/Initialization.cpp:153
 msgid " dB"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:144
+#: src/core/engine/Initialization.cpp:154
 msgid "DR normalization: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:145
+#: src/core/engine/Initialization.cpp:155
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:146
+#: src/core/engine/Initialization.cpp:156
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:147
+#: src/core/engine/Initialization.cpp:157
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:149
+#: src/core/engine/Initialization.cpp:159
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:151
+#: src/core/engine/Initialization.cpp:160
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:152
+#: src/core/engine/Initialization.cpp:161
 msgid "Graphics with short command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:153
+#: src/core/engine/Initialization.cpp:162
 msgid "Graphics with long command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:155
+#: src/core/engine/Initialization.cpp:164
 msgid "Output file: "
 msgstr ""
 
@@ -686,35 +715,35 @@ msgstr ""
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:88
+#: src/core/graphics/Plotting.cpp:89
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:98
+#: src/core/graphics/Plotting.cpp:105
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:137
+#: src/core/graphics/Plotting.cpp:148
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:137
+#: src/core/graphics/Plotting.cpp:148
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:178
+#: src/core/graphics/Plotting.cpp:189
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:191
+#: src/core/graphics/Plotting.cpp:202
 msgid "Plot generation skipped as per user request (--plot 0)."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:196
+#: src/core/graphics/Plotting.cpp:207
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:228
+#: src/core/graphics/Plotting.cpp:239
 msgid "SNR Curves - Summary ("
 msgstr ""
 
@@ -728,6 +757,70 @@ msgstr ""
 
 #: src/core/io/OutputWriter.cpp:70
 msgid "Error: OpenCV exception while saving debug image: "
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:33
+msgid "  - Selecting '"
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:34
+msgid "' for estimation (it is the darkest image)."
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:38
+msgid "  - [Warning] Could not open RAW file to estimate black level: "
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:44
+msgid "  - [Warning] Could not get active image area to estimate black level."
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:52
+msgid ""
+"  - [Warning] Minimum pixel value is too low to reliably estimate black "
+"level. Using fallback."
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:60
+msgid ""
+"  - Estimated black level as the nearest power of 2 to the minimum pixel "
+"value."
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:61
+msgid ""
+"  - NOTE: For maximum accuracy, providing a dedicated dark frame (-B) is "
+"recommended."
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:62
+msgid "  - Minimum pixel value found: "
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:62
+msgid ". Estimated black level: "
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:83
+msgid "  - [Warning] Could not open RAW file to estimate saturation level: "
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:92
+msgid "  - Estimated from '"
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:97
+msgid ""
+"  - [Warning] Could not determine bit depth from RAW metadata. Using a "
+"default fallback of "
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:98
+msgid " bits. This value may not be accurate for your camera."
+msgstr ""
+
+#: src/core/setup/CalibrationEstimator.cpp:99
+msgid "  - Estimated saturation level: "
 msgstr ""
 
 #: src/core/setup/ChartProfile.cpp:43
