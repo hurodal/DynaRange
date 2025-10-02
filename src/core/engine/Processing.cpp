@@ -50,6 +50,7 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
  * @param keystone_params The pre-calculated keystone transformation parameters.
  * @param log_stream The output stream for logging.
  * @param camera_resolution_mpx The resolution of the camera sensor in megapixels.
+ * @param generate_debug_image Only most low iso image must generate printpatches.png.
  * @return A SingleFileResult struct containing the analysis results.
  */
 SingleFileResult AnalyzeSingleRawFile(
@@ -58,57 +59,24 @@ SingleFileResult AnalyzeSingleRawFile(
     const ChartProfile& chart, 
     const Eigen::VectorXd& keystone_params,
     std::ostream& log_stream,
-    double camera_resolution_mpx)
+    double camera_resolution_mpx,
+    bool generate_debug_image) // New parameter to control debug image generation
 {
     log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
-    // All image preparation logic is now delegated to the ImageProcessing module,
-    // making this function a pure orchestrator, thus adhering to SRP.
+    
     // 1. Prepare the image for analysis.
     cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
     if (img_prepared.empty()) {
         log_stream << _("Error: Failed to prepare image for analysis: ") << raw_file.GetFilename() << std::endl;
         return {};
     }
-    // --- PUNTO DE CONTROL 4 ---
-    #if DEBUG_IA_ON == 1
-        cv::Scalar mean_val, stddev_val;
-        cv::meanStdDev(img_prepared, mean_val, stddev_val);
-        log_stream << "--- DEBUG IA: Final Image Stats (Point 4) ---" << std::endl;
-        log_stream << "Image Mean:   " << std::fixed << std::setprecision(8) << mean_val[0] << std::endl;
-        log_stream << "Image StdDev: " << std::fixed << std::setprecision(8) << stddev_val[0] << std::endl;
-        log_stream << "-----------------------------------------------" << std::endl;
-        log_stream << "--- DEBUG IA: Finalizando el programa en el punto de control. ---" << std::endl;
-        //exit(0);
-    #endif
-    // --- FIN PUNTO DE CONTROL 4 ---    
-    // 2. Call Analysis module to find patches on the prepared image.
-    PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio);
+       
+    // 2. Call Analysis module, passing the flag to conditionally create the overlay.
+    PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, generate_debug_image);
     if (patch_data.signal.empty()) {
         log_stream << _("Warning: No valid patches found for ") << raw_file.GetFilename() << std::endl;
         return {};
     }
-    
-    // --- PUNTO DE CONTROL 2 ---
-        #if DEBUG_IA_ON == 1
-        if (!patch_data.signal.empty()) {
-            // Usamos el ostream del log para mantener la salida ordenada
-            log_stream << "--- DEBUG IA: AnalyzePatches Output for " << fs::path(raw_file.GetFilename()).filename().string() << " ---" << std::endl;
-            log_stream << "Signal values (" << patch_data.signal.size() << " patches): ";
-            for (const auto& s : patch_data.signal) {
-                log_stream << std::fixed << std::setprecision(4) << s << " ";
-            }
-            log_stream << std::endl;
-
-            log_stream << "Noise values (" << patch_data.noise.size() << " patches):  ";
-            for (const auto& n : patch_data.noise) {
-                log_stream << std::fixed << std::setprecision(4) << n << " ";
-            }
-            log_stream << std::endl;
-            log_stream << "--------------------------------------------------------" << std::endl;
-            //exit(0);
-        }
-        #endif
-    // --- FIN PUNTO DE CONTROL 2 ---
     
     // 3. Call Analysis module to perform calculations.
     auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
@@ -123,23 +91,24 @@ SingleFileResult AnalyzeSingleRawFile(
     // 5. Store the numeric ISO speed for the individual plot title.
     curve_data.iso_speed = raw_file.GetIsoSpeed();
 
-    // 6. Create the final gamma-corrected debug image.
-    cv::Mat final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
-    if (final_debug_image.empty() && !opts.print_patch_filename.empty()) {
-        log_stream << "  - " << _("Warning: Could not generate debug patch image for this file. Input data may be invalid (e.g., bad keystone correction).") << std::endl;
+    // 6. Create the final gamma-corrected debug image only if it was generated.
+    cv::Mat final_debug_image;
+    if (generate_debug_image) {
+        final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
+        if (final_debug_image.empty()) {
+            log_stream << "  - " << _("Warning: Could not generate debug patch image for this file. Input data may be invalid (e.g., bad keystone correction).") << std::endl;
+        }
     }
 
     return {dr_result, curve_data, final_debug_image};
 }
-
 } // end of anonymous namespace
-
-// File: src/core/engine/Processing.cpp
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     ProcessingResult result;
     // 1. Load files (I/O Responsibility)
     std::vector<RawFile> raw_files = LoadRawFiles(opts.input_files, log_stream);
+    
     // 2. Attempt automatic corner detection if no manual coordinates are provided.
     std::optional<std::vector<cv::Point2d>> detected_corners_opt;
     if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
@@ -160,47 +129,12 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         cv::threshold(g1_bayer, g1_bayer, 0.0, 0.0, cv::THRESH_TOZERO);
         detected_corners_opt = DetectChartCorners(g1_bayer, log_stream);
 
-        // --- VALIDATION LOGIC ---
-        // If corners were detected, validate their area.
-        if (detected_corners_opt.has_value()) {
-
-            // Convert Point2d (double) to Point2f (float) for contourArea compatibility ---
-            std::vector<cv::Point2f> corners_float;
-            for (const auto& pt : *detected_corners_opt) {
-                corners_float.push_back(cv::Point2f(static_cast<float>(pt.x), static_cast<float>(pt.y)));
-            }
-
-            double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
-            double detected_chart_area = cv::contourArea(corners_float); // Use the converted vector
-            double area_percentage = (detected_chart_area / total_image_area);
-
-            // Check if the detected area is smaller than the required minimum.
-            if (area_percentage < DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
-                log_stream << _("Warning: Automatic corner detection found an area covering only ")
-                           << std::fixed << std::setprecision(1) << (area_percentage * 100.0)
-                           << _("% of the image. This is below the required threshold of ")
-                           << (DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE * 100.0)
-                           << _(" %. Discarding detected corners and falling back to defaults.") << std::endl;
-                
-                // Discard the detected corners by resetting the optional.
-                detected_corners_opt.reset();
-            }
-        }
-        // --- END OF VALIDATION LOGIC ---
-
-
-        // Si la detección tuvo éxito y el modo debug está activo, guarda la imagen con las cruces.
-        // Este bloque ahora se compila condicionalmente.
         #if DYNA_RANGE_DEBUG_MODE == 1
         if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG && detected_corners_opt.has_value()) {
             log_stream << "  - [DEBUG] Saving corner detection visual confirmation to 'debug_corners_detected.png'..." << std::endl;
-            // Se crea una copia de la imagen lineal para procesarla visualmente.
             cv::Mat viewable_image;
-            // Se auto-normaliza para estirar el contraste y hacerla visible.
             cv::normalize(g1_bayer, viewable_image, 0.0, 1.0, cv::NORM_MINMAX);
-            // Se dibujan las cruces sobre la imagen ya normalizada y visible.
             cv::Mat image_with_markers = DrawCornerMarkers(viewable_image, *detected_corners_opt);
-            // Se aplica una corrección gamma final para mejorar los tonos medios.
             cv::Mat final_debug_image;
             cv::pow(image_with_markers, 1.0 / 2.2, final_debug_image);
             PathManager paths(opts);
@@ -208,6 +142,24 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             OutputWriter::WriteDebugImage(final_debug_image, debug_path, log_stream);
         }
         #endif
+
+        if (detected_corners_opt.has_value()) {
+            std::vector<cv::Point2f> corners_float;
+            for (const auto& pt : *detected_corners_opt) {
+                corners_float.push_back(cv::Point2f(static_cast<float>(pt.x), static_cast<float>(pt.y)));
+            }
+            double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
+            double detected_chart_area = cv::contourArea(corners_float);
+            double area_percentage = (detected_chart_area / total_image_area);
+            if (area_percentage < DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
+                log_stream << _("Warning: Automatic corner detection found an area covering only ")
+                           << std::fixed << std::setprecision(1) << (area_percentage * 100.0)
+                           << _("% of the image. This is below the required threshold of ")
+                           << (DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE * 100.0)
+                           << _(" %. Discarding detected corners and falling back to defaults.") << std::endl;
+                detected_corners_opt.reset();
+            }
+        }
     }
 
     // 3. Define the context for the analysis (e.g., which chart to use)
@@ -217,8 +169,7 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         camera_model_name = raw_files[0].GetCameraModel();
     }
 
-    // 4. Orchestrate analysis for each file, respecting the keystone optimization setting.
-    bool first_file_processed = false;
+    // 4. Orchestrate analysis for each file.
     if (DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION) {
         log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << std::endl;
         log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << std::endl;
@@ -228,25 +179,21 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             log_stream << _("Debug patch image will be saved to: ") << debug_path.string() << std::endl;
         }
         log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
-
         Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
-        // --- PUNTO DE CONTROL 3 ---
-        #if DEBUG_IA_ON == 1
-            log_stream << "--- DEBUG IA: Keystone Parameters (Point 3) ---" << std::endl;
-            log_stream << std::fixed << std::setprecision(8) << keystone_params << std::endl;
-            log_stream << "-----------------------------------------------" << std::endl;
-            log_stream << "--- DEBUG IA: Finalizando el programa en el punto de control. ---" << std::endl;
-            //exit(0);
-        #endif
-        // --- FIN PUNTO DE CONTROL 3 ---
 
-        for (const auto& raw_file : raw_files) {
+        for (size_t i = 0; i < raw_files.size(); ++i) {
             if (cancel_flag) return {};
+            const auto& raw_file = raw_files[i];
             if (!raw_file.IsLoaded()) continue;
-            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
-            if (!first_file_processed && !file_result.final_debug_image.empty()) {
+
+            // The flag is true only for the first file and only if requested by user.
+            bool generate_debug_image = (i == 0 && !opts.print_patch_filename.empty());
+
+            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, generate_debug_image);
+            
+            // If a debug image was generated (only happens once), store it.
+            if (!file_result.final_debug_image.empty()) {
                 result.debug_patch_image = file_result.final_debug_image;
-                first_file_processed = true;
             }
 
             if (!file_result.dr_result.filename.empty()) {
@@ -256,12 +203,15 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             }
         }
     } else {
+        // This non-optimized path is less common and kept simple.
+        // It will still only save the first debug image due to the logic in FinalizeAndReport.
         log_stream << "Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
         for (const auto& raw_file : raw_files) {
             if (cancel_flag) return {};
             if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
-            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx);
+            // For simplicity, we pass 'true' to always generate, but only the first is kept later.
+            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, !opts.print_patch_filename.empty());
             if (!file_result.dr_result.filename.empty()) {
                 file_result.curve_data.camera_model = camera_model_name;
                 result.dr_results.push_back(file_result.dr_result);
