@@ -6,8 +6,6 @@
 #include "ImageAnalyzer.hpp"
 #include "../../core/DebugConfig.hpp"
 #include <opencv2/imgproc.hpp>
-#include <iostream>
-#include <iomanip>
 
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio) {
     const int width = imgcrop.cols / NCOLS;
