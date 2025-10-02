@@ -3,6 +3,7 @@
 .clang-format
 DynRange.geany
 rango.sublime-workspace
+dynaRange.pot
 
 # Ignorar ejecutables
 sources.sh
