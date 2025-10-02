@@ -9,27 +9,26 @@
 
 std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
     PatchAnalysisResult &patch_data, const ProgramOptions &opts,
-    const std::string &filename, double camera_resolution_mpx) {
+    const std::string &filename, double camera_resolution_mpx,
+    DataSource channel) {
 
-  // Pass all necessary info to the curve calculation function
   SnrCurve snr_curve = CurveCalculator::CalculateSnrCurve(
       patch_data, opts, camera_resolution_mpx);
-
+  
   DynamicRangeResult dr_result;
   dr_result.filename = filename;
-  dr_result.patches_used = (int)patch_data.signal.size();
-
-  // The call is updated to match the new function signature.
+  dr_result.channel = channel;
+  // The responsibility of setting patch counts is moved to the caller (AnalyzeSingleRawFile).
+  
   dr_result.dr_values_ev = CurveCalculator::CalculateDynamicRange(snr_curve, opts.snr_thresholds_db);
 
-  CurveData curve_data = {filename,
-                          "", // plot_label (filled in Processing.cpp)
-                          "", // camera_model (filled in Processing.cpp)
-                          snr_curve.signal_ev,
-                          snr_curve.snr_db,
-                          snr_curve.poly_coeffs.clone(),
-                          {}, // curve_points (initially empty, generated before plotting)
-                          opts.generated_command};
+  CurveData curve_data;
+  curve_data.filename = filename;
+  curve_data.channel = channel;
+  curve_data.signal_ev = snr_curve.signal_ev;
+  curve_data.snr_db = snr_curve.snr_db;
+  curve_data.poly_coeffs = snr_curve.poly_coeffs.clone();
+  curve_data.generated_command = opts.generated_command;
 
   return {dr_result, curve_data};
 }

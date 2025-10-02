@@ -17,7 +17,6 @@ namespace fs = std::filesystem;
 
 namespace CalibrationEstimator {
 
-// Esta función existía y ha sido modificada para usar la potencia de 2 más cercana.
 std::optional<double> EstimateBlackLevel(const ProgramOptions& opts, const std::vector<FileInfo>& file_info, std::ostream& log_stream) {
     if (file_info.empty()) {
         return std::nullopt;
@@ -64,7 +63,6 @@ std::optional<double> EstimateBlackLevel(const ProgramOptions& opts, const std::
     return estimated_black;
 }
 
-// Esta función existía, pero no ha sido modificada en esta iteración.
 std::optional<double> EstimateSaturationLevel(const ProgramOptions& opts, const std::vector<FileInfo>& file_info, std::ostream& log_stream) {
     if (file_info.empty()) {
         return std::nullopt;

@@ -31,16 +31,16 @@ namespace DynaRange::Constants {
     constexpr PlottingModel PLOTTING_MODEL = PlottingModel::SNR_equals_f_EV;
 
     /**
-     * @enum BayerChannel
-     * @brief Defines the channels in a standard RGGB Bayer pattern.
+     * @enum PlotOutputFormat
+     * @brief Defines the output format for generated plots.
      */
-    enum class BayerChannel { R = 0, G1 = 1, G2 = 2, B = 3 };
+    enum class PlotOutputFormat { PNG, PDF };
 
     /**
-     * @brief The Bayer channel to be used for the dynamic range analysis.
-     * @details 0 = R, 1 = G1 (first green), 2 = G2 (second green), 3 = B.
+     * @brief The format to be used for all generated plot files.
+     * @details Change this constant and recompile to switch between PNG and PDF output.
      */
-    constexpr BayerChannel BAYER_CHANNEL_TO_ANALYZE = BayerChannel::R;
+    constexpr PlotOutputFormat PLOT_FORMAT = PlotOutputFormat::PDF;
 
     // --- Patch Filtering Thresholds ---
 
@@ -55,6 +55,5 @@ namespace DynaRange::Constants {
      * @details A value of 0.01 means the patch is discarded if 1% or more of its pixels are saturated.
      */
     constexpr double MAX_SATURATION_RATIO = 0.01;
-
 
 } // namespace DynaRange::Constants

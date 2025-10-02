@@ -42,7 +42,8 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
-    m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('printpatches.png') with the patch overlay."), ArgType::String, std::string("")};
+    m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
+    m_descriptors["raw-channel"] = {"raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int>{0, 0, 0, 0, 1}};
     
     // Internal flags
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
@@ -66,7 +67,9 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
 
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
+    std::vector<int> temp_raw_channels;
     
+    // --- Define all options ---
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(5);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
     auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches, m_descriptors.at("chart-patches").help_text)->expected(2);
@@ -85,31 +88,29 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
     auto print_patch_opt = app.add_option("-P,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
                                 ->expected(0,1)
-                                ->default_str("printpatches.png");
+                                ->default_str("chartpatches.png");
+    // SIMPLIFIED DEFINITION: The option now always requires exactly 5 values.
+    auto raw_channel_opt = app.add_option("-w,--raw-channel", temp_raw_channels, m_descriptors.at("raw-channel").help_text)->expected(5);
 
+    // --- Single Parse Pass ---
     try {
         app.parse(argc, argv);
+
+        // --- Manual Validation Logic ---
+        if (chart_opt->count() == 0 && chart_colour_opt->count() == 0 && input_opt->count() == 0) {
+            throw CLI::RequiredError(_("--input-files is required unless creating a chart with --chart or --chart-colour."));
+        }
+        // The complex validation for raw_channel is no longer needed, CLI11 handles it.
+
     } catch (const CLI::ParseError &e) {
         exit(app.exit(e));
     }
-
-    temp_opts.input_files = PlatformUtils::ExpandWildcards(temp_opts.input_files);
-
+    
+    // --- Store Parsed Values ---
     if (chart_opt->count() > 0 || chart_colour_opt->count() > 0) {
-        temp_opts.create_chart_mode = true;
+        m_values["create-chart-mode"] = true;
     }
     
-    if (!temp_opts.create_chart_mode) {
-        input_opt->required();
-    }
-    
-    try {
-        app.parse(argc, argv);
-    } catch (const CLI::ParseError &e) {
-        exit(app.exit(e));
-    }
-    
-    m_values["create-chart-mode"] = temp_opts.create_chart_mode;
     if (chart_opt->count() > 0) m_values["chart"] = temp_opts.chart_params;
     if (chart_colour_opt->count() > 0) m_values["chart-colour"] = temp_opts.chart_colour_params;
     if (chart_patches_opt->count() > 0) m_values["chart-patches"] = temp_opts.chart_patches;
@@ -132,7 +133,12 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["saturation-level"] = temp_opts.saturation_value;
         m_values["saturation-level-is-default"] = false;
     }
-
+    
+    // If the user provided the option, store the values. Otherwise, the default from RegisterAllArguments will be used.
+    if (raw_channel_opt->count() > 0) {
+        m_values["raw-channel"] = temp_raw_channels;
+    }
+    
     if (output_opt->count() > 0) m_values["output-file"] = temp_opts.output_filename;
     if (dr_norm_opt->count() > 0) m_values["drnormalization-mpx"] = temp_opts.dr_normalization_mpx;
     if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
@@ -140,7 +146,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (plot_opt->count() > 0) m_values["plot"] = temp_opts.plot_mode;
     if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
     
-    m_values["input-files"] = temp_opts.input_files;
+    m_values["input-files"] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
 
     if (snr_opt->count() > 0) {
         m_values["snrthreshold-db"] = temp_snr_thresholds[0];
@@ -154,7 +160,7 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.create_chart_mode = Get<bool>("create-chart-mode");
     opts.chart_params = Get<std::vector<int>>("chart");
     opts.chart_colour_params = Get<std::vector<std::string>>("chart-colour");
-    opts.chart_coords = Get<std::vector<double>>("chart-coords");
+    opts.chart_coords = Get<std::vector<double>>("chart-coords");    
     opts.chart_patches = Get<std::vector<int>>("chart-patches");    
     opts.dark_value = Get<double>("black-level");
     opts.saturation_value = Get<double>("saturation-level");
@@ -175,6 +181,15 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
          opts.snr_thresholds_db = {12.0, 0.0};
     } else {
          opts.snr_thresholds_db = { Get<double>("snrthreshold-db") };
+    }
+
+    auto channels_vec = Get<std::vector<int>>("raw-channel");
+    if (channels_vec.size() == 5) {
+        opts.raw_channels.R = (channels_vec[0] != 0);
+        opts.raw_channels.G1 = (channels_vec[1] != 0);
+        opts.raw_channels.G2 = (channels_vec[2] != 0);
+        opts.raw_channels.B = (channels_vec[3] != 0);
+        opts.raw_channels.AVG = (channels_vec[4] != 0);
     }
 
     return opts;

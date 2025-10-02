@@ -5,7 +5,6 @@
  */
 #include "Initialization.hpp"
 #include "../analysis/RawProcessor.hpp"
-#include "../Constants.hpp"
 #include "../setup/CalibrationEstimator.hpp"
 #include "../setup/FileSorter.hpp"
 #include "../setup/MetadataExtractor.hpp"
@@ -22,6 +21,7 @@
 
 namespace fs = std::filesystem;
 
+// Esta función existía y ha sido modificada.
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     // --- 1. Deduplicate Input Files ---
@@ -135,15 +135,22 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << _("Saturation point: ") << opts.saturation_value 
                << (opts.saturation_level_is_default ? _(" (estimated)") : "") << std::endl;
 
-    std::string channel_name;
-    switch (DynaRange::Constants::BAYER_CHANNEL_TO_ANALYZE) {
-        case DynaRange::Constants::BayerChannel::R: channel_name = "Red (R)"; break;
-        case DynaRange::Constants::BayerChannel::G1: channel_name = "Green 1 (G1)"; break;
-        case DynaRange::Constants::BayerChannel::G2: channel_name = "Green 2 (G2)"; break;
-        case DynaRange::Constants::BayerChannel::B: channel_name = "Blue (B)"; break;
-        default: channel_name = "Unknown"; break;
+    // New logic to dynamically build the list of channels to be analyzed.
+    std::vector<std::string> selected_channels;
+    if (opts.raw_channels.R) selected_channels.push_back("R");
+    if (opts.raw_channels.G1) selected_channels.push_back("G1");
+    if (opts.raw_channels.G2) selected_channels.push_back("G2");
+    if (opts.raw_channels.B) selected_channels.push_back("B");
+    if (opts.raw_channels.AVG) selected_channels.push_back("AVG");
+
+    std::stringstream channels_ss;
+    for(size_t i = 0; i < selected_channels.size(); ++i) {
+        channels_ss << selected_channels[i] << (i < selected_channels.size() - 1 ? ", " : "");
     }
-    log_stream << _("Analysis channel: ") << channel_name << std::endl;
+    
+    std::string channel_label = (selected_channels.size() > 1) ? _("Analysis channels: ") : _("Analysis channel: ");
+    log_stream << channel_label << channels_ss.str() << std::endl;
+    
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }

@@ -8,6 +8,7 @@
 #include "../io/RawFile.hpp"
 #include "../setup/ChartProfile.hpp"
 #include "../arguments/ArgumentsOptions.hpp"
+#include "../analysis/Analysis.hpp" // For DataSource
 #include <opencv2/core.hpp>
 #include <Eigen/Dense>
 #include <optional>
@@ -22,14 +23,17 @@ Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_poin
  * @return A new cv::Mat containing the rectified image.
  */
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
-
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value);
+
 cv::Mat PrepareChartImage(
     const RawFile& raw_file,
     const ProgramOptions& opts,
     const Eigen::VectorXd& keystone_params,
     const ChartProfile& chart,
-    std::ostream& log_stream);
+    std::ostream& log_stream,
+    DataSource channel_to_extract // New parameter
+);
+
 /**
  * @brief Detects the four corner points of the test chart from a single-channel Bayer image.
  * @param bayer_image The input single-channel image.

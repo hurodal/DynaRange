@@ -21,47 +21,6 @@ namespace fs = std::filesystem;
 namespace { // Anonymous namespace for internal helper functions
 
 /**
- * @brief Generates all individual SNR plot images.
- */
-std::map<std::string, std::string> GenerateIndividualPlots(
-    const std::vector<CurveData>& all_curves_data,
-    const std::vector<DynamicRangeResult>& all_dr_results,
-    const ProgramOptions& opts,
-    const PathManager& paths,
-    std::ostream& log_stream)
-{
-    std::map<std::string, std::string> plot_paths_map;
-    log_stream << "\n" << _("Generating individual SNR plots...") << std::endl;
-    for (const auto& curve : all_curves_data) {
-        fs::path plot_path = paths.GetIndividualPlotPath(curve);
-        plot_paths_map[curve.filename] = plot_path.string();
-
-        std::stringstream title_ss;
-        title_ss << fs::path(curve.filename).filename().string();
-        
-        if (!curve.camera_model.empty()) {
-            title_ss << " (" << curve.camera_model;
-            if (curve.iso_speed > 0) {
-                title_ss << ", " << _("ISO ") << static_cast<int>(curve.iso_speed);
-            }
-            title_ss << ")";
-        }
-
-        // Find the corresponding DR result for the current curve to pass to the plot function.
-        DynamicRangeResult current_dr_result;
-        for(const auto& res : all_dr_results) {
-            if (res.filename == curve.filename) {
-                current_dr_result = res;
-                break;
-            }
-        }
-        
-        GenerateSnrPlot(plot_path.string(), title_ss.str(), curve.plot_label, curve.signal_ev, curve.snr_db, curve.poly_coeffs, current_dr_result, opts, log_stream);
-    }
-    return plot_paths_map;
-}
-
-/**
  * @brief Generates the summary plot image.
  */
 std::optional<std::string> GenerateSummaryPlotReport(
@@ -80,90 +39,6 @@ std::optional<std::string> GenerateSummaryPlotReport(
     return GenerateSummaryPlot(summary_plot_path.string(), camera_name, all_curves_data, all_dr_results, opts, log_stream);
 }
 
-/**
- * @brief Generates a single data row as a formatted string for either log or CSV.
- * @param res The DynamicRangeResult for the row.
- * @param opts The program options (for SNR thresholds).
- * @param for_log If true, formats for console log (with setw). If false, formats for CSV (comma-separated).
- * @return A string containing the formatted row.
- */
-std::string GenerateDataRow(const DynamicRangeResult& res, const ProgramOptions& opts, bool for_log) {
-    std::stringstream row_ss;
-    std::string filename = fs::path(res.filename).filename().string();
-
-    if (for_log) {
-        row_ss << std::left << std::setw(30) << filename;
-    } else {
-        row_ss << filename;
-    }
-
-    for (const double threshold : opts.snr_thresholds_db) {
-        double value = res.dr_values_ev.count(threshold) ? res.dr_values_ev.at(threshold) : 0.0;
-        if (for_log) {
-            row_ss << std::fixed << std::setprecision(4) << std::setw(20) << value;
-        } else {
-            row_ss << "," << value;
-        }
-    }
-
-    if (for_log) {
-        row_ss << res.patches_used;
-    } else {
-        row_ss << "," << res.patches_used;
-    }
-
-    return row_ss.str();
-}
-
-/**
- * @brief (SRP) Generates a formatted table of results for the console log.
- */
-void GenerateLogReport(
-    const std::vector<DynamicRangeResult>& all_results,
-    const ProgramOptions& opts,
-    std::ostream& log_stream)
-{
-    log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
-    // Se delega toda la construcción de la tabla al módulo Formatters.
-    log_stream << Formatters::FormatResultsTable(all_results, opts);
-}
-
-/**
- * @brief (SRP) Generates a CSV file with the analysis results.
- */
-void GenerateCsvReport(
-    const std::vector<DynamicRangeResult>& all_results,
-    const ProgramOptions& opts,
-    const PathManager& paths,
-    std::ostream& log_stream)
-{
-    // --- Open CSV file ---
-    std::ofstream csv_file(paths.GetCsvOutputPath());
-    if (!csv_file.is_open()) {
-        log_stream << "\n" << _("Error: Could not open CSV file for writing: ") << paths.GetCsvOutputPath() << std::endl;
-        return;
-    }
-
-    // --- Generate Header for CSV ---
-    std::stringstream header_csv;
-    header_csv << "raw_file";
-    for (const double threshold : opts.snr_thresholds_db) {
-        std::stringstream col_name_ss;
-        col_name_ss << "DR(" << std::fixed << std::setprecision(1) << threshold << "dB)";
-        header_csv << "," << col_name_ss.str();
-    }
-    header_csv << ",patches_used";
-
-    // --- Write Header and Rows to CSV ---
-    csv_file << header_csv.str() << std::endl;
-    for (const auto& res : all_results) {
-        csv_file << GenerateDataRow(res, opts, false) << std::endl;
-    }
-
-    csv_file.close();
-    log_stream << "\n" << _("Results saved to ") << paths.GetCsvOutputPath().string() << std::endl;
-}
-
 } // end anonymous namespace
 
 ReportOutput FinalizeAndReport(
@@ -177,17 +52,22 @@ ReportOutput FinalizeAndReport(
     // Save the debug patch image if it was requested and generated
     if (!opts.print_patch_filename.empty() && results.debug_patch_image.has_value()) {
         fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
-        // The message is now just for confirmation, as the user was already notified.
         OutputWriter::WriteDebugImage(*results.debug_patch_image, debug_path, log_stream);
     }
 
     output.final_csv_path = paths.GetCsvOutputPath().string();
+    // This call is correct, as GenerateIndividualPlots is now declared in Plotting.hpp
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, results.dr_results, opts, paths, log_stream);
     
-    GenerateLogReport(results.dr_results, opts, log_stream);
+    // Generate the log report by calling the Formatters module directly.
+    log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
+    log_stream << Formatters::FormatResultsTable(results.dr_results, opts);
+    
+    // Generate the CSV file by calling the OutputWriter module.
     OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
     
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, results.dr_results, opts, paths, log_stream);
 
+    output.dr_results = results.dr_results;
     return output;
 }

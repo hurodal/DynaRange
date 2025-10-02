@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-02 19:05+0200\n"
+"POT-Creation-Date: 2025-10-02 23:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:107
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:115
 msgid "Saturation"
 msgstr ""
 
@@ -428,28 +428,38 @@ msgid "Export SNR curves in PNG format..."
 msgstr ""
 
 #: src/core/arguments/ArgumentManager.cpp:45
-msgid "Saves a debug image ('printpatches.png') with the patch overlay."
+msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:53
-msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
+#: src/core/arguments/ArgumentManager.cpp:46
+msgid "Specify which RAW channels to analyze (R G1 G2 B AVG)"
 msgstr ""
 
 #: src/core/arguments/ArgumentManager.cpp:54
+msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:55
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:56
+#: src/core/arguments/ArgumentManager.cpp:57
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:57
+#: src/core/arguments/ArgumentManager.cpp:58
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:63
+#: src/core/arguments/ArgumentManager.cpp:64
 msgid "Calculates the dynamic range from a series of RAW images."
+msgstr ""
+
+#: src/core/arguments/ArgumentManager.cpp:101
+msgid ""
+"--input-files is required unless creating a chart with --chart or --chart-"
+"colour."
 msgstr ""
 
 #: src/core/arguments/ChartOptionsParser.cpp:43
@@ -514,8 +524,9 @@ msgid "Black level: "
 msgstr ""
 
 #: src/core/engine/Initialization.cpp:134
-#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:100
-#: src/core/graphics/Plotting.cpp:106
+#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:108
+#: src/core/graphics/Plotting.cpp:112 src/core/graphics/Plotting.cpp:114
+#: src/core/graphics/Plotting.cpp:115
 msgid " (estimated)"
 msgstr ""
 
@@ -523,62 +534,66 @@ msgstr ""
 msgid "Saturation point: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:146
+#: src/core/engine/Initialization.cpp:151
+msgid "Analysis channels: "
+msgstr ""
+
+#: src/core/engine/Initialization.cpp:151
 msgid "Analysis channel: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:148
+#: src/core/engine/Initialization.cpp:155
 msgid "Sensor resolution: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:148
 #: src/core/engine/Initialization.cpp:155
+#: src/core/engine/Initialization.cpp:162
 #: src/core/setup/SensorResolution.cpp:24
 #: src/core/setup/SensorResolution.cpp:35
 msgid " Mpx"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:150
+#: src/core/engine/Initialization.cpp:157
 msgid "SNR threshold(s): "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:154
+#: src/core/engine/Initialization.cpp:161
 msgid " dB"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:155
+#: src/core/engine/Initialization.cpp:162
 msgid "DR normalization: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:156
+#: src/core/engine/Initialization.cpp:163
 msgid "Polynomic order: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:157
+#: src/core/engine/Initialization.cpp:164
 msgid "Patch ratio: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:158
+#: src/core/engine/Initialization.cpp:165
 msgid "Plotting: "
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:160
+#: src/core/engine/Initialization.cpp:167
 msgid "No graphics"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:161
+#: src/core/engine/Initialization.cpp:168
 msgid "Graphics without command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:162
+#: src/core/engine/Initialization.cpp:169
 msgid "Graphics with short command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:163
+#: src/core/engine/Initialization.cpp:170
 msgid "Graphics with long command CLI"
 msgstr ""
 
-#: src/core/engine/Initialization.cpp:165
+#: src/core/engine/Initialization.cpp:172
 msgid "Output file: "
 msgstr ""
 
@@ -590,79 +605,61 @@ msgstr ""
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:70
-msgid "Error: Failed to prepare image for analysis: "
+#: src/core/engine/Processing.cpp:81
+msgid "Error: Failed to prepare image for analysis for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:77
-msgid "Warning: No valid patches found for "
+#: src/core/engine/Processing.cpp:92
+msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:99
-msgid ""
-"Warning: Could not generate debug patch image for this file. Input data may "
-"be invalid (e.g., bad keystone correction)."
+#: src/core/engine/Processing.cpp:123
+msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:115
+#: src/core/engine/Processing.cpp:142
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:155
+#: src/core/engine/Processing.cpp:182
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:157
+#: src/core/engine/Processing.cpp:184
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:159
+#: src/core/engine/Processing.cpp:186
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:174
+#: src/core/engine/Processing.cpp:201
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:175
+#: src/core/engine/Processing.cpp:202
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:175
+#: src/core/engine/Processing.cpp:202
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:175
+#: src/core/engine/Processing.cpp:202
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:179
+#: src/core/engine/Processing.cpp:206
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:181
+#: src/core/engine/Processing.cpp:208
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:34
-msgid "Generating individual SNR plots..."
-msgstr ""
-
-#: src/core/engine/Reporting.cpp:45 src/core/setup/PlotLabelGenerator.cpp:31
-msgid "ISO "
-msgstr ""
-
-#: src/core/engine/Reporting.cpp:126
+#: src/core/engine/Reporting.cpp:63
 msgid "Dynamic Range Results"
-msgstr ""
-
-#: src/core/engine/Reporting.cpp:143 src/core/io/OutputWriter.cpp:38
-msgid "Error: Could not open CSV file for writing: "
-msgstr ""
-
-#: src/core/engine/Reporting.cpp:164 src/core/io/OutputWriter.cpp:49
-msgid "Results saved to "
 msgstr ""
 
 #: src/core/engine/Validation.cpp:56
@@ -693,15 +690,15 @@ msgstr ""
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:74
+#: src/core/graphics/ImageProcessing.cpp:73
 msgid "Error: Could not get raw image for: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:147
+#: src/core/graphics/ImageProcessing.cpp:141
 msgid "Error: Invalid crop area calculated for keystone correction."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:307
+#: src/core/graphics/ImageProcessing.cpp:216
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
@@ -713,44 +710,60 @@ msgstr ""
 msgid "SNR (dB)"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:49
+#: src/core/graphics/Plotting.cpp:51
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:88
+#: src/core/graphics/Plotting.cpp:98
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:101
+#: src/core/graphics/Plotting.cpp:114
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:145
+#: src/core/graphics/Plotting.cpp:130 src/core/io/OutputWriter.cpp:24
+msgid "  - Info: Plot saved to: "
+msgstr ""
+
+#: src/core/graphics/Plotting.cpp:163
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:145
+#: src/core/graphics/Plotting.cpp:163
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:186
+#: src/core/graphics/Plotting.cpp:197
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:199
+#: src/core/graphics/Plotting.cpp:211
 msgid "Plot generation skipped as per user request (--plot 0)."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:204
+#: src/core/graphics/Plotting.cpp:216
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:236
+#: src/core/graphics/Plotting.cpp:248
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/io/OutputWriter.cpp:24
-msgid "  - Info: Plot saved to: "
+#: src/core/graphics/Plotting.cpp:264
+msgid "Generating individual SNR plots..."
+msgstr ""
+
+#: src/core/graphics/Plotting.cpp:295 src/core/setup/PlotLabelGenerator.cpp:31
+msgid "ISO "
+msgstr ""
+
+#: src/core/io/OutputWriter.cpp:38
+msgid "Error: Could not open CSV file for writing: "
+msgstr ""
+
+#: src/core/io/OutputWriter.cpp:49
+msgid "Results saved to "
 msgstr ""
 
 #: src/core/io/OutputWriter.cpp:66
@@ -761,67 +774,67 @@ msgstr ""
 msgid "Error: OpenCV exception while saving debug image: "
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:33
+#: src/core/setup/CalibrationEstimator.cpp:32
 msgid "  - Selecting '"
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:34
+#: src/core/setup/CalibrationEstimator.cpp:33
 msgid "' for estimation (it is the darkest image)."
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:38
+#: src/core/setup/CalibrationEstimator.cpp:37
 msgid "  - [Warning] Could not open RAW file to estimate black level: "
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:44
+#: src/core/setup/CalibrationEstimator.cpp:43
 msgid "  - [Warning] Could not get active image area to estimate black level."
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:52
+#: src/core/setup/CalibrationEstimator.cpp:51
 msgid ""
 "  - [Warning] Minimum pixel value is too low to reliably estimate black "
 "level. Using fallback."
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:60
+#: src/core/setup/CalibrationEstimator.cpp:59
 msgid ""
 "  - Estimated black level as the nearest power of 2 to the minimum pixel "
 "value."
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:61
+#: src/core/setup/CalibrationEstimator.cpp:60
 msgid ""
 "  - NOTE: For maximum accuracy, providing a dedicated dark frame (-B) is "
 "recommended."
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:62
+#: src/core/setup/CalibrationEstimator.cpp:61
 msgid "  - Minimum pixel value found: "
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:62
+#: src/core/setup/CalibrationEstimator.cpp:61
 msgid ". Estimated black level: "
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:83
+#: src/core/setup/CalibrationEstimator.cpp:81
 msgid "  - [Warning] Could not open RAW file to estimate saturation level: "
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:92
+#: src/core/setup/CalibrationEstimator.cpp:90
 msgid "  - Estimated from '"
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:97
+#: src/core/setup/CalibrationEstimator.cpp:95
 msgid ""
 "  - [Warning] Could not determine bit depth from RAW metadata. Using a "
 "default fallback of "
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:98
+#: src/core/setup/CalibrationEstimator.cpp:96
 msgid " bits. This value may not be accurate for your camera."
 msgstr ""
 
-#: src/core/setup/CalibrationEstimator.cpp:99
+#: src/core/setup/CalibrationEstimator.cpp:97
 msgid "  - Estimated saturation level: "
 msgstr ""
 
@@ -874,10 +887,10 @@ msgstr ""
 msgid "Sensor resolution inferred from RAW dimensions: "
 msgstr ""
 
-#: src/core/utils/Formatters.cpp:28
-msgid "RAW File"
+#: src/core/utils/Formatters.cpp:37
+msgid "raw_file"
 msgstr ""
 
-#: src/core/utils/Formatters.cpp:35
-msgid "Patches"
+#: src/core/utils/Formatters.cpp:38
+msgid "raw_channel"
 msgstr ""

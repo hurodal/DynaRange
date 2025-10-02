@@ -60,14 +60,13 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     return imgCorrected;
 }
 
-// File: src/core/graphics/ImageProcessing.cpp
-
 cv::Mat PrepareChartImage(
     const RawFile& raw_file, 
     const ProgramOptions& opts, 
     const Eigen::VectorXd& keystone_params,
     const ChartProfile& chart, 
-    std::ostream& log_stream) 
+    std::ostream& log_stream,
+    DataSource channel_to_extract) 
 {
     cv::Mat raw_img = raw_file.GetRawImage();
     if(raw_img.empty()){
@@ -78,63 +77,58 @@ cv::Mat PrepareChartImage(
 
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     
-    // Select the Bayer channel to analyze based on the global constant.
-    switch (DynaRange::Constants::BAYER_CHANNEL_TO_ANALYZE) {
-        case DynaRange::Constants::BayerChannel::R: // Red channel
+    // The switch now uses the function parameter instead of a global constant.
+    switch (channel_to_extract) {
+        case DataSource::R:
             for (int r = 0; r < imgBayer.rows; ++r) {
                 for (int c = 0; c < imgBayer.cols; ++c) {
                     imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
                 }
             }
             break;
-        case DynaRange::Constants::BayerChannel::G1: // First Green channel
+        case DataSource::G1:
             for (int r = 0; r < imgBayer.rows; ++r) {
                 for (int c = 0; c < imgBayer.cols; ++c) {
                     imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
                 }
             }
             break;
-        case DynaRange::Constants::BayerChannel::G2: // Second Green channel
+        case DataSource::G2:
             for (int r = 0; r < imgBayer.rows; ++r) {
                 for (int c = 0; c < imgBayer.cols; ++c) {
                     imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2);
                 }
             }
             break;
-        case DynaRange::Constants::BayerChannel::B: // Blue channel
+        case DataSource::B:
             for (int r = 0; r < imgBayer.rows; ++r) {
                 for (int c = 0; c < imgBayer.cols; ++c) {
                     imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2 + 1);
                 }
             }
             break;
+        case DataSource::AVG: {
+            cv::Mat r_channel(imgBayer.size(), CV_32FC1);
+            cv::Mat g1_channel(imgBayer.size(), CV_32FC1);
+            cv::Mat g2_channel(imgBayer.size(), CV_32FC1);
+            cv::Mat b_channel(imgBayer.size(), CV_32FC1);
+
+            for (int r = 0; r < imgBayer.rows; ++r) {
+                for (int c = 0; c < imgBayer.cols; ++c) {
+                    r_channel.at<float>(r, c)  = img_float.at<float>(r * 2, c * 2);
+                    g1_channel.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
+                    g2_channel.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2);
+                    b_channel.at<float>(r, c)  = img_float.at<float>(r * 2 + 1, c * 2 + 1);
+                }
+            }
+            imgBayer = (r_channel + g1_channel + g2_channel + b_channel) / 4.0;
+            break;
+        }
     }
-    // --- START CONTROL POINT 5.1 ---
-    #if DEBUG_IA_ON == 1
-        cv::Scalar mean_val_before, stddev_val_before;
-        cv::meanStdDev(imgBayer, mean_val_before, stddev_val_before);
-        log_stream << "--- DEBUG IA: Pre-Keystone Stats (Point 5.1) ---\n";
-        log_stream << "imgBayer Mean:   " << std::fixed << std::setprecision(8) << mean_val_before[0] << std::endl;
-        log_stream << "imgBayer StdDev: " << std::fixed << std::setprecision(8) << stddev_val_before[0] << std::endl;
-        log_stream << "--------------------------------------------------\n";
-    #endif
-    // --- END CONTROL POINT 5.1 ---
+    
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
-
-    // --- START CONTROL POINT 5.2 ---
-    #if DEBUG_IA_ON == 1
-        cv::Scalar mean_val_after, stddev_val_after;
-        cv::meanStdDev(img_corrected, mean_val_after, stddev_val_after);
-        log_stream << "--- DEBUG IA: Post-Keystone Stats (Point 5.2) ---\n";
-        log_stream << "img_corrected Mean:   " << std::fixed << std::setprecision(8) << mean_val_after[0] << std::endl;
-        log_stream << "img_corrected StdDev: " << std::fixed << std::setprecision(8) << stddev_val_after[0] << std::endl;
-        log_stream << "---------------------------------------------------\n";
-    #endif
-    // --- END CONTROL POINT 5.2 ---
-
     const auto& dst_pts = chart.GetDestinationPoints();
-
-    // --- MODIFICATION: Using the simple cropping logic from the old version ---
+    
     double xtl = dst_pts[0].x;
     double ytl = dst_pts[0].y;
     double xbr = dst_pts[2].x;
@@ -147,86 +141,9 @@ cv::Mat PrepareChartImage(
         log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
         return {};
     }
-    // --- START CONTROL POINT 5.3 (ADAPTED) ---
-    #if DEBUG_IA_ON == 1
-        log_stream << "--- DEBUG IA: Cropping Variables (Point 5.3) ---\n";
-        log_stream << std::fixed << std::setprecision(4);
-        // This version of the function does not use gap_x or gap_y, so they are not printed.
-        log_stream << "crop_area: [x=" << crop_area.x << ", y=" << crop_area.y 
-                   << ", width=" << crop_area.width << ", height=" << crop_area.height << "]" << std::endl;
-        log_stream << "------------------------------------------------\n";
-        log_stream << "--- DEBUG IA: Finalizing program at control point. ---\n" << std::endl;
-        //exit(0);
-    #endif
-    // --- END CONTROL POINT 5.3 ---
     
     return img_corrected(crop_area);
 }
-/*
-// --- REFERENCE IMPLEMENTATION (Commented Out) ---
-// This is a complete, separate version of the function that contains the logic
-// aligned with the reference R script. It is kept here for documentation and
-// future reference. It produces slightly different numerical results due to a
-// more sophisticated cropping method that uses a safety "gap".
-cv::Mat PrepareChartImage(
-    const RawFile& raw_file, 
-    const ProgramOptions& opts, 
-    const Eigen::VectorXd& keystone_params,
-    const ChartProfile& chart, 
-    std::ostream& log_stream) 
-{
-    cv::Mat raw_img = raw_file.GetRawImage();
-    if(raw_img.empty()){
-        log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
-        return {};
-    }
-    cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
-    
-    // Extract a single bayer channel (e.g., Green) which is half the size.
-    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
-    for (int r = 0; r < imgBayer.rows; ++r) {
-        for (int c = 0; c < imgBayer.cols; ++c) {
-            imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
-        }
-    }
-    
-    cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
-    const auto& dst_pts = chart.GetDestinationPoints();
-    
-    // --- R-Script Aligned Cropping Logic ---
-    // R script reference: `imgcrop=imgc[round(ytl+GAPY):round(ybr-GAPY), round(xtl+GAPX):round(xbr-GAPX)]`
-    double gap_x = 0.0;
-    double gap_y = 0.0;
-    
-    // If NOT using manual coords, apply a safety gap like the R script.
-    if (!chart.HasManualCoords()) {
-        const double xbr = dst_pts[2].x;
-        const double xtl = dst_pts[0].x;
-        const double ybr = dst_pts[2].y;
-        const double ytl = dst_pts[0].y;
-        // R script reference: `GAPX=(xbr-xtl) / (NCOLS+1) / 2`
-        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
-        // R script reference: `GAPY=(ybr-ytl) / (NROWS+1) / 2`
-        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
-    }
-    
-    cv::Rect crop_area(
-        round(dst_pts[0].x + gap_x), 
-        round(dst_pts[0].y + gap_y), 
-        round(dst_pts[2].x - dst_pts[0].x - 2 * gap_x), 
-        round(dst_pts[2].y - dst_pts[0].y - 2 * gap_y)
-    );
-
-    if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
-        crop_area.x + crop_area.width > img_corrected.cols ||
-        crop_area.y + crop_area.height > img_corrected.rows) {
-        log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
-        return {};
-    }
-
-    return img_corrected(crop_area);
-}
-*/
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
 {
@@ -289,14 +206,6 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         quadrant.reshape(1, 1).convertTo(pixels, CV_64F);
         double brightness_q_threshold = CalculateQuantile(pixels, quantile_threshold);
 
-        #if DYNA_RANGE_DEBUG_MODE == 1
-        if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG) {
-            log_stream << "  - [DEBUG] Quadrant [" << sector_rect.x << "," << sector_rect.y << "]:"
-                       << " Quantile=" << std::fixed << std::setprecision(4) << quantile_threshold 
-                       << ", Brightness Cutoff=" << brightness_q_threshold << std::endl;
-        }
-        #endif
-
         cv::Mat mask;
         cv::threshold(quadrant, mask, brightness_q_threshold, 1.0, cv::THRESH_BINARY);
         mask.convertTo(mask, CV_8U);
@@ -320,14 +229,6 @@ std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_
         
         double median_x_local = static_cast<double>(x_coords[x_coords.size() / 2]);
         double median_y_local = static_cast<double>(y_coords[y_coords.size() / 2]);
-        
-        #if DYNA_RANGE_DEBUG_MODE == 1
-        if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG) {
-            double median_brightness = quadrant.at<float>(median_y_local, median_x_local);
-            log_stream << "  - [DEBUG] Brightest point found at (" << static_cast<int>(median_x_local) << ", " << static_cast<int>(median_y_local) << ")"
-                       << " with brightness=" << std::fixed << std::setprecision(4) << median_brightness << std::endl;
-        }
-        #endif
         
         double median_x = median_x_local + sector_rect.x;
         double median_y = median_y_local + sector_rect.y;

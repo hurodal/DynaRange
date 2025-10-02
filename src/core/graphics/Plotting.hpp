@@ -13,6 +13,7 @@
 #include <optional>
 #include <ostream>
 #include "../arguments/ArgumentsOptions.hpp"
+#include "../utils/PathManager.hpp"
 #include "../analysis/Analysis.hpp"
 
 /**
@@ -23,6 +24,7 @@
  * @param output_filename The full path for the output PNG file.
  * @param plot_title The main title for the plot (e.g., "iso00200.dng (OM-1, ISO 200)").
  * @param curve_label The simple label to draw on the curve itself (e.g., "ISO 200").
+ * @param channel R,G1,G2 or B enum.
  * @param signal_ev A vector of signal values in EV.
  * @param snr_db A vector of SNR values in dB.
  * @param poly_coeffs The coefficients of the fitted polynomial curve.
@@ -34,6 +36,7 @@ void GenerateSnrPlot(
     const std::string& output_filename,
     const std::string& plot_title,
     const std::string& curve_label,
+    DataSource channel,
     const std::vector<double>& signal_ev,
     const std::vector<double>& snr_db,
     const cv::Mat& poly_coeffs,
@@ -41,7 +44,6 @@ void GenerateSnrPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream 
 );
-
 /**
  * @brief Generates and saves a summary plot containing all SNR curves.
  * @details Creates a comprehensive overview plot comparing all processed RAW files.
@@ -63,3 +65,10 @@ std::optional<std::string> GenerateSummaryPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream 
 );
+
+std::map<std::string, std::string> GenerateIndividualPlots(
+    const std::vector<CurveData>& all_curves_data,
+    const std::vector<DynamicRangeResult>& all_dr_results,
+    const ProgramOptions& opts,
+    const PathManager& paths,
+    std::ostream& log_stream);

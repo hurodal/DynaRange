@@ -112,7 +112,6 @@ cv::Mat RawFile::GetProcessedImage() {
     return bgr_image;
 }
 
-// Esta función existía y ha sido modificada para hacerla más robusta.
 int RawFile::GetBlackLevelFromMetadata() const {
     if (!m_is_loaded) return 0;
 

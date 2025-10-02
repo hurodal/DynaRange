@@ -53,55 +53,82 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
  * @param generate_debug_image Only most low iso image must generate printpatches.png.
  * @return A SingleFileResult struct containing the analysis results.
  */
-SingleFileResult AnalyzeSingleRawFile(
+std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file, 
     const ProgramOptions& opts, 
     const ChartProfile& chart, 
     const Eigen::VectorXd& keystone_params,
     std::ostream& log_stream,
     double camera_resolution_mpx,
-    bool generate_debug_image) // New parameter to control debug image generation
+    bool generate_debug_image)
 {
     log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
     
-    // 1. Prepare the image for analysis.
-    cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream);
-    if (img_prepared.empty()) {
-        log_stream << _("Error: Failed to prepare image for analysis: ") << raw_file.GetFilename() << std::endl;
-        return {};
-    }
-       
-    // 2. Call Analysis module, passing the flag to conditionally create the overlay.
-    PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, generate_debug_image);
-    if (patch_data.signal.empty()) {
-        log_stream << _("Warning: No valid patches found for ") << raw_file.GetFilename() << std::endl;
-        return {};
-    }
-    
-    // 3. Call Analysis module to perform calculations.
-    auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx);
-    
-    // 4. Assign the correct plot label from the map populated in the setup phase.
-    if(opts.plot_labels.count(raw_file.GetFilename())) {
-        curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
-    } else {
-        curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
-    }
-    
-    // 5. Store the numeric ISO speed for the individual plot title.
-    curve_data.iso_speed = raw_file.GetIsoSpeed();
+    std::vector<SingleFileResult> results_for_file;
+    std::map<DataSource, int> patch_counts_for_file; // To store patch counts for this file
 
-    // 6. Create the final gamma-corrected debug image only if it was generated.
-    cv::Mat final_debug_image;
-    if (generate_debug_image) {
-        final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
-        if (final_debug_image.empty()) {
-            log_stream << "  - " << _("Warning: Could not generate debug patch image for this file. Input data may be invalid (e.g., bad keystone correction).") << std::endl;
+    std::vector<DataSource> channels_to_analyze;
+    // The order is now important: process individual channels before AVG.
+    if (opts.raw_channels.R) channels_to_analyze.push_back(DataSource::R);
+    if (opts.raw_channels.G1) channels_to_analyze.push_back(DataSource::G1);
+    if (opts.raw_channels.G2) channels_to_analyze.push_back(DataSource::G2);
+    if (opts.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
+    if (opts.raw_channels.AVG) channels_to_analyze.push_back(DataSource::AVG);
+
+    for (const auto& channel : channels_to_analyze) {
+        cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream, channel);
+        if (img_prepared.empty()) {
+            log_stream << _("Error: Failed to prepare image for analysis for channel: ") << static_cast<int>(channel) << std::endl;
+            continue;
         }
+        
+        bool should_draw_overlay = generate_debug_image && (&channel == &channels_to_analyze.front());
+        PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay);
+        
+        // Store the patch count for this channel
+        patch_counts_for_file[channel] = patch_data.signal.size();
+        
+        if (patch_data.signal.empty()) {
+            log_stream << _("Warning: No valid patches found for channel: ") << static_cast<int>(channel) << std::endl;
+            continue;
+        }
+        
+        auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, channel);
+        
+        if(opts.plot_labels.count(raw_file.GetFilename())) {
+            curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
+        } else {
+            curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
+        }
+        curve_data.iso_speed = raw_file.GetIsoSpeed();
+
+        // Populate the new per-channel sample counts in the result struct
+        if (channel == DataSource::AVG) {
+            dr_result.samples_R = patch_counts_for_file.count(DataSource::R) ? patch_counts_for_file.at(DataSource::R) : 0;
+            dr_result.samples_G1 = patch_counts_for_file.count(DataSource::G1) ? patch_counts_for_file.at(DataSource::G1) : 0;
+            dr_result.samples_G2 = patch_counts_for_file.count(DataSource::G2) ? patch_counts_for_file.at(DataSource::G2) : 0;
+            dr_result.samples_B = patch_counts_for_file.count(DataSource::B) ? patch_counts_for_file.at(DataSource::B) : 0;
+        } else {
+            // For individual channels, only set its own sample count
+            if (channel == DataSource::R) dr_result.samples_R = patch_counts_for_file[channel];
+            if (channel == DataSource::G1) dr_result.samples_G1 = patch_counts_for_file[channel];
+            if (channel == DataSource::G2) dr_result.samples_G2 = patch_counts_for_file[channel];
+            if (channel == DataSource::B) dr_result.samples_B = patch_counts_for_file[channel];
+        }
+
+        cv::Mat final_debug_image;
+        if (should_draw_overlay) {
+            final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
+            if (final_debug_image.empty()) {
+                log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
+            }
+        }
+        results_for_file.push_back({dr_result, curve_data, final_debug_image});
     }
 
-    return {dr_result, curve_data, final_debug_image};
+    return results_for_file;
 }
+
 } // end of anonymous namespace
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
@@ -189,33 +216,43 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             // The flag is true only for the first file and only if requested by user.
             bool generate_debug_image = (i == 0 && !opts.print_patch_filename.empty());
 
-            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, generate_debug_image);
+            // This function now returns a vector of results (one per channel).
+            auto file_results_vec = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, generate_debug_image);
             
-            // If a debug image was generated (only happens once), store it.
-            if (!file_result.final_debug_image.empty()) {
-                result.debug_patch_image = file_result.final_debug_image;
-            }
+            // Iterate through the results for the current file and add them to the main lists.
+            for(auto& file_result : file_results_vec) {
+                // If a debug image was generated (only happens once), store it.
+                if (!file_result.final_debug_image.empty()) {
+                    result.debug_patch_image = file_result.final_debug_image;
+                }
 
-            if (!file_result.dr_result.filename.empty()) {
-                file_result.curve_data.camera_model = camera_model_name;
-                result.dr_results.push_back(file_result.dr_result);
-                result.curve_data.push_back(file_result.curve_data);
+                if (!file_result.dr_result.filename.empty()) {
+                    file_result.curve_data.camera_model = camera_model_name;
+                    result.dr_results.push_back(file_result.dr_result);
+                    result.curve_data.push_back(file_result.curve_data);
+                }
             }
         }
     } else {
-        // This non-optimized path is less common and kept simple.
-        // It will still only save the first debug image due to the logic in FinalizeAndReport.
         log_stream << "Using non-optimized keystone: recalculating parameters for each image..." << std::endl;
         for (const auto& raw_file : raw_files) {
             if (cancel_flag) return {};
             if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
-            // For simplicity, we pass 'true' to always generate, but only the first is kept later.
-            auto file_result = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, !opts.print_patch_filename.empty());
-            if (!file_result.dr_result.filename.empty()) {
-                file_result.curve_data.camera_model = camera_model_name;
-                result.dr_results.push_back(file_result.dr_result);
-                result.curve_data.push_back(file_result.curve_data);
+            // For simplicity in the non-optimized path, we let AnalyzeSingleRawFile decide
+            // whether to generate the image, but only the first one will be kept.
+            auto file_results_vec = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, !opts.print_patch_filename.empty());
+
+            for(auto& file_result : file_results_vec) {
+                 if (!result.debug_patch_image.has_value() && !file_result.final_debug_image.empty()) {
+                    result.debug_patch_image = file_result.final_debug_image;
+                }
+
+                if (!file_result.dr_result.filename.empty()) {
+                    file_result.curve_data.camera_model = camera_model_name;
+                    result.dr_results.push_back(file_result.dr_result);
+                    result.curve_data.push_back(file_result.curve_data);
+                }
             }
         }
     }
