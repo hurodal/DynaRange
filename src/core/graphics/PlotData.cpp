@@ -94,20 +94,16 @@ void DrawThresholdIntersection(cairo_t* cr,
                                double threshold_db)
 {
     if (curve.points.empty()) return;
-
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
-
     if (dr_result.dr_values_ev.count(threshold_db)) {
         double dr_value = dr_result.dr_values_ev.at(threshold_db);
         if (dr_value <= 0) return;
-
         double ev_at_threshold = -dr_value;
 
         auto min_max_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
             [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
-        
         if (ev_at_threshold < min_max_ev_it.first->ev || ev_at_threshold > min_max_ev_it.second->ev) {
             return;
         }
@@ -118,9 +114,8 @@ void DrawThresholdIntersection(cairo_t* cr,
 
         double vertical_offset = 0.0;
         double horizontal_offset = 40.0;
-
         switch (curve.channel) {
-            case DataSource::AVG: vertical_offset = -8.0;  horizontal_offset += 20.0; break;
+            case DataSource::AVG: vertical_offset = -8.0; horizontal_offset += 20.0; break;
             case DataSource::B:   vertical_offset = -18.0; horizontal_offset += 15.0; break;
             case DataSource::G2:  vertical_offset = -28.0; horizontal_offset += 10.0; break;
             case DataSource::G1:  vertical_offset = -38.0; horizontal_offset += 5.0;  break;

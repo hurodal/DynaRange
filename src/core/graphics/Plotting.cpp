@@ -246,7 +246,6 @@ std::optional<std::string> GenerateSummaryPlot(
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
     bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
-    
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     
     return GeneratePlotInternal(output_filename, title, curves_with_points, all_results, opts, bounds, log_stream);
@@ -279,15 +278,13 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file[filename];
 
         if (curves_for_this_file.empty()) continue;
-
         for (auto& curve : curves_for_this_file) {
             curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
         }
 
         const auto& first_curve = curves_for_this_file[0];
-        fs::path plot_path = paths.GetIndividualPlotPath(first_curve);
+        fs::path plot_path = paths.GetIndividualPlotPath(first_curve, opts);
         plot_paths_map[filename] = plot_path.string();
-
         std::stringstream title_ss;
         title_ss << fs::path(filename).filename().string();
         if (!first_curve.camera_model.empty()) {
@@ -318,7 +315,6 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         bounds["max_ev"] = (max_ev < 0.0) ? 0.0 : ceil(max_ev) + 1.0;
         bounds["min_db"] = floor(min_db / 5.0) * 5.0;
         bounds["max_db"] = ceil(max_db / 5.0) * 5.0;
-
         GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, bounds, log_stream);
     }
     return plot_paths_map;

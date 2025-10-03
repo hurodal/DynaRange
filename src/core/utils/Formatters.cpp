@@ -28,6 +28,27 @@ std::string DataSourceToString(DataSource channel) {
     return "Unknown";
 }
 
+std::string GenerateChannelSuffix(const RawChannelSelection& channels) {
+    std::string suffix;
+    if (channels.AVG) {
+        suffix += "_average";
+    }
+
+    std::vector<std::string> selected_channels;
+    if (channels.R) selected_channels.push_back("R");
+    if (channels.G1) selected_channels.push_back("G1");
+    if (channels.G2) selected_channels.push_back("G2");
+    if (channels.B) selected_channels.push_back("B");
+
+    if (!selected_channels.empty()) {
+        suffix += "_channels";
+        for(const auto& ch : selected_channels) {
+            suffix += "_" + ch;
+        }
+    }
+    return suffix;
+}
+
 std::string FormatResultsTable(const std::vector<DynamicRangeResult>& all_results, const ProgramOptions& opts) {
     if (all_results.empty()) {
         return "";

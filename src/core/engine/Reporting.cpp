@@ -34,7 +34,7 @@ std::optional<std::string> GenerateSummaryPlotReport(
         return std::nullopt;
     }
     std::string camera_name = all_curves_data[0].camera_model;
-    fs::path summary_plot_path = paths.GetSummaryPlotPath(camera_name);
+    fs::path summary_plot_path = paths.GetSummaryPlotPath(camera_name, opts);
     
     return GenerateSummaryPlot(summary_plot_path.string(), camera_name, all_curves_data, all_dr_results, opts, log_stream);
 }

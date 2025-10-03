@@ -121,7 +121,6 @@ void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds) {
 
 void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOptions& opts, const std::string& command_text) {
     cairo_text_extents_t extents;
-    
     // --- Main Title ---
     PlotColors::cairo_set_source_black(cr);
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
@@ -138,14 +137,24 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOpt
     current_x += extents.x_advance + 10;
 
     const auto& channels = opts.raw_channels;
-    if (channels.AVG && !channels.R && !channels.G1 && !channels.G2 && !channels.B) {
+    bool has_avg = channels.AVG;
+    bool has_r = channels.R, has_g1 = channels.G1, has_g2 = channels.G2, has_b = channels.B;
+    bool has_channels = has_r || has_g1 || has_g2 || has_b;
+
+    // Default case: only AVG is selected, which is the most common usage.
+    if (has_avg && !has_channels) {
         PlotColors::cairo_set_source_grey_50(cr);
         std::string avg_text = _("(Average channels)");
         cairo_move_to(cr, current_x, current_y);
         cairo_show_text(cr, avg_text.c_str());
-    } else if (channels.R || channels.G1 || channels.G2 || channels.B) {
+    } else if (has_channels) { // Case for "channels only" or "channels + avg"
         PlotColors::cairo_set_source_grey_50(cr);
-        std::string prefix = _(" (Channels -> ");
+        std::string prefix = " (";
+        if (has_avg) {
+            prefix += _("Average & ");
+        }
+        prefix += _("Channels -> ");
+        
         cairo_move_to(cr, current_x, current_y);
         cairo_show_text(cr, prefix.c_str());
         cairo_text_extents(cr, prefix.c_str(), &extents);
@@ -159,10 +168,10 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOpt
             current_x += extents.x_advance;
         };
 
-        if (channels.R) draw_channel_name("R ", DataSource::R);
-        if (channels.G1) draw_channel_name("G1 ", DataSource::G1);
-        if (channels.G2) draw_channel_name("G2 ", DataSource::G2);
-        if (channels.B) draw_channel_name("B ", DataSource::B);
+        if (has_r) draw_channel_name("R ", DataSource::R);
+        if (has_g1) draw_channel_name("G1 ", DataSource::G1);
+        if (has_g2) draw_channel_name("G2 ", DataSource::G2);
+        if (has_b) draw_channel_name("B ", DataSource::B);
 
         PlotColors::cairo_set_source_grey_50(cr);
         cairo_move_to(cr, current_x, current_y);

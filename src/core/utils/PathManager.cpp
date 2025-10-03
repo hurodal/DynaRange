@@ -4,6 +4,7 @@
  */
 #include "PathManager.hpp"
 #include "../Constants.hpp"
+#include "../utils/Formatters.hpp"
 #include <sstream>
 #include <algorithm>
 
@@ -80,10 +81,9 @@ fs::path PathManager::GetCsvOutputPath() const {
     return m_output_directory / m_csv_filename;
 }
 
-fs::path PathManager::GetIndividualPlotPath(const CurveData& curve) const {
+fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const ProgramOptions& opts) const {
     std::stringstream new_filename_ss;
     new_filename_ss << fs::path(curve.filename).stem().string();
-    
     if (curve.iso_speed > 0) {
         new_filename_ss << "_ISO" << static_cast<int>(curve.iso_speed);
     }
@@ -93,6 +93,9 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve) const {
         std::replace(safe_model.begin(), safe_model.end(), ' ', '_');
         new_filename_ss << "_" << safe_model;
     }
+
+    // Add the channel suffix.
+    new_filename_ss << Formatters::GenerateChannelSuffix(opts.raw_channels);
 
     // Add the correct extension based on the global constant.
     std::string extension;
@@ -106,10 +109,10 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve) const {
     return m_output_directory / new_filename_ss.str();
 }
 
-fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name) const {
+fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const ProgramOptions& opts) const {
+
     std::string safe_camera_name = camera_name;
     std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
-    
     // Add the correct extension based on the global constant.
     std::string extension;
     switch (DynaRange::Constants::PLOT_FORMAT) {
@@ -118,7 +121,7 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name) const {
         case DynaRange::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }
-    std::string filename = "DR_summary_plot_" + safe_camera_name + extension;
+    std::string filename = "DR_summary_plot_" + safe_camera_name + Formatters::GenerateChannelSuffix(opts.raw_channels) + extension;
     return m_output_directory / filename;
 }
 

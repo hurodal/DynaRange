@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 22:43+0200\n"
+"POT-Creation-Date: 2025-10-04 00:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -701,19 +701,23 @@ msgstr ""
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
-#: src/core/graphics/PlotBase.cpp:143
+#: src/core/graphics/PlotBase.cpp:147
 msgid "(Average channels)"
 msgstr ""
 
-#: src/core/graphics/PlotBase.cpp:148
-msgid " (Channels -> "
+#: src/core/graphics/PlotBase.cpp:154
+msgid "Average & "
 msgstr ""
 
-#: src/core/graphics/PlotBase.cpp:175
+#: src/core/graphics/PlotBase.cpp:156
+msgid "Channels -> "
+msgstr ""
+
+#: src/core/graphics/PlotBase.cpp:184
 msgid "RAW exposure (EV)"
 msgstr ""
 
-#: src/core/graphics/PlotBase.cpp:180
+#: src/core/graphics/PlotBase.cpp:189
 msgid "SNR (dB)"
 msgstr ""
 
@@ -753,15 +757,15 @@ msgstr ""
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:250
+#: src/core/graphics/Plotting.cpp:249
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:265
+#: src/core/graphics/Plotting.cpp:264
 msgid "Generating individual SNR plots..."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:296 src/core/setup/PlotLabelGenerator.cpp:31
+#: src/core/graphics/Plotting.cpp:293 src/core/setup/PlotLabelGenerator.cpp:31
 msgid "ISO "
 msgstr ""
 
@@ -894,10 +898,10 @@ msgstr ""
 msgid "Sensor resolution inferred from RAW dimensions: "
 msgstr ""
 
-#: src/core/utils/Formatters.cpp:37
+#: src/core/utils/Formatters.cpp:58
 msgid "raw_file"
 msgstr ""
 
-#: src/core/utils/Formatters.cpp:38
+#: src/core/utils/Formatters.cpp:59
 msgid "raw_channel"
 msgstr ""
