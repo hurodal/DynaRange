@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 21:24+0200\n"
+"POT-Creation-Date: 2025-10-03 22:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:112
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:109
 msgid "Saturation"
 msgstr ""
 
@@ -524,8 +524,8 @@ msgid "Black level: "
 msgstr ""
 
 #: src/core/engine/Initialization.cpp:134
-#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:107
-#: src/core/graphics/Plotting.cpp:111
+#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:104
+#: src/core/graphics/Plotting.cpp:108
 msgid " (estimated)"
 msgstr ""
 
@@ -717,51 +717,51 @@ msgstr ""
 msgid "SNR (dB)"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:50
+#: src/core/graphics/Plotting.cpp:48
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:94
+#: src/core/graphics/Plotting.cpp:91
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:108
+#: src/core/graphics/Plotting.cpp:105
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:126 src/core/io/OutputWriter.cpp:24
+#: src/core/graphics/Plotting.cpp:125 src/core/io/OutputWriter.cpp:24
 msgid "  - Info: Plot saved to: "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:159
+#: src/core/graphics/Plotting.cpp:162
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:159
+#: src/core/graphics/Plotting.cpp:162
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:199
+#: src/core/graphics/Plotting.cpp:202
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:211
+#: src/core/graphics/Plotting.cpp:214
 msgid "Plot generation skipped as per user request (--plot 0)."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:216
+#: src/core/graphics/Plotting.cpp:219
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:247
+#: src/core/graphics/Plotting.cpp:250
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:262
+#: src/core/graphics/Plotting.cpp:265
 msgid "Generating individual SNR plots..."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:293 src/core/setup/PlotLabelGenerator.cpp:31
+#: src/core/graphics/Plotting.cpp:296 src/core/setup/PlotLabelGenerator.cpp:31
 msgid "ISO "
 msgstr ""
 

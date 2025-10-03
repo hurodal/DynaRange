@@ -84,7 +84,6 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve) const {
     std::stringstream new_filename_ss;
     new_filename_ss << fs::path(curve.filename).stem().string();
     
-    // The channel identifier is no longer part of the individual plot filename.
     if (curve.iso_speed > 0) {
         new_filename_ss << "_ISO" << static_cast<int>(curve.iso_speed);
     }
@@ -96,7 +95,13 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve) const {
     }
 
     // Add the correct extension based on the global constant.
-    const std::string extension = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF) ? ".pdf" : ".png";
+    std::string extension;
+    switch (DynaRange::Constants::PLOT_FORMAT) {
+        case DynaRange::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
+        case DynaRange::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
+        case DynaRange::Constants::PlotOutputFormat::PNG:
+        default: extension = ".png"; break;
+    }
     new_filename_ss << extension;
     return m_output_directory / new_filename_ss.str();
 }
@@ -106,7 +111,13 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name) const {
     std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
     
     // Add the correct extension based on the global constant.
-    const std::string extension = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF) ? ".pdf" : ".png";
+    std::string extension;
+    switch (DynaRange::Constants::PLOT_FORMAT) {
+        case DynaRange::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
+        case DynaRange::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
+        case DynaRange::Constants::PlotOutputFormat::PNG:
+        default: extension = ".png"; break;
+    }
     std::string filename = "DR_summary_plot_" + safe_camera_name + extension;
     return m_output_directory / filename;
 }

@@ -3,7 +3,7 @@
  * @file src/core/graphics/Plotting.cpp
  * @brief Implements the high-level plot generation logic for SNR curves.
  *
- * This module provides functions to generate complete PNG plot images using
+ * This module provides functions to generate complete plot images using
  * the low-level drawing functions from PlotBase and PlotData. It handles
  * canvas creation, coordinate bounds calculation, and file output.
  */
@@ -15,8 +15,10 @@
 #include "../io/OutputWriter.hpp"
 #include "PlotDataGenerator.hpp" 
 #include "../Constants.hpp"
+#include "../utils/Formatters.hpp"
 #include <cairo/cairo.h>
-#include <cairo/cairo-pdf.h> 
+#include <cairo/cairo-pdf.h> // Added missing header for PDF support
+#include <cairo/cairo-svg.h>  // Added missing header for SVG support
 #include <iostream>
 #include <algorithm>
 #include <map>
@@ -29,14 +31,10 @@
 
 #define _(string) gettext(string)
 
+namespace fs = std::filesystem;
+
 namespace { // Anonymous namespace for private helper functions
 
-/**
- * @brief Draws a "Generated at" timestamp in the bottom-left corner of the plot.
- * @details This function retrieves the current system time, formats it, and
- * draws it using a standard style and position.
- * @param cr The cairo drawing context.
- */
 void DrawGeneratedTimestamp(cairo_t* cr) {
     auto now = std::chrono::system_clock::now();
     std::time_t time_now = std::chrono::system_clock::to_time_t(now);
@@ -58,19 +56,12 @@ void DrawGeneratedTimestamp(cairo_t* cr) {
     cairo_text_extents(cr, generated_at_text.c_str(), &ext);
 
     double x = 20;
-    double y = PlotDefs::HEIGHT - 20;
+    double y = PlotDefs::BASE_HEIGHT - 20;
 
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, generated_at_text.c_str());
 }
 
-/**
- * @brief (New private function) Encapsulates the common plot generation logic.
- * @details This function handles the entire Cairo workflow: surface creation,
- * drawing all plot components (base, data, timestamp), and writing the final
- * PNG file. It is called by the public-facing Generate...Plot functions.
- * @return An optional string containing the path to the generated plot on success.
- */
 std::optional<std::string> GeneratePlotInternal(
     const std::string& output_filename,
     const std::string& title,
@@ -81,12 +72,18 @@ std::optional<std::string> GeneratePlotInternal(
     std::ostream& log_stream)
 {
     cairo_surface_t *surface = nullptr;
-    const bool is_pdf = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF);
 
-    if (is_pdf) {
-        surface = cairo_pdf_surface_create(output_filename.c_str(), PlotDefs::WIDTH, PlotDefs::HEIGHT);
-    } else {
-        surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PlotDefs::WIDTH, PlotDefs::HEIGHT);
+    switch (DynaRange::Constants::PLOT_FORMAT) {
+        case DynaRange::Constants::PlotOutputFormat::PDF:
+            surface = cairo_pdf_surface_create(output_filename.c_str(), PlotDefs::WIDTH, PlotDefs::HEIGHT);
+            break;
+        case DynaRange::Constants::PlotOutputFormat::SVG:
+            surface = cairo_svg_surface_create(output_filename.c_str(), PlotDefs::WIDTH, PlotDefs::HEIGHT);
+            break;
+        case DynaRange::Constants::PlotOutputFormat::PNG:
+        default:
+            surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PlotDefs::WIDTH, PlotDefs::HEIGHT);
+            break;
     }
 
     cairo_t *cr = cairo_create(surface);
@@ -114,19 +111,24 @@ std::optional<std::string> GeneratePlotInternal(
     std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;
     DrawPlotBase(cr, title, opts, bounds, command_text, opts.snr_thresholds_db);
     DrawCurvesAndData(cr, info_box, curves_to_plot, results_to_plot, bounds);
-    
-    if (PlotDefs::SCALE != 1.0) cairo_identity_matrix(cr);
     DrawGeneratedTimestamp(cr);
     
     bool success = false;
-    if (is_pdf) {
-        cairo_show_page(cr); 
-        success = (cairo_status(cr) == CAIRO_STATUS_SUCCESS);
-        if (success) {
-            log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
-        }
-    } else {
-        success = OutputWriter::WritePng(surface, output_filename, log_stream);
+    switch (DynaRange::Constants::PLOT_FORMAT) {
+        case DynaRange::Constants::PlotOutputFormat::PDF:
+            cairo_show_page(cr); // Finalize the page for PDF
+            // Fall through to common vector finalization
+        case DynaRange::Constants::PlotOutputFormat::SVG:
+            cairo_surface_flush(surface);
+            success = (cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS); // Check status on surface
+            if (success) {
+                log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
+            }
+            break;
+        case DynaRange::Constants::PlotOutputFormat::PNG:
+        default:
+            success = OutputWriter::WritePng(surface, output_filename, log_stream);
+            break;
     }
 
     cairo_destroy(cr);
@@ -137,6 +139,7 @@ std::optional<std::string> GeneratePlotInternal(
     }
     return std::nullopt;
 }
+
 } // end anonymous namespace
 
 void GenerateSnrPlot(
@@ -297,7 +300,6 @@ std::map<std::string, std::string> GenerateIndividualPlots(
 
         double min_ev = 1e6, max_ev = -1e6, min_db = 1e6, max_db = -1e6;
         for (const auto& curve : curves_for_this_file) {
-            // FIX: Check and get min/max from the new 'points' vector.
             if (!curve.points.empty()) {
                 auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
                     [](const PointData& a, const PointData& b){ return a.ev < b.ev; });

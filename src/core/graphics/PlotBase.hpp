@@ -16,13 +16,17 @@ namespace PlotDefs {
     constexpr int BASE_WIDTH = 1920;
     constexpr int BASE_HEIGHT = 1080;
 
-    constexpr double SCALE = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF) 
-                             ? DynaRange::Constants::PDF_SCALE_FACTOR 
-                             : 1.0;
+    // Determine if the output format is a vector format.
+    constexpr bool IS_VECTOR = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF ||
+                                DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::SVG);
+
+    // Apply scaling factor only for vector formats.
+    constexpr double SCALE = IS_VECTOR ? DynaRange::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
 
     constexpr int WIDTH = static_cast<int>(BASE_WIDTH * SCALE);
     constexpr int HEIGHT = static_cast<int>(BASE_HEIGHT * SCALE);
 }
+
 
 // Margins are now based on the unscaled base dimensions.
 constexpr int MARGIN_LEFT = 180;
