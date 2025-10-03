@@ -28,7 +28,6 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
         }
         
         Example:
-        
         #include <iostream>
         
         int main() {
@@ -40,6 +39,37 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 
      SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
 
+     prompt: "write a C++ function that calculates the saturation level of a sensor as the end of the bit scale of the sensor. E.g. if the max RAW value is 12000 then SAT=16383"
+
+          #include <cstdint>
+          #include <cmath>
+          
+          uint32_t calculateSaturationLevel(uint32_t maxRawValue) {
+              if (maxRawValue == 0) return 0;
+          
+              // Determine the number of bits needed to represent maxRawValue
+              uint32_t bitDepth = 0;
+              uint32_t temp = maxRawValue;
+          
+              while (temp > 0) {
+                  temp >>= 1;  // Shift right to count bits
+                  bitDepth++;
+              }
+          
+              // Saturation level is the maximum value for that bit-depth
+              return (1U << bitDepth) - 1;  // e.g. 14 bits -> 2^14 - 1 = 16383
+          }
+          
+          Example:
+          #include <iostream>
+          
+          int main() {
+              uint32_t maxValue = 12000;
+              uint32_t satLevel = calculateSaturationLevel(maxValue);
+              std::cout << "Saturation level = " << satLevel << std::endl;  // Output: 16383
+              return 0;
+          }
+
 5: DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
 
 6: SIMPLIFICAR PARÁMETRO --snrthreshold-db: SOLO CALCULA PARA 12dB / POLO OPUESTO: SUMINISTRAR LISTA DE UMBRALES
@@ -47,6 +77,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 7: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
 
 8: SUSTITUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO
+
 
 
 
