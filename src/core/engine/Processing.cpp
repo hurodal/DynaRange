@@ -9,6 +9,7 @@
 #include "../setup/ChartProfile.hpp"
 #include "../analysis/ImageAnalyzer.hpp"
 #include "../utils/PathManager.hpp"
+#include "../utils/Formatters.hpp"
 #include "../io/OutputWriter.hpp"
 #include "../DebugConfig.hpp" 
 #include "../Constants.hpp"
@@ -64,37 +65,62 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 {
     log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
     
-    std::vector<SingleFileResult> results_for_file;
-    std::map<DataSource, int> patch_counts_for_file; // To store patch counts for this file
+    std::vector<SingleFileResult> final_results;
+    std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
-    std::vector<DataSource> channels_to_analyze;
-    // The order is now important: process individual channels before AVG.
-    if (opts.raw_channels.R) channels_to_analyze.push_back(DataSource::R);
-    if (opts.raw_channels.G1) channels_to_analyze.push_back(DataSource::G1);
-    if (opts.raw_channels.G2) channels_to_analyze.push_back(DataSource::G2);
-    if (opts.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
-    if (opts.raw_channels.AVG) channels_to_analyze.push_back(DataSource::AVG);
-
-    for (const auto& channel : channels_to_analyze) {
+    // --- PASS 1: Analyze individual channels to gather patch data ---
+    std::vector<DataSource> base_channels_to_process = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
+    
+    for (const auto& channel : base_channels_to_process) {
         cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream, channel);
         if (img_prepared.empty()) {
-            log_stream << _("Error: Failed to prepare image for analysis for channel: ") << static_cast<int>(channel) << std::endl;
+            log_stream << _("Error: Failed to prepare image for analysis for channel: ") << Formatters::DataSourceToString(channel) << std::endl;
             continue;
         }
         
-        bool should_draw_overlay = generate_debug_image && (&channel == &channels_to_analyze.front());
+        bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
         PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay);
         
-        // Store the patch count for this channel
-        patch_counts_for_file[channel] = patch_data.signal.size();
-        
         if (patch_data.signal.empty()) {
-            log_stream << _("Warning: No valid patches found for channel: ") << static_cast<int>(channel) << std::endl;
-            continue;
+            log_stream << _("Warning: No valid patches found for channel: ") << Formatters::DataSourceToString(channel) << std::endl;
         }
+        individual_channel_patches[channel] = patch_data;
+    }
+
+    // --- PASS 2: Generate final results based on user selection ---
+    std::vector<DataSource> user_selected_channels;
+    if (opts.raw_channels.R) user_selected_channels.push_back(DataSource::R);
+    if (opts.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
+    if (opts.raw_channels.G2) user_selected_channels.push_back(DataSource::G2);
+    if (opts.raw_channels.B) user_selected_channels.push_back(DataSource::B);
+    if (opts.raw_channels.AVG) user_selected_channels.push_back(DataSource::AVG);
+
+    for (const auto& final_channel : user_selected_channels) {
+        PatchAnalysisResult final_patch_data;
+
+        if (final_channel == DataSource::AVG) {
+            for (const auto& channel_to_pool : base_channels_to_process) {
+                if (individual_channel_patches.count(channel_to_pool)) {
+                    const auto& patch_result = individual_channel_patches.at(channel_to_pool);
+                    final_patch_data.signal.insert(final_patch_data.signal.end(), patch_result.signal.begin(), patch_result.signal.end());
+                    final_patch_data.noise.insert(final_patch_data.noise.end(), patch_result.noise.begin(), patch_result.noise.end());
+                }
+            }
+        } else {
+            if (individual_channel_patches.count(final_channel)) {
+                final_patch_data = individual_channel_patches.at(final_channel);
+            }
+        }
+
+        if (final_patch_data.signal.empty()) continue;
+
+        auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, final_channel);
         
-        auto [dr_result, curve_data] = CalculateResultsFromPatches(patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, channel);
-        
+        dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
+        dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
+        dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
+        dr_result.samples_B = individual_channel_patches.count(DataSource::B) ? individual_channel_patches.at(DataSource::B).signal.size() : 0;
+
         if(opts.plot_labels.count(raw_file.GetFilename())) {
             curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
         } else {
@@ -102,31 +128,21 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
         curve_data.iso_speed = raw_file.GetIsoSpeed();
 
-        // Populate the new per-channel sample counts in the result struct
-        if (channel == DataSource::AVG) {
-            dr_result.samples_R = patch_counts_for_file.count(DataSource::R) ? patch_counts_for_file.at(DataSource::R) : 0;
-            dr_result.samples_G1 = patch_counts_for_file.count(DataSource::G1) ? patch_counts_for_file.at(DataSource::G1) : 0;
-            dr_result.samples_G2 = patch_counts_for_file.count(DataSource::G2) ? patch_counts_for_file.at(DataSource::G2) : 0;
-            dr_result.samples_B = patch_counts_for_file.count(DataSource::B) ? patch_counts_for_file.at(DataSource::B) : 0;
-        } else {
-            // For individual channels, only set its own sample count
-            if (channel == DataSource::R) dr_result.samples_R = patch_counts_for_file[channel];
-            if (channel == DataSource::G1) dr_result.samples_G1 = patch_counts_for_file[channel];
-            if (channel == DataSource::G2) dr_result.samples_G2 = patch_counts_for_file[channel];
-            if (channel == DataSource::B) dr_result.samples_B = patch_counts_for_file[channel];
-        }
-
         cv::Mat final_debug_image;
-        if (should_draw_overlay) {
-            final_debug_image = CreateFinalDebugImage(patch_data.image_with_patches, patch_data.max_pixel_value);
+        if (generate_debug_image) {
+            const auto& r_patches = individual_channel_patches.at(DataSource::R);
+            final_debug_image = CreateFinalDebugImage(r_patches.image_with_patches, r_patches.max_pixel_value);
             if (final_debug_image.empty()) {
                 log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
             }
+            generate_debug_image = false; 
         }
-        results_for_file.push_back({dr_result, curve_data, final_debug_image});
+        
+        // Explicitly construct the SingleFileResult object.
+        final_results.push_back(SingleFileResult{dr_result, curve_data, final_debug_image});
     }
 
-    return results_for_file;
+    return final_results;
 }
 
 } // end of anonymous namespace

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-02 23:02+0200\n"
+"POT-Creation-Date: 2025-10-03 19:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -597,64 +597,64 @@ msgstr ""
 msgid "Output file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:39
+#: src/core/engine/Processing.cpp:40
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:65
+#: src/core/engine/Processing.cpp:66
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:81
+#: src/core/engine/Processing.cpp:77
 msgid "Error: Failed to prepare image for analysis for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:92
+#: src/core/engine/Processing.cpp:85
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:123
+#: src/core/engine/Processing.cpp:136
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:142
+#: src/core/engine/Processing.cpp:158
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:182
+#: src/core/engine/Processing.cpp:198
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:184
+#: src/core/engine/Processing.cpp:200
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:186
+#: src/core/engine/Processing.cpp:202
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:201
+#: src/core/engine/Processing.cpp:217
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:202
+#: src/core/engine/Processing.cpp:218
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:202
+#: src/core/engine/Processing.cpp:218
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:202
+#: src/core/engine/Processing.cpp:218
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:206
+#: src/core/engine/Processing.cpp:222
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:208
+#: src/core/engine/Processing.cpp:224
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
