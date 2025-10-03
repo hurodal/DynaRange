@@ -7,8 +7,37 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
 4: CÁLCULO DE BLACK/SAT SI NO SE SUMINISTRA VALOR NI FICHERO
-    BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
-    SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
+     BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
+
+        #include <cmath>
+        #include <cstdint>
+        
+        uint32_t calculateBlackLevel(uint32_t minRawValue) {
+            // Handle edge cases (e.g., 0 or 1)
+            if (minRawValue <= 1) return 0;
+        
+            // Find next power of 2 greater or equal to minRawValue
+            uint32_t power = 1;
+            while (power < minRawValue) {
+                power <<= 1;  // Equivalent to power *= 2
+            }
+        
+            // Return minus 1 as per requirement
+            return power - 1;
+        }
+        
+        Example:
+        
+        #include <iostream>
+        
+        int main() {
+            uint32_t lowestValue = 900;
+            uint32_t blackLevel = calculateBlackLevel(lowestValue);
+            std::cout << "Black level = " << blackLevel << std::endl; // Output: 1023
+            return 0;
+        }
+
+     SAT=fondo escala bits toma ISO máximo. P.ej. si el valor RAW máximo es 13000 -> SAT=16383
 
 5: DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
 
@@ -17,6 +46,7 @@ TAREAS PENDIENTES, ABORDAR EN ESTE ORDEN:
 7: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
 
 8: SUSTITUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO
+
 
 
 
