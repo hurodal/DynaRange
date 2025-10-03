@@ -23,15 +23,16 @@ void ValidateSnrResults(const ProcessingResult& results, const ProgramOptions& o
     const double THRESHOLD_DB = 12.0; // Fixed by spec for photographic DR
 
     for (const auto& curve : results.curve_data) {
-        // Skip if there's no data for this curve
-        if (curve.snr_db.empty()) {
+        if (curve.points.empty()) {
             continue;
         }
 
-        // Find min/max SNR in dB.
-        // These values are already normalized from the CurveCalculator stage.
-        double max_snr_db = *std::max_element(curve.snr_db.begin(), curve.snr_db.end());
-        double min_snr_db = *std::min_element(curve.snr_db.begin(), curve.snr_db.end());
+        auto minmax_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+            [](const PointData& a, const PointData& b) {
+                return a.snr_db < b.snr_db;
+            });
+        double min_snr_db = minmax_it.first->snr_db;
+        double max_snr_db = minmax_it.second->snr_db;
         
         if (IsDebugEnabled()) {
             log_stream << "DEBUG: ISO=" << curve.iso_speed
@@ -58,10 +59,6 @@ void ValidateSnrResults(const ProcessingResult& results, const ProgramOptions& o
                        << opts.dr_normalization_mpx << _("Mpx normalization. ")
                        << _("Test chart may have been over/underexposed for this ISO.") << std::endl;
         }
-        
-        // Note: No normalization offset is applied here.
-        // All SNR normalization
-        // is handled in `CurveCalculator` before the polynomial fitting occurs.
     }
 }
 

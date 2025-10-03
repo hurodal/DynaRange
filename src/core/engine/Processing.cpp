@@ -68,7 +68,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     std::vector<SingleFileResult> final_results;
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
-    // --- PASS 1: Analyze individual channels to gather patch data ---
     std::vector<DataSource> base_channels_to_process = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
     
     for (const auto& channel : base_channels_to_process) {
@@ -87,7 +86,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         individual_channel_patches[channel] = patch_data;
     }
 
-    // --- PASS 2: Generate final results based on user selection ---
     std::vector<DataSource> user_selected_channels;
     if (opts.raw_channels.R) user_selected_channels.push_back(DataSource::R);
     if (opts.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
@@ -104,6 +102,8 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
                     const auto& patch_result = individual_channel_patches.at(channel_to_pool);
                     final_patch_data.signal.insert(final_patch_data.signal.end(), patch_result.signal.begin(), patch_result.signal.end());
                     final_patch_data.noise.insert(final_patch_data.noise.end(), patch_result.noise.begin(), patch_result.noise.end());
+                    // Also pool the channel source for each point.
+                    final_patch_data.channels.insert(final_patch_data.channels.end(), patch_result.signal.size(), channel_to_pool);
                 }
             }
         } else {
@@ -113,7 +113,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         if (final_patch_data.signal.empty()) continue;
-
+        
         auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, final_channel);
         
         dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
@@ -138,7 +138,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
             generate_debug_image = false; 
         }
         
-        // Explicitly construct the SingleFileResult object.
         final_results.push_back(SingleFileResult{dr_result, curve_data, final_debug_image});
     }
 

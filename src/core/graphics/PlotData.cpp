@@ -46,21 +46,39 @@ void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::str
         return MapToPixelCoords(ev, db, bounds);
     };
 
-    PlotColors::SetSourceFromChannel(cr, curve.channel);
-    for (size_t j = 0; j < curve.signal_ev.size(); ++j) {
-        auto [px, py] = map_coords(curve.signal_ev[j], curve.snr_db[j]);
-        cairo_arc(cr, px, py, 2.5, 0, 2 * M_PI);
-        cairo_fill(cr);
+    // If the main curve is AVG, color each point by its original source.
+    // Otherwise, all points have the same color as the curve.
+    if (curve.channel == DataSource::AVG) {
+        for (const auto& point : curve.points) {
+            PlotColors::SetSourceFromChannel(cr, point.channel);
+            auto [px, py] = map_coords(point.ev, point.snr_db);
+            cairo_arc(cr, px, py, 2.5, 0, 2 * M_PI);
+            cairo_fill(cr);
+        }
+    } else {
+        PlotColors::SetSourceFromChannel(cr, curve.channel);
+        for (const auto& point : curve.points) {
+            auto [px, py] = map_coords(point.ev, point.snr_db);
+            cairo_arc(cr, px, py, 2.5, 0, 2 * M_PI);
+            cairo_fill(cr);
+        }
     }
 }
 
 void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
+    if (curve.points.empty()) return;
+
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
 
     std::string label = curve.plot_label;
-    auto [label_x, label_y] = map_coords(curve.signal_ev.back(), curve.snr_db.back());
+    
+    // Find the point with the maximum EV to place the label.
+    auto max_ev_point_it = std::max_element(curve.points.begin(), curve.points.end(),
+        [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
+    
+    auto [label_x, label_y] = map_coords(max_ev_point_it->ev, max_ev_point_it->snr_db);
     
     PlotColors::cairo_set_source_black(cr);
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
@@ -75,6 +93,8 @@ void DrawThresholdIntersection(cairo_t* cr,
                                const std::map<std::string, double>& bounds,
                                double threshold_db)
 {
+    if (curve.points.empty()) return;
+
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
@@ -85,8 +105,10 @@ void DrawThresholdIntersection(cairo_t* cr,
 
         double ev_at_threshold = -dr_value;
 
-        auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
-        if (curve.signal_ev.empty() || ev_at_threshold < *min_max_ev.first || ev_at_threshold > *min_max_ev.second) {
+        auto min_max_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+            [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
+        
+        if (ev_at_threshold < min_max_ev_it.first->ev || ev_at_threshold > min_max_ev_it.second->ev) {
             return;
         }
 
@@ -111,11 +133,10 @@ void DrawThresholdIntersection(cairo_t* cr,
         cairo_move_to(cr, px + horizontal_offset, py + vertical_offset);
         cairo_show_text(cr, ss.str().c_str());
     }
-} 
+}
 
 } // end anonymous namespace
 
-// This is the single, correct implementation of the public function.
 void DrawCurvesAndData(cairo_t* cr,
                        const PlotInfoBox& info_box,
                        const std::vector<CurveData>& curves,
@@ -125,7 +146,7 @@ void DrawCurvesAndData(cairo_t* cr,
     
     // --- PASS 1: Draw all curves and data points ---
     for (const auto& curve : curves) {
-        if (curve.signal_ev.empty()) continue;
+        if (curve.points.empty()) continue;
         DrawCurve(cr, curve, bounds);
         DrawDataPoints(cr, curve, bounds);
     }
@@ -134,15 +155,13 @@ void DrawCurvesAndData(cairo_t* cr,
     std::set<std::string> drawn_iso_labels;
     for (size_t i = 0; i < curves.size(); ++i) {
         const auto& curve = curves[i];
-        if (curve.signal_ev.empty()) continue;
+        if (curve.points.empty()) continue;
 
-        // Draw the main ISO label only once per group
         if (drawn_iso_labels.find(curve.plot_label) == drawn_iso_labels.end()) {
             DrawCurveLabel(cr, curve, bounds);
             drawn_iso_labels.insert(curve.plot_label);
         }
 
-        // Draw the individual EV intersection labels
         if (i < results.size()) {
             const auto& result = results[i];
             DrawThresholdIntersection(cr, curve, result, bounds, 12.0);

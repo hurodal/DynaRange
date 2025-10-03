@@ -17,13 +17,16 @@ namespace PlotDataGenerator {
  */
 std::vector<std::pair<double, double>> GeneratePointsForSnrEqualsFEV(const CurveData& curve) {
     std::vector<std::pair<double, double>> points;
-    if (curve.signal_ev.empty() || curve.poly_coeffs.empty()) {
+    if (curve.points.empty() || curve.poly_coeffs.empty()) {
         return points;
     }
 
-    auto min_max_ev = std::minmax_element(curve.signal_ev.begin(), curve.signal_ev.end());
-    double min_ev_data = *min_max_ev.first;
-    double max_ev_data = *min_max_ev.second;
+    auto min_max_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+        [](const PointData& a, const PointData& b) {
+            return a.ev < b.ev;
+        });
+    double min_ev_data = min_max_it.first->ev;
+    double max_ev_data = min_max_it.second->ev;
 
     const int NUM_POINTS = 100;
     points.reserve(NUM_POINTS + 1);

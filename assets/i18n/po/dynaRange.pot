@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 19:58+0200\n"
+"POT-Creation-Date: 2025-10-03 21:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:115
+#: src/gui/generated/DynaRangeBase.cpp:71 src/core/graphics/Plotting.cpp:112
 msgid "Saturation"
 msgstr ""
 
@@ -524,9 +524,8 @@ msgid "Black level: "
 msgstr ""
 
 #: src/core/engine/Initialization.cpp:134
-#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:108
-#: src/core/graphics/Plotting.cpp:112 src/core/graphics/Plotting.cpp:114
-#: src/core/graphics/Plotting.cpp:115
+#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:107
+#: src/core/graphics/Plotting.cpp:111
 msgid " (estimated)"
 msgstr ""
 
@@ -605,11 +604,11 @@ msgstr ""
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:77
+#: src/core/engine/Processing.cpp:76
 msgid "Error: Failed to prepare image for analysis for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:85
+#: src/core/engine/Processing.cpp:84
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
@@ -617,44 +616,44 @@ msgstr ""
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:158
+#: src/core/engine/Processing.cpp:157
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:198
+#: src/core/engine/Processing.cpp:197
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:200
+#: src/core/engine/Processing.cpp:199
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:202
+#: src/core/engine/Processing.cpp:201
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:217
+#: src/core/engine/Processing.cpp:216
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:218
+#: src/core/engine/Processing.cpp:217
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:218
+#: src/core/engine/Processing.cpp:217
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:218
+#: src/core/engine/Processing.cpp:217
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:222
+#: src/core/engine/Processing.cpp:221
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:224
+#: src/core/engine/Processing.cpp:223
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
@@ -662,19 +661,19 @@ msgstr ""
 msgid "Dynamic Range Results"
 msgstr ""
 
-#: src/core/engine/Validation.cpp:56
+#: src/core/engine/Validation.cpp:57
 msgid "Warning: insufficient data to calculate "
 msgstr ""
 
-#: src/core/engine/Validation.cpp:57
+#: src/core/engine/Validation.cpp:58
 msgid "dB dynamic range at "
 msgstr ""
 
-#: src/core/engine/Validation.cpp:58
+#: src/core/engine/Validation.cpp:59
 msgid "Mpx normalization. "
 msgstr ""
 
-#: src/core/engine/Validation.cpp:59
+#: src/core/engine/Validation.cpp:60
 msgid "Test chart may have been over/underexposed for this ISO."
 msgstr ""
 
@@ -702,39 +701,47 @@ msgstr ""
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
-#: src/core/graphics/PlotBase.cpp:177
+#: src/core/graphics/PlotBase.cpp:143
+msgid "(Average channels)"
+msgstr ""
+
+#: src/core/graphics/PlotBase.cpp:148
+msgid " (Channels -> "
+msgstr ""
+
+#: src/core/graphics/PlotBase.cpp:175
 msgid "RAW exposure (EV)"
 msgstr ""
 
-#: src/core/graphics/PlotBase.cpp:183
+#: src/core/graphics/PlotBase.cpp:180
 msgid "SNR (dB)"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:51
+#: src/core/graphics/Plotting.cpp:50
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:98
+#: src/core/graphics/Plotting.cpp:94
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:114
+#: src/core/graphics/Plotting.cpp:108
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:130 src/core/io/OutputWriter.cpp:24
+#: src/core/graphics/Plotting.cpp:126 src/core/io/OutputWriter.cpp:24
 msgid "  - Info: Plot saved to: "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:163
+#: src/core/graphics/Plotting.cpp:159
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:163
+#: src/core/graphics/Plotting.cpp:159
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:197
+#: src/core/graphics/Plotting.cpp:199
 msgid "SNR Curve - "
 msgstr ""
 
@@ -746,15 +753,15 @@ msgstr ""
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:248
+#: src/core/graphics/Plotting.cpp:247
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:264
+#: src/core/graphics/Plotting.cpp:262
 msgid "Generating individual SNR plots..."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:295 src/core/setup/PlotLabelGenerator.cpp:31
+#: src/core/graphics/Plotting.cpp:293 src/core/setup/PlotLabelGenerator.cpp:31
 msgid "ISO "
 msgstr ""
 

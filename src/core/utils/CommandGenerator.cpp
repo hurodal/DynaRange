@@ -20,10 +20,9 @@ std::string GenerateCommand(CommandFormat format)
     std::stringstream command_ss;
     command_ss << DynaRange::Constants::CLI_EXECUTABLE_NAME;
     auto& mgr = ArgumentManager::Instance();
-
+    
     auto add_arg = [&](const std::string& name) {
         bool use_short = (format == CommandFormat::PlotShort);
-        
         if (name == "poly-fit") command_ss << (use_short ? " -f" : " --poly-fit");
         else if (name == "patch-ratio") command_ss << (use_short ? " -r" : " --patch-ratio");
         else command_ss << " --" << name;
@@ -31,10 +30,9 @@ std::string GenerateCommand(CommandFormat format)
     
     std::string black_file = mgr.Get<std::string>("black-file");
     if (!black_file.empty()) {
-        // Lógica condicional para el path de black-file
         if (format == CommandFormat::GuiPreview || format == CommandFormat::Full) {
             command_ss << " --black-file \"" << black_file << "\"";
-        } else { // PlotShort y PlotLong
+        } else {
             command_ss << " --black-file \"" << fs::path(black_file).filename().string() << "\"";
         }
     } else {
@@ -43,10 +41,9 @@ std::string GenerateCommand(CommandFormat format)
 
     std::string sat_file = mgr.Get<std::string>("saturation-file");
     if (!sat_file.empty()) {
-        // Lógica condicional para el path de saturation-file
         if (format == CommandFormat::GuiPreview || format == CommandFormat::Full) {
             command_ss << " --saturation-file \"" << sat_file << "\"";
-        } else { // PlotShort y PlotLong
+        } else {
             command_ss << " --saturation-file \"" << fs::path(sat_file).filename().string() << "\"";
         }
     } else {
@@ -66,10 +63,14 @@ std::string GenerateCommand(CommandFormat format)
     command_ss << " --patch-ratio " << mgr.Get<double>("patch-ratio");
     command_ss << " --plot " << mgr.Get<int>("plot");
 
+    // The --print-patches argument is a debug tool and will no longer be shown
+    // in the equivalent command string to keep it clean.
+    /*
     const auto& print_patches_file = mgr.Get<std::string>("print-patches");
     if (!print_patches_file.empty()) {
         command_ss << " --print-patches \"" << print_patches_file << "\"";
     }
+    */
 
     const auto& chart_coords = mgr.Get<std::vector<double>>("chart-coords");
     if (!chart_coords.empty()) {
@@ -83,7 +84,16 @@ std::string GenerateCommand(CommandFormat format)
         for (const auto& val : chart_patches) command_ss << " " << val;
     }
 
-    // --input-files solo se muestra en la GUI o en formato Full.
+    // Add --raw-channel to the command string if it's not the default.
+    const auto& raw_channels_vec = mgr.Get<std::vector<int>>("raw-channel");
+    const std::vector<int> default_channels = {0, 0, 0, 0, 1};
+    if (raw_channels_vec != default_channels) {
+        command_ss << " --raw-channel";
+        for (const auto& val : raw_channels_vec) {
+            command_ss << " " << val;
+        }
+    }
+
     if (format == CommandFormat::Full || format == CommandFormat::GuiPreview) {
         const auto& input_files = mgr.Get<std::vector<std::string>>("input-files");
         if (!input_files.empty()) {

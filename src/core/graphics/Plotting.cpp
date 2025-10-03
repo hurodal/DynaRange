@@ -38,7 +38,6 @@ namespace { // Anonymous namespace for private helper functions
  * @param cr The cairo drawing context.
  */
 void DrawGeneratedTimestamp(cairo_t* cr) {
-    // Get current date/time as formatted string
     auto now = std::chrono::system_clock::now();
     std::time_t time_now = std::chrono::system_clock::to_time_t(now);
     std::tm local_tm;
@@ -51,17 +50,15 @@ void DrawGeneratedTimestamp(cairo_t* cr) {
     timestamp_ss << std::put_time(&local_tm, _("Generated at %Y-%m-%d %H:%M:%S"));
     std::string generated_at_text = timestamp_ss.str();
 
-    // Draw timestamp in bottom-left corner
     cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 12.0);
-    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4); // Same gray as command text
+    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
 
     cairo_text_extents_t ext;
     cairo_text_extents(cr, generated_at_text.c_str(), &ext);
 
-    // Position: bottom-left, 20px from left and 20px from bottom
     double x = 20;
-    double y = PLOT_HEIGHT - 20;
+    double y = PlotDefs::HEIGHT - 20;
 
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, generated_at_text.c_str());
@@ -83,14 +80,13 @@ std::optional<std::string> GeneratePlotInternal(
     const std::map<std::string, double>& bounds,
     std::ostream& log_stream)
 {
-    // 1. Create Cairo surface and context based on the selected format.
     cairo_surface_t *surface = nullptr;
-    bool is_pdf = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF);
+    const bool is_pdf = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF);
 
     if (is_pdf) {
-        surface = cairo_pdf_surface_create(output_filename.c_str(), PLOT_WIDTH, PLOT_HEIGHT);
-    } else { // PNG
-        surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PLOT_WIDTH, PLOT_HEIGHT);
+        surface = cairo_pdf_surface_create(output_filename.c_str(), PlotDefs::WIDTH, PlotDefs::HEIGHT);
+    } else {
+        surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PlotDefs::WIDTH, PlotDefs::HEIGHT);
     }
 
     cairo_t *cr = cairo_create(surface);
@@ -100,36 +96,36 @@ std::optional<std::string> GeneratePlotInternal(
         return std::nullopt;
     }
 
-    // 2. Create and populate the PlotInfoBox
+    if (PlotDefs::SCALE != 1.0) {
+        cairo_scale(cr, PlotDefs::SCALE, PlotDefs::SCALE);
+    }
+
     PlotInfoBox info_box;
     std::stringstream black_ss, sat_ss;
+    
     black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
-    if (opts.black_level_is_default) {
-        black_ss << _(" (estimated)");
-    }
-    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
-    if (opts.saturation_level_is_default) {
-        sat_ss << _(" (estimated)");
-    }
-    info_box.AddItem(_("Black"), black_ss.str(), opts.black_level_is_default ? _(" (estimated)") : "");
-    info_box.AddItem(_("Saturation"), sat_ss.str(), opts.saturation_level_is_default ? _(" (estimated)") : "");
+    std::string black_annotation = opts.black_level_is_default ? _(" (estimated)") : "";
+    info_box.AddItem(_("Black"), black_ss.str(), black_annotation);
 
-    // 3. Draw all components (this code is independent of the surface type)
+    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
+    std::string sat_annotation = opts.saturation_level_is_default ? _(" (estimated)") : "";
+    info_box.AddItem(_("Saturation"), sat_ss.str(), sat_annotation);
+
     std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;
     DrawPlotBase(cr, title, opts, bounds, command_text, opts.snr_thresholds_db);
     DrawCurvesAndData(cr, info_box, curves_to_plot, results_to_plot, bounds);
+    
+    if (PlotDefs::SCALE != 1.0) cairo_identity_matrix(cr);
     DrawGeneratedTimestamp(cr);
     
-    // 4. Finalize, save, and clean up
     bool success = false;
     if (is_pdf) {
-        // For PDF, drawing is done. We just show a final page and check status.
         cairo_show_page(cr); 
         success = (cairo_status(cr) == CAIRO_STATUS_SUCCESS);
         if (success) {
             log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
         }
-    } else { // For PNG, we call the writer.
+    } else {
         success = OutputWriter::WritePng(surface, output_filename, log_stream);
     }
 
@@ -184,8 +180,14 @@ void GenerateSnrPlot(
     single_curve_data.channel = channel;
     single_curve_data.plot_label = curve_label;
     single_curve_data.camera_model = "";
-    single_curve_data.signal_ev = signal_ev;
-    single_curve_data.snr_db = snr_db;
+    
+    std::vector<PointData> points;
+    points.reserve(signal_ev.size());
+    for(size_t i = 0; i < signal_ev.size(); ++i) {
+        points.push_back({signal_ev[i], snr_db[i], channel});
+    }
+    single_curve_data.points = points;
+    
     single_curve_data.poly_coeffs = poly_coeffs;
     single_curve_data.generated_command = opts.generated_command;
     
@@ -197,7 +199,6 @@ void GenerateSnrPlot(
     GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, bounds, log_stream);
 }
 
-
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_filename,
     const std::string& camera_name,
@@ -206,7 +207,6 @@ std::optional<std::string> GenerateSummaryPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
-    // Do not generate plot if plot_mode is 0
     if (opts.plot_mode == 0) {
         log_stream << "\n" << _("Plot generation skipped as per user request (--plot 0).") << std::endl;
         return std::nullopt;
@@ -217,37 +217,35 @@ std::optional<std::string> GenerateSummaryPlot(
         return std::nullopt;
     }
 
-    // Create a mutable copy to add generated points
     std::vector<CurveData> curves_with_points = all_curves;
     for (auto& curve : curves_with_points) {
         curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
     }
 
-    // 1. Calculate global bounds across all curves for both axes.
     double min_ev_global = 1e6, max_ev_global = -1e6;
     double min_db_global = 1e6, max_db_global = -1e6;
     for (const auto& curve : curves_with_points) {
-        if (!curve.signal_ev.empty()) {
-            min_ev_global = std::min(min_ev_global, *std::min_element(curve.signal_ev.begin(), curve.signal_ev.end()));
-            max_ev_global = std::max(max_ev_global, *std::max_element(curve.signal_ev.begin(), curve.signal_ev.end()));
-        }
-        if (!curve.snr_db.empty()) {
-            min_db_global = std::min(min_db_global, *std::min_element(curve.snr_db.begin(), curve.snr_db.end()));
-            max_db_global = std::max(max_db_global, *std::max_element(curve.snr_db.begin(), curve.snr_db.end()));
+        if (!curve.points.empty()) {
+            auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+                [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
+            min_ev_global = std::min(min_ev_global, minmax_ev_it.first->ev);
+            max_ev_global = std::max(max_ev_global, minmax_ev_it.second->ev);
+
+            auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+                [](const PointData& a, const PointData& b){ return a.snr_db < b.snr_db; });
+            min_db_global = std::min(min_db_global, minmax_db_it.first->snr_db);
+            max_db_global = std::max(max_db_global, minmax_db_it.second->snr_db);
         }
     }
 
     std::map<std::string, double> bounds;
     bounds["min_ev"] = floor(min_ev_global) - 1.0;
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
-    bounds["min_db"] = floor(min_db_global / 5.0) * 5.0; // Round down to nearest 5
+    bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
     bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
-    // Round up to nearest 5
-
-    // 2. Prepare title
+    
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
-
-    // 3. Delegate the entire drawing process to the internal helper function
+    
     return GeneratePlotInternal(output_filename, title, curves_with_points, all_results, opts, bounds, log_stream);
 }
 
@@ -274,7 +272,7 @@ std::map<std::string, std::string> GenerateIndividualPlots(
 
     for (auto& pair : curves_by_file) {
         const std::string& filename = pair.first;
-        std::vector<CurveData>& curves_for_this_file = pair.second; // Make mutable
+        std::vector<CurveData>& curves_for_this_file = pair.second;
         const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file[filename];
 
         if (curves_for_this_file.empty()) continue;
@@ -299,13 +297,17 @@ std::map<std::string, std::string> GenerateIndividualPlots(
 
         double min_ev = 1e6, max_ev = -1e6, min_db = 1e6, max_db = -1e6;
         for (const auto& curve : curves_for_this_file) {
-            if (!curve.signal_ev.empty()) {
-                min_ev = std::min(min_ev, *std::min_element(curve.signal_ev.begin(), curve.signal_ev.end()));
-                max_ev = std::max(max_ev, *std::max_element(curve.signal_ev.begin(), curve.signal_ev.end()));
-            }
-            if (!curve.snr_db.empty()) {
-                min_db = std::min(min_db, *std::min_element(curve.snr_db.begin(), curve.snr_db.end()));
-                max_db = std::max(max_db, *std::max_element(curve.snr_db.begin(), curve.snr_db.end()));
+            // FIX: Check and get min/max from the new 'points' vector.
+            if (!curve.points.empty()) {
+                auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+                    [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
+                min_ev = std::min(min_ev, minmax_ev_it.first->ev);
+                max_ev = std::max(max_ev, minmax_ev_it.second->ev);
+
+                auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(),
+                    [](const PointData& a, const PointData& b){ return a.snr_db < b.snr_db; });
+                min_db = std::min(min_db, minmax_db_it.first->snr_db);
+                max_db = std::max(max_db, minmax_db_it.second->snr_db);
             }
         }
         

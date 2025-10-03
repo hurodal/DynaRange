@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
+#include <vector>
+#include <string>
 
 #define _(string) gettext(string)
 
@@ -18,15 +20,7 @@
 
 // Anonymous namespace for helper functions in this file
 namespace { 
-/**
- * @brief Draws a dashed line on the cairo context.
- * @param cr The cairo drawing context.
- * @param x1 Starting x-coordinate.
- * @param y1 Starting y-coordinate.
- * @param x2 Ending x-coordinate.
- * @param y2 Ending y-coordinate.
- * @param dash_length The length of each dash segment.
- */
+
 void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, double dash_length = 20.0) {
     double dashes[] = {dash_length, dash_length};
     cairo_save(cr);
@@ -37,49 +31,35 @@ void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, dou
     cairo_restore(cr);
 }
 
-/**
- * @brief Draws the background and plot border.
- * @param cr The cairo drawing context.
- * @param bounds Map containing the plot boundaries.
- */
-void DrawPlotBackgroundAndBorder(cairo_t* cr, const std::map<std::string, double>& bounds) {
-    const int plot_area_width = PLOT_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
-    const int plot_area_height = PLOT_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
-    // Usamos MapToPixelCoords desde PlotBase.hpp
-    auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds);
-    };
-    // Background: White
+void DrawPlotBackgroundAndBorder(cairo_t* cr) {
+    const int plot_area_width = PlotDefs::BASE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
+    const int plot_area_height = PlotDefs::BASE_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
+    
     PlotColors::cairo_set_source_white(cr);
-    cairo_rectangle(cr, 0, 0, PLOT_WIDTH, PLOT_HEIGHT);
+    cairo_rectangle(cr, 0, 0, PlotDefs::BASE_WIDTH, PlotDefs::BASE_HEIGHT);
     cairo_fill(cr);
-    // Plot border: Black
+    
     PlotColors::cairo_set_source_black(cr);
     cairo_set_line_width(cr, 3.0);
     cairo_rectangle(cr, MARGIN_LEFT, MARGIN_TOP, plot_area_width, plot_area_height);
     cairo_stroke(cr);
 }
 
-/**
- * @brief Draws the grid lines (vertical for EV, horizontal for dB).
- * @param cr The cairo drawing context.
- * @param bounds Map containing the plot boundaries.
- */
 void DrawGridLines(cairo_t* cr, const std::map<std::string, double>& bounds) {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
+    // NOTE: MapToPixelCoords uses the base dimensions internally.
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
-    // Grid lines: Dark gray (GREY_20) — matches your original "black" appearance
+    
     PlotColors::cairo_set_source_grey_20(cr);
     cairo_set_line_width(cr, 1.0);
-    // Vertical grid lines (EV)
+
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
         auto [p1x, p1y] = map_coords(ev, bounds.at("min_db"));
         auto [p2x, p2y] = map_coords(ev, bounds.at("max_db"));
         cairo_move_to(cr, p1x, p1y); cairo_line_to(cr, p2x, p2y); cairo_stroke(cr);
     }
-    // Horizontal grid lines (dB)
+    
     for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) {
         auto [p1x, p1y] = map_coords(bounds.at("min_ev"), db);
         auto [p2x, p2y] = map_coords(bounds.at("max_ev"), db);
@@ -87,20 +67,15 @@ void DrawGridLines(cairo_t* cr, const std::map<std::string, double>& bounds) {
     }
 }
 
-/**
- * @brief Draws the dashed horizontal lines for SNR thresholds and their labels.
- * @param cr The cairo drawing context.
- * @param bounds Map containing the plot boundaries.
- * @param snr_thresholds Vector of SNR thresholds in dB.
- */
 void DrawThresholdLines(cairo_t* cr, const std::map<std::string, double>& bounds, const std::vector<double>& snr_thresholds) {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
+
     cairo_set_line_width(cr, 2.0);
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 16.0);
+
     for(const double threshold : snr_thresholds) {
         auto [p1x, p1y] = map_coords(bounds.at("min_ev"), threshold);
         auto [p2x, p2y] = map_coords(bounds.at("max_ev"), threshold);
@@ -112,97 +87,118 @@ void DrawThresholdLines(cairo_t* cr, const std::map<std::string, double>& bounds
     }
 }
 
-/**
- * @brief Draws the tick labels on the X-axis (EV values).
- * @param cr The cairo drawing context.
- * @param bounds Map containing the plot boundaries.
- */
 void DrawXAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds) {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
+
     cairo_set_font_size(cr, 16.0);
     cairo_text_extents_t extents;
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { 
         std::string ev_str = std::to_string((int)ev);
         cairo_text_extents(cr, ev_str.c_str(), &extents);
         auto [px, py] = map_coords(ev, bounds.at("min_db"));
-        cairo_move_to(cr, px - extents.width / 2, PLOT_HEIGHT - MARGIN_BOTTOM + 25); 
+        cairo_move_to(cr, px - extents.width / 2, PlotDefs::BASE_HEIGHT - MARGIN_BOTTOM + 25);
         cairo_show_text(cr, ev_str.c_str());
     }
 }
 
-/**
- * @brief Draws the tick labels on the Y-axis (dB values).
- * @param cr The cairo drawing context.
- * @param bounds Map containing the plot boundaries.
- */
 void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds) {
-    // Usamos MapToPixelCoords desde PlotBase.hpp
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds);
     };
+
     cairo_set_font_size(cr, 16.0);
     cairo_text_extents_t extents;
     for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) { 
         std::string db_str = std::to_string((int)db);
         cairo_text_extents(cr, db_str.c_str(), &extents);
         auto [px, py] = map_coords(bounds.at("min_ev"), db);
-        cairo_move_to(cr, MARGIN_LEFT - extents.width - 15, py + extents.height / 2); 
+        cairo_move_to(cr, MARGIN_LEFT - extents.width - 15, py + extents.height / 2);
         cairo_show_text(cr, db_str.c_str());
     }
 }
 
-/**
- * @brief Draws the main title, axis labels, and command text.
- * @param cr The cairo drawing context.
- * @param title The main title of the plot.
- * @param command_text The command-line text to display at the bottom of the plot.
- */
-void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const std::string& command_text) {
+void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOptions& opts, const std::string& command_text) {
     cairo_text_extents_t extents;
     
-    // Title: Black
+    // --- Main Title ---
     PlotColors::cairo_set_source_black(cr);
     cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr, 24.0);
     cairo_text_extents(cr, title.c_str(), &extents);
-    cairo_move_to(cr, PLOT_WIDTH / 2 - extents.width / 2, MARGIN_TOP - 40);
+    double current_x = PlotDefs::BASE_WIDTH / 2.0 - extents.width / 2.0;
+    double current_y = MARGIN_TOP - 40;
+    cairo_move_to(cr, current_x, current_y);
     cairo_show_text(cr, title.c_str());
 
-    // X-axis label: Black
+    // --- Channel Subtitle ---
+    cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 18.0);
+    current_x += extents.x_advance + 10;
+
+    const auto& channels = opts.raw_channels;
+    if (channels.AVG && !channels.R && !channels.G1 && !channels.G2 && !channels.B) {
+        PlotColors::cairo_set_source_grey_50(cr);
+        std::string avg_text = _("(Average channels)");
+        cairo_move_to(cr, current_x, current_y);
+        cairo_show_text(cr, avg_text.c_str());
+    } else if (channels.R || channels.G1 || channels.G2 || channels.B) {
+        PlotColors::cairo_set_source_grey_50(cr);
+        std::string prefix = _(" (Channels -> ");
+        cairo_move_to(cr, current_x, current_y);
+        cairo_show_text(cr, prefix.c_str());
+        cairo_text_extents(cr, prefix.c_str(), &extents);
+        current_x += extents.x_advance;
+
+        auto draw_channel_name = [&](const std::string& name, DataSource channel) {
+            cairo_move_to(cr, current_x, current_y);
+            PlotColors::SetSourceFromChannel(cr, channel);
+            cairo_show_text(cr, name.c_str());
+            cairo_text_extents(cr, name.c_str(), &extents);
+            current_x += extents.x_advance;
+        };
+
+        if (channels.R) draw_channel_name("R ", DataSource::R);
+        if (channels.G1) draw_channel_name("G1 ", DataSource::G1);
+        if (channels.G2) draw_channel_name("G2 ", DataSource::G2);
+        if (channels.B) draw_channel_name("B ", DataSource::B);
+
+        PlotColors::cairo_set_source_grey_50(cr);
+        cairo_move_to(cr, current_x, current_y);
+        cairo_show_text(cr, ")");
+    }
+
+    // --- Axis Labels ---
     PlotColors::cairo_set_source_black(cr);
     cairo_set_font_size(cr, 20.0);
     std::string x_label = _("RAW exposure (EV)");
     cairo_text_extents(cr, x_label.c_str(), &extents);
-    cairo_move_to(cr, PLOT_WIDTH / 2 - extents.width / 2, PLOT_HEIGHT - MARGIN_BOTTOM + 70);
+    cairo_move_to(cr, PlotDefs::BASE_WIDTH / 2.0 - extents.width / 2.0, PlotDefs::BASE_HEIGHT - MARGIN_BOTTOM + 70);
     cairo_show_text(cr, x_label.c_str());
 
-    // Y-axis label (rotated): Black
     std::string y_label = _("SNR (dB)");
     cairo_text_extents(cr, y_label.c_str(), &extents);
     cairo_save(cr);
-    cairo_move_to(cr, MARGIN_LEFT / 2.0 - extents.height / 2.0, PLOT_HEIGHT / 2.0 + extents.width / 2.0);
+    cairo_move_to(cr, MARGIN_LEFT / 2.0 - extents.height / 2.0, PlotDefs::BASE_HEIGHT / 2.0 + extents.width / 2.0);
     cairo_rotate(cr, -M_PI / 2.0);
     cairo_show_text(cr, y_label.c_str());
     cairo_restore(cr);
 
-    // Command text (bottom right): Medium gray (GREY_50)
+    // --- Command Text ---
     if (!command_text.empty()) {
         PlotColors::cairo_set_source_grey_50(cr);
         cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
         cairo_set_font_size(cr, 12.0);
         cairo_text_extents_t cmd_extents;
         cairo_text_extents(cr, command_text.c_str(), &cmd_extents);
-        cairo_move_to(cr, PLOT_WIDTH - MARGIN_RIGHT - cmd_extents.width - 10, PLOT_HEIGHT - 20);
+        cairo_move_to(cr, PlotDefs::BASE_WIDTH - MARGIN_RIGHT - cmd_extents.width - 10, PlotDefs::BASE_HEIGHT - 20);
         cairo_show_text(cr, command_text.c_str());
     }
 }
 
 } // end of anonymous namespace
 
-// ================== PUBLIC FUNCTION ==================
 void DrawPlotBase(
     cairo_t* cr,
     const std::string& title,
@@ -211,11 +207,10 @@ void DrawPlotBase(
     const std::string& command_text,
     const std::vector<double>& snr_thresholds)
 {
-    // Draw all components in logical order
-    DrawPlotBackgroundAndBorder(cr, bounds);
+    DrawPlotBackgroundAndBorder(cr);
     DrawGridLines(cr, bounds);
     DrawThresholdLines(cr, bounds, snr_thresholds);
     DrawXAxisLabels(cr, bounds);
     DrawYAxisLabels(cr, bounds);
-    DrawPlotAnnotations(cr, title, command_text);
+    DrawPlotAnnotations(cr, title, opts, command_text);
 }

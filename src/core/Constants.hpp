@@ -34,15 +34,19 @@ namespace DynaRange::Constants {
      * @enum PlotOutputFormat
      * @brief Defines the output format for generated plots.
      */
-    enum class PlotOutputFormat { PNG, PDF };
+   enum class PlotOutputFormat { PNG, PDF, SVG };
 
     /**
      * @brief The format to be used for all generated plot files.
      * @details Change this constant and recompile to switch between PNG and PDF output.
      */
-    constexpr PlotOutputFormat PLOT_FORMAT = PlotOutputFormat::PDF;
+    constexpr PlotOutputFormat PLOT_FORMAT = PlotOutputFormat::SVG;
 
-    // --- Patch Filtering Thresholds ---
+    /**
+     * @brief Scaling factor for vector output formats (PDF, SVG).
+     * @details A factor of 2.0 will create a document twice as large (e.g., 3840x2160).
+     */
+    constexpr double VECTOR_PLOT_SCALE_FACTOR = 2.0;
 
     /**
      * @brief Minimum Signal-to-Noise Ratio (in dB) for a patch to be considered valid.
