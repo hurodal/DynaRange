@@ -44,3 +44,18 @@ double CalculateQuantile(std::vector<double>& data, double percentile) {
     std::nth_element(data.begin(), data.begin() + n, data.end());
     return data[n];
 }
+
+double EvaluatePolynomialDerivative(const cv::Mat& coeffs, double x) {
+    if (coeffs.empty()) {
+        return 0.0;
+    }
+    double result = 0.0;
+    int order = coeffs.rows - 1;
+    // Derivative of a_n*x^n is n*a_n*x^(n-1)
+    for (int i = 0; i < order; ++i) {
+        double coeff = coeffs.at<double>(i);
+        int power = order - i;
+        result += static_cast<double>(power) * coeff * std::pow(x, power - 1);
+    }
+    return result;
+}
