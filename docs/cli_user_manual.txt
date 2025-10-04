@@ -17,7 +17,7 @@ Usage: rango [OPTION]... [FILE]...
 --patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
 --snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB "Photographic DR")
 --drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)
---raw-channel         -w <R G1 G2 B AVG>  : Specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
+--raw-channels        -w <R G1 G2 B AVG>  : Specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
 --poly-fit            -f <int 2-3>        : Polynomic order to fit the SNR curve (default=3)
 --output-file         -o <file>           : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
 --plot                -p <int 0-3> <PNG/PDF/SVG> : Export SNR curves plot in PNG/PDF/SVG formats with/without the CLI command that generated them (default=0, don't plot, default format=PNG)
@@ -103,7 +103,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --drnormalization-mpx -m 21.5 (DR normalized to 21.5Mpx)
 --drnormalization-mpx -m 0    (no normalization, per-pixel DR)
 
---raw-channel -w <R G1 G2 B AVG>
+--raw-channels -w <R G1 G2 B AVG>
 Definition: specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
 Explanation: Bayer image sensors consist of 4 RAW channels (R, G1, G2, B) following a 2x2 colour filter array. Both expected and desirable, nothing states these 4 channels will have the same performance. This command allows to separately calculate the scatterplot, SNR curves and DR values for each channel to find out. The corresponding differentiated colour will be used in the plots for each channel
 Usage: the most obvious and standard usage of this command is to perform the average (AVG) of all 4 RAW channels, so all of them are equally taken into account. For any other specific analysis this command can be used
@@ -149,6 +149,7 @@ Usage: the user can additionally supply a output name for the PNG file
 Examples (first example is default and is equivalent to not specifying the parameter):
 --print-patches -P                     (display used patches in "printpatches.png") 
 --print-patches -P patch_debugging.png (display used patches in "patch_debugging.png") 
+
 
 
 
