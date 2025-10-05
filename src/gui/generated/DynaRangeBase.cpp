@@ -7,6 +7,8 @@
 
 #include "DynaRangeBase.h"
 
+#include "../res/Icono_BAD_Mark_Red_alpha_22x22.png.h"
+
 ///////////////////////////////////////////////////////////////////////////
 
 MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
@@ -49,7 +51,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_clearDarkFileButton = new wxButton( darkFrameSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 
-	m_clearDarkFileButton->SetBitmap( wxBitmap( wxT("../../../build/bin/assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
+	m_clearDarkFileButton->SetBitmap( Icono_BAD_Mark_Red_alpha_22x22_png_to_wx_bitmap() );
 	m_clearDarkFileButton->SetMaxSize( wxSize( 28,28 ) );
 
 	fgSizer1->Add( m_clearDarkFileButton, 0, wxALL, 5 );
@@ -85,7 +87,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_clearSaturationFileButton = new wxButton( saturationSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 
-	m_clearSaturationFileButton->SetBitmap( wxBitmap( wxT("../../../assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
+	m_clearSaturationFileButton->SetBitmap( Icono_BAD_Mark_Red_alpha_22x22_png_to_wx_bitmap() );
 	m_clearSaturationFileButton->SetMaxSize( wxSize( 28,28 ) );
 
 	fgSizer2->Add( m_clearSaturationFileButton, 0, wxALL, 5 );

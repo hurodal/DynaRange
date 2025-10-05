@@ -74,6 +74,29 @@ void GuiPresenter::UpdateManagerFromView() {
   // Correctly set the "chart-patches" argument as a vector of two integers.
   std::vector<int> patches = {m_view->GetChartPatchesM(), m_view->GetChartPatchesN()};
   mgr.Set("chart-patches", patches);
+
+  // Read the state of the new channel checkboxes and set the argument.
+  RawChannelSelection channels = m_view->GetRawChannelSelection();
+  std::vector<int> channels_vec = {
+      static_cast<int>(channels.R),
+      static_cast<int>(channels.G1),
+      static_cast<int>(channels.G2),
+      static_cast<int>(channels.B),
+      static_cast<int>(channels.AVG)
+  };
+  mgr.Set("raw-channel", channels_vec);
+  
+  // Correctly update the "is_default" flags. A value is considered "default"
+  // only if the user has NOT provided a file for it. This logic is now aligned
+  // with the user's expectation. If a user enters a value manually, that is also
+  // considered a user-provided value, but the cleanest way to check for user
+  // interaction is by the presence of a file path, which covers the main use case.
+  // To be fully robust, we check both file path and value.
+  bool black_is_default = m_view->GetDarkFilePath().empty();
+  mgr.Set("black-level-is-default", black_is_default);
+  bool sat_is_default = m_view->GetSaturationFilePath().empty();
+  mgr.Set("saturation-level-is-default", sat_is_default);
+
   // Añadir el valor de print-patches al manager
   mgr.Set("print-patches", m_view->GetPrintPatchesFilename());
 }

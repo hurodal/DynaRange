@@ -98,6 +98,11 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->m_plotingChoice->SetSelection(DEFAULT_PLOT_MODE);
     m_frame->m_debugPatchesCheckBox->SetValue(false);
     m_frame->m_debugPatchesFileNameValue->Enable(false);
+    m_frame->R_checkBox->SetValue(false);
+    m_frame->G1_checkBox->SetValue(false);
+    m_frame->G2_checkBox->SetValue(false);
+    m_frame->B_checkBox->SetValue(false);
+    m_frame->AVG_checkBox->SetValue(true); // Default is AVG only    
 }
 
 // --- Getters ---
@@ -278,4 +283,14 @@ void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
     if (is_checked && m_frame->m_debugPatchesFileNameValue->GetValue().IsEmpty()) {
         m_frame->m_debugPatchesFileNameValue->SetValue("printpatches.png");
     }
+}
+
+RawChannelSelection InputController::GetRawChannelSelection() const {
+    RawChannelSelection selection;
+    selection.R   = m_frame->R_checkBox->IsChecked();
+    selection.G1  = m_frame->G1_checkBox->IsChecked();
+    selection.G2  = m_frame->G2_checkBox->IsChecked();
+    selection.B   = m_frame->B_checkBox->IsChecked();
+    selection.AVG = m_frame->AVG_checkBox->IsChecked();
+    return selection;
 }

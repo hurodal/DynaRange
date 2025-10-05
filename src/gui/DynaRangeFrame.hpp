@@ -7,6 +7,7 @@
 
 #include "generated/DynaRangeBase.h"
 #include "GuiPresenter.hpp"
+#include "../core/arguments/ArgumentsOptions.hpp"
 #include <wx/dnd.h>
 #include <wx/timer.h>
 #include <wx/notebook.h>
@@ -56,6 +57,7 @@ public:
     int GetChartPatchesM() const;
     int GetChartPatchesN() const;
     std::string GetPrintPatchesFilename() const;
+    RawChannelSelection GetRawChannelSelection() const;
 
 protected:
     // --- Event Handlers ---

@@ -19,7 +19,6 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
-// File: src/gui/DynaRangeFrame.cpp
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
 {
     // --- Create Controllers for each tab ---
@@ -90,6 +89,13 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     // Binds para los nuevos controles de --print-patches
     m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnDebugPatchesCheckBoxChanged, this);
     m_debugPatchesFileNameValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+
+    // Bind new channel checkbox events to update the CLI preview on change
+    R_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+    G1_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+    G2_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+    B_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+    AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);    
     
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
@@ -182,6 +188,8 @@ std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_inputContr
 int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN(); }
 std::string DynaRangeFrame::GetPrintPatchesFilename() const { return m_inputController->GetPrintPatchesFilename(); }
+RawChannelSelection DynaRangeFrame::GetRawChannelSelection() const { return m_inputController->GetRawChannelSelection(); }
+
 // =============================================================================
 // EVENT HANDLERS
 // =============================================================================

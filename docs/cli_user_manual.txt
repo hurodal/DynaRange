@@ -5,23 +5,24 @@ by Juan Manuel Font (coding), Hugo Rodriguez (UI design) and Guillermo Luijk (al
 
 Usage: rango [OPTION]... [FILE]...
 
---chart               -c <DIMX W H M N>   : Create test chart in PNG format ("testchart.png") with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
---chart-colour        -C <R G B invgamma> : Create test chart in PNG format ("testchart.png") ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
---chart-patches       -M <M N>            : Read test chart decoding MxN patches over rows (M) and columns (N) (default M=4, N=6)
+--chart               -c <DIMX W H M N>    : Create test chart in PNG format ("testchart.png") with a specific resolution, format and number of patches (default DIMX=1920, W=3, H=2, M=4, N=6)
+--chart-colour        -C <R G B invgamma>  : Create test chart in PNG format ("testchart.png") ranging colours from (0,0,0) to (R,G,B) with gamma compression (default R=255, G=101, B=164, invgamma=1.4)
+--chart-patches       -M <M N>             : Read test chart decoding MxN patches over rows (M) and columns (N) (default M=4, N=6)
 --chart-coords        -x <x1 y1 x2 y2 x3 y3 x4 y4> : Read test chart defined by 4 corners (no specific ordering needed): (x1,y1), (x2,y2), (x3,y3), (x4,y4), being (0,0) the coordinates of the top-left pixel
---black-level         -b <float>          : Camera RAW black level
---black-file          -B <file>           : Totally dark RAW file ideally shot at base ISO
---saturation-level    -s <float>          : Camera RAW saturation level
---saturation-file     -S <file>           : Totally clipped RAW file ideally shot at base ISO
---input-files         -i <files>          : Input RAW files shot over the test chart ideally for every ISO
---patch-ratio         -r <float>          : Relative patch width/height used to compute signal and noise readings (default=0.5)
---snrthreshold-db     -d <float>          : SNR threshold in dB for DR calculation (default=12dB "Photographic DR")
---drnormalization-mpx -m <float>          : Number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)
---raw-channel         -w <R G1 G2 B AVG>  : Specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
---poly-fit            -f <int 2-3>        : Polynomic order to fit the SNR curve (default=3)
---output-file         -o <file>           : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
---plot                -p <int 0-3> <PNG/PDF/SVG> : Export SNR curves plot in PNG/PDF/SVG formats with/without the CLI command that generated them (default=0, don't plot, default format=PNG)
---print-patches       -P <file>           : Save keystone/ETTR/gamma corrected test chart in PNG format indicating the patches used for all calculations (default="printpatches.png")
+--black-file          -b <file>            : Totally dark RAW file ideally shot at base ISO
+--black-level         -B <float>           : Camera RAW black level
+--saturation-file     -s <file>            : Totally clipped RAW file ideally shot at base ISO
+--saturation-level    -S <float>           : Camera RAW saturation level
+--input-files         -i <files>           : Input RAW files shot over the test chart ideally for every ISO
+--patch-ratio         -r <float>           : Relative patch width/height used to compute signal and noise readings (default=0.5)
+--snrthreshold-db     -d <float list>      : SNR threshold(s) list in dB for DR calculation (default=0 12 being 0dB="Engineering DR" and 12dB="Photographic DR")
+--drnormalization-mpx -m <float>           : Number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)
+--raw-channels        -w <R G1 G2 B AVG>   : Specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
+--poly-fit            -f <int 2-3>         : Polynomic order to fit the SNR curve (default=3)
+--output-file         -o <file>            : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
+--plot                -p <file> <PNG/PDF/SVG> : Export SNR curves plot in PNG/PDF/SVG formats (default=don't plot, default format=PNG)
+--plot-params         -P <S C L> <int 1-3> : Export SNR curves plot in PNG/PDF/SVG formats (default=don't plot, default format=PNG)
+--print-patches       -g <file>            : Save keystone/ETTR/gamma corrected test chart in PNG format indicating the grid of patches used for all calculations (default="printpatches.png")
 
 
 -----------------------------------------------
@@ -47,27 +48,27 @@ Examples:
 --chart-patches -M 8 12 (decode a very dense 8x12 patches test chart)
 --chart-coords  -x 1 1 1 4000 6000 4000 6000 1 (decode a test chart occupying the entire frame on a 24 Mpx camera)
 
---black-level -b <float>
---black-file  -B <file>
+--black-file  -b <file>
+--black-level -B <float>
 Definition: camera RAW black level / totally dark RAW file ideally shot at base ISO (default=black level power of 2 estimation)
 Explanation: setting this parameter is optional but it is VERY recommended since all SNR calculations are very sensitive to it. Knowing the black level is mandatory to linearize all sensor data by subtracting it from the RAW values in order to obtain accurate DR measurements
 Usage: the most reliable way to proceed is to capture a quick darkframe at base ISO ideally with the camera still cold (-B option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise black level (-b option). If none of the options are used, rango by default will calculate the lowest power of 2 value where information is found which can be risky
 Examples (first example is default and is equivalent to not specifying the parameter):
---black-level -b
---black-level -b 255       (provide a black level of 255 for the Olympus OM-1)
---black-level -b 254.85    (provide a more precise black level of 254.85 for the Olympus OM-1)
---black-file  -B black.dng (provide a darkframe RAW file so that rango calculates the black level)
+--black-file  -b
+--black-file  -b black.dng (provide a darkframe RAW file so that rango calculates the black level)
+--black-level -B 255       (provide a black level of 255 for the Olympus OM-1)
+--black-level -B 254.85    (provide a more precise black level of 254.85 for the Olympus OM-1)
 
---saturation-level -s <float>
---saturation-file  -S <file>
+--saturation-file  -s <file>
+--saturation-level -S <float>
 Definition: camera RAW saturation level / totally clipped RAW file ideally shot at base ISO (default=saturation level bitdepth scale estimation)
 Explanation: not being as critical as the black level, setting this parameter is also very important to properly locate exposure values with respect to saturation in order to obtain accurate DR measurements
 Usage: the most reliable way to proceed is to capture a completely clipped RAW file ideally at base ISO (-S option). There is also a possibility of providing the parameter if you feel confident enough of your camera's precise saturation level (-s option). If none of the options are used, rango by default will calculate the end of the bitdepth scale from the highest ISO RAW file
 Examples (first example is default and is equivalent to not specifying the parameter):
---saturation-level -s
---saturation-level -s 3692    (provide a saturation level of 3692 for the Canon 5D)
---saturation-level -s 16383   (provide a saturation level of 16383 for the Sony A7 II)
---saturation-file  -S sat.dng (provide a clipped RAW file so that rango calculates the saturation level)
+--saturation-file  -s
+--saturation-file  -s sat.dng (provide a 100% clipped RAW file to calculate the saturation level)
+--saturation-level -S 3692    (provide a saturation level of 3692 for the Canon 5D)
+--saturation-level -S 16383   (provide a saturation level of 16383 for the Sony A7 II)
 
 --input-files -i <files>
 Definition: input RAW files shot over the test chart ideally for every ISO (no default, mandatory parameter)
@@ -85,14 +86,15 @@ Examples (first example is default and is equivalent to not specifying the param
 --patch-ratio -r 0.5 (50% of patch width/height centred will be used, 25% of patch area)
 --patch-ratio -r 0.6 (60% of patch width/height centred will be used, 36% of patch area)
 
---snrthreshold-db -d <float>
-Definition: SNR threshold in dB for DR calculation (default=12dB "Photographic DR")
+--snrthreshold-db -d <float list>
+Definition: SNR threshold(s) list in dB for DR calculation (default=0 12 being 0dB="Engineering DR" and 12dB="Photographic DR")
 Explanation: to determine the DR, a SNR threshold must be defined. The DR according to that criteria will be the number of stops between sensor saturation and the point at which the SNR curve falls to the specified SNR threshold. This means each threshold will yield different DR values, and they will all be correct according to that criteria
-Usage: by default the DR for both 12dB and 0dB DR values is calculated. If specified, only the specified threshold is used
+Usage: by default the DR for both 12dB and 0dB DR values is calculated. If specified, the listed SNR thresholds will be used
 Examples (first example is default and is equivalent to not specifying the parameter):
---snrthreshold-db -d     (only a 12dB threshold is used)
---snrthreshold-db -d 12  (only a 12dB threshold is used)
---snrthreshold-db -d 6.5 (only a 6.5dB threshold is used)
+--snrthreshold-db -d        (0dB and 12dB thresholds are used)
+--snrthreshold-db -d 0      (only 0dB threshold is used)
+--snrthreshold-db -d 12     (only 12dB threshold is used)
+--snrthreshold-db -d 0 6 12 (0dB, 6dB and 12dB thresholds are used)
 
 --drnormalization-mpx -m <float>
 Definition: number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)
@@ -103,7 +105,7 @@ Examples (first example is default and is equivalent to not specifying the param
 --drnormalization-mpx -m 21.5 (DR normalized to 21.5Mpx)
 --drnormalization-mpx -m 0    (no normalization, per-pixel DR)
 
---raw-channel -w <R G1 G2 B AVG>
+--raw-channels -w <R G1 G2 B AVG>
 Definition: specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
 Explanation: Bayer image sensors consist of 4 RAW channels (R, G1, G2, B) following a 2x2 colour filter array. Both expected and desirable, nothing states these 4 channels will have the same performance. This command allows to separately calculate the scatterplot, SNR curves and DR values for each channel to find out. The corresponding differentiated colour will be used in the plots for each channel
 Usage: the most obvious and standard usage of this command is to perform the average (AVG) of all 4 RAW channels, so all of them are equally taken into account. For any other specific analysis this command can be used
@@ -132,23 +134,39 @@ Examples (first example is default and is equivalent to not specifying the param
 --output-file -o results_ep5.csv    (output results to "results_ep5.csv")
 --output-file -o results_sonya7.csv (output results to "results_sonya7.csv")
 
---plot -p <int 0-3> <PNG/PDF/SVG>
-Definition: export SNR curves plot in PNG/PDF/SVG formats with/without the CLI command that generated them (default=0, don't plot, default format=PNG)
-Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows). In order to export these SNR curves a 1-3 parameter must be set and a format chosen (PNG is a bitmap format while PDF and SVG are vectorial formats)
-Usage: by default no plot export is performed. 1 will export the SNR curves alone while 2 and 3 will add the specific CLI commmand (no filenames) that generated the curves in short (2) or long (3) versions
+--plot -p <file> <PNG/PDF/SVG>
+Definition: export SNR curves plot in PNG/PDF/SVG formats with/without the CLI command that generated them (default=don't plot, default SCL=1 1 1, default file name="snrcurves.png", default format=PNG)
+Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows).
+Usage: by default no plot export is performed. In order to export the SNR curves a file name can be specified indicating the chosen format (PNG is a bitmap format while PDF and SVG are vector formats)
 Examples (first example is default and is equivalent to not specifying the parameter):
---plot -p       (no plot export)
---plot -p 1     (plot export of SNR curves in PNG format without CLI command)
---plot -p 2 PDF (plot export of SNR curves in PDF format adding short CLI command)
---plot -p 3 SVG (plot export of SNR curves in SVG format adding long CLI command)
+--plot -p                   (no plot export)
+--plot -p PNG               (plot export of SNR curves in PNG format in "snrcurves.png")
+--plot -p snr_plots.png PNG (plot export of SNR curves in PNG format in "snr_plots.png")
+--plot -p snr_plots.pdf PDF (plot export of SNR curves in PDF format in "snr_plots.pdf")
+--plot -p snr_plots.svg SVG (plot export of SNR curves in SVG format in "snr_plots.svg")
 
---print-patches -P <file>
-Definition: save keystone/ETTR/gamma corrected test chart in PNG format indicating the patches used for all calculations (default="printpatches.png")
+--plot-params -P <S C L> <int 1-3>
+Definition: export SNR curves plot in PNG/PDF/SVG formats (default=1 1 1 3)
+Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows).
+Usage: the information included in the plots can be taylored with 3 boolean values: S-catter C-urves L-abels, plus a 1-3 integer parameter: 1 will export the SNR curves alone, 2 and 3 will add the specific CLI commmand (no file names) that generated the curves in short (2) or long (3) versions
+Examples (first example is default and is equivalent to not specifying the parameter):
+--plot -P         (default parameters 1 1 1 3 are used)
+--plot -P 1 1 1 1 (plot export of SNR curves in PNG format without CLI command)
+--plot -P 1 1 1 2 (plot export of SNR curves in PDF format adding short CLI command)
+--plot -P 1 1 1 3 (plot export of SNR curves in SVG format adding long CLI command)
+--plot -P 0 1 0 1 (plot export of SNR curves in PNG format with minimalistic appearance)
+
+--print-patches -g <file>
+Definition: save keystone/ETTR/gamma corrected test chart in PNG format indicating the grid of patches used for all calculations (default="printpatches.png")
 Explanation: to make sure patches are correctly being read from the test chart without taking data from neighbour patches, this function will create a keystone corrected and ETTR/gamma normalized image of the test chart, indicating the location and shape of all patches used. The lowest ISO/G1 RAW channel will be used
 Usage: the user can additionally supply a output name for the PNG file
 Examples (first example is default and is equivalent to not specifying the parameter):
---print-patches -P                     (display used patches in "printpatches.png") 
---print-patches -P patch_debugging.png (display used patches in "patch_debugging.png") 
+--print-patches -g                     (display used patches in "printpatches.png") 
+--print-patches -g patch_debugging.png (display used patches in "patch_debugging.png") 
+
+
+
+
 
 
 

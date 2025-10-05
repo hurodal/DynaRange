@@ -435,7 +435,7 @@
                                             <property name="auth_needed">0</property>
                                             <property name="best_size"></property>
                                             <property name="bg"></property>
-                                            <property name="bitmap">Load From File; ../../build/bin/assets/icons/Icono BAD Mark Red alpha 22x22.png</property>
+                                            <property name="bitmap">Load From Embedded File; ../../assets/icons/Icono_BAD_Mark_Red_alpha_22x22.png</property>
                                             <property name="caption"></property>
                                             <property name="caption_visible">1</property>
                                             <property name="center_pane">0</property>
@@ -796,7 +796,7 @@
                                             <property name="auth_needed">0</property>
                                             <property name="best_size"></property>
                                             <property name="bg"></property>
-                                            <property name="bitmap">Load From File; ../../assets/icons/Icono BAD Mark Red alpha 22x22.png</property>
+                                            <property name="bitmap">Load From Embedded File; ../../assets/icons/Icono_BAD_Mark_Red_alpha_22x22.png</property>
                                             <property name="caption"></property>
                                             <property name="caption_visible">1</property>
                                             <property name="center_pane">0</property>

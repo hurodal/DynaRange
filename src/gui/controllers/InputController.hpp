@@ -4,6 +4,7 @@
  * @brief Declares a controller class for the InputPanel's logic.
  */
 #pragma once
+#include "../../core/arguments/ArgumentsOptions.hpp"
 #include <wx/event.h>
 #include <string>
 #include <vector>
@@ -33,10 +34,9 @@ public:
     std::vector<std::string> GetInputFiles() const;
     std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;
-    
-    // Added getters for the new chart patch controls on the Input tab.
     int GetChartPatchesM() const; // Rows
     int GetChartPatchesN() const; // Cols
+    RawChannelSelection GetRawChannelSelection() const;
 
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);
