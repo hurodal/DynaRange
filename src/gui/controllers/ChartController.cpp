@@ -5,17 +5,16 @@
  */
 #include "ChartController.hpp"
 #include "../DynaRangeFrame.hpp"
-#include "../helpers/ImageViewer.hpp"
 #include "../../core/arguments/ChartOptionsParser.hpp" // For the struct
 #include "../../core/graphics/ChartGenerator.hpp"
 #include "../../core/utils/PathManager.hpp"
 #include <wx/msgdlg.h>
+#include <algorithm>
 
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
-    m_thumbnailViewer = std::make_unique<ImageViewer>(m_frame->m_chartPreviewBitmap);
     m_frame->rightColChartPanel->Bind(wxEVT_SIZE, &ChartController::OnRightPanelSize, this);
-    m_thumbnailViewer->ShowLogo();
+    m_frame->m_chartPreviewBitmap->SetBitmap(wxNullBitmap); // Clear bitmap initially
 
     // Set initial values on UI controls directly from a default-initialized
     // ChartGeneratorOptions struct, which now holds the central default values.
@@ -30,7 +29,6 @@ ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
     m_frame->m_chartDimXValue->SetValue(std::to_string(default_opts.dim_x));
     m_frame->m_chartDimWValue->SetValue(std::to_string(default_opts.aspect_w));
     m_frame->m_chartDimHValue->SetValue(std::to_string(default_opts.aspect_h));
-
     // Initialize both sets of patch controls from the central source of truth.
     m_frame->m_chartPatchRowValue->SetValue(std::to_string(default_opts.patches_m));
     m_frame->m_chartPatchColValue->SetValue(std::to_string(default_opts.patches_n));
@@ -38,7 +36,14 @@ ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
     m_frame->m_chartPatchColValue1->SetValue(std::to_string(default_opts.patches_n));
 }
 
-ChartController::~ChartController() = default;
+ChartController::~ChartController()
+{
+    // Unbind the event to prevent issues on shutdown
+    if (m_frame && m_frame->rightColChartPanel) {
+        // Corrected typo from UnBind to Unbind
+        m_frame->rightColChartPanel->Unbind(wxEVT_SIZE, &ChartController::OnRightPanelSize, this);
+    }
+}
 
 void ChartController::OnPreviewClick(wxCommandEvent& event) {
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
@@ -47,8 +52,8 @@ void ChartController::OnPreviewClick(wxCommandEvent& event) {
     if (thumb_data_opt) {
         // Convert the generic image data to a wxImage here, inside the GUI layer.
         InMemoryImage& thumb_data = *thumb_data_opt;
-        wxImage image(thumb_data.width, thumb_data.height, thumb_data.data.data(), true); // true = static data
-        m_thumbnailViewer->SetImage(image); // Use the viewer to handle setting and scaling
+        m_chart_preview_image = wxImage(thumb_data.width, thumb_data.height, thumb_data.data.data(), true); // true = static data
+        UpdateBitmapDisplay(); // Use the new helper to scale and display
     }
 }
 
@@ -94,14 +99,9 @@ ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
 }
 
 void ChartController::OnRightPanelSize(wxSizeEvent& event) {
-    // Schedule the update for the next event cycle. This ensures the panel's
-    // layout has finished calculating and the image is repainted correctly.
     m_frame->CallAfter([this]() {
-        if (m_thumbnailViewer) {
-            m_thumbnailViewer->HandleResize();
-        }
+        UpdateBitmapDisplay();
     });
-    // Propagate the event to allow other layout calculations to proceed.
     event.Skip();
 }
 
@@ -127,4 +127,30 @@ void DynaRangeFrame::OnChartChartPatchChanged(wxCommandEvent& event) {
     m_presenter->UpdateCommandPreview();
     m_isUpdatingPatches = false;
     event.Skip();
+}
+
+void ChartController::UpdateBitmapDisplay() {
+    if (!m_chart_preview_image.IsOk() || !m_frame || !m_frame->m_chartPreviewBitmap || !m_frame->m_chartPreviewBitmap->GetParent()) { 
+        return;
+    }
+
+    wxSize containerSize = m_frame->m_chartPreviewBitmap->GetParent()->GetClientSize();
+    if (containerSize.GetWidth() <= 0 || containerSize.GetHeight() <= 0) {
+        return;
+    }
+
+    wxImage imageCopy = m_chart_preview_image.Copy();
+    int imgWidth = imageCopy.GetWidth();
+    int imgHeight = imageCopy.GetHeight();
+
+    double hScale = static_cast<double>(containerSize.GetWidth()) / imgWidth;
+    double vScale = static_cast<double>(containerSize.GetHeight()) / imgHeight;
+    double scale = std::min(hScale, vScale);
+
+    imageCopy.Rescale(imgWidth * scale, imgHeight * scale, wxIMAGE_QUALITY_HIGH);
+
+    m_frame->m_chartPreviewBitmap->SetBitmap(wxBitmap(imageCopy));
+    if (m_frame->m_chartPreviewBitmap->GetParent()) {
+        m_frame->m_chartPreviewBitmap->GetParent()->Layout();
+    }
 }

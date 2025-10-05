@@ -15,10 +15,9 @@
 #include "../io/OutputWriter.hpp"
 #include "PlotDataGenerator.hpp" 
 #include "../Constants.hpp"
-#include "../utils/Formatters.hpp"
 #include <cairo/cairo.h>
-#include <cairo/cairo-pdf.h> // Added missing header for PDF support
-#include <cairo/cairo-svg.h>  // Added missing header for SVG support
+#include <cairo/cairo-pdf.h>
+#include <cairo/cairo-svg.h>
 #include <iostream>
 #include <algorithm>
 #include <map>
@@ -71,30 +70,38 @@ std::optional<std::string> GeneratePlotInternal(
     const std::map<std::string, double>& bounds,
     std::ostream& log_stream)
 {
-    cairo_surface_t *surface = nullptr;
 
-    switch (DynaRange::Constants::PLOT_FORMAT) {
+    // Calculate dimensions and scale at runtime based on the selected plot format.
+    bool is_vector = (opts.plot_format == DynaRange::Constants::PlotOutputFormat::PDF ||
+                      opts.plot_format == DynaRange::Constants::PlotOutputFormat::SVG);
+    double scale = is_vector ? DynaRange::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
+    int width = static_cast<int>(PlotDefs::BASE_WIDTH * scale);
+    int height = static_cast<int>(PlotDefs::BASE_HEIGHT * scale);
+
+    cairo_surface_t *surface = nullptr;
+    switch (opts.plot_format) {
         case DynaRange::Constants::PlotOutputFormat::PDF:
-            surface = cairo_pdf_surface_create(output_filename.c_str(), PlotDefs::WIDTH, PlotDefs::HEIGHT);
+            surface = cairo_pdf_surface_create(output_filename.c_str(), width, height);
             break;
         case DynaRange::Constants::PlotOutputFormat::SVG:
-            surface = cairo_svg_surface_create(output_filename.c_str(), PlotDefs::WIDTH, PlotDefs::HEIGHT);
+            surface = cairo_svg_surface_create(output_filename.c_str(), width, height);
             break;
         case DynaRange::Constants::PlotOutputFormat::PNG:
         default:
-            surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, PlotDefs::WIDTH, PlotDefs::HEIGHT);
+            surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
             break;
     }
 
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"." << std::endl;
+        log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"."
+                   << std::endl;
         cairo_surface_destroy(surface);
         return std::nullopt;
     }
 
-    if (PlotDefs::SCALE != 1.0) {
-        cairo_scale(cr, PlotDefs::SCALE, PlotDefs::SCALE);
+    if (scale != 1.0) {
+        cairo_scale(cr, scale, scale);
     }
 
     PlotInfoBox info_box;
@@ -114,7 +121,7 @@ std::optional<std::string> GeneratePlotInternal(
     DrawGeneratedTimestamp(cr);
     
     bool success = false;
-    switch (DynaRange::Constants::PLOT_FORMAT) {
+    switch (opts.plot_format) {
         case DynaRange::Constants::PlotOutputFormat::PDF:
             cairo_show_page(cr); // Finalize the page for PDF
             // Fall through to common vector finalization
@@ -154,20 +161,19 @@ void GenerateSnrPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
-    if (opts.plot_mode == 0) {
+    if (!opts.generate_plot) {
         return;
     }
 
     if (signal_ev.size() < 2) {
         log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")."
- << std::endl;
+                   << std::endl;
         return;
     }
 
     auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
     double min_ev_data = *min_max_ev.first;
     double max_ev_data = *min_max_ev.second;
-
     auto min_max_db = std::minmax_element(snr_db.begin(), snr_db.end());
     double min_db_data = *min_max_db.first;
     double max_db_data = *min_max_db.second;
@@ -210,8 +216,8 @@ std::optional<std::string> GenerateSummaryPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream)
 {
-    if (opts.plot_mode == 0) {
-        log_stream << "\n" << _("Plot generation skipped as per user request (--plot 0).") << std::endl;
+    if (!opts.generate_plot) {
+        log_stream << "\n" << _("Plot generation skipped as per user request.") << std::endl;
         return std::nullopt;
     }
 
@@ -259,7 +265,7 @@ std::map<std::string, std::string> GenerateIndividualPlots(
     std::ostream& log_stream)
 {
     std::map<std::string, std::string> plot_paths_map;
-    if (opts.plot_mode == 0) return plot_paths_map;
+    if (!opts.generate_plot) return plot_paths_map;
 
     log_stream << "\n" << _("Generating individual SNR plots...") << std::endl;
 

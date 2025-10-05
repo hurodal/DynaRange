@@ -68,7 +68,15 @@ void GuiPresenter::UpdateManagerFromView() {
   mgr.Set("snrthreshold-db", m_view->GetSnrThreshold());
   mgr.Set("drnormalization-mpx", m_view->GetDrNormalization());
   mgr.Set("poly-fit", m_view->GetPolyOrder());
-  mgr.Set("plot", m_view->GetPlotMode());
+  
+  // Set plot-related arguments based on GUI state to prevent crash
+  int plotMode = m_view->GetPlotMode();
+  mgr.Set("plot", plotMode);
+  mgr.Set("generate-plot", plotMode != 0); // Plot mode 0 is "No"
+  if (plotMode != 0) {
+      mgr.Set("plot-format", m_view->GetPlotFormat());
+  }
+
   mgr.Set("chart-coords", m_view->GetChartCoords());
 
   // Correctly set the "chart-patches" argument as a vector of two integers.
@@ -100,6 +108,7 @@ void GuiPresenter::UpdateManagerFromView() {
   // Añadir el valor de print-patches al manager
   mgr.Set("print-patches", m_view->GetPrintPatchesFilename());
 }
+
 
 void GuiPresenter::UpdateCommandPreview() {
 

@@ -9,7 +9,6 @@ namespace DynaRange::Constants {
 
     // Command-line executable name.
     constexpr const char* CLI_EXECUTABLE_NAME = "rango";
-
     /**
      * @brief The minimum percentage of the total image area that the detected
      * chart must occupy to be considered valid.
@@ -24,7 +23,6 @@ namespace DynaRange::Constants {
         SNR_equals_f_EV, ///< C++ Model: SNR_dB = f(EV)
         EV_equals_f_SNR  ///< R Model (Future): EV = f(SNR_dB)
     };
-
     /**
      * @brief The model to be used for generating the SNR curve for plotting.
      */
@@ -34,13 +32,7 @@ namespace DynaRange::Constants {
      * @enum PlotOutputFormat
      * @brief Defines the output format for generated plots.
      */
-   enum class PlotOutputFormat { PNG, PDF, SVG };
-
-    /**
-     * @brief The format to be used for all generated plot files.
-     * @details Change this constant and recompile to switch between PNG and PDF output.
-     */
-    constexpr PlotOutputFormat PLOT_FORMAT = PlotOutputFormat::SVG;
+    enum class PlotOutputFormat { PNG, PDF, SVG };
 
     /**
      * @brief Scaling factor for vector output formats (PDF, SVG).

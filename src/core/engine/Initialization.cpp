@@ -21,7 +21,6 @@
 
 namespace fs = std::filesystem;
 
-// Esta función existía y ha sido modificada.
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
     // --- 1. Deduplicate Input Files ---
@@ -73,12 +72,14 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     // --- 4. CALIBRATION FROM EXPLICIT FILES ---
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
-        if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false; }
+        if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false;
+        }
         opts.dark_value = *dark_val_opt;
     }
     if (!opts.sat_file_path.empty()) {
         auto sat_val_opt = ProcessSaturationFrame(opts.sat_file_path, log_stream);
-        if (!sat_val_opt) { log_stream << _("Fatal error processing saturation frame.") << std::endl; return false; }
+        if (!sat_val_opt) { log_stream << _("Fatal error processing saturation frame.") << std::endl; return false;
+        }
         opts.saturation_value = *sat_val_opt;
     }
 
@@ -102,7 +103,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     max_file_width += 2;
     max_bright_width += 2;
     max_iso_width += 2;
-
     log_stream << "\n" << _("Sorting files based on pre-analyzed data:") << std::endl;
     log_stream << "  " << std::left << std::setw(max_file_width) << "File"
                << std::right << std::setw(max_bright_width) << "Brightness"
@@ -134,7 +134,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
                << (opts.black_level_is_default ? _(" (estimated)") : "") << std::endl;
     log_stream << _("Saturation point: ") << opts.saturation_value 
                << (opts.saturation_level_is_default ? _(" (estimated)") : "") << std::endl;
-
     // New logic to dynamically build the list of channels to be analyzed.
     std::vector<std::string> selected_channels;
     if (opts.raw_channels.R) selected_channels.push_back("R");
@@ -148,9 +147,9 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         channels_ss << selected_channels[i] << (i < selected_channels.size() - 1 ? ", " : "");
     }
     
-    std::string channel_label = (selected_channels.size() > 1) ? _("Analysis channels: ") : _("Analysis channel: ");
+    std::string channel_label = (selected_channels.size() > 1) ?
+        _("Analysis channels: ") : _("Analysis channel: ");
     log_stream << channel_label << channels_ss.str() << std::endl;
-    
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }
@@ -162,17 +161,24 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
     log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
     log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
+    
     log_stream << _("Plotting: ");
-    switch (opts.plot_mode) {
-        case 0: log_stream << _("No graphics") << std::endl; break;
-        case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
-        case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
-        case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
-    }    
+    if (!opts.generate_plot) {
+        log_stream << _("No graphics") << std::endl;
+    } else {
+        switch (opts.plot_command_mode) {
+            case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
+            case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
+            case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
+            default: log_stream << _("Graphics enabled") << std::endl; break;
+        }
+    }
+    
     log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
-    if (opts.plot_mode == 2) {
+
+    if (opts.plot_command_mode == 2) {
         opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);
-    } else if (opts.plot_mode == 3) {
+    } else if (opts.plot_command_mode == 3) {
         opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotLong);
     }
     

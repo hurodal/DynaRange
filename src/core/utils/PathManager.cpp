@@ -97,9 +97,9 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const Progra
     // Add the channel suffix.
     new_filename_ss << Formatters::GenerateChannelSuffix(opts.raw_channels);
 
-    // Add the correct extension based on the global constant.
+    // Add the correct extension based on the runtime option.
     std::string extension;
-    switch (DynaRange::Constants::PLOT_FORMAT) {
+    switch (opts.plot_format) {
         case DynaRange::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
         case DynaRange::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
         case DynaRange::Constants::PlotOutputFormat::PNG:
@@ -110,12 +110,12 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const Progra
 }
 
 fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const ProgramOptions& opts) const {
-
     std::string safe_camera_name = camera_name;
     std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
-    // Add the correct extension based on the global constant.
+    
+    // Add the correct extension based on the runtime option.
     std::string extension;
-    switch (DynaRange::Constants::PLOT_FORMAT) {
+    switch (opts.plot_format) {
         case DynaRange::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
         case DynaRange::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
         case DynaRange::Constants::PlotOutputFormat::PNG:

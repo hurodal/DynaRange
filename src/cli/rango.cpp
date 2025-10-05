@@ -1,6 +1,6 @@
-// File: src/rango.cpp
+// File: src/cli/rango.cpp
 /**
- * @file src/rango.cpp
+ * @file src/cli/rango.cpp
  * @brief Main entry point for the command-line (CLI) version of the application.
  */
 #include "../core/arguments/ArgumentManager.hpp"
@@ -23,7 +23,6 @@
 
 int main(int argc, char* argv[]) {
     setlocale(LC_ALL, "");
-
     // Use PathManager to determine the locale directory path.
     // An empty ProgramOptions is sufficient for the PathManager to find the app path.
     PathManager path_manager(ProgramOptions{});
@@ -58,7 +57,7 @@ int main(int argc, char* argv[]) {
     std::atomic<bool> cancel_flag{false};
     ReportOutput report = DynaRange::RunDynamicRangeAnalysis(opts, std::cout, cancel_flag);
     
-    if (!report.summary_plot_path.has_value() && opts.plot_mode > 0) {
+    if (!report.summary_plot_path.has_value() && opts.generate_plot) {
         std::cerr << _("A critical error occurred during processing. Please check the log.") << std::endl;
         return 1;
     }

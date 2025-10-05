@@ -43,7 +43,7 @@ if(WIN32)
 endif()
 
 # --- wxWidgets ---
-find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
+find_package(wxWidgets COMPONENTS core base html xrc qa net webview REQUIRED)
 
 pkg_check_modules(CAIRO REQUIRED cairo)
 
@@ -119,7 +119,6 @@ add_executable(dynaRangeGui WIN32
     src/gui/DynaRangeGuiApp.cpp
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
-    src/gui/helpers/ImageViewer.cpp
     src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
 )
@@ -217,7 +216,6 @@ set(I18N_SOURCES
     src/gui/DynaRangeGuiApp.cpp
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
-    src/gui/helpers/ImageViewer.cpp
     src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
 )

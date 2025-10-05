@@ -4,6 +4,7 @@
  * @brief Defines the data structure and types for program configuration.
  */
 #pragma once
+#include "../Constants.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -72,7 +73,12 @@ struct ProgramOptions {
     double dr_normalization_mpx = DEFAULT_DR_NORMALIZATION_MPX;
     std::vector<double> snr_thresholds_db;
     double patch_ratio = DEFAULT_PATCH_RATIO;
-    int plot_mode = DEFAULT_PLOT_MODE;
+    
+    // The old 'plot_mode' is replaced by more descriptive members
+    bool generate_plot = false;
+    DynaRange::Constants::PlotOutputFormat plot_format = DynaRange::Constants::PlotOutputFormat::PNG;
+    int plot_command_mode = 0; // 0: No command, 1: Short, 2: Long
+    
     bool create_chart_mode = false;
     std::vector<std::string> chart_colour_params;
     std::vector<int> chart_params;
@@ -89,6 +95,7 @@ struct ProgramOptions {
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
     
-    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
+    }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

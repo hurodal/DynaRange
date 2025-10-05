@@ -41,10 +41,14 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, DEFAULT_DR_NORMALIZATION_MPX};
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
-    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG format..."), ArgType::Int, DEFAULT_PLOT_MODE, false, 0, 3};
+    m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG/PDF/SVG format..."), ArgType::Int, DEFAULT_PLOT_MODE};
     m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
     m_descriptors["raw-channel"] = {"raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int>{0, 0, 0, 0, 1}};
     
+    // Arguments for plotting logic, now with default values to prevent crashes.
+    m_descriptors["generate-plot"] = {"generate-plot", "", "", ArgType::Flag, false};
+    m_descriptors["plot-format"] = {"plot-format", "", "", ArgType::Int, DynaRange::Constants::PlotOutputFormat::PNG};
+
     // Internal flags
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     m_descriptors["black-level-is-default"] = {"black-level-is-default", "", "", ArgType::Flag, true};
@@ -68,7 +72,9 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     std::vector<int> temp_raw_channels;
-    
+    std::vector<std::string> plot_params; // Vector to capture plot parameters
+    int plot_command_mode = 1; // Default plot command mode is 1 (simple graphic)
+
     // --- Define all options ---
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(5);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, m_descriptors.at("chart-colour").help_text)->expected(0, 4);
@@ -85,7 +91,11 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto poly_fit_opt = app.add_option("-f,--poly-fit", temp_opts.poly_order, m_descriptors.at("poly-fit").help_text)
                             ->check(CLI::IsMember(std::vector<int>(std::begin(VALID_POLY_ORDERS), std::end(VALID_POLY_ORDERS))));
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
-    auto plot_opt = app.add_option("-p,--plot", temp_opts.plot_mode, m_descriptors.at("plot").help_text)->check(CLI::Range(0, 3));
+    
+    // Modified plot option to accept 0 to 2 string parameters
+    auto plot_opt = app.add_option("-p,--plot", plot_params, _("Export SNR curves. Can specify [FORMAT] or [FILENAME FORMAT]."))->expected(0,2)->trigger_on_parse();
+    app.add_option("--plot-cmd", plot_command_mode, _("Set plot command mode (0-3)."))->check(CLI::Range(0, 3));
+
     auto print_patch_opt = app.add_option("-P,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
                                 ->expected(0,1)
                                 ->default_str("chartpatches.png");
@@ -95,13 +105,10 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     // --- Single Parse Pass ---
     try {
         app.parse(argc, argv);
-
         // --- Manual Validation Logic ---
         if (chart_opt->count() == 0 && chart_colour_opt->count() == 0 && input_opt->count() == 0) {
             throw CLI::RequiredError(_("--input-files is required unless creating a chart with --chart or --chart-colour."));
         }
-        // The complex validation for raw_channel is no longer needed, CLI11 handles it.
-
     } catch (const CLI::ParseError &e) {
         exit(app.exit(e));
     }
@@ -134,7 +141,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["saturation-level-is-default"] = false;
     }
     
-    // If the user provided the option, store the values. Otherwise, the default from RegisterAllArguments will be used.
     if (raw_channel_opt->count() > 0) {
         m_values["raw-channel"] = temp_raw_channels;
     }
@@ -143,7 +149,35 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (dr_norm_opt->count() > 0) m_values["drnormalization-mpx"] = temp_opts.dr_normalization_mpx;
     if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
     if (patch_ratio_opt->count() > 0) m_values["patch-ratio"] = temp_opts.patch_ratio;
-    if (plot_opt->count() > 0) m_values["plot"] = temp_opts.plot_mode;
+    
+    // New logic to parse the flexible plot parameters
+    if (plot_opt->count() > 0) {
+        m_values["generate-plot"] = true;
+        m_values["plot"] = plot_command_mode;
+        
+        std::string format_str = "PNG"; // Default format
+        std::string filename = "";
+
+        for (const auto& param : plot_params) {
+            std::string upper_param = param;
+            std::transform(upper_param.begin(), upper_param.end(), upper_param.begin(), ::toupper);
+            if (upper_param == "PNG" || upper_param == "PDF" || upper_param == "SVG") {
+                format_str = upper_param;
+            } else {
+                filename = param;
+            }
+        }
+        
+        if (filename.empty()) {
+            std::string ext = (format_str == "PNG") ? ".png" : (format_str == "PDF" ? ".pdf" : ".svg");
+            filename = "snrcurves" + ext;
+        }
+        
+        if (format_str == "SVG") m_values["plot-format"] = DynaRange::Constants::PlotOutputFormat::SVG;
+        else if (format_str == "PDF") m_values["plot-format"] = DynaRange::Constants::PlotOutputFormat::PDF;
+        else m_values["plot-format"] = DynaRange::Constants::PlotOutputFormat::PNG;
+    }
+
     if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
     
     m_values["input-files"] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
@@ -160,7 +194,7 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.create_chart_mode = Get<bool>("create-chart-mode");
     opts.chart_params = Get<std::vector<int>>("chart");
     opts.chart_colour_params = Get<std::vector<std::string>>("chart-colour");
-    opts.chart_coords = Get<std::vector<double>>("chart-coords");    
+    opts.chart_coords = Get<std::vector<double>>("chart-coords");
     opts.chart_patches = Get<std::vector<int>>("chart-patches");    
     opts.dark_value = Get<double>("black-level");
     opts.saturation_value = Get<double>("saturation-level");
@@ -171,9 +205,15 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.poly_order = Get<int>("poly-fit");
     opts.dr_normalization_mpx = Get<double>("drnormalization-mpx");
     opts.patch_ratio = Get<double>("patch-ratio");
-    opts.plot_mode = Get<int>("plot");
-    opts.print_patch_filename = Get<std::string>("print-patches");
+    
+    // Populate new plot-related members
+    opts.generate_plot = Get<bool>("generate-plot");
+    if (opts.generate_plot) {
+         opts.plot_format = Get<DynaRange::Constants::PlotOutputFormat>("plot-format");
+         opts.plot_command_mode = Get<int>("plot");
+    }
 
+    opts.print_patch_filename = Get<std::string>("print-patches");
     opts.black_level_is_default = Get<bool>("black-level-is-default");
     opts.saturation_level_is_default = Get<bool>("saturation-level-is-default");
 
@@ -194,6 +234,7 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
 
     return opts;
 }
+
 
 void ArgumentManager::Set(const std::string& long_name, std::any value)
 {

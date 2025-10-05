@@ -5,7 +5,6 @@
  */
 #pragma once
 #include "../arguments/ArgumentsOptions.hpp"
-#include "../Constants.hpp" 
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
@@ -16,15 +15,8 @@ namespace PlotDefs {
     constexpr int BASE_WIDTH = 1920;
     constexpr int BASE_HEIGHT = 1080;
 
-    // Determine if the output format is a vector format.
-    constexpr bool IS_VECTOR = (DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::PDF ||
-                                DynaRange::Constants::PLOT_FORMAT == DynaRange::Constants::PlotOutputFormat::SVG);
-
-    // Apply scaling factor only for vector formats.
-    constexpr double SCALE = IS_VECTOR ? DynaRange::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
-
-    constexpr int WIDTH = static_cast<int>(BASE_WIDTH * SCALE);
-    constexpr int HEIGHT = static_cast<int>(BASE_HEIGHT * SCALE);
+    // IS_VECTOR, SCALE, WIDTH, and HEIGHT have been removed as they are now
+    // runtime values calculated in Plotting.cpp based on ProgramOptions.
 }
 
 
@@ -55,7 +47,7 @@ inline std::pair<double, double> MapToPixelCoords(double ev, double db, const st
  * @brief Draws the static base of a plot (axes, grid, titles, threshold lines).
  * @param cr The cairo drawing context.
  * @param title The main title of the plot.
- * @param opts The program options, used to display calibration values. // <-- AÑADIDO
+ * @param opts The program options, used to display calibration values.
  * @param bounds A map containing the plot boundaries (min_ev, max_ev, min_db, max_db).
  * @param command_text The command-line text to display at the bottom of the plot.
  * @param snr_thresholds A vector of SNR thresholds to draw as horizontal dashed lines.

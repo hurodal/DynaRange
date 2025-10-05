@@ -376,6 +376,16 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_outputTextCtrl = new wxTextCtrl( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	outputSizer->Add( m_outputTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
 
+	graphicFormatStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
+	graphicFormatStaticText->Wrap( -1 );
+	outputSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
+	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
+	m_plotFormatChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
+	m_plotFormatChoice->SetSelection( 0 );
+	outputSizer->Add( m_plotFormatChoice, 0, wxALL, 5 );
+
 
 	analysisParamsSizer->Add( outputSizer, 0, wxALL, 3 );
 
@@ -570,8 +580,8 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	bSizer18->Add( m_processingGauge, 0, wxALL|wxEXPAND, 5 );
 
-	m_imageGraph = new wxStaticBitmap( m_rightPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer18->Add( m_imageGraph, 1, wxALL|wxEXPAND, 5 );
+	m_webViewPlaceholderPanel = new wxPanel( m_rightPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer18->Add( m_webViewPlaceholderPanel, 1, wxEXPAND | wxALL, 5 );
 
 
 	m_rightPanel->SetSizer( bSizer18 );

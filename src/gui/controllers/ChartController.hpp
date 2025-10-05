@@ -5,12 +5,11 @@
  */
 #pragma once
 #include <wx/event.h>
-#include <memory>
+#include <wx/image.h>
 
 // Forward declarations
 class DynaRangeFrame;
 struct ChartGeneratorOptions;
-class ImageViewer;
 class wxSizeEvent;
 
 class ChartController {
@@ -30,12 +29,18 @@ private:
      * @return A ChartGeneratorOptions struct populated with the current UI values.
      */
     ChartGeneratorOptions GetCurrentOptionsFromUi() const;
+
     /**
      * @brief Handles the size event for the right panel to refresh the image layout.
      * @param event The size event.
      */
     void OnRightPanelSize(wxSizeEvent& event);
 
+    /**
+     * @brief The core logic for scaling and setting the bitmap on the preview control.
+     */
+    void UpdateBitmapDisplay();
+
     DynaRangeFrame* m_frame; // Pointer to the parent frame
-    std::unique_ptr<ImageViewer> m_thumbnailViewer;
+    wxImage m_chart_preview_image; // Stores the original preview image for resizing
 };

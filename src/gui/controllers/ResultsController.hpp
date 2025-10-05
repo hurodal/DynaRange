@@ -1,6 +1,6 @@
-// File: gui/ResultsController.hpp
+// File: src/gui/controllers/ResultsController.hpp
 /**
- * @file gui/ResultsController.hpp
+ * @file gui/controllers/ResultsController.hpp
  * @brief Declares a controller class for the ResultsPanel's logic.
  */
 #pragma once
@@ -10,9 +10,9 @@
 
 // Forward declarations
 class DynaRangeFrame;
-class ImageViewer;
 class ResultsGridManager;
 class wxSplitterEvent;
+class wxWebView; 
 
 class ResultsController {
 public:
@@ -24,14 +24,13 @@ public:
     void LoadLogoImage();
     bool DisplayResults(const std::string& csv_path);
     void SetUiState(bool is_processing);
-    void OnRightPanelSize(wxSizeEvent& event);    
+
     // Event handling logic
     void OnSplitterSashDClick(wxSplitterEvent& event);
-    void OnSize();
 
 private:
     DynaRangeFrame* m_frame;
-    std::unique_ptr<ImageViewer> m_imageViewer;
+    wxWebView* m_webView; 
     std::unique_ptr<ResultsGridManager> m_gridManager;
     int m_lastSashPosition;
 };

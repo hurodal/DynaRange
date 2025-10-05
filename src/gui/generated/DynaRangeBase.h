@@ -31,8 +31,8 @@
 #include <wx/listbox.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
-#include <wx/statbmp.h>
 #include <wx/splitter.h>
+#include <wx/statbmp.h>
 #include <wx/notebook.h>
 #include <wx/frame.h>
 
@@ -89,6 +89,8 @@ class MyFrameBase : public wxFrame
 		wxChoice* m_plotingChoice;
 		wxStaticText* m_outputStaticText;
 		wxTextCtrl* m_outputTextCtrl;
+		wxStaticText* graphicFormatStaticText;
+		wxChoice* m_plotFormatChoice;
 		wxStaticText* R_staticText;
 		wxCheckBox* R_checkBox;
 		wxStaticText* G1_staticText;
@@ -116,7 +118,7 @@ class MyFrameBase : public wxFrame
 		wxPanel* m_rightPanel;
 		wxStaticText* m_generateGraphStaticText;
 		wxGauge* m_processingGauge;
-		wxStaticBitmap* m_imageGraph;
+		wxPanel* m_webViewPlaceholderPanel;
 		wxPanel* m_chartPanel;
 		wxSplitterWindow* m_splitterChart;
 		wxPanel* leftColChartPanel;

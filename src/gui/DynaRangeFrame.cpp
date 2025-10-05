@@ -24,9 +24,20 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     // --- Create Controllers for each tab ---
     m_inputController = std::make_unique<InputController>(this);
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
+
+    // --- Manual WebView Creation ---
+    // 1. Create the WebView as a child of the placeholder panel from wxFormBuilder.
+    // We use wxWebView::New() which is the recommended factory method.
+    m_resultsWebView = wxWebView::New(m_webViewPlaceholderPanel, wxID_ANY);
+    // 2. Create a sizer to make the WebView fill the placeholder panel.
+    wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
+    placeholderSizer->Add(m_resultsWebView, 1, wxEXPAND, 0);
+    m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
+
+    // --- Continue creating other controllers ---
     m_resultsController = std::make_unique<ResultsController>(this);
     m_chartController = std::make_unique<ChartController>(this);
-    
+
     // --- Create the Presenter ---
     m_presenter = std::make_unique<GuiPresenter>(this);
     // --- Bind top-level and inter-controller events ---
@@ -44,6 +55,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_rawFileslistBox->Bind(wxEVT_KEY_DOWN, &DynaRangeFrame::OnListBoxKeyDown, this);
     m_PlotChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
     m_plotingChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
+    m_plotFormatChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
     m_outputTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
@@ -64,7 +76,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_gParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
     m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
     m_bParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    
+
     // --- Bind Chart Tab Events ---
     chartButtonPreview->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartPreviewClick, this);
     chartButtonCreate->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartCreateClick, this);
@@ -95,23 +107,23 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     G1_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     G2_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     B_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);    
-    
+    AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
-    
+
     // Drag and Drop
     m_dropTarget = new FileDropTarget(this);
     SetDropTarget(m_dropTarget);
-    
+
     // --- Initial State Setup ---
     m_processingGauge->Hide();
     m_cvsGrid->Hide();
     m_csvOutputStaticText->Hide();
     m_resultsController->LoadLogoImage();
     m_presenter->UpdateCommandPreview();
-    
+
     this->Layout();
 }
 
@@ -283,6 +295,10 @@ void DynaRangeFrame::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
 }
 
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) { m_logController->AppendText(event.GetString()); }
+
+DynaRange::Constants::PlotOutputFormat DynaRangeFrame::GetPlotFormat() const {
+    return m_inputController->GetPlotFormat();
+}
 
 // =============================================================================
 // HELPER CLASS IMPLEMENTATION

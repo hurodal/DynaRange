@@ -31,6 +31,7 @@ public:
     double GetDrNormalization() const;
     int GetPolyOrder() const;
     int GetPlotMode() const;
+    DynaRange::Constants::PlotOutputFormat GetPlotFormat() const;
     std::vector<std::string> GetInputFiles() const;
     std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;

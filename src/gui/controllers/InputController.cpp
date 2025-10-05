@@ -11,7 +11,7 @@
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <libraw/libraw.h>
-#include <libraw/libraw_version.h> // Se añade la cabecera que faltaba para la macro
+#include <libraw/libraw_version.h>
 #include <vector>
 #include <set>
 #include <string>
@@ -293,4 +293,14 @@ RawChannelSelection InputController::GetRawChannelSelection() const {
     selection.B   = m_frame->B_checkBox->IsChecked();
     selection.AVG = m_frame->AVG_checkBox->IsChecked();
     return selection;
+}
+
+DynaRange::Constants::PlotOutputFormat InputController::GetPlotFormat() const {
+    int selection = m_frame->m_plotFormatChoice->GetSelection();
+    switch (selection) {
+        case 1: return DynaRange::Constants::PlotOutputFormat::PDF;
+        case 2: return DynaRange::Constants::PlotOutputFormat::SVG;
+        case 0: // Fall-through for PNG
+        default: return DynaRange::Constants::PlotOutputFormat::PNG;
+    }
 }

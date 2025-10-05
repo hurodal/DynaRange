@@ -11,6 +11,7 @@
 #include <wx/dnd.h>
 #include <wx/timer.h>
 #include <wx/notebook.h>
+#include <wx/webview.h> // Added for wxWebView support
 #include <string>
 
 // Forward declarations
@@ -52,6 +53,7 @@ public:
     double GetDrNormalization() const;
     int GetPolyOrder() const;
     int GetPlotMode() const;
+    DynaRange::Constants::PlotOutputFormat GetPlotFormat() const;
     std::vector<double> GetChartCoords() const;
     std::vector<std::string> GetInputFiles() const;
     int GetChartPatchesM() const;
@@ -90,13 +92,20 @@ protected:
 
     void OnClearDarkFile(wxCommandEvent& event);
     void OnClearSaturationFile(wxCommandEvent& event);
-    
+
+    /**
+     * @brief Pointer to the web view component used to display plots.
+     * @details This is created manually in the constructor and placed inside
+     * m_webViewPlaceholderPanel.
+     */
+    wxWebView* m_resultsWebView;
+
 private:
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
-    
+
     // Added a flag to prevent infinite event loops during sync.
     bool m_isUpdatingPatches = false;
 
@@ -121,3 +130,4 @@ public:
 private:
     DynaRangeFrame* m_owner;
 };
+

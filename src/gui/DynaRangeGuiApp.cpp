@@ -11,6 +11,7 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <cstdlib> // For std::getenv
+#include <wx/webview.h>
 
 // This macro creates the main() function for the GUI application
 wxIMPLEMENT_APP(DynaRangeGuiApp);
@@ -30,7 +31,7 @@ bool DynaRangeGuiApp::OnInit() {
 
     // 2. Initialize the wxLocale system with the chosen language.
     m_locale.Init(lang);
-
+    
     // 3. Tell wxWidgets where to find our translation files (.mo)
     // using the centralized PathManager.
     PathManager path_manager(ProgramOptions{});
@@ -44,6 +45,8 @@ bool DynaRangeGuiApp::OnInit() {
 
     // 6. Initialize image handlers and create the main window.
     wxImage::AddHandler(new wxPNGHandler());
+    wxWebView::New(); // Add this line to initialize the webview backend
+
     DynaRangeFrame* frame = new DynaRangeFrame(nullptr);
     frame->Show(true);
     return true;
