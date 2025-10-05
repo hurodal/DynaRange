@@ -89,6 +89,16 @@ class MyFrameBase : public wxFrame
 		wxChoice* m_plotingChoice;
 		wxStaticText* m_outputStaticText;
 		wxTextCtrl* m_outputTextCtrl;
+		wxStaticText* R_staticText;
+		wxCheckBox* R_checkBox;
+		wxStaticText* G1_staticText;
+		wxCheckBox* G1_checkBox;
+		wxStaticText* G2_staticText;
+		wxCheckBox* G2_checkBox;
+		wxStaticText* B_staticText;
+		wxCheckBox* B_checkBox;
+		wxStaticText* AVG_staticText;
+		wxCheckBox* AVG_checkBox;
 		wxPanel* left_column_panel_Down;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;

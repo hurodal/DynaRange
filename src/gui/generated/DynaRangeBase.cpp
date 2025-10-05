@@ -49,7 +49,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_clearDarkFileButton = new wxButton( darkFrameSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 
-	m_clearDarkFileButton->SetBitmap( wxBitmap( wxT("assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
+	m_clearDarkFileButton->SetBitmap( wxBitmap( wxT("../../../build/bin/assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
 	m_clearDarkFileButton->SetMaxSize( wxSize( 28,28 ) );
 
 	fgSizer1->Add( m_clearDarkFileButton, 0, wxALL, 5 );
@@ -85,7 +85,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_clearSaturationFileButton = new wxButton( saturationSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 
-	m_clearSaturationFileButton->SetBitmap( wxBitmap( wxT("assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
+	m_clearSaturationFileButton->SetBitmap( wxBitmap( wxT("../../../assets/icons/Icono BAD Mark Red alpha 22x22.png"), wxBITMAP_TYPE_ANY ) );
 	m_clearSaturationFileButton->SetMaxSize( wxSize( 28,28 ) );
 
 	fgSizer2->Add( m_clearSaturationFileButton, 0, wxALL, 5 );
@@ -378,13 +378,57 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	analysisParamsSizer->Add( outputSizer, 0, wxALL, 3 );
 
 
-	right_column_sizer->Add( analysisParamsSizer, 1, wxALL|wxEXPAND, 5 );
+	right_column_sizer->Add( analysisParamsSizer, 0, wxALL|wxEXPAND, 5 );
+
+	wxStaticBoxSizer* channelsSizer;
+	channelsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Channels") ), wxHORIZONTAL );
+
+	R_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("R"), wxDefaultPosition, wxDefaultSize, 0 );
+	R_staticText->Wrap( -1 );
+	channelsSizer->Add( R_staticText, 0, wxALL, 5 );
+
+	R_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	channelsSizer->Add( R_checkBox, 0, wxALL, 5 );
+
+	G1_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("G1"), wxDefaultPosition, wxDefaultSize, 0 );
+	G1_staticText->Wrap( -1 );
+	channelsSizer->Add( G1_staticText, 0, wxALL, 5 );
+
+	G1_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	channelsSizer->Add( G1_checkBox, 0, wxALL, 5 );
+
+	G2_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("G2"), wxDefaultPosition, wxDefaultSize, 0 );
+	G2_staticText->Wrap( -1 );
+	channelsSizer->Add( G2_staticText, 0, wxALL, 5 );
+
+	G2_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	channelsSizer->Add( G2_checkBox, 0, wxALL, 5 );
+
+	B_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("B"), wxDefaultPosition, wxDefaultSize, 0 );
+	B_staticText->Wrap( -1 );
+	channelsSizer->Add( B_staticText, 0, wxALL, 5 );
+
+	B_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	channelsSizer->Add( B_checkBox, 0, wxALL, 5 );
+
+
+	channelsSizer->Add( 15, 0, 0, wxEXPAND, 5 );
+
+	AVG_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("Average"), wxDefaultPosition, wxDefaultSize, 0 );
+	AVG_staticText->Wrap( -1 );
+	channelsSizer->Add( AVG_staticText, 0, wxALL, 5 );
+
+	AVG_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	channelsSizer->Add( AVG_checkBox, 0, wxALL, 5 );
+
+
+	right_column_sizer->Add( channelsSizer, 0, wxALL|wxEXPAND, 5 );
 
 
 	right_column_panel_Up->SetSizer( right_column_sizer );
 	right_column_panel_Up->Layout();
 	right_column_sizer->Fit( right_column_panel_Up );
-	two_columns_sizer_Up->Add( right_column_panel_Up, 1, wxEXPAND | wxALL, 5 );
+	two_columns_sizer_Up->Add( right_column_panel_Up, 0, wxALL, 5 );
 
 
 	mainPanelSizer->Add( two_columns_sizer_Up, 0, 0, 5 );

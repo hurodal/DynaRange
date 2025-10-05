@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-04 21:35+0200\n"
+"POT-Creation-Date: 2025-10-05 09:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,12 +127,12 @@ msgid "X4,Y4"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:206
-#: src/gui/generated/DynaRangeBase.cpp:681
+#: src/gui/generated/DynaRangeBase.cpp:725
 msgid "Chart patches"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:214
-#: src/gui/generated/DynaRangeBase.cpp:689
+#: src/gui/generated/DynaRangeBase.cpp:733
 msgid "Rows"
 msgstr ""
 
@@ -208,101 +208,125 @@ msgstr ""
 msgid "Ouput file"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:397
+#: src/gui/generated/DynaRangeBase.cpp:384
+msgid "Channels"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:386
+msgid "R"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:393
+msgid "G1"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:400
+msgid "G2"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:407
+msgid "B"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:417
+msgid "Average"
+msgstr ""
+
+#: src/gui/generated/DynaRangeBase.cpp:441
 msgid "Input RAW Files"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:406
+#: src/gui/generated/DynaRangeBase.cpp:450
 msgid "Add RAW Files..."
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:409
+#: src/gui/generated/DynaRangeBase.cpp:453
 msgid "Remove Selected"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:425
+#: src/gui/generated/DynaRangeBase.cpp:469
 msgid "Equivalent CLI command"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:445
+#: src/gui/generated/DynaRangeBase.cpp:489
 msgid "Execute"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:455
+#: src/gui/generated/DynaRangeBase.cpp:499
 msgid "Input"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:467
+#: src/gui/generated/DynaRangeBase.cpp:511
 msgid "Log"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:481
+#: src/gui/generated/DynaRangeBase.cpp:525
 msgid "CSV Output:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:517
+#: src/gui/generated/DynaRangeBase.cpp:561
 msgid "Generated Graph (placeholder):"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:541
+#: src/gui/generated/DynaRangeBase.cpp:585
 msgid "Results"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:554
+#: src/gui/generated/DynaRangeBase.cpp:598
 msgid "Chart colors"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:559
+#: src/gui/generated/DynaRangeBase.cpp:603
 msgid "Red"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:568
-#: src/gui/generated/DynaRangeBase.cpp:587
-#: src/gui/generated/DynaRangeBase.cpp:606
+#: src/gui/generated/DynaRangeBase.cpp:612
+#: src/gui/generated/DynaRangeBase.cpp:631
+#: src/gui/generated/DynaRangeBase.cpp:650
 msgid "255"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:578
+#: src/gui/generated/DynaRangeBase.cpp:622
 msgid "Green"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:597
+#: src/gui/generated/DynaRangeBase.cpp:641
 msgid "Blue"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:616
+#: src/gui/generated/DynaRangeBase.cpp:660
 msgid "InvGamma"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:630
+#: src/gui/generated/DynaRangeBase.cpp:674
 msgid "Chart dimensions"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:635
+#: src/gui/generated/DynaRangeBase.cpp:679
 msgid "DimX"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:651
+#: src/gui/generated/DynaRangeBase.cpp:695
 msgid "Width proportion"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:664
+#: src/gui/generated/DynaRangeBase.cpp:708
 msgid "Height proportion"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:702
+#: src/gui/generated/DynaRangeBase.cpp:746
 msgid "Colums"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:721
+#: src/gui/generated/DynaRangeBase.cpp:765
 msgid "Create chart"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:727
+#: src/gui/generated/DynaRangeBase.cpp:771
 msgid "Preview chart"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:755
+#: src/gui/generated/DynaRangeBase.cpp:799
 msgid "Chart"
 msgstr ""
 
