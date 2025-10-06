@@ -156,7 +156,6 @@ void DrawCurvesAndData(cairo_t* cr,
 
     // --- PASS 2: Draw labels ---
     std::set<std::string> drawn_iso_labels;
-    
     // Group curves by filename (ISO) to handle them as a block
     std::map<std::string, std::vector<const CurveData*>> curves_by_iso;
     const std::vector<DataSource> canonical_order = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B, DataSource::AVG};
@@ -184,15 +183,21 @@ void DrawCurvesAndData(cairo_t* cr,
         auto calculate_base_geometry = [&](double threshold) -> std::optional<std::tuple<double, double, double>> {
             auto it = std::find_if(results.begin(), results.end(),
                 [&](const DynamicRangeResult& r){ return r.filename == primary_curve.filename && r.channel == primary_curve.channel; });
-
             if (it != results.end() && it->dr_values_ev.count(threshold)) {
                 double dr_value = it->dr_values_ev.at(threshold);
                 if (dr_value <= 0) return std::nullopt;
 
                 double ev = -dr_value;
                 auto [px, py] = MapToPixelCoords(ev, threshold, bounds);
-                
-                double slope = EvaluatePolynomialDerivative(primary_curve.poly_coeffs, ev);
+
+                // MODIFIED LOGIC: Correctly calculate the visual slope for the EV = f(SNR_dB) model
+                // 1. Evaluate the derivative of P(SNR_dB) = EV at the threshold. This gives us d(EV)/d(SNR_dB).
+                double dEV_dSNR = EvaluatePolynomialDerivative(primary_curve.poly_coeffs, threshold);
+
+                // 2. The slope on the plot is d(y)/d(x) = d(SNR_dB)/d(EV), which is the reciprocal.
+                double slope = (std::abs(dEV_dSNR) < 1e-9) ? 1e9 : (1.0 / dEV_dSNR);
+
+                // 3. Convert the mathematical slope to a visual pixel slope and calculate the angle.
                 const double plot_w = PlotDefs::BASE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
                 const double plot_h = PlotDefs::BASE_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
                 const double range_ev = bounds.at("max_ev") - bounds.at("min_ev");
@@ -207,14 +212,12 @@ void DrawCurvesAndData(cairo_t* cr,
 
         auto base_geom_12db = calculate_base_geometry(12.0);
         auto base_geom_0db  = calculate_base_geometry(0.0);
-        
         // 3. Draw all labels in the group using the shared base line geometry
         int group_size = iso_curves_group.size();
         for (int i = 0; i < group_size; ++i) {
             const CurveData& current_curve = *iso_curves_group[i];
             auto it = std::find_if(results.begin(), results.end(),
                 [&](const DynamicRangeResult& r){ return r.filename == current_curve.filename && r.channel == current_curve.channel; });
-
             if (it != results.end()) {
                 if (base_geom_12db && it->dr_values_ev.count(12.0)) {
                     std::stringstream ss;

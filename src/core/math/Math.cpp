@@ -47,17 +47,17 @@ double CalculateQuantile(std::vector<double>& data, double percentile) {
     return data[n];
 }
 
+// File: src/core/math/Math.cpp
 double EvaluatePolynomialDerivative(const cv::Mat& coeffs, double x) {
-    if (coeffs.empty()) {
+    if (coeffs.empty() || coeffs.rows < 2) {
         return 0.0;
     }
     double result = 0.0;
-    int order = coeffs.rows - 1;
-    // Derivative of a_n*x^n is n*a_n*x^(n-1)
-    for (int i = 0; i < order; ++i) {
-        double coeff = coeffs.at<double>(i);
-        int power = order - i;
-        result += static_cast<double>(power) * coeff * std::pow(x, power - 1);
+    // Correct derivative for ascending coefficients [c0, c1, c2, c3, ...]
+    // Derivative of P(x) = c0 + c1*x + c2*x^2 + c3*x^3 is P'(x) = c1 + 2*c2*x + 3*c3*x^2
+    // We start from i=1 because the derivative of the constant c0 is 0.
+    for (int i = 1; i < coeffs.rows; ++i) {
+        result += static_cast<double>(i) * coeffs.at<double>(i) * std::pow(x, i - 1);
     }
     return result;
 }
