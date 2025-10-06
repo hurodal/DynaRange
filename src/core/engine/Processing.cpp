@@ -54,6 +54,7 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
  * @param generate_debug_image Only most low iso image must generate printpatches.png.
  * @return A SingleFileResult struct containing the analysis results.
  */
+// File: src/core/engine/Processing.cpp
 std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file, 
     const ProgramOptions& opts, 
@@ -64,12 +65,10 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     bool generate_debug_image)
 {
     log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
-    
     std::vector<SingleFileResult> final_results;
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
     std::vector<DataSource> base_channels_to_process = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
-    
     for (const auto& channel : base_channels_to_process) {
         cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream, channel);
         if (img_prepared.empty()) {
@@ -92,17 +91,14 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     if (opts.raw_channels.G2) user_selected_channels.push_back(DataSource::G2);
     if (opts.raw_channels.B) user_selected_channels.push_back(DataSource::B);
     if (opts.raw_channels.AVG) user_selected_channels.push_back(DataSource::AVG);
-
     for (const auto& final_channel : user_selected_channels) {
         PatchAnalysisResult final_patch_data;
-
         if (final_channel == DataSource::AVG) {
             for (const auto& channel_to_pool : base_channels_to_process) {
                 if (individual_channel_patches.count(channel_to_pool)) {
                     const auto& patch_result = individual_channel_patches.at(channel_to_pool);
                     final_patch_data.signal.insert(final_patch_data.signal.end(), patch_result.signal.begin(), patch_result.signal.end());
                     final_patch_data.noise.insert(final_patch_data.noise.end(), patch_result.noise.begin(), patch_result.noise.end());
-                    // Also pool the channel source for each point.
                     final_patch_data.channels.insert(final_patch_data.channels.end(), patch_result.signal.size(), channel_to_pool);
                 }
             }
@@ -113,14 +109,13 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         if (final_patch_data.signal.empty()) continue;
-        
         auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, final_channel);
         
         dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
-        dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
+        dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ?
+        individual_channel_patches.at(DataSource::G1).signal.size() : 0;
         dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
         dr_result.samples_B = individual_channel_patches.count(DataSource::B) ? individual_channel_patches.at(DataSource::B).signal.size() : 0;
-
         if(opts.plot_labels.count(raw_file.GetFilename())) {
             curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
         } else {
@@ -135,7 +130,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
             if (final_debug_image.empty()) {
                 log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
             }
-            generate_debug_image = false; 
+            generate_debug_image = false;
         }
         
         final_results.push_back(SingleFileResult{dr_result, curve_data, final_debug_image});
@@ -143,7 +138,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 
     return final_results;
 }
-
 } // end of anonymous namespace
 
 ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {

@@ -7,16 +7,18 @@
 #include "../../core/DebugConfig.hpp"
 #include <opencv2/imgproc.hpp>
 
+// File: src/core/analysis/ImageAnalyzer.cpp
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio, bool create_overlay_image) {
     cv::Mat image_with_overlays;
     if (create_overlay_image) {
-        image_with_overlays = imgcrop; // The input is already a copy.
+        image_with_overlays = imgcrop.clone(); // Use clone to avoid modifying the input
     }
 
-    const int width = imgcrop.cols / NCOLS;
-    const int height = imgcrop.rows / NROWS;
-    const int patch_width = static_cast<int>(width * patch_ratio);
-    const int patch_height = static_cast<int>(height * patch_ratio);
+    // RESTORED LOGIC: Use floating-point arithmetic for coordinate calculation.
+    const double patch_width_float = (double)imgcrop.cols / NCOLS;
+    const double patch_height_float = (double)imgcrop.rows / NROWS;
+    const double safe_x = patch_width_float * (1.0 - patch_ratio) / 2.0;
+    const double safe_y = patch_height_float * (1.0 - patch_ratio) / 2.0;
 
     std::vector<double> signal;
     std::vector<double> noise;
@@ -24,13 +26,16 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
 
     signal.reserve(NCOLS * NROWS);
     noise.reserve(NCOLS * NROWS);
-
     for (int j = 0; j < NROWS; j++) {
         for (int i = 0; i < NCOLS; i++) {
-            const int x = i * width + (width - patch_width) / 2;
-            const int y = j * height + (height - patch_height) / 2;
-            cv::Rect roi_rect(x, y, patch_width, patch_height);
-            
+            // RESTORED LOGIC: Calculate ROI coordinates using the floating-point method.
+            int x1 = round((double)i * patch_width_float + safe_x);
+            int x2 = round((double)(i + 1) * patch_width_float - safe_x);
+            int y1 = round((double)j * patch_height_float + safe_y);
+            int y2 = round((double)(j + 1) * patch_height_float - safe_y);
+
+            if (x1 >= x2 || y1 >= y2) continue;
+            cv::Rect roi_rect(x1, y1, x2 - x1, y2 - y1);
             if (roi_rect.x < 0 || roi_rect.y < 0 || roi_rect.x + roi_rect.width > imgcrop.cols || roi_rect.y + roi_rect.height > imgcrop.rows) continue;
             
             cv::Mat roi = imgcrop(roi_rect);
@@ -39,7 +44,7 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
             cv::meanStdDev(roi, mean_val, stddev_val);
             double S = mean_val[0];
             double N = stddev_val[0];
-            
+
             int sat_count = cv::countNonZero(roi > 0.9);
             double sat_ratio = (double)sat_count / (roi.rows * roi.cols);
 
@@ -48,7 +53,6 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
                 noise.push_back(N);
                 max_pixel_value = std::max(max_pixel_value, S);
 
-                // Drawing logic is now conditional.
                 if (create_overlay_image) {
                     #if DYNA_RANGE_DEBUG_MODE == 1
                         cv::rectangle(image_with_overlays, roi_rect.tl() - cv::Point(1,1), roi_rect.br() + cv::Point(1,1), 

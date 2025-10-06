@@ -8,10 +8,14 @@
 #include "../math/Math.hpp"
 #include "../DebugConfig.hpp"
 #include "../Constants.hpp"
+#include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
 #include <iomanip>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #define _(string) gettext(string)
 
@@ -39,16 +43,18 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     int DIMX = imgSrc.cols;
     int DIMY = imgSrc.rows;
     cv::Mat imgCorrected = cv::Mat::zeros(DIMY, DIMX, CV_32FC1);
-
     for (int y = 0; y < DIMY; ++y) {
         for (int x = 0; x < DIMX; ++x) {
-            // This implementation uses the original, direct 0-based coordinate transformation logic.
-            double denom = k(6) * x + k(7) * y + 1;
+            // RESTORED LOGIC: Use 1-based coordinates for the calculation.
+            double xd = x + 1.0, yd = y + 1.0;
+            double denom = k(6) * xd + k(7) * yd + 1;
             if (std::abs(denom) < 1e-9) continue;
 
-            double xu = (k(0) * x + k(1) * y + k(2)) / denom;
-            double yu = (k(3) * x + k(4) * y + k(5)) / denom;
+            // RESTORED LOGIC: Subtract 1.0 from the coordinate before rounding.
+            double xu = (k(0) * xd + k(1) * yd + k(2)) / denom - 1.0;
+            double yu = (k(3) * xd + k(4) * yd + k(5)) / denom - 1.0;
 
+            // RESTORED LOGIC: Round the final coordinate to get the source pixel.
             int x_src = static_cast<int>(round(xu));
             int y_src = static_cast<int>(round(yu));
 
@@ -76,7 +82,6 @@ cv::Mat PrepareChartImage(
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
-    
     // The switch now uses the function parameter instead of a global constant.
     switch (channel_to_extract) {
         case DataSource::R:
@@ -129,12 +134,13 @@ cv::Mat PrepareChartImage(
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
     const auto& dst_pts = chart.GetDestinationPoints();
     
+    // TEMPORARY REVERSION: Use the old, simple bounding box crop logic to match the old version.
     double xtl = dst_pts[0].x;
     double ytl = dst_pts[0].y;
     double xbr = dst_pts[2].x;
     double ybr = dst_pts[2].y;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
-
+    
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {
@@ -142,7 +148,25 @@ cv::Mat PrepareChartImage(
         return {};
     }
     
-    return img_corrected(crop_area);
+    // The clone() is critical to return a valid copy, not a pointer to a temporary image.
+    cv::Mat final_image = img_corrected(crop_area).clone();
+
+    //// --- PUNTO DE CONTROL Nº2 ---
+    //#if DEBUG_IA_ON == 1
+    //    cv::Scalar mean_val, stddev_val;
+    //    cv::meanStdDev(final_image, mean_val, stddev_val);
+    //    log_stream << "\n--- DEBUG IA: Punto de Control 2 (Imagen Preparada Final) ---\n";
+    //    log_stream << "Fichero: " << fs::path(raw_file.GetFilename()).filename().string() << "\n";
+    //    log_stream << "Canal: " << Formatters::DataSourceToString(channel_to_extract) << "\n";
+    //    log_stream << "Media de la imagen final:   " << std::fixed << std::setprecision(8) << mean_val[0] << "\n";
+    //    log_stream << "StdDev de la imagen final: " << std::fixed << std::setprecision(8) << stddev_val[0] << "\n";
+    //    log_stream << "--------------------------------------------------------\n";
+    //    log_stream << "--- DEBUG IA: Finalizando el programa en el punto de control. ---\n" << std::endl;
+    //    //exit(0);
+    //#endif
+    //// --- FIN PUNTO DE CONTROL Nº2 ---
+
+    return final_image;
 }
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)

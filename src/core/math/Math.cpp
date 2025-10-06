@@ -14,9 +14,10 @@ double EvaluatePolynomial(const cv::Mat& coeffs, double x) {
         return 0.0;
     }
     double result = 0.0;
-    int order = coeffs.rows - 1;
-    for (int i = 0; i <= order; ++i) {
-        result += coeffs.at<double>(i) * std::pow(x, order - i);
+    // This matches the coefficient order produced by the corrected PolyFit.
+    // The coefficients are stored as [c0, c1, c2, ...], so we evaluate c0*x^0 + c1*x^1 + c2*x^2 ...
+    for (int i = 0; i < coeffs.rows; ++i) {
+        result += coeffs.at<double>(i) * std::pow(x, i);
     }
     return result;
 }
@@ -26,7 +27,8 @@ void PolyFit(const cv::Mat& src_x, const cv::Mat& src_y, cv::Mat& dst, int order
     cv::Mat A = cv::Mat::zeros(src_x.rows, order + 1, CV_64F);
     for (int i = 0; i < src_x.rows; i++) {
         for (int j = 0; j <= order; j++) {
-            A.at<double>(i, j) = pow(src_x.at<double>(i), (double)(order - j));
+            // It builds the matrix for the polynomial c0*x^0 + c1*x^1 + c2*x^2 ...
+            A.at<double>(i, j) = pow(src_x.at<double>(i), (double)j);
         }
     }
     cv::solve(A, src_y, dst, cv::DECOMP_SVD);

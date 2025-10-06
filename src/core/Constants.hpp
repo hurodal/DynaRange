@@ -13,7 +13,7 @@ namespace DynaRange::Constants {
      * @brief The minimum percentage of the total image area that the detected
      * chart must occupy to be considered valid.
      */
-    constexpr double MINIMUM_CHART_AREA_PERCENTAGE = 0.50; // 50%
+    constexpr double MINIMUM_CHART_AREA_PERCENTAGE = 0.30; // 30%
 
     /**
      * @enum PlottingModel

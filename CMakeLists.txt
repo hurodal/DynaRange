@@ -31,21 +31,29 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # =============================================================================
 find_package(PkgConfig REQUIRED)
 
+# --- Dependencias Comunes (CLI y GUI) ---
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
-
 find_package(Gettext REQUIRED)
+pkg_check_modules(CAIRO REQUIRED cairo)
+
 set(GETTEXT_EXTRA_LIBS)
 if(WIN32)
     list(APPEND GETTEXT_EXTRA_LIBS intl)
 endif()
 
-# --- wxWidgets ---
+# --- Dependencias Solo para la GUI ---
+# Esta sección ha sido modificada para corregir el error de enlazado.
+# Buscamos TODOS los componentes de wxWidgets en una sola llamada para que
+# la variable wxWidgets_LIBRARIES contenga todas las librerías necesarias.
 find_package(wxWidgets COMPONENTS core base html xrc qa net webview REQUIRED)
 
-pkg_check_modules(CAIRO REQUIRED cairo)
+# Creamos una lista explícita de librerías solo para la GUI.
+# Esta variable ahora contendrá 'core', 'base' y todas las demás.
+set(GUI_WX_LIBS ${wxWidgets_LIBRARIES})
+
 
 # =============================================================================
 # 4. FUENTES
@@ -166,8 +174,11 @@ target_link_libraries(rango PRIVATE
     ${WIN_LINK_LIBS}
 )
 
+# Esta sección ha sido modificada.
+# Ahora 'dynaRangeGui' enlaza explícitamente con la variable GUI_WX_LIBS,
+# que contiene todas las librerías de wxWidgets, incluyendo webview.
 target_link_libraries(dynaRangeGui PRIVATE
-    ${wxWidgets_LIBRARIES}
+    ${GUI_WX_LIBS}
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
@@ -242,7 +253,7 @@ if(WIN32)
         file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
         if(DLL_FILES)
             message(STATUS \"DLLs encontradas, instalando en el directorio bin del paquete.\")
-            file(INSTALL \${DLL_FILES} DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\")
+            file(INSTALL ${DLL_FILES} DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
         else()
             message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
         endif()
@@ -270,3 +281,4 @@ if(WIN32)
     include(CPack)
 
 endif()
+
