@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 19:19+0200\n"
+"POT-Creation-Date: 2025-10-06 19:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -656,60 +656,64 @@ msgstr ""
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:67
+#: src/core/engine/Processing.cpp:66
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:75
-msgid "Error: Failed to prepare image for analysis for channel: "
+#: src/core/engine/Processing.cpp:78
+msgid "Error: Image for channel "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:83
+#: src/core/engine/Processing.cpp:78
+msgid " could not be prepared."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:87
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:131
+#: src/core/engine/Processing.cpp:141
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:151
+#: src/core/engine/Processing.cpp:162
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:191
+#: src/core/engine/Processing.cpp:202
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:193
+#: src/core/engine/Processing.cpp:204
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:195
+#: src/core/engine/Processing.cpp:206
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:210
+#: src/core/engine/Processing.cpp:221
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:211
+#: src/core/engine/Processing.cpp:222
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:211
+#: src/core/engine/Processing.cpp:222
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:211
+#: src/core/engine/Processing.cpp:222
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:215
+#: src/core/engine/Processing.cpp:226
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:217
+#: src/core/engine/Processing.cpp:228
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
@@ -746,6 +750,7 @@ msgid "Error: Failed to write chart to file: "
 msgstr ""
 
 #: src/core/graphics/ImageProcessing.cpp:79
+#: src/core/graphics/ImageProcessing.cpp:337
 msgid "Error: Could not get raw image for: "
 msgstr ""
 
@@ -755,6 +760,10 @@ msgstr ""
 
 #: src/core/graphics/ImageProcessing.cpp:240
 msgid "Warning: No corner circle found in one of the quadrants."
+msgstr ""
+
+#: src/core/graphics/ImageProcessing.cpp:380
+msgid "Error: Invalid crop area calculated for keystone correction on channel "
 msgstr ""
 
 #: src/core/graphics/PlotBase.cpp:147

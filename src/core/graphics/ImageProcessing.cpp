@@ -321,3 +321,69 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
     }
     return color_image;
 }
+
+std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
+    const RawFile& raw_file,
+    const ProgramOptions& opts,
+    const Eigen::VectorXd& keystone_params,
+    const ChartProfile& chart,
+    std::ostream& log_stream)
+{
+    std::map<DataSource, cv::Mat> prepared_channels;
+
+    // Step 1: Load and normalize the full RAW image ONCE.
+    cv::Mat raw_img = raw_file.GetRawImage();
+    if(raw_img.empty()){
+        log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
+        return prepared_channels;
+    }
+    cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
+
+    // Step 2: Create four matrices for the Bayer channels.
+    cv::Size bayer_size(img_float.cols / 2, img_float.rows / 2);
+    cv::Mat r_bayer(bayer_size, CV_32FC1);
+    cv::Mat g1_bayer(bayer_size, CV_32FC1);
+    cv::Mat g2_bayer(bayer_size, CV_32FC1);
+    cv::Mat b_bayer(bayer_size, CV_32FC1);
+
+    // Step 3: Populate all four channel matrices in a single pass.
+    for (int r = 0; r < bayer_size.height; ++r) {
+        for (int c = 0; c < bayer_size.width; ++c) {
+            r_bayer.at<float>(r, c)  = img_float.at<float>(r * 2, c * 2);
+            g1_bayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
+            g2_bayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2);
+            b_bayer.at<float>(r, c)  = img_float.at<float>(r * 2 + 1, c * 2 + 1);
+        }
+    }
+
+    // Step 4: Apply keystone correction and cropping to each channel.
+    std::map<DataSource, cv::Mat> bayer_channels = {
+        {DataSource::R, r_bayer},
+        {DataSource::G1, g1_bayer},
+        {DataSource::G2, g2_bayer},
+        {DataSource::B, b_bayer}
+    };
+
+    const auto& dst_pts = chart.GetDestinationPoints();
+    double xtl = dst_pts[0].x;
+    double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x;
+    double ybr = dst_pts[2].y;
+    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
+
+    for (auto const& [channel, bayer_mat] : bayer_channels) {
+        cv::Mat img_corrected = UndoKeystone(bayer_mat, keystone_params);
+        
+        if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
+            crop_area.x + crop_area.width > img_corrected.cols ||
+            crop_area.y + crop_area.height > img_corrected.rows) {
+            log_stream << _("Error: Invalid crop area calculated for keystone correction on channel ") 
+                       << Formatters::DataSourceToString(channel) << std::endl;
+            prepared_channels[channel] = cv::Mat(); // Assign empty Mat on failure
+        } else {
+            prepared_channels[channel] = img_corrected(crop_area).clone();
+        }
+    }
+
+    return prepared_channels;
+}
