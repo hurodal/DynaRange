@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 20:08+0200\n"
+"POT-Creation-Date: 2025-10-06 22:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -660,68 +660,64 @@ msgstr ""
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:86
+#: src/core/engine/Processing.cpp:79
 msgid "Performing patch analysis on "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:86
+#: src/core/engine/Processing.cpp:79
 msgid " required channel(s)..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:91
-msgid "Error: Image for channel "
+#: src/core/engine/Processing.cpp:84
+msgid "Error: Failed to prepare image for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:91
-msgid " was not available for analysis."
-msgstr ""
-
-#: src/core/engine/Processing.cpp:101
+#: src/core/engine/Processing.cpp:92
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:155
+#: src/core/engine/Processing.cpp:143
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:176
+#: src/core/engine/Processing.cpp:164
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:216
+#: src/core/engine/Processing.cpp:204
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:218
+#: src/core/engine/Processing.cpp:206
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:220
+#: src/core/engine/Processing.cpp:208
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:235
+#: src/core/engine/Processing.cpp:223
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:236
+#: src/core/engine/Processing.cpp:224
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:236
+#: src/core/engine/Processing.cpp:224
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:236
+#: src/core/engine/Processing.cpp:224
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:240
+#: src/core/engine/Processing.cpp:228
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:242
+#: src/core/engine/Processing.cpp:230
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
@@ -757,21 +753,20 @@ msgstr ""
 msgid "Error: Failed to write chart to file: "
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:79
-#: src/core/graphics/ImageProcessing.cpp:337
-msgid "Error: Could not get raw image for: "
-msgstr ""
-
-#: src/core/graphics/ImageProcessing.cpp:147
+#: src/core/graphics/ImageProcessing.cpp:114
 msgid "Error: Invalid crop area calculated for keystone correction."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:240
+#: src/core/graphics/ImageProcessing.cpp:189
 msgid "Warning: No corner circle found in one of the quadrants."
 msgstr ""
 
-#: src/core/graphics/ImageProcessing.cpp:380
-msgid "Error: Invalid crop area calculated for keystone correction on channel "
+#: src/core/graphics/ImageProcessing.cpp:286
+msgid "Error: Could not get raw image for: "
+msgstr ""
+
+#: src/core/graphics/ImageProcessing.cpp:326
+msgid "Error: Invalid crop area for channel "
 msgstr ""
 
 #: src/core/graphics/PlotBase.cpp:147
@@ -922,21 +917,21 @@ msgstr ""
 msgid "  - Estimated saturation level: "
 msgstr ""
 
-#: src/core/setup/ChartProfile.cpp:43
+#: src/core/setup/ChartProfile.cpp:41
 msgid "Using manually specified coordinates:"
 msgstr ""
 
-#: src/core/setup/ChartProfile.cpp:49
+#: src/core/setup/ChartProfile.cpp:47
 msgid "Using automatically detected coordinates:"
 msgstr ""
 
-#: src/core/setup/ChartProfile.cpp:55
+#: src/core/setup/ChartProfile.cpp:53
 msgid ""
 "Warning: Automatic corner detection failed or was not possible. Falling back "
 "to default coordinates."
 msgstr ""
 
-#: src/core/setup/ChartProfile.cpp:56
+#: src/core/setup/ChartProfile.cpp:54
 msgid "Using hardcoded default coordinates:"
 msgstr ""
 

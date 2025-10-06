@@ -7,15 +7,11 @@
 #include "../io/RawFile.hpp"
 #include "../math/Math.hpp"
 #include "../DebugConfig.hpp"
-#include "../Constants.hpp"
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
 #include <iomanip>
-#include <filesystem>
-
-namespace fs = std::filesystem;
 
 #define _(string) gettext(string)
 
@@ -45,21 +41,17 @@ cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
     cv::Mat imgCorrected = cv::Mat::zeros(DIMY, DIMX, CV_32FC1);
     for (int y = 0; y < DIMY; ++y) {
         for (int x = 0; x < DIMX; ++x) {
-            // RESTORED LOGIC: Use 1-based coordinates for the calculation.
-            double xd = x + 1.0, yd = y + 1.0;
-            double denom = k(6) * xd + k(7) * yd + 1;
+            // Use the direct 0-based coordinate transformation.
+            // This is the correct math that aligns with the R script's C++ block
+            // and works with the conditional GAP logic.
+            double denom = k(6) * x + k(7) * y + 1;
             if (std::abs(denom) < 1e-9) continue;
+            
+            int xu = static_cast<int>(round((k(0) * x + k(1) * y + k(2)) / denom));
+            int yu = static_cast<int>(round((k(3) * x + k(4) * y + k(5)) / denom));
 
-            // RESTORED LOGIC: Subtract 1.0 from the coordinate before rounding.
-            double xu = (k(0) * xd + k(1) * yd + k(2)) / denom - 1.0;
-            double yu = (k(3) * xd + k(4) * yd + k(5)) / denom - 1.0;
-
-            // RESTORED LOGIC: Round the final coordinate to get the source pixel.
-            int x_src = static_cast<int>(round(xu));
-            int y_src = static_cast<int>(round(yu));
-
-            if (x_src >= 0 && x_src < DIMX && y_src >= 0 && y_src < DIMY) {
-                imgCorrected.at<float>(y, x) = imgSrc.at<float>(y_src, x_src);
+            if (xu >= 0 && xu < DIMX && yu >= 0 && yu < DIMY) {
+                imgCorrected.at<float>(y, x) = imgSrc.at<float>(yu, xu);
             }
         }
     }
@@ -76,70 +68,45 @@ cv::Mat PrepareChartImage(
 {
     cv::Mat raw_img = raw_file.GetRawImage();
     if(raw_img.empty()){
-        log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
         return {};
     }
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
-    // The switch now uses the function parameter instead of a global constant.
     switch (channel_to_extract) {
         case DataSource::R:
-            for (int r = 0; r < imgBayer.rows; ++r) {
-                for (int c = 0; c < imgBayer.cols; ++c) {
-                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2);
-                }
-            }
+            for (int r = 0; r < imgBayer.rows; ++r) { for (int c = 0; c < imgBayer.cols; ++c) { imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2); } }
             break;
         case DataSource::G1:
-            for (int r = 0; r < imgBayer.rows; ++r) {
-                for (int c = 0; c < imgBayer.cols; ++c) {
-                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
-                }
-            }
+            for (int r = 0; r < imgBayer.rows; ++r) { for (int c = 0; c < imgBayer.cols; ++c) { imgBayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1); } }
             break;
         case DataSource::G2:
-            for (int r = 0; r < imgBayer.rows; ++r) {
-                for (int c = 0; c < imgBayer.cols; ++c) {
-                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2);
-                }
-            }
+            for (int r = 0; r < imgBayer.rows; ++r) { for (int c = 0; c < imgBayer.cols; ++c) { imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2); } }
             break;
         case DataSource::B:
-            for (int r = 0; r < imgBayer.rows; ++r) {
-                for (int c = 0; c < imgBayer.cols; ++c) {
-                    imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2 + 1);
-                }
-            }
+            for (int r = 0; r < imgBayer.rows; ++r) { for (int c = 0; c < imgBayer.cols; ++c) { imgBayer.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2 + 1); } }
             break;
-        case DataSource::AVG: {
-            cv::Mat r_channel(imgBayer.size(), CV_32FC1);
-            cv::Mat g1_channel(imgBayer.size(), CV_32FC1);
-            cv::Mat g2_channel(imgBayer.size(), CV_32FC1);
-            cv::Mat b_channel(imgBayer.size(), CV_32FC1);
-
-            for (int r = 0; r < imgBayer.rows; ++r) {
-                for (int c = 0; c < imgBayer.cols; ++c) {
-                    r_channel.at<float>(r, c)  = img_float.at<float>(r * 2, c * 2);
-                    g1_channel.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
-                    g2_channel.at<float>(r, c) = img_float.at<float>(r * 2 + 1, c * 2);
-                    b_channel.at<float>(r, c)  = img_float.at<float>(r * 2 + 1, c * 2 + 1);
-                }
-            }
-            imgBayer = (r_channel + g1_channel + g2_channel + b_channel) / 4.0;
-            break;
-        }
+        default:
+            return {};
     }
     
     cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
+
     const auto& dst_pts = chart.GetDestinationPoints();
-    
-    // TEMPORARY REVERSION: Use the old, simple bounding box crop logic to match the old version.
     double xtl = dst_pts[0].x;
     double ytl = dst_pts[0].y;
     double xbr = dst_pts[2].x;
     double ybr = dst_pts[2].y;
-    cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
+
+    double gap_x = 0.0;
+    double gap_y = 0.0;
+
+    if (!chart.HasManualCoords()) {
+        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
+        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
+    }
+
+    cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
     
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
@@ -148,25 +115,7 @@ cv::Mat PrepareChartImage(
         return {};
     }
     
-    // The clone() is critical to return a valid copy, not a pointer to a temporary image.
-    cv::Mat final_image = img_corrected(crop_area).clone();
-
-    //// --- PUNTO DE CONTROL Nº2 ---
-    //#if DEBUG_IA_ON == 1
-    //    cv::Scalar mean_val, stddev_val;
-    //    cv::meanStdDev(final_image, mean_val, stddev_val);
-    //    log_stream << "\n--- DEBUG IA: Punto de Control 2 (Imagen Preparada Final) ---\n";
-    //    log_stream << "Fichero: " << fs::path(raw_file.GetFilename()).filename().string() << "\n";
-    //    log_stream << "Canal: " << Formatters::DataSourceToString(channel_to_extract) << "\n";
-    //    log_stream << "Media de la imagen final:   " << std::fixed << std::setprecision(8) << mean_val[0] << "\n";
-    //    log_stream << "StdDev de la imagen final: " << std::fixed << std::setprecision(8) << stddev_val[0] << "\n";
-    //    log_stream << "--------------------------------------------------------\n";
-    //    log_stream << "--- DEBUG IA: Finalizando el programa en el punto de control. ---\n" << std::endl;
-    //    //exit(0);
-    //#endif
-    //// --- FIN PUNTO DE CONTROL Nº2 ---
-
-    return final_image;
+    return img_corrected(crop_area).clone();
 }
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
@@ -339,14 +288,12 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     }
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
 
-    // Step 2: Create four matrices for the Bayer channels.
+    // Step 2: Create and populate all four channel matrices in a single pass.
     cv::Size bayer_size(img_float.cols / 2, img_float.rows / 2);
     cv::Mat r_bayer(bayer_size, CV_32FC1);
     cv::Mat g1_bayer(bayer_size, CV_32FC1);
     cv::Mat g2_bayer(bayer_size, CV_32FC1);
     cv::Mat b_bayer(bayer_size, CV_32FC1);
-
-    // Step 3: Populate all four channel matrices in a single pass.
     for (int r = 0; r < bayer_size.height; ++r) {
         for (int c = 0; c < bayer_size.width; ++c) {
             r_bayer.at<float>(r, c)  = img_float.at<float>(r * 2, c * 2);
@@ -355,15 +302,13 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
             b_bayer.at<float>(r, c)  = img_float.at<float>(r * 2 + 1, c * 2 + 1);
         }
     }
-
-    // Step 4: Apply keystone correction and cropping to each channel.
+    
     std::map<DataSource, cv::Mat> bayer_channels = {
-        {DataSource::R, r_bayer},
-        {DataSource::G1, g1_bayer},
-        {DataSource::G2, g2_bayer},
-        {DataSource::B, b_bayer}
+        {DataSource::R, r_bayer}, {DataSource::G1, g1_bayer},
+        {DataSource::G2, g2_bayer}, {DataSource::B, b_bayer}
     };
 
+    // Step 3: Define the crop area using the (now correct) destination points.
     const auto& dst_pts = chart.GetDestinationPoints();
     double xtl = dst_pts[0].x;
     double ytl = dst_pts[0].y;
@@ -371,16 +316,17 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     double ybr = dst_pts[2].y;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
 
+    // Step 4: Apply keystone correction and then crop each channel.
     for (auto const& [channel, bayer_mat] : bayer_channels) {
         cv::Mat img_corrected = UndoKeystone(bayer_mat, keystone_params);
         
         if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
             crop_area.x + crop_area.width > img_corrected.cols ||
             crop_area.y + crop_area.height > img_corrected.rows) {
-            log_stream << _("Error: Invalid crop area calculated for keystone correction on channel ") 
-                       << Formatters::DataSourceToString(channel) << std::endl;
-            prepared_channels[channel] = cv::Mat(); // Assign empty Mat on failure
+            log_stream << _("Error: Invalid crop area for channel ") << Formatters::DataSourceToString(channel) << std::endl;
+            prepared_channels[channel] = cv::Mat();
         } else {
+            // Re-introduce the crop step on the corrected image.
             prepared_channels[channel] = img_corrected(crop_area).clone();
         }
     }
