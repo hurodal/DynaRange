@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 22:19+0200\n"
+"POT-Creation-Date: 2025-10-06 22:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -431,84 +431,84 @@ msgstr ""
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:36
+#: src/core/arguments/ArgumentManager.cpp:37
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:37
+#: src/core/arguments/ArgumentManager.cpp:38
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:38
+#: src/core/arguments/ArgumentManager.cpp:40
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:39
+#: src/core/arguments/ArgumentManager.cpp:41
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:40
+#: src/core/arguments/ArgumentManager.cpp:42
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:41
+#: src/core/arguments/ArgumentManager.cpp:43
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:42
+#: src/core/arguments/ArgumentManager.cpp:44
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:43
+#: src/core/arguments/ArgumentManager.cpp:45
 msgid "Output CSV text file(s) with all results..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:44
+#: src/core/arguments/ArgumentManager.cpp:46
 msgid "Export SNR curves in PNG/PDF/SVG format..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:45
+#: src/core/arguments/ArgumentManager.cpp:48
 msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:46
+#: src/core/arguments/ArgumentManager.cpp:50
 msgid "Specify which RAW channels to analyze (R G1 G2 B AVG)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:58
+#: src/core/arguments/ArgumentManager.cpp:60
 msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:59
+#: src/core/arguments/ArgumentManager.cpp:61
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:61
+#: src/core/arguments/ArgumentManager.cpp:63
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:62
+#: src/core/arguments/ArgumentManager.cpp:64
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:68
+#: src/core/arguments/ArgumentManager.cpp:69
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:96
+#: src/core/arguments/ArgumentManager.cpp:99
 msgid "Export SNR curves. Can specify [FORMAT] or [FILENAME FORMAT]."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:97
+#: src/core/arguments/ArgumentManager.cpp:100
 msgid "Set plot command mode (0-3)."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:110
+#: src/core/arguments/ArgumentManager.cpp:112
 msgid ""
 "--input-files is required unless creating a chart with --chart or --chart-"
 "colour."
@@ -660,64 +660,56 @@ msgstr ""
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:79
-msgid "Performing patch analysis on "
-msgstr ""
-
-#: src/core/engine/Processing.cpp:79
-msgid " required channel(s)..."
-msgstr ""
-
-#: src/core/engine/Processing.cpp:84
+#: src/core/engine/Processing.cpp:83
 msgid "Error: Failed to prepare image for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:92
+#: src/core/engine/Processing.cpp:91
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:143
+#: src/core/engine/Processing.cpp:142
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:164
+#: src/core/engine/Processing.cpp:163
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:204
+#: src/core/engine/Processing.cpp:203
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:206
+#: src/core/engine/Processing.cpp:205
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:208
+#: src/core/engine/Processing.cpp:207
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:223
+#: src/core/engine/Processing.cpp:222
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:224
+#: src/core/engine/Processing.cpp:223
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:224
+#: src/core/engine/Processing.cpp:223
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:224
+#: src/core/engine/Processing.cpp:223
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:228
+#: src/core/engine/Processing.cpp:227
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:230
+#: src/core/engine/Processing.cpp:229
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 

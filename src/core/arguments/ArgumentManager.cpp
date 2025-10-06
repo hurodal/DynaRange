@@ -31,10 +31,12 @@ ArgumentManager::ArgumentManager()
 void ArgumentManager::RegisterAllArguments() {
     if (m_is_registered) return;
 
-    m_descriptors["black-level"] = {"black-level", "b", _("Camera RAW black level"), ArgType::Double, DEFAULT_BLACK_LEVEL};
-    m_descriptors["black-file"] = {"black-file", "B", _("Totally dark RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
-    m_descriptors["saturation-level"] = {"saturation-level", "s", _("Camera RAW saturation level"), ArgType::Double, DEFAULT_SATURATION_LEVEL};
-    m_descriptors["saturation-file"] = {"saturation-file", "S", _("Totally clipped RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
+    m_descriptors["black-level"] = {"black-level", "B", _("Camera RAW black level"), ArgType::Double, DEFAULT_BLACK_LEVEL};
+    m_descriptors["black-file"] = {"black-file", "b", _("Totally dark RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
+    
+    m_descriptors["saturation-level"] = {"saturation-level", "S", _("Camera RAW saturation level"), ArgType::Double, DEFAULT_SATURATION_LEVEL};
+    m_descriptors["saturation-file"] = {"saturation-file", "s", _("Totally clipped RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
+    
     m_descriptors["input-files"] = {"input-files", "i", _("Input RAW files shot over the test chart ideally for every ISO"), ArgType::StringVector, std::vector<std::string>{}, false};
     m_descriptors["patch-ratio"] = {"patch-ratio", "r", _("Relative patch width/height used to compute signal and noise readings (default=0.5)"), ArgType::Double, DEFAULT_PATCH_RATIO, false, 0.0, 1.0};
     m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::Double, DEFAULT_SNR_THRESHOLD_DB};
@@ -42,10 +44,10 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG/PDF/SVG format..."), ArgType::Int, DEFAULT_PLOT_MODE};
-    m_descriptors["print-patches"] = {"print-patches", "P", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
-    m_descriptors["raw-channel"] = {"raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int>{0, 0, 0, 0, 1}};
     
-    // Arguments for plotting logic, now with default values to prevent crashes.
+    m_descriptors["print-patches"] = {"print-patches", "g", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
+    
+    m_descriptors["raw-channel"] = {"raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int>{0, 0, 0, 0, 1}};
     m_descriptors["generate-plot"] = {"generate-plot", "", "", ArgType::Flag, false};
     m_descriptors["plot-format"] = {"plot-format", "", "", ArgType::Int, DynaRange::Constants::PlotOutputFormat::PNG};
 
@@ -53,14 +55,13 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     m_descriptors["black-level-is-default"] = {"black-level-is-default", "", "", ArgType::Flag, true};
     m_descriptors["saturation-level-is-default"] = {"saturation-level-is-default", "", "", ArgType::Flag, true};
-
+    
     // Chart arguments
     m_descriptors["chart"] = {"chart", "c", _("specify format of test chart (default DIMX=1920, W=3, H=2)"), ArgType::IntVector, std::vector<int>()};
     m_descriptors["chart-colour"] = {"chart-colour", "C", _("Create test chart in PNG format ranging colours..."), ArgType::StringVector, std::vector<std::string>()};
     m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
     m_descriptors["chart-coords"] = {"chart-coords", "x", _("Test chart defined by 4 corners: tl, bl, br, tr"), ArgType::DoubleVector, std::vector<double>()};
     m_descriptors["chart-patches"] = {"chart-patches", "M", _("Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
-    
     m_is_registered = true;
 }
 
@@ -72,8 +73,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     std::vector<int> temp_raw_channels;
-    std::vector<std::string> plot_params; // Vector to capture plot parameters
-    int plot_command_mode = 1; // Default plot command mode is 1 (simple graphic)
+    std::vector<std::string> plot_params;
+    int plot_command_mode = 1;
 
     // --- Define all options ---
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(5);
@@ -81,10 +82,13 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches, m_descriptors.at("chart-patches").help_text)->expected(2);
     auto chart_coords_opt = app.add_option("-x,--chart-coords", temp_opts.chart_coords, m_descriptors.at("chart-coords").help_text)->expected(8);
     auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, m_descriptors.at("input-files").help_text);
-    auto black_file_opt = app.add_option("-B,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
-    auto black_level_opt = app.add_option("-b,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
-    auto sat_file_opt = app.add_option("-S,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
-    auto sat_level_opt = app.add_option("-s,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
+    
+    auto black_file_opt = app.add_option("-b,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
+    auto black_level_opt = app.add_option("-B,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
+
+    auto sat_file_opt = app.add_option("-s,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
+    auto sat_level_opt = app.add_option("-S,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
+
     auto output_opt = app.add_option("-o,--output-file", temp_opts.output_filename, m_descriptors.at("output-file").help_text);
     auto snr_opt = app.add_option("-d,--snrthreshold-db", temp_snr_thresholds, m_descriptors.at("snrthreshold-db").help_text);
     auto dr_norm_opt = app.add_option("-m,--drnormalization-mpx", temp_opts.dr_normalization_mpx, m_descriptors.at("drnormalization-mpx").help_text);
@@ -92,20 +96,18 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
                             ->check(CLI::IsMember(std::vector<int>(std::begin(VALID_POLY_ORDERS), std::end(VALID_POLY_ORDERS))));
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
     
-    // Modified plot option to accept 0 to 2 string parameters
     auto plot_opt = app.add_option("-p,--plot", plot_params, _("Export SNR curves. Can specify [FORMAT] or [FILENAME FORMAT]."))->expected(0,2)->trigger_on_parse();
     app.add_option("--plot-cmd", plot_command_mode, _("Set plot command mode (0-3)."))->check(CLI::Range(0, 3));
 
-    auto print_patch_opt = app.add_option("-P,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
+    auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
                                 ->expected(0,1)
                                 ->default_str("chartpatches.png");
-    // SIMPLIFIED DEFINITION: The option now always requires exactly 5 values.
+
     auto raw_channel_opt = app.add_option("-w,--raw-channel", temp_raw_channels, m_descriptors.at("raw-channel").help_text)->expected(5);
 
     // --- Single Parse Pass ---
     try {
         app.parse(argc, argv);
-        // --- Manual Validation Logic ---
         if (chart_opt->count() == 0 && chart_colour_opt->count() == 0 && input_opt->count() == 0) {
             throw CLI::RequiredError(_("--input-files is required unless creating a chart with --chart or --chart-colour."));
         }
@@ -150,14 +152,12 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (poly_fit_opt->count() > 0) m_values["poly-fit"] = temp_opts.poly_order;
     if (patch_ratio_opt->count() > 0) m_values["patch-ratio"] = temp_opts.patch_ratio;
     
-    // New logic to parse the flexible plot parameters
     if (plot_opt->count() > 0) {
         m_values["generate-plot"] = true;
         m_values["plot"] = plot_command_mode;
         
-        std::string format_str = "PNG"; // Default format
+        std::string format_str = "PNG";
         std::string filename = "";
-
         for (const auto& param : plot_params) {
             std::string upper_param = param;
             std::transform(upper_param.begin(), upper_param.end(), upper_param.begin(), ::toupper);
@@ -181,7 +181,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
     
     m_values["input-files"] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
-
     if (snr_opt->count() > 0) {
         m_values["snrthreshold-db"] = temp_snr_thresholds[0];
         m_values["snr-threshold-is-default"] = false;

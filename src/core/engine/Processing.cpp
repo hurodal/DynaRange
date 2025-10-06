@@ -76,7 +76,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         if (opts.raw_channels.G2) channels_to_analyze.push_back(DataSource::G2);
         if (opts.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
     }
-    log_stream << "  - " << _("Performing patch analysis on ") << channels_to_analyze.size() << _(" required channel(s)...") << std::endl;
 
     for (const auto& channel : channels_to_analyze) {
         cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream, channel);
