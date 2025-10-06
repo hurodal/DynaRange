@@ -7,7 +7,6 @@
 #include "../../core/DebugConfig.hpp"
 #include <opencv2/imgproc.hpp>
 
-// File: src/core/analysis/ImageAnalyzer.cpp
 PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio, bool create_overlay_image) {
     cv::Mat image_with_overlays;
     if (create_overlay_image) {

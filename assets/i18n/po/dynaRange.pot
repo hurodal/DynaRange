@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 19:53+0200\n"
+"POT-Creation-Date: 2025-10-06 20:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -660,60 +660,68 @@ msgstr ""
 msgid "Processing \""
 msgstr ""
 
-#: src/core/engine/Processing.cpp:78
+#: src/core/engine/Processing.cpp:86
+msgid "Performing patch analysis on "
+msgstr ""
+
+#: src/core/engine/Processing.cpp:86
+msgid " required channel(s)..."
+msgstr ""
+
+#: src/core/engine/Processing.cpp:91
 msgid "Error: Image for channel "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:78
-msgid " could not be prepared."
+#: src/core/engine/Processing.cpp:91
+msgid " was not available for analysis."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:87
+#: src/core/engine/Processing.cpp:101
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:141
+#: src/core/engine/Processing.cpp:155
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:162
+#: src/core/engine/Processing.cpp:176
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:202
+#: src/core/engine/Processing.cpp:216
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:204
+#: src/core/engine/Processing.cpp:218
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:206
+#: src/core/engine/Processing.cpp:220
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:221
+#: src/core/engine/Processing.cpp:235
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:222
+#: src/core/engine/Processing.cpp:236
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:222
+#: src/core/engine/Processing.cpp:236
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:222
+#: src/core/engine/Processing.cpp:236
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:226
+#: src/core/engine/Processing.cpp:240
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:228
+#: src/core/engine/Processing.cpp:242
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 

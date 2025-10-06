@@ -67,17 +67,31 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     std::vector<SingleFileResult> final_results;
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
-    // Prepare all Bayer channels in a single pass.
+    // Step 1: Prepare all four Bayer channels efficiently in a single pass.
     std::map<DataSource, cv::Mat> all_prepared_channels = PrepareAllBayerChannels(raw_file, opts, keystone_params, chart, log_stream);
 
-    // Now, analyze the patches for each prepared channel.
-    std::vector<DataSource> base_channels_to_process = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
-    for (const auto& channel : base_channels_to_process) {
-        const cv::Mat& img_prepared = all_prepared_channels[channel];
-        if (img_prepared.empty()) {
-            log_stream << _("Error: Image for channel ") << Formatters::DataSourceToString(channel) << _(" could not be prepared.") << std::endl;
+    // Step 2: Determine which of the prepared channels actually need patch analysis.
+    std::vector<DataSource> channels_to_analyze;
+    const auto& rc = opts.raw_channels;
+    if (rc.AVG) {
+        // If AVG is requested, all four base channels are required for the calculation.
+        channels_to_analyze = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
+    } else {
+        // Otherwise, only add the channels the user explicitly selected.
+        if (rc.R) channels_to_analyze.push_back(DataSource::R);
+        if (rc.G1) channels_to_analyze.push_back(DataSource::G1);
+        if (rc.G2) channels_to_analyze.push_back(DataSource::G2);
+        if (rc.B) channels_to_analyze.push_back(DataSource::B);
+    }
+    log_stream << "  - " << _("Performing patch analysis on ") << channels_to_analyze.size() << _(" required channel(s)...") << std::endl;
+
+    // Step 3: Loop ONLY over the required channels and run AnalyzePatches.
+    for (const auto& channel : channels_to_analyze) {
+        if (all_prepared_channels.find(channel) == all_prepared_channels.end() || all_prepared_channels.at(channel).empty()) {
+            log_stream << _("Error: Image for channel ") << Formatters::DataSourceToString(channel) << _(" was not available for analysis.") << std::endl;
             continue;
         }
+        const cv::Mat& img_prepared = all_prepared_channels.at(channel);
         
         // The overlay image is only generated for the Red channel on the first file.
         bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
@@ -86,11 +100,12 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         if (patch_data.signal.empty()) {
             log_stream << _("Warning: No valid patches found for channel: ") << Formatters::DataSourceToString(channel) << std::endl;
         }
+        // Store the result of the analysis for this channel.
         individual_channel_patches[channel] = patch_data;
     }
 
-    // This part of the logic remains the same, as it assembles the final results
-    // from the per-channel data we just collected.
+    // Step 4: Assemble the final results based on the user's selection, using the data we just collected.
+    // This part of the logic remains unchanged.
     std::vector<DataSource> user_selected_channels;
     if (opts.raw_channels.R) user_selected_channels.push_back(DataSource::R);
     if (opts.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
@@ -101,7 +116,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     for (const auto& final_channel : user_selected_channels) {
         PatchAnalysisResult final_patch_data;
         if (final_channel == DataSource::AVG) {
-            for (const auto& channel_to_pool : base_channels_to_process) {
+            for (const auto& channel_to_pool : channels_to_analyze) { // Use the list of channels we actually analyzed
                 if (individual_channel_patches.count(channel_to_pool)) {
                     const auto& patch_result = individual_channel_patches.at(channel_to_pool);
                     final_patch_data.signal.insert(final_patch_data.signal.end(), patch_result.signal.begin(), patch_result.signal.end());
@@ -133,7 +148,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 
         cv::Mat final_debug_image;
         if (generate_debug_image) {
-            // Ensure R channel data exists before trying to access it
             if (individual_channel_patches.count(DataSource::R)) {
                 const auto& r_patches = individual_channel_patches.at(DataSource::R);
                 final_debug_image = CreateFinalDebugImage(r_patches.image_with_patches, r_patches.max_pixel_value);
@@ -141,7 +155,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
                     log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
                 }
             }
-            generate_debug_image = false; // Ensure it's only generated once
+            generate_debug_image = false;
         }
         
         final_results.push_back(SingleFileResult{dr_result, curve_data, final_debug_image});

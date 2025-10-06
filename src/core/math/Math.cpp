@@ -47,7 +47,6 @@ double CalculateQuantile(std::vector<double>& data, double percentile) {
     return data[n];
 }
 
-// File: src/core/math/Math.cpp
 double EvaluatePolynomialDerivative(const cv::Mat& coeffs, double x) {
     if (coeffs.empty() || coeffs.rows < 2) {
         return 0.0;
