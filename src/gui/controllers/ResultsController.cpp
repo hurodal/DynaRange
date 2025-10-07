@@ -20,7 +20,6 @@ namespace fs = std::filesystem;
 // Anonymous namespace for internal helper functions.
 namespace {
 
-// This new function has been added to provide Base64 encoding.
 /**
  * @brief Encodes a block of binary data into a Base64 string.
  * @param data Pointer to the input data.
@@ -73,7 +72,6 @@ std::string base64_encode(const unsigned char* data, size_t len) {
     return ret;
 }
 
-// This new function has been added to determine the MIME type from the file extension.
 /**
  * @brief Gets the MIME type for a given file extension.
  * @param extension The file extension (e.g., ".png").
@@ -170,7 +168,7 @@ void ResultsController::LoadLogoImage() {
     // Use PathManager to locate the asset directory correctly.
     ProgramOptions opts; // An empty opts is sufficient for PathManager
     PathManager path_manager(opts);
-    fs::path logo_path = path_manager.GetAssetPath("images/logo.png");
+    fs::path logo_path = path_manager.GetAssetPath("assets/images/logo.png");
 
     if (fs::exists(logo_path)) {
         wxString url = "file://" + wxString(fs::absolute(logo_path).string());

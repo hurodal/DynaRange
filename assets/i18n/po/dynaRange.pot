@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 22:39+0200\n"
+"POT-Creation-Date: 2025-10-07 09:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,32 +41,32 @@ msgstr ""
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:104
-#: src/gui/controllers/ResultsController.cpp:203
+#: src/gui/controllers/ResultsController.cpp:102
+#: src/gui/controllers/ResultsController.cpp:201
 msgid "Generated Graph:"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:111
+#: src/gui/controllers/ResultsController.cpp:109
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:124
+#: src/gui/controllers/ResultsController.cpp:122
 msgid "Generated Graph (Could not read file): "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:164
+#: src/gui/controllers/ResultsController.cpp:162
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:178
+#: src/gui/controllers/ResultsController.cpp:176
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:181
+#: src/gui/controllers/ResultsController.cpp:179
 msgid "Welcome (logo.png not found)"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:195
+#: src/gui/controllers/ResultsController.cpp:193
 msgid "Processing... Please wait."
 msgstr ""
 

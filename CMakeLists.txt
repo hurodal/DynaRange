@@ -196,14 +196,23 @@ set_target_properties(rango dynaRangeGui PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
 )
 
-# Actualizar las rutas para que apunten a la carpeta 'assets'
+# Copia el directorio de imágenes para el entorno de desarrollo.
 add_custom_command(
     TARGET rango dynaRangeGui POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/assets/images/logo.png"
-        "${CMAKE_SOURCE_DIR}/assets/icons/favicon_noise.ico"
-        "${PORTABLE_DIR}" # Esta es la ruta de destino
-    COMMENT "Copiando assets al directorio de compilación..."
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        "${CMAKE_SOURCE_DIR}/assets/images"
+        "${PORTABLE_DIR}/assets/images"
+    COMMENT "Copiando directorio 'assets/images' al directorio de compilación..."
+    VERBATIM
+)
+
+# Copia el directorio de iconos para el entorno de desarrollo.
+add_custom_command(
+    TARGET rango dynaRangeGui POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        "${CMAKE_SOURCE_DIR}/assets/icons"
+        "${PORTABLE_DIR}/assets/icons"
+    COMMENT "Copiando directorio 'assets/icons' al directorio de compilación..."
     VERBATIM
 )
 
