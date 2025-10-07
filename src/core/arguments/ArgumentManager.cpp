@@ -85,7 +85,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     
     auto black_file_opt = app.add_option("-b,--black-file", temp_opts.dark_file_path, m_descriptors.at("black-file").help_text)->check(CLI::ExistingFile);
     auto black_level_opt = app.add_option("-B,--black-level", temp_opts.dark_value, m_descriptors.at("black-level").help_text);
-
     auto sat_file_opt = app.add_option("-s,--saturation-file", temp_opts.sat_file_path, m_descriptors.at("saturation-file").help_text)->check(CLI::ExistingFile);
     auto sat_level_opt = app.add_option("-S,--saturation-level", temp_opts.saturation_value, m_descriptors.at("saturation-level").help_text);
 
@@ -102,7 +101,6 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)
                                 ->expected(0,1)
                                 ->default_str("chartpatches.png");
-
     auto raw_channel_opt = app.add_option("-w,--raw-channel", temp_raw_channels, m_descriptors.at("raw-channel").help_text)->expected(5);
 
     // --- Single Parse Pass ---
@@ -154,22 +152,35 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     
     if (plot_opt->count() > 0) {
         m_values["generate-plot"] = true;
-        m_values["plot"] = plot_command_mode;
         
         std::string format_str = "PNG";
         std::string filename = "";
+        
+        // Default to mode 1 if no integer is found.
+        plot_command_mode = 1; 
+
         for (const auto& param : plot_params) {
             std::string upper_param = param;
             std::transform(upper_param.begin(), upper_param.end(), upper_param.begin(), ::toupper);
-            if (upper_param == "PNG" || upper_param == "PDF" || upper_param == "SVG") {
+
+            // Check if the parameter is a valid integer mode (1, 2, or 3)
+            if (param == "1" || param == "2" || param == "3") {
+                try {
+                    plot_command_mode = std::stoi(param);
+                } catch (...) { /* Ignore conversion errors, will fallback to default */ }
+            } else if (upper_param == "PNG" || upper_param == "PDF" || upper_param == "SVG") {
                 format_str = upper_param;
             } else {
                 filename = param;
             }
         }
         
+        // Store the correctly parsed command mode.
+        m_values["plot"] = plot_command_mode;
+        
         if (filename.empty()) {
-            std::string ext = (format_str == "PNG") ? ".png" : (format_str == "PDF" ? ".pdf" : ".svg");
+            std::string ext = (format_str == "PNG") ?
+                              ".png" : (format_str == "PDF" ? ".pdf" : ".svg");
             filename = "snrcurves" + ext;
         }
         
@@ -182,10 +193,11 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     
     m_values["input-files"] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
     if (snr_opt->count() > 0) {
-        m_values["snrthreshold-db"] = temp_snr_thresholds[0];
+        m_values["snrthreshold-db"] = temp_snr_thresholds; // This should handle multiple values.
         m_values["snr-threshold-is-default"] = false;
     }
 }
+
 
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;

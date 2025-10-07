@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 15:41+0200\n"
+"POT-Creation-Date: 2025-10-07 21:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -513,15 +513,15 @@ msgstr ""
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:99
+#: src/core/arguments/ArgumentManager.cpp:98
 msgid "Export SNR curves. Can specify [FORMAT] or [FILENAME FORMAT]."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:100
+#: src/core/arguments/ArgumentManager.cpp:99
 msgid "Set plot command mode (0-3)."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:112
+#: src/core/arguments/ArgumentManager.cpp:110
 msgid ""
 "--input-files is required unless creating a chart with --chart or --chart-"
 "colour."
