@@ -7,13 +7,12 @@
 #include "../../core/DebugConfig.hpp"
 #include <opencv2/imgproc.hpp>
 
-PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio, bool create_overlay_image) {
+PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio, bool create_overlay_image, double min_snr_db) {
     cv::Mat image_with_overlays;
     if (create_overlay_image) {
-        image_with_overlays = imgcrop.clone(); // Use clone to avoid modifying the input
+        image_with_overlays = imgcrop.clone();
     }
 
-    // RESTORED LOGIC: Use floating-point arithmetic for coordinate calculation.
     const double patch_width_float = (double)imgcrop.cols / NCOLS;
     const double patch_height_float = (double)imgcrop.rows / NROWS;
     const double safe_x = patch_width_float * (1.0 - patch_ratio) / 2.0;
@@ -22,32 +21,28 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
     std::vector<double> signal;
     std::vector<double> noise;
     double max_pixel_value = 0.0;
-
     signal.reserve(NCOLS * NROWS);
     noise.reserve(NCOLS * NROWS);
     for (int j = 0; j < NROWS; j++) {
         for (int i = 0; i < NCOLS; i++) {
-            // RESTORED LOGIC: Calculate ROI coordinates using the floating-point method.
             int x1 = round((double)i * patch_width_float + safe_x);
             int x2 = round((double)(i + 1) * patch_width_float - safe_x);
             int y1 = round((double)j * patch_height_float + safe_y);
             int y2 = round((double)(j + 1) * patch_height_float - safe_y);
-
             if (x1 >= x2 || y1 >= y2) continue;
             cv::Rect roi_rect(x1, y1, x2 - x1, y2 - y1);
             if (roi_rect.x < 0 || roi_rect.y < 0 || roi_rect.x + roi_rect.width > imgcrop.cols || roi_rect.y + roi_rect.height > imgcrop.rows) continue;
-            
             cv::Mat roi = imgcrop(roi_rect);
 
             cv::Scalar mean_val, stddev_val;
             cv::meanStdDev(roi, mean_val, stddev_val);
             double S = mean_val[0];
             double N = stddev_val[0];
-
             int sat_count = cv::countNonZero(roi > 0.9);
             double sat_ratio = (double)sat_count / (roi.rows * roi.cols);
 
-            if (S > 0 && N > 0 && 20 * log10(S / N) >= -10 && sat_ratio < 0.01) {
+            // Se reemplaza el valor fijo -10 por el nuevo parámetro dinámico.
+            if (S > 0 && N > 0 && 20 * log10(S / N) >= min_snr_db && sat_ratio < 0.01) {
                 signal.push_back(S);
                 noise.push_back(N);
                 max_pixel_value = std::max(max_pixel_value, S);
@@ -74,6 +69,6 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
     if (create_overlay_image) {
         result.image_with_patches = image_with_overlays;
     }
-    
+
     return result;
 }

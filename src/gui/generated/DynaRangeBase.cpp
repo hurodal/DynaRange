@@ -453,7 +453,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	rawFilesSbSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Down, wxID_ANY, _("Input RAW Files") ), wxVERTICAL );
 
 	rawFilesSbSizer->SetMinSize( wxSize( -1,150 ) );
-	m_rawFileslistBox = new wxListBox( rawFilesSbSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+	m_rawFileslistBox = new wxListBox( rawFilesSbSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, wxLB_EXTENDED );
 	rawFilesSbSizer->Add( m_rawFileslistBox, 1, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* AddRemoveRawsSbSizer7;

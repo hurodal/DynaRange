@@ -44,15 +44,38 @@ std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, s
 }
 
 /**
- * @brief (Orchestrator) Analyzes a single RAW file by calling the appropriate modules.
+ * @brief Orchestrates the complete analysis for a single RAW file (one ISO setting).
+ * @details This function implements a two-pass analysis strategy to handle both
+ * clean low-ISO files and extremely noisy high-ISO files appropriately.
+ *
+ * **Pass 1 (Strict):** The analysis is first performed using a strict
+ * minimum SNR threshold (based on -10 dB). This ensures that for most
+ * images, the resulting curves are clean and not skewed by unreliable
+ * data points from deep shadows.
+ *
+ * **Validation:** After the first pass, the function checks if all
+ * resulting data points for a channel have an SNR value higher than the
+ * user's highest requested threshold (e.g., 12 dB). This identifies
+ * "floating curves" which typically occur at very high ISOs where no
+ * shadow detail could be captured under the strict threshold.
+ *
+ * **Pass 2 (Permissive):** If a curve is found to be "floating", the
+ * results from Pass 1 for that channel are discarded. The patch analysis
+ * is then re-run on the same prepared image data, but this time using a
+ * much more permissive SNR threshold (based on -90 dB). This second pass
+ * forces the inclusion of very noisy shadow data to allow for a more
+ * complete curve to be fitted.
+ *
  * @param raw_file The RawFile object to be analyzed.
  * @param opts The program options.
  * @param chart The chart profile defining the geometry.
  * @param keystone_params The pre-calculated keystone transformation parameters.
  * @param log_stream The output stream for logging.
  * @param camera_resolution_mpx The resolution of the camera sensor in megapixels.
- * @param generate_debug_image Only most low iso image must generate printpatches.png.
- * @return A SingleFileResult struct containing the analysis results.
+ * @param generate_debug_image Flag indicating if the debug patch image should be
+ * generated for this file (typically only the first in a series).
+ * @return A vector of SingleFileResult structs, with each element containing the
+ * analysis results for a user-selected channel (R, G1, G2, B, and/or AVG).
  */
 std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file,
@@ -67,6 +90,21 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     std::vector<SingleFileResult> final_results;
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
+    // --- TWO-PASS ANALYSIS LOGIC ---
+    // Calculate both strict and permissive thresholds upfront.
+    double norm_adjustment = 0.0;
+    if (opts.dr_normalization_mpx > 0.0 && camera_resolution_mpx > 0.0) {
+        norm_adjustment = 20.0 * std::log10(std::sqrt(camera_resolution_mpx / opts.dr_normalization_mpx));
+    }
+    const double strict_min_snr_db = -10.0 - norm_adjustment;
+    const double permissive_min_snr_db = DynaRange::Constants::MIN_SNR_DB_THRESHOLD - norm_adjustment;
+
+    // Find the highest SNR threshold requested by the user for the validation check.
+    double max_requested_threshold = 0.0;
+    if (!opts.snr_thresholds_db.empty()) {
+        max_requested_threshold = *std::max_element(opts.snr_thresholds_db.begin(), opts.snr_thresholds_db.end());
+    }
+
     std::vector<DataSource> channels_to_analyze;
     if (opts.raw_channels.AVG) {
         channels_to_analyze = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
@@ -77,22 +115,52 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         if (opts.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
     }
 
+    // This loop performs the two-pass analysis for each required Bayer channel.
     for (const auto& channel : channels_to_analyze) {
+        // Expensive part: prepare the image once.
         cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream, channel);
         if (img_prepared.empty()) {
             log_stream << _("Error: Failed to prepare image for channel: ") << Formatters::DataSourceToString(channel) << std::endl;
             continue;
         }
-        
+
         bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
-        PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay);
-        
+
+        // --- Pass 1: Analyze with the strict threshold ---
+        PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay, strict_min_snr_db);
+
+        // --- Validation Step ---
+        bool needs_reanalysis = false;
+        if (!patch_data.signal.empty()) {
+            double min_snr_found = 1e6;
+            for (size_t i = 0; i < patch_data.signal.size(); ++i) {
+                if (patch_data.signal[i] > 0 && patch_data.noise[i] > 0) {
+                    double snr = 20.0 * log10(patch_data.signal[i] / patch_data.noise[i]);
+                    if (snr < min_snr_found) {
+                        min_snr_found = snr;
+                    }
+                }
+            }
+            // Check if the lowest SNR found is still above the highest requested threshold.
+            if (min_snr_found > max_requested_threshold) {
+                needs_reanalysis = true;
+            }
+        }
+
+        // --- Pass 2 (Conditional): Re-analyze with the permissive threshold ---
+        if (needs_reanalysis) {
+            log_stream << "  - Info: Re-analyzing channel " << Formatters::DataSourceToString(channel) 
+                       << " with permissive threshold to find low-SNR data." << std::endl;
+            patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay, permissive_min_snr_db);
+        }
+
         if (patch_data.signal.empty()) {
             log_stream << _("Warning: No valid patches found for channel: ") << Formatters::DataSourceToString(channel) << std::endl;
         }
         individual_channel_patches[channel] = patch_data;
     }
 
+    // This second part of the function remains the same, assembling the final results.
     std::vector<DataSource> user_selected_channels;
     if (opts.raw_channels.R) user_selected_channels.push_back(DataSource::R);
     if (opts.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
@@ -118,9 +186,9 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         if (final_patch_data.signal.empty()) continue;
-        
+
         auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, final_channel);
-        
+
         dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
         dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
         dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
@@ -144,7 +212,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
             }
             generate_debug_image = false;
         }
-        
+
         final_results.push_back(SingleFileResult{dr_result, curve_data, final_debug_image});
     }
 
