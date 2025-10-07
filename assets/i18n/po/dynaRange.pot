@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 09:40+0200\n"
+"POT-Creation-Date: 2025-10-07 10:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,7 +42,7 @@ msgid "Unsupported Files Skipped"
 msgstr ""
 
 #: src/gui/controllers/ResultsController.cpp:104
-#: src/gui/controllers/ResultsController.cpp:209
+#: src/gui/controllers/ResultsController.cpp:214
 msgid "Generated Graph:"
 msgstr ""
 
@@ -58,42 +58,51 @@ msgstr ""
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:170
-msgid "Loading project page..."
-msgstr ""
-
-#: src/gui/controllers/ResultsController.cpp:185
+#: src/gui/controllers/ResultsController.cpp:184
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:188
+#: src/gui/controllers/ResultsController.cpp:187
 msgid "Welcome (logo.png not found)"
 msgstr ""
 
 #: src/gui/controllers/ResultsController.cpp:201
-msgid "Processing... Please wait."
+msgid "Starting analysis... Please wait."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:152 src/gui/GuiPresenter.cpp:133
+#: src/gui/DynaRangeFrame.cpp:120
+msgid "Loading project page..."
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:148 src/gui/GuiPresenter.cpp:133
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:152
+#: src/gui/DynaRangeFrame.cpp:148
 msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:272
+#: src/gui/DynaRangeFrame.cpp:269
+msgid "Results loaded, but summary plot failed."
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:271
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:273
-msgid "Results loaded, but summary plot failed."
+#: src/gui/DynaRangeFrame.cpp:274
+msgid "Results loaded. Plot generation was not requested."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:276
-msgid "Results loaded. Plot generation was not requested."
+#: src/gui/DynaRangeFrame.cpp:302 src/core/engine/Processing.cpp:66
+msgid "Processing \""
+msgstr ""
+
+#: src/gui/DynaRangeFrame.cpp:314
+#, c-format
+msgid "Calculating dynamic range, working on raw file %s..."
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:37
@@ -660,10 +669,6 @@ msgstr ""
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:66
-msgid "Processing \""
-msgstr ""
-
 #: src/core/engine/Processing.cpp:83
 msgid "Error: Failed to prepare image for channel: "
 msgstr ""
@@ -676,48 +681,48 @@ msgstr ""
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:163
+#: src/core/engine/Processing.cpp:166
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:203
+#: src/core/engine/Processing.cpp:205
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:205
+#: src/core/engine/Processing.cpp:207
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:207
+#: src/core/engine/Processing.cpp:209
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:222
+#: src/core/engine/Processing.cpp:224
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:223
+#: src/core/engine/Processing.cpp:225
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:223
+#: src/core/engine/Processing.cpp:225
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:223
+#: src/core/engine/Processing.cpp:225
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:227
+#: src/core/engine/Processing.cpp:228
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:229
+#: src/core/engine/Processing.cpp:230
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
-#: src/core/engine/Reporting.cpp:63
+#: src/core/engine/Reporting.cpp:51
 msgid "Dynamic Range Results"
 msgstr ""
 

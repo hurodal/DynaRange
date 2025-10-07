@@ -26,12 +26,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
 
     // --- Manual WebView Creation ---
-    // 1. Create the WebView as a child of the placeholder panel from wxFormBuilder.
-    // We use wxWebView::New() which is the recommended factory method.
     m_resultsWebView = wxWebView::New(m_webViewPlaceholderPanel, wxID_ANY);
     m_resultsWebView->Bind(wxEVT_WEBVIEW_ERROR, &DynaRangeFrame::OnWebViewError, this);
-
-    // 2. Create a sizer to make the WebView fill the placeholder panel.
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
     placeholderSizer->Add(m_resultsWebView, 1, wxEXPAND, 0);
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
@@ -99,22 +95,18 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_chartPatchColValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
     m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
-
     // Binds para los nuevos controles de --print-patches
     m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnDebugPatchesCheckBoxChanged, this);
     m_debugPatchesFileNameValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-
     // Bind new channel checkbox events to update the CLI preview on change
     R_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     G1_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     G2_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     B_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-
     // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
-
     // Drag and Drop
     m_dropTarget = new FileDropTarget(this);
     SetDropTarget(m_dropTarget);
@@ -123,7 +115,11 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_processingGauge->Hide();
     m_cvsGrid->Hide();
     m_csvOutputStaticText->Hide();
+
+    // Se establece la etiqueta ANTES de llamar a la carga de la URL.
+    m_generateGraphStaticText->SetLabel(_("Loading project page..."));
     m_resultsController->LoadDefaultContent();
+
     m_presenter->UpdateCommandPreview();
 
     this->Layout();
@@ -265,15 +261,18 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     SetUiState(false);
     const ReportOutput& report = m_presenter->GetLastReport();
     DisplayResults(report.final_csv_path);
+
     if (report.summary_plot_path.has_value()) {
         LoadGraphImage(*report.summary_plot_path);
     } else if (GetPlotMode() != 0) {
-        m_resultsController->LoadDefaultContent();
-        m_logController->AppendText(_("\nError: Summary plot could not be generated."));
+        // Se establece la etiqueta ANTES de llamar a la carga de la URL.
         m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
+        m_resultsController->LoadDefaultContent(); 
+        m_logController->AppendText(_("\nError: Summary plot could not be generated."));
     } else {
-         m_resultsController->LoadDefaultContent();
+        // Se establece la etiqueta ANTES de llamar a la carga de la URL.
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
+        m_resultsController->LoadDefaultContent();
     }
 }
 
@@ -296,7 +295,32 @@ void DynaRangeFrame::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
     m_presenter->UpdateCommandPreview();
 }
 
-void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) { m_logController->AppendText(event.GetString()); }
+void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
+    wxString log_message = event.GetString();
+
+    // El mensaje original del motor es "Processing \"" [cite: 533]
+    wxString processing_prefix = _("Processing \"");
+
+    if (log_message.StartsWith(processing_prefix)) {
+        // Extraemos el nombre del fichero, que está entre comillas
+        wxString filename_part = log_message.Mid(processing_prefix.length());
+        int end_quote_pos = filename_part.find_first_of('"');
+
+        if (end_quote_pos != wxNOT_FOUND) {
+            wxString filename = filename_part.SubString(0, end_quote_pos - 1);
+
+            // Actualizamos la etiqueta en la pestaña "Results" con el mensaje dinámico
+            wxString status_label = wxString::Format(
+                _("Calculating dynamic range, working on raw file %s..."),
+                filename
+            );
+            m_generateGraphStaticText->SetLabel(status_label);
+        }
+    }
+
+    // Añadimos siempre el mensaje original a la pestaña "Log"
+    m_logController->AppendText(log_message);
+}
 
 DynaRange::Constants::PlotOutputFormat DynaRangeFrame::GetPlotFormat() const {
     return m_inputController->GetPlotFormat();

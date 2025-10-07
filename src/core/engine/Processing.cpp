@@ -156,7 +156,10 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
     ProcessingResult result;
     // 1. Load files (I/O Responsibility)
     std::vector<RawFile> raw_files = LoadRawFiles(opts.input_files, log_stream);
-    
+
+    // Instanciar PathManager aquí para usarlo después
+    PathManager paths(opts);
+
     // 2. Attempt automatic corner detection if no manual coordinates are provided.
     std::optional<std::vector<cv::Point2d>> detected_corners_opt;
     if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
@@ -173,7 +176,7 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
                 g1_bayer.at<float>(r, c) = img_float.at<float>(r * 2, c * 2 + 1);
             }
         }
-        
+
         cv::threshold(g1_bayer, g1_bayer, 0.0, 0.0, cv::THRESH_TOZERO);
         detected_corners_opt = DetectChartCorners(g1_bayer, log_stream);
 
@@ -185,7 +188,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             cv::Mat image_with_markers = DrawCornerMarkers(viewable_image, *detected_corners_opt);
             cv::Mat final_debug_image;
             cv::pow(image_with_markers, 1.0 / 2.2, final_debug_image);
-            PathManager paths(opts);
             fs::path debug_path = paths.GetCsvOutputPath().parent_path() / "debug_corners_detected.png";
             OutputWriter::WriteDebugImage(final_debug_image, debug_path, log_stream);
         }
@@ -222,7 +224,6 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
         log_stream <<  _("Using optimized keystone: calculating parameters once for the series...") << std::endl;
         log_stream << _("Analyzing chart using a grid of ") << chart.GetGridCols() << _(" columns by ") << chart.GetGridRows() << _(" rows.") << std::endl;
         if (!opts.print_patch_filename.empty()) {
-            PathManager paths(opts);
             fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
             log_stream << _("Debug patch image will be saved to: ") << debug_path.string() << std::endl;
         }
@@ -234,17 +235,18 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             const auto& raw_file = raw_files[i];
             if (!raw_file.IsLoaded()) continue;
 
-            // The flag is true only for the first file and only if requested by user.
             bool generate_debug_image = (i == 0 && !opts.print_patch_filename.empty());
 
-            // This function now returns a vector of results (one per channel).
             auto file_results_vec = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, generate_debug_image);
-            
-            // Iterate through the results for the current file and add them to the main lists.
+
             for(auto& file_result : file_results_vec) {
-                // If a debug image was generated (only happens once), store it.
                 if (!file_result.final_debug_image.empty()) {
                     result.debug_patch_image = file_result.final_debug_image;
+
+                    // --- LÓGICA DE GUARDADO MOVILIZADA AQUÍ ---
+                    fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
+                    OutputWriter::WriteDebugImage(file_result.final_debug_image, debug_path, log_stream);
+                    // ------------------------------------------
                 }
 
                 if (!file_result.dr_result.filename.empty()) {
@@ -260,13 +262,15 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             if (cancel_flag) return {};
             if (!raw_file.IsLoaded()) continue;
             Eigen::VectorXd keystone_params = CalculateKeystoneParams(chart.GetCornerPoints(), chart.GetDestinationPoints());
-            // For simplicity in the non-optimized path, we let AnalyzeSingleRawFile decide
-            // whether to generate the image, but only the first one will be kept.
             auto file_results_vec = AnalyzeSingleRawFile(raw_file, opts, chart, keystone_params, log_stream, opts.sensor_resolution_mpx, !opts.print_patch_filename.empty());
-
             for(auto& file_result : file_results_vec) {
                  if (!result.debug_patch_image.has_value() && !file_result.final_debug_image.empty()) {
                     result.debug_patch_image = file_result.final_debug_image;
+
+                    // --- LÓGICA DE GUARDADO TAMBIÉN AQUÍ ---
+                    fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
+                    OutputWriter::WriteDebugImage(file_result.final_debug_image, debug_path, log_stream);
+                    // -------------------------------------
                 }
 
                 if (!file_result.dr_result.filename.empty()) {

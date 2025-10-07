@@ -9,9 +9,6 @@
 #include "../io/OutputWriter.hpp"
 #include "../utils/Formatters.hpp"
 #include <filesystem>
-#include <fstream>
-#include <iomanip>
-#include <sstream>
 #include <libintl.h>
 
 #define _(string) gettext(string)
@@ -49,23 +46,11 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
-    // Save the debug patch image if it was requested and generated
-    if (!opts.print_patch_filename.empty() && results.debug_patch_image.has_value()) {
-        fs::path debug_path = paths.GetCsvOutputPath().parent_path() / opts.print_patch_filename;
-        OutputWriter::WriteDebugImage(*results.debug_patch_image, debug_path, log_stream);
-    }
-
     output.final_csv_path = paths.GetCsvOutputPath().string();
-    // This call is correct, as GenerateIndividualPlots is now declared in Plotting.hpp
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, results.dr_results, opts, paths, log_stream);
-    
-    // Generate the log report by calling the Formatters module directly.
     log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
     log_stream << Formatters::FormatResultsTable(results.dr_results, opts);
-    
-    // Generate the CSV file by calling the OutputWriter module.
     OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
-    
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, results.dr_results, opts, paths, log_stream);
 
     output.dr_results = results.dr_results;

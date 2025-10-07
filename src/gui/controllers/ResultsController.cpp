@@ -166,8 +166,7 @@ void ResultsController::LoadGraphImage(const std::string& path) {
 
 void ResultsController::LoadDefaultContent() {
     if (!m_webView) return;
-
-    m_frame->m_generateGraphStaticText->SetLabel(_("Loading project page..."));
+    // La única responsabilidad de esta función es cargar la URL.
     m_webView->LoadURL(ONLINE_URL);
 }
 
@@ -198,8 +197,14 @@ void ResultsController::SetUiState(bool is_processing) {
     if (is_processing) {
         m_frame->m_csvOutputStaticText->Hide();
         m_frame->m_cvsGrid->Hide();
-        m_frame->m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
+        // 1. Ponemos el mensaje de estado inicial correcto.
+        m_frame->m_generateGraphStaticText->SetLabel(_("Starting analysis... Please wait."));
+
+        // 2. Llamamos a la función que carga la página web.
+        //    Como ya no modifica la etiqueta, el mensaje anterior se mantiene
+        //    y será actualizado después por OnWorkerUpdate.
         LoadDefaultContent();
+
         m_frame->m_processingGauge->Show();
 
         m_frame->m_rightPanel->Layout();
