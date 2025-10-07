@@ -20,6 +20,8 @@ namespace fs = std::filesystem;
 // Anonymous namespace for internal helper functions.
 namespace {
 
+constexpr const char* ONLINE_URL = "https://www.overfitting.net/2025/07/rango-dinamico-de-un-sensor-de-imagen.html";
+
 /**
  * @brief Encodes a block of binary data into a Base64 string.
  * @param data Pointer to the input data.
@@ -162,6 +164,13 @@ void ResultsController::LoadGraphImage(const std::string& path) {
     m_frame->m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(imagePath.filename().string()));
 }
 
+void ResultsController::LoadDefaultContent() {
+    if (!m_webView) return;
+
+    m_frame->m_generateGraphStaticText->SetLabel(_("Loading project page..."));
+    m_webView->LoadURL(ONLINE_URL);
+}
+
 void ResultsController::LoadLogoImage() {
     if (!m_webView) return;
 
@@ -186,12 +195,11 @@ bool ResultsController::DisplayResults(const std::string& csv_path) {
 
 
 void ResultsController::SetUiState(bool is_processing) {
-    // Esta función preexistente ha sido modificada.
     if (is_processing) {
         m_frame->m_csvOutputStaticText->Hide();
         m_frame->m_cvsGrid->Hide();
         m_frame->m_generateGraphStaticText->SetLabel(_("Processing... Please wait."));
-        LoadLogoImage();
+        LoadDefaultContent();
         m_frame->m_processingGauge->Show();
 
         m_frame->m_rightPanel->Layout();

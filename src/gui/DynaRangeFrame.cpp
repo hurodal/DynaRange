@@ -29,6 +29,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     // 1. Create the WebView as a child of the placeholder panel from wxFormBuilder.
     // We use wxWebView::New() which is the recommended factory method.
     m_resultsWebView = wxWebView::New(m_webViewPlaceholderPanel, wxID_ANY);
+    m_resultsWebView->Bind(wxEVT_WEBVIEW_ERROR, &DynaRangeFrame::OnWebViewError, this);
+
     // 2. Create a sizer to make the WebView fill the placeholder panel.
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
     placeholderSizer->Add(m_resultsWebView, 1, wxEXPAND, 0);
@@ -121,7 +123,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_processingGauge->Hide();
     m_cvsGrid->Hide();
     m_csvOutputStaticText->Hide();
-    m_resultsController->LoadLogoImage();
+    m_resultsController->LoadDefaultContent();
     m_presenter->UpdateCommandPreview();
 
     this->Layout();
@@ -266,11 +268,11 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     if (report.summary_plot_path.has_value()) {
         LoadGraphImage(*report.summary_plot_path);
     } else if (GetPlotMode() != 0) {
-        m_resultsController->LoadLogoImage();
+        m_resultsController->LoadDefaultContent();
         m_logController->AppendText(_("\nError: Summary plot could not be generated."));
         m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
     } else {
-        m_resultsController->LoadLogoImage();
+         m_resultsController->LoadDefaultContent();
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
     }
 }
@@ -300,9 +302,13 @@ DynaRange::Constants::PlotOutputFormat DynaRangeFrame::GetPlotFormat() const {
     return m_inputController->GetPlotFormat();
 }
 
-// =============================================================================
-// HELPER CLASS IMPLEMENTATION
-// =============================================================================
+void DynaRangeFrame::OnWebViewError(wxWebViewEvent& event) {
+    // The URL failed to load (no internet, 404, etc.).
+    // Tell the controller to execute the fallback plan: load the local logo.
+    if (m_resultsController) {
+        m_resultsController->LoadLogoImage();
+    }
+}
 
 bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) {
     if (m_owner && m_owner->m_inputController) {

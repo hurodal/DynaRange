@@ -99,6 +99,7 @@ protected:
      * m_webViewPlaceholderPanel.
      */
     wxWebView* m_resultsWebView;
+    void OnWebViewError(wxWebViewEvent& event);
 
 private:
     // --- Member variables ---

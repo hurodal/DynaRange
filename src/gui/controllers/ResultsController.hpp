@@ -21,6 +21,7 @@ public:
 
     // Methods to update the view
     void LoadGraphImage(const std::string& path);
+    void LoadDefaultContent(); 
     void LoadLogoImage();
     bool DisplayResults(const std::string& csv_path);
     void SetUiState(bool is_processing);
