@@ -86,6 +86,7 @@ set(CORE_SOURCES
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
     src/core/setup/SensorResolution.cpp
+    src/core/utils/Base64Encode.cpp
     src/core/utils/CommandGenerator.cpp
     src/core/utils/Formatters.cpp
     src/core/utils/LocaleManager.cpp
@@ -128,6 +129,7 @@ add_executable(dynaRangeGui WIN32
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
     src/gui/helpers/ResultsGridManager.cpp
+    src/gui/helpers/WebViewUtils.cpp
     ${CORE_SOURCES}
 )
 if(WIN32)

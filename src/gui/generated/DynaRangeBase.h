@@ -32,7 +32,6 @@
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/splitter.h>
-#include <wx/statbmp.h>
 #include <wx/notebook.h>
 #include <wx/frame.h>
 
@@ -146,7 +145,7 @@ class MyFrameBase : public wxFrame
 		wxButton* chartButtonCreate;
 		wxButton* chartButtonPreview;
 		wxPanel* rightColChartPanel;
-		wxStaticBitmap* m_chartPreviewBitmap;
+		wxPanel* m_webView2PlaceholderPanel;
 
 	public:
 

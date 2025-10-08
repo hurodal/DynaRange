@@ -48,6 +48,7 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
     // for combining the report artifacts with the numerical results
     // Needed when click event on grid results.csv and show graphic at GUI
     report.dr_results = results.dr_results;
+    report.curve_data = results.curve_data;
 
     return report;
 }

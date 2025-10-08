@@ -327,7 +327,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_drNormalizationStaticText->Wrap( -1 );
 	drNormalizationSizer->Add( m_drNormalizationStaticText, 0, wxALL|wxEXPAND, 5 );
 
-	m_drNormalizationSlider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 8, 2, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_drNormalizationSlider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 8, 0, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	drNormalizationSizer->Add( m_drNormalizationSlider, 1, wxALL|wxEXPAND, 5 );
 
 	m_drNormalizationValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("8Mpx"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -380,7 +380,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	graphicFormatStaticText->Wrap( -1 );
 	outputSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
+	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("SVG") };
 	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
 	m_plotFormatChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
 	m_plotFormatChoice->SetSelection( 0 );
@@ -794,8 +794,8 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* chartPreviewImageSizer;
 	chartPreviewImageSizer = new wxBoxSizer( wxVERTICAL );
 
-	m_chartPreviewBitmap = new wxStaticBitmap( rightColChartPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
-	chartPreviewImageSizer->Add( m_chartPreviewBitmap, 1, wxALIGN_CENTER|wxALL, 5 );
+	m_webView2PlaceholderPanel = new wxPanel( rightColChartPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	chartPreviewImageSizer->Add( m_webView2PlaceholderPanel, 1, wxEXPAND | wxALL, 5 );
 
 
 	rightColChartPanel->SetSizer( chartPreviewImageSizer );

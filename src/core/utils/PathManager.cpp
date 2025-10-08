@@ -3,7 +3,7 @@
  * @brief Implements the PathManager utility class.
  */
 #include "PathManager.hpp"
-#include "../Constants.hpp"
+#include "../graphics/Constants.hpp"
 #include "../utils/Formatters.hpp"
 #include <sstream>
 #include <algorithm>
@@ -100,9 +100,8 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const Progra
     // Add the correct extension based on the runtime option.
     std::string extension;
     switch (opts.plot_format) {
-        case DynaRange::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
-        case DynaRange::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
-        case DynaRange::Constants::PlotOutputFormat::PNG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }
     new_filename_ss << extension;
@@ -116,9 +115,8 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const P
     // Add the correct extension based on the runtime option.
     std::string extension;
     switch (opts.plot_format) {
-        case DynaRange::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
-        case DynaRange::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
-        case DynaRange::Constants::PlotOutputFormat::PNG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }
     std::string filename = "DR_summary_plot_" + safe_camera_name + Formatters::GenerateChannelSuffix(opts.raw_channels) + extension;

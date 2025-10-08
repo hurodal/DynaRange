@@ -4,8 +4,8 @@
  * @brief Implements the CLI command string generator.
  */
 #include "CommandGenerator.hpp"
+#include "Constants.hpp" 
 #include "../arguments/ArgumentManager.hpp"
-#include "../Constants.hpp" 
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
@@ -18,7 +18,7 @@ namespace CommandGenerator {
 std::string GenerateCommand(CommandFormat format)
 {
     std::stringstream command_ss;
-    command_ss << DynaRange::Constants::CLI_EXECUTABLE_NAME;
+    command_ss << DynaRange::Utils::Constants::CLI_EXECUTABLE_NAME;
     auto& mgr = ArgumentManager::Instance();
     
     auto add_arg = [&](const std::string& name) {

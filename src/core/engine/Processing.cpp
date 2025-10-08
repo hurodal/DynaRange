@@ -4,6 +4,8 @@
  * @brief Implements the core logic for processing and analyzing RAW files.
  */
 #include "Processing.hpp"
+#include "Constants.hpp"
+#include "../analysis/Constants.hpp"
 #include "../io/RawFile.hpp"
 #include "../graphics/ImageProcessing.hpp"
 #include "../setup/ChartProfile.hpp"
@@ -12,7 +14,6 @@
 #include "../utils/Formatters.hpp"
 #include "../io/OutputWriter.hpp"
 #include "../DebugConfig.hpp" 
-#include "../Constants.hpp"
 #include <filesystem>
 #include <iostream>
 #include <atomic>
@@ -97,7 +98,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         norm_adjustment = 20.0 * std::log10(std::sqrt(camera_resolution_mpx / opts.dr_normalization_mpx));
     }
     const double strict_min_snr_db = -10.0 - norm_adjustment;
-    const double permissive_min_snr_db = DynaRange::Constants::MIN_SNR_DB_THRESHOLD - norm_adjustment;
+    const double permissive_min_snr_db = DynaRange::Analysis::Constants::MIN_SNR_DB_THRESHOLD - norm_adjustment;
 
     // Find the highest SNR threshold requested by the user for the validation check.
     double max_requested_threshold = 0.0;
@@ -269,11 +270,11 @@ ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stre
             double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
             double detected_chart_area = cv::contourArea(corners_float);
             double area_percentage = (detected_chart_area / total_image_area);
-            if (area_percentage < DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
+            if (area_percentage < DynaRange::Engine::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
                 log_stream << _("Warning: Automatic corner detection found an area covering only ")
                            << std::fixed << std::setprecision(1) << (area_percentage * 100.0)
                            << _("% of the image. This is below the required threshold of ")
-                           << (DynaRange::Constants::MINIMUM_CHART_AREA_PERCENTAGE * 100.0)
+                           << (DynaRange::Engine::Constants::MINIMUM_CHART_AREA_PERCENTAGE * 100.0)
                            << _(" %. Discarding detected corners and falling back to defaults.") << std::endl;
                 detected_corners_opt.reset();
             }

@@ -5,6 +5,7 @@
  */
 #include "ArgumentManager.hpp"
 #include "ArgumentsOptions.hpp"
+#include "../graphics/Constants.hpp"
 #include "../utils/PlatformUtils.hpp"
 #include <CLI/CLI.hpp>
 #include <libintl.h>
@@ -49,7 +50,7 @@ void ArgumentManager::RegisterAllArguments() {
     
     m_descriptors["raw-channel"] = {"raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int>{0, 0, 0, 0, 1}};
     m_descriptors["generate-plot"] = {"generate-plot", "", "", ArgType::Flag, false};
-    m_descriptors["plot-format"] = {"plot-format", "", "", ArgType::Int, DynaRange::Constants::PlotOutputFormat::PNG};
+    m_descriptors["plot-format"] = {"plot-format", "", "", ArgType::Int, DynaRange::Graphics::Constants::PlotOutputFormat::PNG};
 
     // Internal flags
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
@@ -152,8 +153,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
     
     if (plot_opt->count() > 0) {
         m_values["generate-plot"] = true;
-        
-        std::string format_str = "PNG";
+        std::string format_str = "PNG"; // Default format
         std::string filename = "";
         
         // Default to mode 1 if no integer is found.
@@ -168,7 +168,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
                 try {
                     plot_command_mode = std::stoi(param);
                 } catch (...) { /* Ignore conversion errors, will fallback to default */ }
-            } else if (upper_param == "PNG" || upper_param == "PDF" || upper_param == "SVG") {
+            } else if (upper_param == "PNG" || upper_param == "SVG") { // PDF removed
                 format_str = upper_param;
             } else {
                 filename = param;
@@ -179,25 +179,23 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["plot"] = plot_command_mode;
         
         if (filename.empty()) {
-            std::string ext = (format_str == "PNG") ?
-                              ".png" : (format_str == "PDF" ? ".pdf" : ".svg");
+            std::string ext = (format_str == "SVG") ? ".svg" : ".png"; // PDF removed
             filename = "snrcurves" + ext;
         }
         
-        if (format_str == "SVG") m_values["plot-format"] = DynaRange::Constants::PlotOutputFormat::SVG;
-        else if (format_str == "PDF") m_values["plot-format"] = DynaRange::Constants::PlotOutputFormat::PDF;
-        else m_values["plot-format"] = DynaRange::Constants::PlotOutputFormat::PNG;
+        if (format_str == "SVG") m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::SVG;
+        else m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::PNG; // PDF logic removed
     }
 
     if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
     
     m_values["input-files"] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
     if (snr_opt->count() > 0) {
-        m_values["snrthreshold-db"] = temp_snr_thresholds; // This should handle multiple values.
+        m_values["snrthreshold-db"] = temp_snr_thresholds;
+        // This should handle multiple values.
         m_values["snr-threshold-is-default"] = false;
     }
 }
-
 
 ProgramOptions ArgumentManager::ToProgramOptions() {
     ProgramOptions opts;
@@ -220,7 +218,7 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     // Populate new plot-related members
     opts.generate_plot = Get<bool>("generate-plot");
     if (opts.generate_plot) {
-         opts.plot_format = Get<DynaRange::Constants::PlotOutputFormat>("plot-format");
+         opts.plot_format = Get<DynaRange::Graphics::Constants::PlotOutputFormat>("plot-format");
          opts.plot_command_mode = Get<int>("plot");
     }
 

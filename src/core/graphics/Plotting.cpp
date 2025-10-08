@@ -12,11 +12,10 @@
 #include "PlotBase.hpp"
 #include "PlotData.hpp"
 #include "PlotInfoBox.hpp"
+#include "Constants.hpp"
 #include "../io/OutputWriter.hpp"
 #include "PlotDataGenerator.hpp" 
-#include "../Constants.hpp"
 #include <cairo/cairo.h>
-#include <cairo/cairo-pdf.h>
 #include <cairo/cairo-svg.h>
 #include <iostream>
 #include <algorithm>
@@ -72,21 +71,17 @@ std::optional<std::string> GeneratePlotInternal(
 {
 
     // Calculate dimensions and scale at runtime based on the selected plot format.
-    bool is_vector = (opts.plot_format == DynaRange::Constants::PlotOutputFormat::PDF ||
-                      opts.plot_format == DynaRange::Constants::PlotOutputFormat::SVG);
-    double scale = is_vector ? DynaRange::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
+    bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG);
+    double scale = is_vector ? DynaRange::Graphics::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
     int width = static_cast<int>(PlotDefs::BASE_WIDTH * scale);
     int height = static_cast<int>(PlotDefs::BASE_HEIGHT * scale);
 
     cairo_surface_t *surface = nullptr;
     switch (opts.plot_format) {
-        case DynaRange::Constants::PlotOutputFormat::PDF:
-            surface = cairo_pdf_surface_create(output_filename.c_str(), width, height);
-            break;
-        case DynaRange::Constants::PlotOutputFormat::SVG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
             surface = cairo_svg_surface_create(output_filename.c_str(), width, height);
             break;
-        case DynaRange::Constants::PlotOutputFormat::PNG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default:
             surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
             break;
@@ -122,17 +117,14 @@ std::optional<std::string> GeneratePlotInternal(
     
     bool success = false;
     switch (opts.plot_format) {
-        case DynaRange::Constants::PlotOutputFormat::PDF:
-            cairo_show_page(cr); // Finalize the page for PDF
-            // Fall through to common vector finalization
-        case DynaRange::Constants::PlotOutputFormat::SVG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
             cairo_surface_flush(surface);
             success = (cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS); // Check status on surface
             if (success) {
                 log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
             }
             break;
-        case DynaRange::Constants::PlotOutputFormat::PNG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default:
             success = OutputWriter::WritePng(surface, output_filename, log_stream);
             break;

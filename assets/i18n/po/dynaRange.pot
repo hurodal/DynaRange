@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 21:34+0200\n"
+"POT-Creation-Date: 2025-10-08 15:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,52 +21,48 @@ msgstr ""
 msgid "A critical error occurred during processing. Please check the log."
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:157
+#: src/gui/controllers/InputController.cpp:158
 #, c-format
 msgid "RAW files (%s)|%s|All files (*.*)|*.*"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:162
+#: src/gui/controllers/InputController.cpp:163
 msgid "Select RAW files"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:225
+#: src/gui/controllers/InputController.cpp:226
 msgid ""
 "The following files were ignored because they are not recognized as "
 "supported RAW formats:\n"
 "\n"
 msgstr ""
 
-#: src/gui/controllers/InputController.cpp:227
+#: src/gui/controllers/InputController.cpp:228
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:104
-#: src/gui/controllers/ResultsController.cpp:214
+#: src/gui/controllers/ResultsController.cpp:50
+#: src/gui/controllers/ResultsController.cpp:114
 msgid "Generated Graph:"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:111
+#: src/gui/controllers/ResultsController.cpp:56
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:124
-msgid "Generated Graph (Could not read file): "
-msgstr ""
-
-#: src/gui/controllers/ResultsController.cpp:164
+#: src/gui/controllers/ResultsController.cpp:62
 msgid "Generated Graph: "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:184
+#: src/gui/controllers/ResultsController.cpp:94
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:187
+#: src/gui/controllers/ResultsController.cpp:97
 msgid "Welcome (logo.png not found)"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:201
+#: src/gui/controllers/ResultsController.cpp:109
 msgid "Starting analysis... Please wait."
 msgstr ""
 
@@ -82,25 +78,25 @@ msgstr ""
 msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:269
+#: src/gui/DynaRangeFrame.cpp:278
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:271
+#: src/gui/DynaRangeFrame.cpp:280
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:274
+#: src/gui/DynaRangeFrame.cpp:283
 msgid "Results loaded. Plot generation was not requested."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:302 src/core/engine/Processing.cpp:89
+#: src/gui/DynaRangeFrame.cpp:310 src/core/engine/Processing.cpp:90
 msgid "Processing \""
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:314
+#: src/gui/DynaRangeFrame.cpp:321
 #, c-format
 msgid "Calculating dynamic range, working on raw file %s..."
 msgstr ""
@@ -127,7 +123,7 @@ msgstr ""
 msgid "Dark Value:"
 msgstr ""
 
-#: src/gui/generated/DynaRangeBase.cpp:73 src/core/graphics/Plotting.cpp:116
+#: src/gui/generated/DynaRangeBase.cpp:73 src/core/graphics/Plotting.cpp:111
 msgid "Saturation"
 msgstr ""
 
@@ -247,10 +243,6 @@ msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:383
 msgid "PNG"
-msgstr ""
-
-#: src/gui/generated/DynaRangeBase.cpp:383
-msgid "PDF"
 msgstr ""
 
 #: src/gui/generated/DynaRangeBase.cpp:383
@@ -436,92 +428,92 @@ msgstr ""
 msgid "This may indicate underexposure or non-linear processing."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:34
+#: src/core/arguments/ArgumentManager.cpp:35
 msgid "Camera RAW black level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:35
+#: src/core/arguments/ArgumentManager.cpp:36
 msgid "Totally dark RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:37
+#: src/core/arguments/ArgumentManager.cpp:38
 msgid "Camera RAW saturation level"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:38
+#: src/core/arguments/ArgumentManager.cpp:39
 msgid "Totally clipped RAW file ideally shot at base ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:40
+#: src/core/arguments/ArgumentManager.cpp:41
 msgid "Input RAW files shot over the test chart ideally for every ISO"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:41
+#: src/core/arguments/ArgumentManager.cpp:42
 msgid ""
 "Relative patch width/height used to compute signal and noise readings "
 "(default=0.5)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:42
+#: src/core/arguments/ArgumentManager.cpp:43
 msgid ""
 "SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB "
 "(engineering DR))"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:43
+#: src/core/arguments/ArgumentManager.cpp:44
 msgid "Number of Mpx for DR normalization (default=8Mpx)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:44
+#: src/core/arguments/ArgumentManager.cpp:45
 msgid "Polynomic order (default=3) to fit the SNR curve"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:45
+#: src/core/arguments/ArgumentManager.cpp:46
 msgid "Output CSV text file(s) with all results..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:46
+#: src/core/arguments/ArgumentManager.cpp:47
 msgid "Export SNR curves in PNG/PDF/SVG format..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:48
+#: src/core/arguments/ArgumentManager.cpp:49
 msgid "Saves a debug image ('chartpatches.png') with the patch overlay."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:50
+#: src/core/arguments/ArgumentManager.cpp:51
 msgid "Specify which RAW channels to analyze (R G1 G2 B AVG)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:60
+#: src/core/arguments/ArgumentManager.cpp:61
 msgid "specify format of test chart (default DIMX=1920, W=3, H=2)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:61
+#: src/core/arguments/ArgumentManager.cpp:62
 msgid "Create test chart in PNG format ranging colours..."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:63
+#: src/core/arguments/ArgumentManager.cpp:64
 msgid "Test chart defined by 4 corners: tl, bl, br, tr"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:64
+#: src/core/arguments/ArgumentManager.cpp:65
 msgid ""
 "Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:69
+#: src/core/arguments/ArgumentManager.cpp:70
 msgid "Calculates the dynamic range from a series of RAW images."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:98
+#: src/core/arguments/ArgumentManager.cpp:99
 msgid "Export SNR curves. Can specify [FORMAT] or [FILENAME FORMAT]."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:99
+#: src/core/arguments/ArgumentManager.cpp:100
 msgid "Set plot command mode (0-3)."
 msgstr ""
 
-#: src/core/arguments/ArgumentManager.cpp:110
+#: src/core/arguments/ArgumentManager.cpp:111
 msgid ""
 "--input-files is required unless creating a chart with --chart or --chart-"
 "colour."
@@ -589,8 +581,8 @@ msgid "Black level: "
 msgstr ""
 
 #: src/core/engine/Initialization.cpp:134
-#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:111
-#: src/core/graphics/Plotting.cpp:115
+#: src/core/engine/Initialization.cpp:136 src/core/graphics/Plotting.cpp:106
+#: src/core/graphics/Plotting.cpp:110
 msgid " (estimated)"
 msgstr ""
 
@@ -665,60 +657,60 @@ msgstr ""
 msgid "Output file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:40
+#: src/core/engine/Processing.cpp:41
 msgid "Error: Could not load RAW file: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:123
+#: src/core/engine/Processing.cpp:124
 msgid "Error: Failed to prepare image for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:158
+#: src/core/engine/Processing.cpp:159
 msgid "Warning: No valid patches found for channel: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:210
+#: src/core/engine/Processing.cpp:211
 msgid "Warning: Could not generate debug patch image for this file."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:234
+#: src/core/engine/Processing.cpp:235
 msgid ""
 "Manual coordinates not provided, attempting automatic corner detection..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:273
+#: src/core/engine/Processing.cpp:274
 msgid "Warning: Automatic corner detection found an area covering only "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:275
+#: src/core/engine/Processing.cpp:276
 msgid "% of the image. This is below the required threshold of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:277
+#: src/core/engine/Processing.cpp:278
 msgid " %. Discarding detected corners and falling back to defaults."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:292
+#: src/core/engine/Processing.cpp:293
 msgid "Using optimized keystone: calculating parameters once for the series..."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:293
+#: src/core/engine/Processing.cpp:294
 msgid "Analyzing chart using a grid of "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:293
+#: src/core/engine/Processing.cpp:294
 msgid " columns by "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:293
+#: src/core/engine/Processing.cpp:294
 msgid " rows."
 msgstr ""
 
-#: src/core/engine/Processing.cpp:296
+#: src/core/engine/Processing.cpp:297
 msgid "Debug patch image will be saved to: "
 msgstr ""
 
-#: src/core/engine/Processing.cpp:298
+#: src/core/engine/Processing.cpp:299
 msgid "Starting Dynamic Range calculation process..."
 msgstr ""
 
@@ -790,51 +782,51 @@ msgstr ""
 msgid "SNR (dB)"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:47
+#: src/core/graphics/Plotting.cpp:46
 msgid "Generated at %Y-%m-%d %H:%M:%S"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:97
+#: src/core/graphics/Plotting.cpp:92
 msgid "  - Error: Failed to create cairo context for plot \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:112
+#: src/core/graphics/Plotting.cpp:107
 msgid "Black"
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:132 src/core/io/OutputWriter.cpp:24
+#: src/core/graphics/Plotting.cpp:124 src/core/io/OutputWriter.cpp:24
 msgid "  - Info: Plot saved to: "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:169
+#: src/core/graphics/Plotting.cpp:161
 msgid "  - Warning: Skipping plot for \""
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:169
+#: src/core/graphics/Plotting.cpp:161
 msgid "\" due to insufficient data points ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:208
+#: src/core/graphics/Plotting.cpp:200
 msgid "SNR Curve - "
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:220
+#: src/core/graphics/Plotting.cpp:212
 msgid "Plot generation skipped as per user request."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:225
+#: src/core/graphics/Plotting.cpp:217
 msgid "  - Warning: Skipping summary plot due to no curve data."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:255
+#: src/core/graphics/Plotting.cpp:247
 msgid "SNR Curves - Summary ("
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:270
+#: src/core/graphics/Plotting.cpp:262
 msgid "Generating individual SNR plots..."
 msgstr ""
 
-#: src/core/graphics/Plotting.cpp:299 src/core/setup/PlotLabelGenerator.cpp:31
+#: src/core/graphics/Plotting.cpp:291 src/core/setup/PlotLabelGenerator.cpp:31
 msgid "ISO "
 msgstr ""
 

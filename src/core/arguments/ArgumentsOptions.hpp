@@ -4,7 +4,7 @@
  * @brief Defines the data structure and types for program configuration.
  */
 #pragma once
-#include "../Constants.hpp"
+#include "../graphics/Constants.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -76,7 +76,7 @@ struct ProgramOptions {
     
     // The old 'plot_mode' is replaced by more descriptive members
     bool generate_plot = false;
-    DynaRange::Constants::PlotOutputFormat plot_format = DynaRange::Constants::PlotOutputFormat::PNG;
+    DynaRange::Graphics::Constants::PlotOutputFormat plot_format = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
     int plot_command_mode = 0; // 0: No command, 1: Short, 2: Long
     
     bool create_chart_mode = false;

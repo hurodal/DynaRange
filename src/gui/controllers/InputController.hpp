@@ -4,7 +4,8 @@
  * @brief Declares a controller class for the InputPanel's logic.
  */
 #pragma once
-#include "../../core/arguments/ArgumentsOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
+#include "../graphics/Constants.hpp"
 #include <wx/event.h>
 #include <string>
 #include <vector>
@@ -31,7 +32,7 @@ public:
     double GetDrNormalization() const;
     int GetPolyOrder() const;
     int GetPlotMode() const;
-    DynaRange::Constants::PlotOutputFormat GetPlotFormat() const;
+    DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
     std::vector<std::string> GetInputFiles() const;
     std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;

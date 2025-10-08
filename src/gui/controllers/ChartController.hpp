@@ -5,7 +5,7 @@
  */
 #pragma once
 #include <wx/event.h>
-#include <wx/image.h>
+#include <wx/webview.h>
 
 // Forward declarations
 class DynaRangeFrame;
@@ -42,5 +42,5 @@ private:
     void UpdateBitmapDisplay();
 
     DynaRangeFrame* m_frame; // Pointer to the parent frame
-    wxImage m_chart_preview_image; // Stores the original preview image for resizing
+    wxWebView* m_chartPreviewWebView = nullptr; // <-- NUEVO MIEMBRO
 };

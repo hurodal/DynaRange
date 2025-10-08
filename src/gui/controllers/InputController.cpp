@@ -7,6 +7,7 @@
 #include "../DynaRangeFrame.hpp" // To access frame members and their members
 #include "../GuiPresenter.hpp"   // To call presenter methods
 #include "../../core/arguments/ArgumentsOptions.hpp"
+#include "../graphics/Constants.hpp"
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
@@ -295,12 +296,11 @@ RawChannelSelection InputController::GetRawChannelSelection() const {
     return selection;
 }
 
-DynaRange::Constants::PlotOutputFormat InputController::GetPlotFormat() const {
+DynaRange::Graphics::Constants::PlotOutputFormat InputController::GetPlotFormat() const {
     int selection = m_frame->m_plotFormatChoice->GetSelection();
     switch (selection) {
-        case 1: return DynaRange::Constants::PlotOutputFormat::PDF;
-        case 2: return DynaRange::Constants::PlotOutputFormat::SVG;
+        case 1: return DynaRange::Graphics::Constants::PlotOutputFormat::SVG;
         case 0: // Fall-through for PNG
-        default: return DynaRange::Constants::PlotOutputFormat::PNG;
+        default: return DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
     }
 }
