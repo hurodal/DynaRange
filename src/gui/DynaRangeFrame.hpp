@@ -14,6 +14,8 @@
 #include <wx/notebook.h>
 #include <wx/statbmp.h>
 #include <wx/webview.h> // Added for wxWebView support
+#include <librsvg/rsvg.h>
+#include <cairo.h>    
 #include <string>
 
 // Forward declarations
@@ -92,17 +94,32 @@ protected:
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
     void OnWorkerUpdate(wxThreadEvent& event);
+    
     /**
-     * @brief Pointer to the web view component used to display plots.
-     * @details This is created manually in the constructor and placed inside
-     * m_webViewPlaceholderPanel.
+     * @brief Custom paint handler for rendering the SVG onto a panel.
+     */
+    void OnSvgCanvasPaint(wxPaintEvent& event);
+
+    /**
+     * @brief Pointer to the web view component, now used ONLY for PNGs and web content.
      */
     wxWebView* m_resultsWebView;
+
+    /**
+     * @brief Panel used as a dedicated canvas for SVG rendering via Cairo.
+     */
+    wxPanel* m_svgCanvasPanel;
+
+    /**
+     * @brief Handle to the currently loaded SVG data.
+     */
+    RsvgHandle* m_rsvgHandle;
+
     void OnWebViewError(wxWebViewEvent& event);
 
 private:
     /**
-     * @brief Bitmap control to display the PNG preview of the chart in the Chart tab.
+     * @brief WebView for the chart preview tab.
      */
     wxWebView* m_chartPreviewWebView = nullptr; 
 

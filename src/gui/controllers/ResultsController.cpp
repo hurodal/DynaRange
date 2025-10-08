@@ -12,6 +12,7 @@
 #include <wx/log.h>
 #include <filesystem>
 #include <string>
+#include <librsvg/rsvg.h>
 
 namespace fs = std::filesystem;
 
@@ -46,7 +47,7 @@ ResultsController::ResultsController(DynaRangeFrame* frame)
 ResultsController::~ResultsController() = default;
 
 void ResultsController::LoadGraphImage(const std::string& path) {
-    if (path.empty() || !m_webView) {
+    if (path.empty()) {
         m_frame->m_generateGraphStaticText->SetLabel(_("Generated Graph:"));
         return;
     }
@@ -54,26 +55,49 @@ void ResultsController::LoadGraphImage(const std::string& path) {
     fs::path imagePath(path);
     if (!fs::exists(imagePath)) {
         m_frame->m_generateGraphStaticText->SetLabel(_("Generated Graph (Image not found): ") + wxString(imagePath.filename().string()));
-        LoadDefaultContent(); // Show default page if file not found
+        LoadDefaultContent();
         return;
     }
 
-    // Set the label before loading.
     m_frame->m_generateGraphStaticText->SetLabel(_("Generated Graph: ") + wxString(imagePath.filename().string()));
 
-    // 1. Create the full file URL for the image (PNG or SVG).
-    wxFileName imageFileName(wxString(fs::absolute(imagePath).string()));
-    wxString image_file_url = wxFileName::FileNameToURL(imageFileName.GetFullPath());
+    // Differentiate between SVG and PNG
+    if (imagePath.extension() == ".svg") {
+        // --- SVG Rendering Path ---
+        m_frame->m_resultsWebView->Hide(); // Hide the webview
+        m_frame->m_svgCanvasPanel->Show(); // Show our SVG canvas
 
-    // 2. Generate the responsive HTML using the utility function.
-    std::string html = WebViewUtils::CreateHtmlForImage(image_file_url);
-    
-    // 3. Define the base URL as the directory containing the image. This is the key.
-    wxString base_uri = wxFileName::FileNameToURL(imageFileName.GetPathWithSep());
+        // Free previous SVG handle if it exists
+        if (m_frame->m_rsvgHandle) {
+            g_object_unref(m_frame->m_rsvgHandle);
+            m_frame->m_rsvgHandle = nullptr;
+        }
 
-    // 4. Render the HTML, providing the directory as the base URI to allow local file access.
-    m_webView->SetPage(html, base_uri);
+        // Load the new SVG file
+        GError* error = nullptr;
+        m_frame->m_rsvgHandle = rsvg_handle_new_from_file(path.c_str(), &error);
+        if (error) {
+            wxLogError("Failed to load SVG file: %s", error->message);
+            g_error_free(error);
+            return;
+        }
+        
+        // Trigger a repaint of the panel
+        m_frame->m_svgCanvasPanel->Refresh();
+        m_frame->m_svgCanvasPanel->Update();
+
+    } else { // PNG or other formats
+        // --- PNG Rendering Path (fallback to WebView) ---
+        m_frame->m_svgCanvasPanel->Hide(); // Hide our SVG canvas
+        m_frame->m_resultsWebView->Show(); // Show the webview
+
+        wxString image_file_url = wxString("file://") + wxString(fs::absolute(imagePath).string());
+        std::string html = WebViewUtils::CreateHtmlForImage(image_file_url);
+        m_frame->m_resultsWebView->SetPage(html, "");
+    }
+    m_frame->m_webViewPlaceholderPanel->Layout();
 }
+
 
 void ResultsController::LoadDefaultContent() {
     if (!m_webView) return;
@@ -107,6 +131,12 @@ void ResultsController::SetUiState(bool is_processing) {
         m_frame->m_csvOutputStaticText->Hide();
         m_frame->m_cvsGrid->Hide();
         m_frame->m_generateGraphStaticText->SetLabel(_("Starting analysis... Please wait."));
+        
+        // Ensure webview is visible for default content, hide SVG canvas
+        m_frame->m_svgCanvasPanel->Hide();
+        m_frame->m_resultsWebView->Show();
+        m_frame->m_webViewPlaceholderPanel->Layout();
+
         LoadDefaultContent();
         m_frame->m_processingGauge->Show();
     } else {
@@ -115,7 +145,6 @@ void ResultsController::SetUiState(bool is_processing) {
         m_frame->m_csvOutputStaticText->Show();
         m_frame->m_cvsGrid->Show();
     }
-    // The webview is now always visible when not processing, so we just layout the panel.
     m_frame->m_rightPanel->Layout();
     m_frame->m_rightPanel->Refresh();
 }

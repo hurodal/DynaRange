@@ -11,6 +11,8 @@
 #include "../graphics/Constants.hpp"
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
+#include <wx/dcclient.h>
+#include <wx/graphics.h>
 
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -19,18 +21,27 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
-DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
+DynaRangeFrame::DynaRangeFrame(wxWindow* parent) 
+    : MyFrameBase(parent), m_rsvgHandle(nullptr)
 {
     // --- Create Controllers for each tab ---
     m_inputController = std::make_unique<InputController>(this);
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
 
-    // --- Manual WebView Creation ---
+    // --- Manual UI Component Creation ---
+    // Create WebView for PNGs/web content
     m_resultsWebView = wxWebView::New(m_webViewPlaceholderPanel, wxID_ANY);
     m_resultsWebView->Bind(wxEVT_WEBVIEW_ERROR, &DynaRangeFrame::OnWebViewError, this);
 
+    // Create a dedicated panel for SVG drawing
+    m_svgCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
+    m_svgCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT); // Crucial for custom drawing
+    m_svgCanvasPanel->Hide(); // Hide by default
+
+    // Add both to the sizer. We will toggle their visibility.
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
     placeholderSizer->Add(m_resultsWebView, 1, wxEXPAND, 0);
+    placeholderSizer->Add(m_svgCanvasPanel, 1, wxEXPAND, 0);
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
 
     // --- Continue creating other controllers ---
@@ -41,6 +52,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_presenter = std::make_unique<GuiPresenter>(this);
 
     // --- Bind top-level and inter-controller events ---
+    m_svgCanvasPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnSvgCanvasPaint, this);
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
@@ -97,19 +109,15 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent) : MyFrameBase(parent)
     m_chartPatchColValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
     m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
-    // Binds para los nuevos controles de --print-patches
     m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnDebugPatchesCheckBoxChanged, this);
     m_debugPatchesFileNameValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    // Bind new channel checkbox events to update the CLI preview on change
     R_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     G1_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     G2_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     B_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    // Gauge animation timer
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
-    // Drag and Drop
     m_dropTarget = new FileDropTarget(this);
     SetDropTarget(m_dropTarget);
 
@@ -370,4 +378,67 @@ void DynaRangeFrame::OnChartChartPatchChanged(wxCommandEvent& event) {
     m_presenter->UpdateCommandPreview();
     m_isUpdatingPatches = false;
     event.Skip();
+}
+
+void DynaRangeFrame::OnSvgCanvasPaint(wxPaintEvent& event)
+{
+    wxPaintDC dc(m_svgCanvasPanel);
+    if (!m_rsvgHandle) {
+        return; // No SVG loaded, do nothing.
+    }
+
+    // Use wxGraphicsContext to get the underlying cairo_t*
+    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+    if (gc)
+    {
+        cairo_t* cr = (cairo_t*)gc->GetNativeContext();
+        if (!cr) {
+            delete gc;
+            return;
+        }
+
+        // Get the panel size for scaling
+        const wxSize panel_size = dc.GetSize();
+
+        // Use the new, non-deprecated function to get SVG's intrinsic size
+        double svg_width = 0.0;
+        double svg_height = 0.0;
+        rsvg_handle_get_intrinsic_size_in_pixels(m_rsvgHandle, &svg_width, &svg_height);
+
+        if (svg_width <= 0 || svg_height <= 0) {
+            delete gc;
+            return;
+        }
+
+        // Calculate scaling to fit the panel while maintaining aspect ratio
+        double aspect_ratio_svg = svg_height / svg_width;
+        double aspect_ratio_panel = (double)panel_size.GetHeight() / panel_size.GetWidth();
+
+        double final_width, final_height;
+        if (aspect_ratio_panel > aspect_ratio_svg) {
+            // Panel is taller/thinner than the SVG, so we fit to width
+            final_width = panel_size.GetWidth();
+            final_height = final_width * aspect_ratio_svg;
+        } else {
+            // Panel is shorter/wider than the SVG, so we fit to height
+            final_height = panel_size.GetHeight();
+            final_width = final_height / aspect_ratio_svg;
+        }
+
+        // Calculate centered position
+        double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+        double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+
+        // Define the viewport for the new, non-deprecated rendering function
+        RsvgRectangle viewport;
+        viewport.x = offset_x;
+        viewport.y = offset_y;
+        viewport.width = final_width;
+        viewport.height = final_height;
+
+        // Use the modern rendering function, which handles scaling and positioning
+        rsvg_handle_render_document(m_rsvgHandle, cr, &viewport, nullptr);
+        
+        delete gc; // Clean up the graphics context
+    }
 }

@@ -38,6 +38,8 @@ find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
+pkg_check_modules(LIBRsvg REQUIRED librsvg-2.0)
+pkg_check_modules(GObject REQUIRED gobject-2.0)
 
 set(GETTEXT_EXTRA_LIBS)
 if(WIN32)
@@ -142,6 +144,8 @@ target_include_directories(dynaRangeGui PRIVATE
     ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
+    ${LIBRsvg_INCLUDE_DIRS} 
+    ${GObject_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
@@ -173,6 +177,7 @@ target_link_libraries(rango PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
+    ${LIBRsvg_LIBRARIES} 
     ${WIN_LINK_LIBS}
 )
 
@@ -187,6 +192,8 @@ target_link_libraries(dynaRangeGui PRIVATE
     Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
+    ${LIBRsvg_LIBRARIES}
+    ${GObject_LIBRARIES}
     ${CAIRO_LIBRARIES}
     ${WIN_LINK_LIBS}
 )
