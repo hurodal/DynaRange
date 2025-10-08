@@ -20,8 +20,8 @@ Usage: rango [OPTION]... [FILE]...
 --raw-channels        -w <R G1 G2 B AVG>   : Specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)
 --poly-fit            -f <int 2-3>         : Polynomic order to fit the SNR curve (default=3)
 --output-file         -o <file>            : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
---plot                -p <file> <PNG/SVG> : Export SNR curves plot in PNG/SVG formats (default=don't plot, default format=PNG)
---plot-params         -P <S C L> <int 1-3> : Export SNR curves plot in PNG/SVG formats (default=don't plot, default format=PNG)
+--plot                -p <file> <PNG/PDF/SVG> : Export SNR curves plot in PNG/PDF/SVG formats (default=don't plot, default format=PNG)
+--plot-params         -P <S C L> <int 1-3> : Export SNR curves plot in PNG/PDF/SVG formats (default=don't plot, default format=PNG)
 --print-patches       -g <file>            : Save keystone/ETTR/gamma corrected test chart in PNG format indicating the grid of patches used for all calculations (default="printpatches.png")
 
 
@@ -134,23 +134,25 @@ Examples (first example is default and is equivalent to not specifying the param
 --output-file -o results_ep5.csv    (output results to "results_ep5.csv")
 --output-file -o results_sonya7.csv (output results to "results_sonya7.csv")
 
---plot -p <file> <PNG/SVG>
-Definition: export SNR curves plot in PNG/SVG formats with/without the CLI command that generated them (default=don't plot, default SCL=1 1 1, default file name="snrcurves.png", default format=PNG)
+--plot -p <file> <PNG/PDF/SVG>
+Definition: export SNR curves plot in PNG/PDF/SVG formats with/without the CLI command that generated them (default=don't plot, default SCL=1 1 1, default file name="snrcurves.png", default format=PNG)
 Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows).
-Usage: by default no plot export is performed. In order to export the SNR curves a file name can be specified indicating the chosen format (PNG is a bitmap format while SVG are vector formats)
+Usage: by default no plot export is performed. In order to export the SNR curves a file name can be specified indicating the chosen format (PNG is a bitmap format while PDF and SVG are vector formats)
 Examples (first example is default and is equivalent to not specifying the parameter):
 --plot -p                   (no plot export)
 --plot -p PNG               (plot export of SNR curves in PNG format in "snrcurves.png")
 --plot -p snr_plots.png PNG (plot export of SNR curves in PNG format in "snr_plots.png")
+--plot -p snr_plots.pdf PDF (plot export of SNR curves in PDF format in "snr_plots.pdf")
 --plot -p snr_plots.svg SVG (plot export of SNR curves in SVG format in "snr_plots.svg")
 
 --plot-params -P <S C L> <int 1-3>
-Definition: export SNR curves plot in PNG/SVG formats (default=1 1 1 3)
+Definition: export SNR curves plot in PNG/PDF/SVG formats (default=1 1 1 3)
 Explanation: the SNR curves show the SNR in dB achieved for every exposure value in EV with respect to saturation (0EV). They are the best way to display the performance of the sensor in the whole exposure range analysed (deep shadows).
 Usage: the information included in the plots can be taylored with 3 boolean values: S-catter C-urves L-abels, plus a 1-3 integer parameter: 1 will export the SNR curves alone, 2 and 3 will add the specific CLI commmand (no file names) that generated the curves in short (2) or long (3) versions
 Examples (first example is default and is equivalent to not specifying the parameter):
 --plot -P         (default parameters 1 1 1 3 are used)
 --plot -P 1 1 1 1 (plot export of SNR curves in PNG format without CLI command)
+--plot -P 1 1 1 2 (plot export of SNR curves in PDF format adding short CLI command)
 --plot -P 1 1 1 3 (plot export of SNR curves in SVG format adding long CLI command)
 --plot -P 0 1 0 1 (plot export of SNR curves in PNG format with minimalistic appearance)
 
