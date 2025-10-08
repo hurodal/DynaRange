@@ -17,7 +17,6 @@
 wxIMPLEMENT_APP(DynaRangeGuiApp);
 
 bool DynaRangeGuiApp::OnInit() {
-
     // 1. Determine the language to use.
     int lang = wxLANGUAGE_DEFAULT;
     const char* lang_env = std::getenv("LANGUAGE");
@@ -31,9 +30,8 @@ bool DynaRangeGuiApp::OnInit() {
 
     // 2. Initialize the wxLocale system with the chosen language.
     m_locale.Init(lang);
-    
-    // 3. Tell wxWidgets where to find our translation files (.mo)
-    // using the centralized PathManager.
+
+    // 3. Tell wxWidgets where to find our translation files (.mo).
     PathManager path_manager(ProgramOptions{});
     wxLocale::AddCatalogLookupPathPrefix(path_manager.GetLocaleDirectory().wstring());
 
@@ -45,7 +43,21 @@ bool DynaRangeGuiApp::OnInit() {
 
     // 6. Initialize image handlers and create the main window.
     wxImage::AddHandler(new wxPNGHandler());
-    wxWebView::New(); // Add this line to initialize the webview backend
+
+    // Explicitly initialize the WebView backend.
+    // On Windows, we prioritize the modern Edge (WebView2) backend.
+#ifdef __WXMSW__
+    if (wxWebView::IsBackendAvailable(wxWebViewBackendEdge)) {
+        wxWebView::New(wxWebViewBackendEdge);
+    } else {
+        // Fallback for systems without the WebView2 runtime.
+        wxLogWarning("Microsoft Edge WebView2 backend not found. Falling back to the IE backend. SVG rendering might not work correctly.");
+        wxWebView::New();
+    }
+#else
+    // For other platforms (Linux/macOS), the default is already the best available (WebKit).
+    wxWebView::New();
+#endif
 
     DynaRangeFrame* frame = new DynaRangeFrame(nullptr);
     frame->Show(true);
