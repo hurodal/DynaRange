@@ -25,7 +25,7 @@ namespace DynaRange::Graphics::Constants {
      * @enum PlotOutputFormat
      * @brief Defines the output format for generated plots.
      */
-    enum class PlotOutputFormat { PNG, SVG };
+    enum class PlotOutputFormat { PNG, PDF, SVG };
 
     /**
      * @brief Scaling factor for vector output formats (PDF, SVG).

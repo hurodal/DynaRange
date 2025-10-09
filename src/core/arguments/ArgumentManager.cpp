@@ -155,10 +155,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["generate-plot"] = true;
         std::string format_str = "PNG"; // Default format
         std::string filename = "";
-        
         // Default to mode 1 if no integer is found.
-        plot_command_mode = 1; 
-
+        plot_command_mode = 1;
         for (const auto& param : plot_params) {
             std::string upper_param = param;
             std::transform(upper_param.begin(), upper_param.end(), upper_param.begin(), ::toupper);
@@ -168,7 +166,7 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
                 try {
                     plot_command_mode = std::stoi(param);
                 } catch (...) { /* Ignore conversion errors, will fallback to default */ }
-            } else if (upper_param == "PNG" || upper_param == "SVG") { // PDF removed
+            } else if (upper_param == "PNG" || upper_param == "PDF" || upper_param == "SVG") {
                 format_str = upper_param;
             } else {
                 filename = param;
@@ -179,16 +177,19 @@ void ArgumentManager::ParseCli(int argc, char* argv[]) {
         m_values["plot"] = plot_command_mode;
         
         if (filename.empty()) {
-            std::string ext = (format_str == "SVG") ? ".svg" : ".png"; // PDF removed
+            std::string ext;
+            if (format_str == "SVG") ext = ".svg";
+            else if (format_str == "PDF") ext = ".pdf";
+            else ext = ".png";
             filename = "snrcurves" + ext;
         }
         
         if (format_str == "SVG") m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::SVG;
-        else m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::PNG; // PDF logic removed
+        else if (format_str == "PDF") m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::PDF;
+        else m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
     }
 
     if (print_patch_opt->count() > 0) m_values["print-patches"] = temp_opts.print_patch_filename;
-    
     m_values["input-files"] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
     if (snr_opt->count() > 0) {
         m_values["snrthreshold-db"] = temp_snr_thresholds;

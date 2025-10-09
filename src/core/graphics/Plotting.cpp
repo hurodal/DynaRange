@@ -14,6 +14,7 @@
 #include "../io/OutputWriter.hpp"
 #include <cairo/cairo.h>
 #include <cairo/cairo-svg.h>
+#include <cairo/cairo-pdf.h>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -41,7 +42,7 @@ std::optional<std::string> GeneratePlotInternal(
     };
 
     // 2. Prepare the Cairo surface based on the desired file format.
-    bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG);
+    bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG || opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::PDF);
     double scale = is_vector ? DynaRange::Graphics::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
     int width = static_cast<int>(render_ctx.base_width * scale);
     int height = static_cast<int>(render_ctx.base_height * scale);
@@ -50,6 +51,9 @@ std::optional<std::string> GeneratePlotInternal(
     switch (opts.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
             surface = cairo_svg_surface_create(output_filename.c_str(), width, height);
+            break;
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PDF:
+            surface = cairo_pdf_surface_create(output_filename.c_str(), width, height);
             break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default:
@@ -76,6 +80,7 @@ std::optional<std::string> GeneratePlotInternal(
     bool success = false;
     switch (opts.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PDF:
             cairo_surface_flush(surface);
             success = (cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS);
             if (success) {
@@ -96,6 +101,7 @@ std::optional<std::string> GeneratePlotInternal(
     }
     return std::nullopt;
 }
+
 } // end anonymous namespace
 
 void GenerateSnrPlot(

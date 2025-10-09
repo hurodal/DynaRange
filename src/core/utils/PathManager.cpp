@@ -101,6 +101,7 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const Progra
     std::string extension;
     switch (opts.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }
@@ -116,6 +117,7 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const P
     std::string extension;
     switch (opts.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
+        case DynaRange::Graphics::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }

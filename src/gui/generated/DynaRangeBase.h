@@ -24,10 +24,10 @@
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
+#include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/listbox.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
@@ -58,21 +58,6 @@ class MyFrameBase : public wxFrame
 		wxButton* m_clearSaturationFileButton;
 		wxStaticText* m_saturationValueStaticText;
 		wxTextCtrl* m_saturationValueTextCtrl;
-		wxTextCtrl* m_coordX1Value;
-		wxTextCtrl* m_coordY1Value;
-		wxTextCtrl* m_coordX2Value;
-		wxTextCtrl* m_coordY2Value;
-		wxTextCtrl* m_coordX3Value;
-		wxTextCtrl* m_coordY3Value;
-		wxTextCtrl* m_coordX4Value;
-		wxTextCtrl* m_coordY4Value;
-		wxStaticText* m_chartPatchRowStaticText1;
-		wxTextCtrl* m_chartPatchRowValue1;
-		wxStaticText* chartPatchColStaticText1;
-		wxTextCtrl* m_chartPatchColValue1;
-		wxCheckBox* m_debugPatchesCheckBox;
-		wxTextCtrl* m_debugPatchesFileNameValue;
-		wxPanel* right_column_panel_Up;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
@@ -100,6 +85,21 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
 		wxCheckBox* AVG_checkBox;
+		wxPanel* right_column_panel_Up;
+		wxTextCtrl* m_coordX1Value;
+		wxTextCtrl* m_coordY1Value;
+		wxTextCtrl* m_coordX2Value;
+		wxTextCtrl* m_coordY2Value;
+		wxTextCtrl* m_coordX3Value;
+		wxTextCtrl* m_coordY3Value;
+		wxTextCtrl* m_coordX4Value;
+		wxTextCtrl* m_coordY4Value;
+		wxStaticText* m_chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
 		wxPanel* left_column_panel_Down;
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;

@@ -299,7 +299,8 @@ RawChannelSelection InputController::GetRawChannelSelection() const {
 DynaRange::Graphics::Constants::PlotOutputFormat InputController::GetPlotFormat() const {
     int selection = m_frame->m_plotFormatChoice->GetSelection();
     switch (selection) {
-        case 1: return DynaRange::Graphics::Constants::PlotOutputFormat::SVG;
+        case 1: return DynaRange::Graphics::Constants::PlotOutputFormat::PDF;
+        case 2: return DynaRange::Graphics::Constants::PlotOutputFormat::SVG;
         case 0: // Fall-through for PNG
         default: return DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
     }
