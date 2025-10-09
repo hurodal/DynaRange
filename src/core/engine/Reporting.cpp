@@ -48,9 +48,12 @@ ReportOutput FinalizeAndReport(
 
     output.final_csv_path = paths.GetCsvOutputPath().string();
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, results.dr_results, opts, paths, log_stream);
+    
     log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
     log_stream << Formatters::FormatResultsTable(results.dr_results, opts);
+    
     OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
+    
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, results.dr_results, opts, paths, log_stream);
 
     output.dr_results = results.dr_results;

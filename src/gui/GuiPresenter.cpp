@@ -4,16 +4,20 @@
  * @brief Implements the application logic presenter for the GUI.
  */
 #include "GuiPresenter.hpp"
+#include "DynaRangeFrame.hpp" // Include the full View definition
+#include "helpers/GuiPlotter.hpp" // Include the new GUI plotter
 #include "../core/arguments/ArgumentManager.hpp"
 #include "../core/engine/Engine.hpp"
-#include "DynaRangeFrame.hpp" // Include the full View definition
 #include "../core/utils/CommandGenerator.hpp"
-#include <algorithm>          // Needed for std::sort
+#include <algorithm>
 #include <ostream>
 #include <set>
 #include <streambuf>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 // --- WORKER THREAD LOGGING SETUP ---
 // This streambuf redirects std::ostream to the View's log through wxEvents
@@ -150,13 +154,55 @@ void GuiPresenter::StartAnalysis() {
 
 void GuiPresenter::AnalysisWorker(ProgramOptions opts) {
   m_isWorkerRunning = true;
-  // Inform that the thread has started
+  // Clear previous results
+  m_summaryImage = wxImage();
+  m_individualImages.clear();
+
   WxLogStreambuf log_streambuf(m_view);
   std::ostream log_stream(&log_streambuf);
 
+  // 1. Run core analysis to get raw data and file-based reports
   m_lastReport =
       DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
-  // Notify the view on the main thread that the work is done
+
+  if (m_cancelWorker) {
+      if (m_view) m_view->PostAnalysisComplete();
+      return;
+  }
+  
+  // 2. After core analysis, generate in-memory images for the GUI
+  if (opts.generate_plot && !m_lastReport.curve_data.empty()) {
+      log_stream << _("\nGenerating in-memory plots for GUI...") << std::endl;
+      
+      // Generate summary plot image
+      // --- CORRECTION START ---
+      // First, build the full title as a wxString
+      wxString summary_title_wx = _("SNR Curves - Summary (") + wxString(m_lastReport.curve_data[0].camera_model) + ")";
+      // Then, convert the wxString to std::string for the function call
+      std::string summary_title = std::string(summary_title_wx.mb_str());
+      // --- CORRECTION END ---
+      m_summaryImage = GuiPlotter::GeneratePlotAsWxImage(m_lastReport.curve_data, m_lastReport.dr_results, summary_title, opts);
+
+      // Generate individual plot images
+      std::map<std::string, std::vector<CurveData>> curves_by_file;
+      for(const auto& curve : m_lastReport.curve_data) {
+          curves_by_file[curve.filename].push_back(curve);
+      }
+       std::map<std::string, std::vector<DynamicRangeResult>> results_by_file;
+      for(const auto& result : m_lastReport.dr_results) {
+          results_by_file[result.filename].push_back(result);
+      }
+
+      for(const auto& pair : curves_by_file) {
+          const std::string& filename = pair.first;
+          std::stringstream title_ss;
+          title_ss << fs::path(filename).filename().string() << " (" << pair.second[0].camera_model << ")";
+          m_individualImages[filename] = GuiPlotter::GeneratePlotAsWxImage(pair.second, results_by_file[filename], title_ss.str(), opts);
+      }
+      log_stream << _("In-memory plot generation complete.") << std::endl;
+  }
+
+  // 3. Notify the view on the main thread that all work is done
   if (m_view) {
     m_view->PostAnalysisComplete();
   }
@@ -185,25 +231,21 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string> &files_to_add) {
 }
 
 void GuiPresenter::HandleGridCellClick(int row) {
-    // A click on the column header labels (row < 0) or the first data row
-    // (row == 0), which also contains the headers, displays the summary plot.
+    // A click on the header (row <= 0) displays the summary plot.
     if (row <= 0) {
-        if (m_lastReport.summary_plot_path.has_value()) {
-            m_view->LoadGraphImage(*m_lastReport.summary_plot_path);
+        if (m_summaryImage.IsOk()) {
+            m_view->DisplayImage(m_summaryImage);
         }
-    } else { // Data rows (e.g., iso00200.dng) start from grid row index 1.
-        // The result index in our data vectors corresponds to the grid row minus 1.
+    } else { // Data rows start from grid row index 1.
         int result_index = row - 1;
-        
-        // Use the sorted results list (m_lastReport.dr_results) as the
-        // source of truth for the filename. This list is guaranteed to be in the
-        // same order as the grid view.
         if (result_index < m_lastReport.dr_results.size()) {
-            // Get the filename directly from the sorted results list.
             std::string filename = m_lastReport.dr_results[result_index].filename;
             
-            if (m_lastReport.individual_plot_paths.count(filename)) {
-                m_view->LoadGraphImage(m_lastReport.individual_plot_paths.at(filename));
+            if (m_individualImages.count(filename)) {
+                const wxImage& individual_image = m_individualImages.at(filename);
+                if (individual_image.IsOk()) {
+                    m_view->DisplayImage(individual_image);
+                }
             }
         }
     }
@@ -237,3 +279,8 @@ const ReportOutput &GuiPresenter::GetLastReport() const { return m_lastReport; }
 bool GuiPresenter::IsWorkerRunning() const { return m_isWorkerRunning; }
 
 void GuiPresenter::RequestWorkerCancellation() { m_cancelWorker = true; }
+
+const wxImage& GuiPresenter::GetLastSummaryImage() const
+{
+    return m_summaryImage;
+}

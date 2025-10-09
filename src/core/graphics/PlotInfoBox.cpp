@@ -6,23 +6,25 @@
 #include "PlotInfoBox.hpp"
 #include "PlotBase.hpp" // For MARGIN_TOP, MARGIN_LEFT
 #include "Colour.hpp"   // For PlotColors
+#include "FontManager.hpp" // For FontManager
 
 void PlotInfoBox::AddItem(const std::string& label, const std::string& value, const std::string& annotation) {
     m_items.push_back({label, value, annotation});
 }
 
-void PlotInfoBox::Draw(cairo_t* cr) const {
+void PlotInfoBox::Draw(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx) const {
     if (m_items.empty()) {
         return;
     }
     
-    // Set default text style
-    cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 14.0);
+    // Set text style using the FontManager
+    const DynaRange::Graphics::FontManager font_manager(ctx);
+    font_manager.SetInfoBoxFont(cr);
 
     const double start_x = MARGIN_LEFT + 15.0;
-    const double line_height = 20.0;
-    
+    // Scale line height proportionally
+    const double line_height =  font_manager.calculateScaledSize(20.0);
+
     for (size_t i = 0; i < m_items.size(); ++i) {
         const auto& item = m_items[i];
         double current_x = start_x;

@@ -33,4 +33,12 @@ namespace DynaRange::Graphics::Constants {
      */
     constexpr double VECTOR_PLOT_SCALE_FACTOR = 2.0;
 
+    // --- Centralized Plot Dimension Constants ---
+    namespace PlotDefs {
+        /// @brief Base reference width for all plot rendering.
+        constexpr int BASE_WIDTH = 1920;
+        /// @brief Base reference height for all plot rendering.
+        constexpr int BASE_HEIGHT = 1080;
+    }
+
 } // namespace DynaRange::Graphics::Constants

@@ -4,14 +4,13 @@
  * @brief Implements geometric image processing functions.
  */
 #include "ImageProcessing.hpp"
+#include "../DebugConfig.hpp"
 #include "../io/RawFile.hpp"
 #include "../math/Math.hpp"
-#include "../DebugConfig.hpp"
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <optional>
-#include <iomanip>
 
 #define _(string) gettext(string)
 

@@ -4,6 +4,10 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(dynaRange CXX)
+
+# Establece el directorio de salida para todos los ejecutables (rango, dynaRangeGui)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 set(PROJECT_VERSION "1.1.0")
 
 # Establece la política para normalizar las rutas de instalación y silenciar el aviso.
@@ -15,8 +19,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-set(PORTABLE_DIR ${CMAKE_BINARY_DIR}/bin)
 
 # This line MUST be present to generate the compile_commands.json file.
 # compile_commands.json has info for clangd will find libraries to work with sublime-text
@@ -38,8 +40,6 @@ find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
-pkg_check_modules(LIBRsvg REQUIRED librsvg-2.0)
-pkg_check_modules(GObject REQUIRED gobject-2.0)
 
 set(GETTEXT_EXTRA_LIBS)
 if(WIN32)
@@ -50,7 +50,7 @@ endif()
 # Esta sección ha sido modificada para corregir el error de enlazado.
 # Buscamos TODOS los componentes de wxWidgets en una sola llamada para que
 # la variable wxWidgets_LIBRARIES contenga todas las librerías necesarias.
-find_package(wxWidgets COMPONENTS core base html xrc qa net webview REQUIRED)
+find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
 
 # Creamos una lista explícita de librerías solo para la GUI.
 # Esta variable ahora contendrá 'core', 'base' y todas las demás.
@@ -73,6 +73,7 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
+    src/core/graphics/FontManager.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
@@ -130,8 +131,8 @@ add_executable(dynaRangeGui WIN32
     src/gui/DynaRangeGuiApp.cpp
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
+    src/gui/helpers/GuiPlotter.cpp 
     src/gui/helpers/ResultsGridManager.cpp
-    src/gui/helpers/WebViewUtils.cpp
     ${CORE_SOURCES}
 )
 if(WIN32)
@@ -144,8 +145,6 @@ target_include_directories(dynaRangeGui PRIVATE
     ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
-    ${LIBRsvg_INCLUDE_DIRS} 
-    ${GObject_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/analysis
@@ -177,13 +176,12 @@ target_link_libraries(rango PRIVATE
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
-    ${LIBRsvg_LIBRARIES} 
     ${WIN_LINK_LIBS}
 )
 
 # Esta sección ha sido modificada.
 # Ahora 'dynaRangeGui' enlaza explícitamente con la variable GUI_WX_LIBS,
-# que contiene todas las librerías de wxWidgets, incluyendo webview.
+# que contiene todas las librerías de wxWidgets.
 target_link_libraries(dynaRangeGui PRIVATE
     ${GUI_WX_LIBS}
     ${OpenCV_LIBS}
@@ -192,111 +190,13 @@ target_link_libraries(dynaRangeGui PRIVATE
     Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
-    ${LIBRsvg_LIBRARIES}
-    ${GObject_LIBRARIES}
     ${CAIRO_LIBRARIES}
     ${WIN_LINK_LIBS}
 )
 
 # =============================================================================
-# 6. POST-BUILD
+# 6. ASSET MANAGEMENT
 # =============================================================================
-set_target_properties(rango dynaRangeGui PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${PORTABLE_DIR}"
-)
-
-# Copia el directorio de imágenes para el entorno de desarrollo.
-add_custom_command(
-    TARGET rango dynaRangeGui POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-        "${CMAKE_SOURCE_DIR}/assets/images"
-        "${PORTABLE_DIR}/assets/images"
-    COMMENT "Copiando directorio 'assets/images' al directorio de compilación..."
-    VERBATIM
-)
-
-# Copia el directorio de iconos para el entorno de desarrollo.
-add_custom_command(
-    TARGET rango dynaRangeGui POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-        "${CMAKE_SOURCE_DIR}/assets/icons"
-        "${PORTABLE_DIR}/assets/icons"
-    COMMENT "Copiando directorio 'assets/icons' al directorio de compilación..."
-    VERBATIM
-)
-
-# =============================================================================
-# 7. INTERNACIONALIZACIÓN
-# =============================================================================
-
-# Se define la ruta ANTES de incluir el módulo para que la reconozca al cargarse.
-set(GETTEXT_PO_DIR "${CMAKE_SOURCE_DIR}/assets/i18n/po")
-
-include(UseGettext)
-set(GETTEXT_XGETTEXT_FLAGS "--from-code=UTF-8")
-
-set(LANGUAGES "es" "de" "it" "fr" "pt" "ca")
-set(I18N_SOURCES
-    src/cli/rango.cpp
-    src/gui/controllers/InputController.cpp
-    src/gui/controllers/LogController.cpp
-    src/gui/controllers/ResultsController.cpp
-    src/gui/DynaRangeFrame.cpp
-    src/gui/DynaRangeGuiApp.cpp
-    src/gui/generated/DynaRangeBase.cpp
-    src/gui/GuiPresenter.cpp
-    src/gui/helpers/ResultsGridManager.cpp
-    ${CORE_SOURCES}
-)
-GETTEXT_CREATE_POT_FILE(${PROJECT_NAME} ${I18N_SOURCES})
-GETTEXT_ADD_PO_FILES(${PROJECT_NAME} ALL ${LANGUAGES})
-GETTEXT_PROCESS_PO_FILES(${PROJECT_NAME} ALL INSTALL_DESTINATION "share/locale" ${LANGUAGES})
-
-# =============================================================================
-# 8. INSTALACIÓN Y EMPAQUETADO (CPack) - SOLO PARA WINDOWS
-# =============================================================================
-
-# Toda la lógica de instalación y empaquetado se ejecutará únicamente en Windows.
-if(WIN32)
-
-    # --- Definir qué ficheros se instalan ---
-    install(TARGETS rango dynaRangeGui
-        RUNTIME DESTINATION bin
-    )
-    install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/images/" DESTINATION bin/assets/images)
-    install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/icons/" DESTINATION bin/assets/icons)
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/locale/" DESTINATION bin/locale)
-    install(CODE "
-        message(STATUS \"Buscando DLLs en el directorio de compilación: ${CMAKE_BINARY_DIR}\")
-        file(GLOB DLL_FILES \"${CMAKE_BINARY_DIR}/*.dll\")
-        if(DLL_FILES)
-            message(STATUS \"DLLs encontradas, instalando en el directorio bin del paquete.\")
-            file(INSTALL ${DLL_FILES} DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
-        else()
-            message(WARNING \"No se encontraron DLLs en ${CMAKE_BINARY_DIR} para instalar.\")
-        endif()
-    ")
-
-    # --- Configuración General de CPack ---
-    set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-    set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-    set(CPACK_PACKAGE_VENDOR "DynaRange Project")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Herramienta de análisis de rango dinámico")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "DynaRange")
-    set(CPACK_PACKAGE_FILE_NAME "dynaRange-${PROJECT_VERSION}-portable")
-    set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "DynaRange")
-    set(CPACK_PACKAGE_CONTACT "github.com/hurodal/DynaRange")
-
-    # --- Configuración de Generadores para Windows ---
-    set(CPACK_GENERATOR "ZIP;WIX")
-    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-
-    # --- Configuración Específica para WiX (Instalador de Windows) ---
-    set(CPACK_WIX_PRODUCT_GUID "FC1B47A8-6548-439D-9277-2415A5818953")
-    set(CPACK_WIX_UPGRADE_GUID "e8b9a5b0-3132-4e0f-90e8-ac099516a541")
-    set(CPACK_WIX_TEMPLATE "${CMAKE_SOURCE_DIR}/assets/windows/packaging/wix_template.wxs.in")
-
-    include(CPack)
-
-endif()
-
+# Esta sección es nueva. Se encarga de copiar los recursos necesarios (imágenes,
+# etc.) al directorio de salida para que los ejecutables puedan encontrarlos.
+file(COPY assets/images DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)

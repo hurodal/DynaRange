@@ -1,4 +1,4 @@
-// File: src/DynaRangeGuiApp.cpp
+// File: src/gui/DynaRangeGuiApp.cpp
 /**
  * @file src/DynaRangeGuiApp.cpp
  * @brief Main entry point for the wxWidgets GUI version of the dynaRange application.
@@ -11,7 +11,6 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <cstdlib> // For std::getenv
-#include <wx/webview.h>
 
 // This macro creates the main() function for the GUI application
 wxIMPLEMENT_APP(DynaRangeGuiApp);
@@ -43,21 +42,6 @@ bool DynaRangeGuiApp::OnInit() {
 
     // 6. Initialize image handlers and create the main window.
     wxImage::AddHandler(new wxPNGHandler());
-
-    // Explicitly initialize the WebView backend.
-    // On Windows, we prioritize the modern Edge (WebView2) backend.
-#ifdef __WXMSW__
-    if (wxWebView::IsBackendAvailable(wxWebViewBackendEdge)) {
-        wxWebView::New(wxWebViewBackendEdge);
-    } else {
-        // Fallback for systems without the WebView2 runtime.
-        wxLogWarning("Microsoft Edge WebView2 backend not found. Falling back to the IE backend. SVG rendering might not work correctly.");
-        wxWebView::New();
-    }
-#else
-    // For other platforms (Linux/macOS), the default is already the best available (WebKit).
-    wxWebView::New();
-#endif
 
     DynaRangeFrame* frame = new DynaRangeFrame(nullptr);
     frame->Show(true);

@@ -12,6 +12,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <wx/image.h>
 
 // Forward declaration of the View to avoid circular includes
 class DynaRangeFrame;
@@ -43,7 +44,7 @@ public:
   void UpdateCommandPreview();
 
   /**
-   * @brief Handles a click on the results grid.
+   * @brief Handles a click on the results grid, triggering a plot display.
    * @param row The row index that was clicked.
    */
   void HandleGridCellClick(int row);
@@ -59,6 +60,12 @@ public:
    * @return A const reference to the ReportOutput struct.
    */
   const ReportOutput &GetLastReport() const;
+  
+  /**
+   * @brief Gets the last generated summary plot image.
+   * @return A const reference to the wxImage.
+   */
+  const wxImage& GetLastSummaryImage() const;
 
   /**
    * @brief Checks if the worker thread is currently running.
@@ -100,6 +107,11 @@ private:
   std::vector<std::string> m_inputFiles;
   ReportOutput m_lastReport;
   ProgramOptions m_lastRunOptions;
+  
+  // In-memory images for the GUI
+  wxImage m_summaryImage;
+  std::map<std::string, wxImage> m_individualImages;
+
   std::thread m_workerThread;
   std::atomic<bool> m_isWorkerRunning{false};
   std::atomic<bool> m_cancelWorker{false};

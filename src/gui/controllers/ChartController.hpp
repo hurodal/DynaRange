@@ -5,7 +5,6 @@
  */
 #pragma once
 #include <wx/event.h>
-#include <wx/webview.h>
 
 // Forward declarations
 class DynaRangeFrame;
@@ -30,17 +29,5 @@ private:
      */
     ChartGeneratorOptions GetCurrentOptionsFromUi() const;
 
-    /**
-     * @brief Handles the size event for the right panel to refresh the image layout.
-     * @param event The size event.
-     */
-    void OnRightPanelSize(wxSizeEvent& event);
-
-    /**
-     * @brief The core logic for scaling and setting the bitmap on the preview control.
-     */
-    void UpdateBitmapDisplay();
-
     DynaRangeFrame* m_frame; // Pointer to the parent frame
-    wxWebView* m_chartPreviewWebView = nullptr; // <-- NUEVO MIEMBRO
 };

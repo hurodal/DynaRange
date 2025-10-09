@@ -1,7 +1,7 @@
 // File: src/gui/DynaRangeFrame.hpp
 /**
- * @file gui/DynaRangeFrame.hpp
- * @brief Main frame of the DynaRange GUI application (The View).
+ * @file DynaRangeFrame.hpp
+ * @brief Implementation of the DynaRange GUI's main frame (the View).
  */
 #pragma once
 
@@ -12,11 +12,11 @@
 #include <wx/dnd.h>
 #include <wx/timer.h>
 #include <wx/notebook.h>
-#include <wx/statbmp.h>
-#include <wx/webview.h> // Added for wxWebView support
-#include <librsvg/rsvg.h>
-#include <cairo.h>    
+#include <wx/panel.h>
+#include <wx/bitmap.h>
+#include <wx/image.h> // Needed for wxImage
 #include <string>
+#include <cairo.h>
 
 // Forward declarations
 class ChartController;
@@ -44,7 +44,7 @@ public:
     void SetUiState(bool is_processing);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
-    void LoadGraphImage(const std::string& image_path);
+    void DisplayImage(const wxImage& image); // Replaces LoadGraphImage
 
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
@@ -94,40 +94,21 @@ protected:
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
     void OnWorkerUpdate(wxThreadEvent& event);
-    
-    /**
-     * @brief Custom paint handler for rendering the SVG onto a panel.
-     */
-    void OnSvgCanvasPaint(wxPaintEvent& event);
+    void OnResultsCanvasPaint(wxPaintEvent& event);
+    void OnChartPreviewPaint(wxPaintEvent& event);
 
-    /**
-     * @brief Pointer to the web view component, now used ONLY for PNGs and web content.
-     */
-    wxWebView* m_resultsWebView;
+    // --- UI Components ---
+    wxPanel* m_resultsCanvasPanel;
+    wxPanel* m_chartPreviewPanel;
 
-    /**
-     * @brief Panel used as a dedicated canvas for SVG rendering via Cairo.
-     */
-    wxPanel* m_svgCanvasPanel;
-
-    /**
-     * @brief Handle to the currently loaded SVG data.
-     */
-    RsvgHandle* m_rsvgHandle;
-
-    void OnWebViewError(wxWebViewEvent& event);
+    // --- Data for Drawing ---
+    wxBitmap m_chartPreviewBitmap;
 
 private:
-    /**
-     * @brief WebView for the chart preview tab.
-     */
-    wxWebView* m_chartPreviewWebView = nullptr; 
-
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
-
     // Added a flag to prevent infinite event loops during sync.
     bool m_isUpdatingPatches = false;
 
@@ -149,7 +130,7 @@ class FileDropTarget : public wxFileDropTarget
 public:
     FileDropTarget(DynaRangeFrame* owner) : m_owner(owner) {}
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) override;
+
 private:
     DynaRangeFrame* m_owner;
 };
-

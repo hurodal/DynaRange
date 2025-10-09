@@ -22,11 +22,10 @@ struct ReportOutput {
 
     /// @brief The final, absolute path where the CSV results file was saved.
     std::string final_csv_path;
-    
+
     // Added the vector of results to this struct. This ensures the final,
     // sorted list of results is available to the GUI presenter.
     std::vector<DynamicRangeResult> dr_results;
-
     std::vector<CurveData> curve_data;
 };
 

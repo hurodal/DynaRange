@@ -13,6 +13,7 @@
 #include <wx/filename.h>
 #include <wx/dcclient.h>
 #include <wx/graphics.h>
+#include <wx/dcbuffer.h>
 
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -22,27 +23,28 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) 
-    : MyFrameBase(parent), m_rsvgHandle(nullptr)
+    : MyFrameBase(parent)
 {
     // --- Create Controllers for each tab ---
     m_inputController = std::make_unique<InputController>(this);
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
 
     // --- Manual UI Component Creation ---
-    // Create WebView for PNGs/web content
-    m_resultsWebView = wxWebView::New(m_webViewPlaceholderPanel, wxID_ANY);
-    m_resultsWebView->Bind(wxEVT_WEBVIEW_ERROR, &DynaRangeFrame::OnWebViewError, this);
+    // Create a unified drawing canvas for the Results tab
+    m_resultsCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
+    m_resultsCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    // Create a dedicated panel for SVG drawing
-    m_svgCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
-    m_svgCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT); // Crucial for custom drawing
-    m_svgCanvasPanel->Hide(); // Hide by default
-
-    // Add both to the sizer. We will toggle their visibility.
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
-    placeholderSizer->Add(m_resultsWebView, 1, wxEXPAND, 0);
-    placeholderSizer->Add(m_svgCanvasPanel, 1, wxEXPAND, 0);
+    placeholderSizer->Add(m_resultsCanvasPanel, 1, wxEXPAND, 0);
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
+
+    // Create a drawing canvas for the Chart Preview tab
+    m_chartPreviewPanel = new wxPanel(m_webView2PlaceholderPanel, wxID_ANY);
+    m_chartPreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    
+    wxBoxSizer* chartPlaceholderSizer = new wxBoxSizer(wxVERTICAL);
+    chartPlaceholderSizer->Add(m_chartPreviewPanel, 1, wxEXPAND, 0);
+    m_webView2PlaceholderPanel->SetSizer(chartPlaceholderSizer);
 
     // --- Continue creating other controllers ---
     m_resultsController = std::make_unique<ResultsController>(this);
@@ -52,7 +54,11 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_presenter = std::make_unique<GuiPresenter>(this);
 
     // --- Bind top-level and inter-controller events ---
-    m_svgCanvasPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnSvgCanvasPaint, this);
+    m_resultsCanvasPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnResultsCanvasPaint, this);
+    m_chartPreviewPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnChartPreviewPaint, this);
+    m_resultsCanvasPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_resultsCanvasPanel->Refresh(); event.Skip(); });
+    m_chartPreviewPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_chartPreviewPanel->Refresh(); event.Skip(); });
+    
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
@@ -88,15 +94,12 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_gParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
     m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
     m_bParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
-
-    // --- Bind Chart Tab Events ---
     chartButtonPreview->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartPreviewClick, this);
     chartButtonCreate->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartCreateClick, this);
     m_InvGammaValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimXValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimWValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
     m_chartDimHValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    // --- Bind Chart Coordinate Events from Input Tab ---
     m_coordX1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordY1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     m_coordX2Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
@@ -125,7 +128,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_processingGauge->Hide();
     m_cvsGrid->Hide();
     m_csvOutputStaticText->Hide();
-    m_generateGraphStaticText->SetLabel(_("Loading project page..."));
+    m_generateGraphStaticText->SetLabel(_("Results will be shown here."));
     m_resultsController->LoadDefaultContent();
 
     m_presenter->UpdateCommandPreview();
@@ -185,8 +188,8 @@ void DynaRangeFrame::PostAnalysisComplete() {
     wxQueueEvent(this, new wxCommandEvent(wxEVT_COMMAND_WORKER_COMPLETED)); 
 }
 
-void DynaRangeFrame::LoadGraphImage(const std::string& image_path) { 
-    m_resultsController->LoadGraphImage(image_path);
+void DynaRangeFrame::DisplayImage(const wxImage& image) { 
+    m_resultsController->DisplayImage(image);
 }
 
 // --- Data Accessor Methods (Getters) ---
@@ -278,21 +281,21 @@ void DynaRangeFrame::OnSplitterSashDClick(wxSplitterEvent& event) { m_resultsCon
 void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     SetUiState(false);
     const ReportOutput& report = m_presenter->GetLastReport();
+    const wxImage& summary_image = m_presenter->GetLastSummaryImage();
+    
     DisplayResults(report.final_csv_path);
-    if (report.summary_plot_path.has_value()) {
-        LoadGraphImage(*report.summary_plot_path);
+
+    if (summary_image.IsOk()) {
+        DisplayImage(summary_image);
     } else if (GetPlotMode() != 0) {
-        // Se establece la etiqueta ANTES de llamar a la carga de la URL.
         m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
         m_resultsController->LoadDefaultContent(); 
         m_logController->AppendText(_("\nError: Summary plot could not be generated."));
     } else {
-        // Se establece la etiqueta ANTES de llamar a la carga de la URL.
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
         m_resultsController->LoadDefaultContent();
     }
 }
-
 void DynaRangeFrame::OnClearDarkFile(wxCommandEvent& event) {
     m_darkFilePicker->SetPath(""); // Vacía la selección
     OnInputChanged(event);         // Actualiza el comando CLI
@@ -341,15 +344,6 @@ DynaRange::Graphics::Constants::PlotOutputFormat DynaRangeFrame::GetPlotFormat()
     return m_inputController->GetPlotFormat();
 }
 
-void DynaRangeFrame::OnWebViewError(wxWebViewEvent& event) {
-    // The URL failed to load (no internet, 404, etc.).
-    // Tell the controller to execute the fallback plan: 
-    // load the local logo.
-    if (m_resultsController) {
-        m_resultsController->LoadLogoImage();
-    }
-}
-
 bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) {
     if (m_owner && m_owner->m_inputController) {
         // Delegate the file handling to the InputController
@@ -380,65 +374,62 @@ void DynaRangeFrame::OnChartChartPatchChanged(wxCommandEvent& event) {
     event.Skip();
 }
 
-void DynaRangeFrame::OnSvgCanvasPaint(wxPaintEvent& event)
+void DynaRangeFrame::OnResultsCanvasPaint(wxPaintEvent& event)
 {
-    wxPaintDC dc(m_svgCanvasPanel);
-    if (!m_rsvgHandle) {
-        return; // No SVG loaded, do nothing.
+    wxAutoBufferedPaintDC dc(m_resultsCanvasPanel);
+    dc.Clear(); // Clear background
+
+    const wxImage& sourceImage = m_resultsController->GetSourceImage();
+
+    if (sourceImage.IsOk()) {
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if (gc) {
+            double img_w = sourceImage.GetWidth();
+            double img_h = sourceImage.GetHeight();
+            const wxSize panel_size = dc.GetSize();
+            
+            // Calculate aspect-ratio correct scaling
+            double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
+            
+            double final_width = img_w * scale_factor;
+            double final_height = img_h * scale_factor;
+            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+            
+            // Create a temporary, scaled bitmap for drawing in this paint event.
+            // This is more efficient for resizing than scaling a bitmap.
+            wxImage displayImage = sourceImage.Copy();
+            displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
+            wxBitmap bitmapToDraw(displayImage);
+            
+            gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
+            delete gc;
+        }
     }
+}
 
-    // Use wxGraphicsContext to get the underlying cairo_t*
-    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
-    if (gc)
+void DynaRangeFrame::OnChartPreviewPaint(wxPaintEvent& event)
+{
+    wxAutoBufferedPaintDC dc(m_chartPreviewPanel);
+    dc.Clear(); // Clear background
+
+    if (m_chartPreviewBitmap.IsOk())
     {
-        cairo_t* cr = (cairo_t*)gc->GetNativeContext();
-        if (!cr) {
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if(gc)
+        {
+            double bmp_w = m_chartPreviewBitmap.GetWidth();
+            double bmp_h = m_chartPreviewBitmap.GetHeight();
+            const wxSize panel_size = dc.GetSize();
+            
+            double scale_factor = std::min(panel_size.GetWidth() / bmp_w, panel_size.GetHeight() / bmp_h);
+            double final_width = bmp_w * scale_factor;
+            double final_height = bmp_h * scale_factor;
+            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+
+            gc->DrawBitmap(m_chartPreviewBitmap, offset_x, offset_y, final_width, final_height);
             delete gc;
-            return;
         }
-
-        // Get the panel size for scaling
-        const wxSize panel_size = dc.GetSize();
-
-        // Use the new, non-deprecated function to get SVG's intrinsic size
-        double svg_width = 0.0;
-        double svg_height = 0.0;
-        rsvg_handle_get_intrinsic_size_in_pixels(m_rsvgHandle, &svg_width, &svg_height);
-
-        if (svg_width <= 0 || svg_height <= 0) {
-            delete gc;
-            return;
-        }
-
-        // Calculate scaling to fit the panel while maintaining aspect ratio
-        double aspect_ratio_svg = svg_height / svg_width;
-        double aspect_ratio_panel = (double)panel_size.GetHeight() / panel_size.GetWidth();
-
-        double final_width, final_height;
-        if (aspect_ratio_panel > aspect_ratio_svg) {
-            // Panel is taller/thinner than the SVG, so we fit to width
-            final_width = panel_size.GetWidth();
-            final_height = final_width * aspect_ratio_svg;
-        } else {
-            // Panel is shorter/wider than the SVG, so we fit to height
-            final_height = panel_size.GetHeight();
-            final_width = final_height / aspect_ratio_svg;
-        }
-
-        // Calculate centered position
-        double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
-        double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
-
-        // Define the viewport for the new, non-deprecated rendering function
-        RsvgRectangle viewport;
-        viewport.x = offset_x;
-        viewport.y = offset_y;
-        viewport.width = final_width;
-        viewport.height = final_height;
-
-        // Use the modern rendering function, which handles scaling and positioning
-        rsvg_handle_render_document(m_rsvgHandle, cr, &viewport, nullptr);
-        
-        delete gc; // Clean up the graphics context
     }
 }

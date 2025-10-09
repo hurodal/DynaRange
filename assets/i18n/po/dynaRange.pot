@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-08 18:42+0200\n"
+"POT-Creation-Date: 2025-10-08 22:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,16 +41,16 @@ msgstr ""
 msgid "Unsupported Files Skipped"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:51
-#: src/gui/controllers/ResultsController.cpp:144
+#: src/gui/controllers/ResultsController.cpp:33
+#: src/gui/controllers/ResultsController.cpp:134
 msgid "Generated Graph:"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:57
+#: src/gui/controllers/ResultsController.cpp:40
 msgid "Generated Graph (Image not found): "
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:62
+#: src/gui/controllers/ResultsController.cpp:45
 msgid "Generated Graph: "
 msgstr ""
 
@@ -58,45 +58,41 @@ msgstr ""
 msgid "Welcome to Dynamic Range Calculator"
 msgstr ""
 
-#: src/gui/controllers/ResultsController.cpp:121
-msgid "Welcome (logo.png not found)"
-msgstr ""
-
-#: src/gui/controllers/ResultsController.cpp:133
+#: src/gui/controllers/ResultsController.cpp:129
 msgid "Starting analysis... Please wait."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:128
-msgid "Loading project page..."
+#: src/gui/DynaRangeFrame.cpp:131
+msgid "Results will be shown here."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:156 src/gui/GuiPresenter.cpp:133
+#: src/gui/DynaRangeFrame.cpp:159 src/gui/GuiPresenter.cpp:133
 msgid "Error"
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:156
+#: src/gui/DynaRangeFrame.cpp:159
 msgid "Could not open the results file: "
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:286
+#: src/gui/DynaRangeFrame.cpp:289
 msgid "Results loaded, but summary plot failed."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:288
+#: src/gui/DynaRangeFrame.cpp:291
 msgid ""
 "\n"
 "Error: Summary plot could not be generated."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:291
+#: src/gui/DynaRangeFrame.cpp:294
 msgid "Results loaded. Plot generation was not requested."
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:318 src/core/engine/Processing.cpp:90
+#: src/gui/DynaRangeFrame.cpp:321 src/core/engine/Processing.cpp:90
 msgid "Processing \""
 msgstr ""
 
-#: src/gui/DynaRangeFrame.cpp:329
+#: src/gui/DynaRangeFrame.cpp:332
 #, c-format
 msgid "Calculating dynamic range, working on raw file %s..."
 msgstr ""

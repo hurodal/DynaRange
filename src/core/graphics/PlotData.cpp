@@ -6,6 +6,7 @@
 #include "PlotData.hpp"
 #include "PlotBase.hpp"
 #include "Colour.hpp"
+#include "FontManager.hpp"
 #include "../math/Math.hpp"
 #include <algorithm>
 #include <iomanip>
@@ -21,12 +22,12 @@
 // Anonymous namespace for internal helper functions
 namespace {
 
-void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
+void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
     if (curve.curve_points.empty()) {
         return;
     }
     auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds);
+        return MapToPixelCoords(ev, db, bounds, ctx);
     };
 
     PlotColors::SetSourceFromChannel(cr, curve.channel);
@@ -35,7 +36,6 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     const auto& first_point = curve.curve_points[0];
     auto [start_x, start_y] = map_coords(first_point.first, first_point.second);
     cairo_move_to(cr, start_x, start_y);
-
     for (size_t i = 1; i < curve.curve_points.size(); ++i) {
         const auto& point = curve.curve_points[i];
         auto [x, y] = map_coords(point.first, point.second);
@@ -44,9 +44,9 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     cairo_stroke(cr);
 }
 
-void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
+void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
     auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds);
+        return MapToPixelCoords(ev, db, bounds, ctx);
     };
 
     // If the main curve is AVG, color each point by its original source.
@@ -68,22 +68,23 @@ void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::str
     }
 }
 
-void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds) {
+void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
     if (curve.points.empty()) return;
     auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds);
+        return MapToPixelCoords(ev, db, bounds, ctx);
     };
     std::string label = curve.plot_label;
 
     // Find the point with the maximum EV to place the label.
     auto max_ev_point_it = std::max_element(curve.points.begin(), curve.points.end(),
         [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
+    
     auto [label_x, label_y] = map_coords(max_ev_point_it->ev, max_ev_point_it->snr_db);
 
+    const DynaRange::Graphics::FontManager font_manager(ctx);
     PlotColors::cairo_set_source_black(cr);
-    cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(cr, 14.0);
-
+    font_manager.SetCurveLabelFont(cr);
+    
     // Reduced offsets to bring label closer to the curve's end point.
     cairo_move_to(cr, label_x + 10, label_y - 15);
     cairo_show_text(cr, label.c_str());
@@ -97,10 +98,11 @@ void DrawThresholdIntersection(cairo_t* cr,
                                double primary_angle_rad,
                                int iso_index,
                                int channel_index,
-                               int group_size)
+                               int group_size,
+                               const std::map<std::string, double>& bounds,
+                               const DynaRange::Graphics::RenderContext& ctx)
 {
     // --- 1. Calculate Position Offset relative to the center of the block ---
-    // Reduced LINE_HEIGHT to decrease spacing within subgroups.
     const double LINE_HEIGHT = 12.0;
     const double H_OFFSET_FROM_BASE_LINE = 0.0;
     
@@ -110,9 +112,10 @@ void DrawThresholdIntersection(cairo_t* cr,
 
     double v_offset_from_center;
     if (group_size == 1) {
-        v_offset_from_center = -LINE_HEIGHT; 
+        v_offset_from_center = -LINE_HEIGHT;
     } else {
-        int labels_above = (group_size == 5) ? 3 : static_cast<int>(std::ceil(static_cast<double>(group_size) / 2.0));
+        int labels_above = (group_size == 5) ?
+            3 : static_cast<int>(std::ceil(static_cast<double>(group_size) / 2.0));
 
         if (channel_index < labels_above) {
             int pos = labels_above - 1 - channel_index;
@@ -125,9 +128,9 @@ void DrawThresholdIntersection(cairo_t* cr,
     
     // --- 2. Draw using the shared "base line" geometry ---
     cairo_save(cr);
+    const DynaRange::Graphics::FontManager font_manager(ctx);
     PlotColors::SetSourceFromChannel(cr, channel);
-    cairo_select_font_face(cr, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12.0);
+    font_manager.SetDrValueFont(cr);
 
     cairo_translate(cr, primary_px, primary_py);
     cairo_rotate(cr, primary_angle_rad);
@@ -141,17 +144,18 @@ void DrawThresholdIntersection(cairo_t* cr,
 } // end anonymous namespace
 
 void DrawCurvesAndData(cairo_t* cr,
+                       const DynaRange::Graphics::RenderContext& ctx,
                        const PlotInfoBox& info_box,
                        const std::vector<CurveData>& curves,
                        const std::vector<DynamicRangeResult>& results,
                        const std::map<std::string, double>& bounds)
 {
-    info_box.Draw(cr);
+    info_box.Draw(cr, ctx);
     // --- PASS 1: Draw curves and points ---
     for (const auto& curve : curves) {
         if (curve.points.empty()) continue;
-        DrawCurve(cr, curve, bounds);
-        DrawDataPoints(cr, curve, bounds);
+        DrawCurve(cr, curve, bounds, ctx);
+        DrawDataPoints(cr, curve, bounds, ctx);
     }
 
     // --- PASS 2: Draw labels ---
@@ -175,7 +179,7 @@ void DrawCurvesAndData(cairo_t* cr,
         // 1. Identify the primary curve and draw its main label
         const CurveData& primary_curve = *iso_curves_group[0];
         if (drawn_iso_labels.find(primary_curve.plot_label) == drawn_iso_labels.end()) {
-            DrawCurveLabel(cr, primary_curve, bounds);
+            DrawCurveLabel(cr, primary_curve, bounds, ctx);
             drawn_iso_labels.insert(primary_curve.plot_label);
         }
 
@@ -188,20 +192,16 @@ void DrawCurvesAndData(cairo_t* cr,
                 if (dr_value <= 0) return std::nullopt;
 
                 double ev = -dr_value;
-                auto [px, py] = MapToPixelCoords(ev, threshold, bounds);
-
-                // MODIFIED LOGIC: Correctly calculate the visual slope for the EV = f(SNR_dB) model
-                // 1. Evaluate the derivative of P(SNR_dB) = EV at the threshold. This gives us d(EV)/d(SNR_dB).
+                auto [px, py] = MapToPixelCoords(ev, threshold, bounds, ctx);
                 double dEV_dSNR = EvaluatePolynomialDerivative(primary_curve.poly_coeffs, threshold);
 
-                // 2. The slope on the plot is d(y)/d(x) = d(SNR_dB)/d(EV), which is the reciprocal.
                 double slope = (std::abs(dEV_dSNR) < 1e-9) ? 1e9 : (1.0 / dEV_dSNR);
-
-                // 3. Convert the mathematical slope to a visual pixel slope and calculate the angle.
-                const double plot_w = PlotDefs::BASE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
-                const double plot_h = PlotDefs::BASE_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
+                
+                const double plot_w = ctx.base_width - MARGIN_LEFT - MARGIN_RIGHT;
+                const double plot_h = ctx.base_height - MARGIN_TOP - MARGIN_BOTTOM;
                 const double range_ev = bounds.at("max_ev") - bounds.at("min_ev");
                 const double range_db = bounds.at("max_db") - bounds.at("min_db");
+                
                 double slope_px = -slope * (plot_h / range_db) / (plot_w / range_ev);
                 double angle = std::atan(slope_px);
 
@@ -223,13 +223,13 @@ void DrawCurvesAndData(cairo_t* cr,
                     std::stringstream ss;
                     ss << std::fixed << std::setprecision(2) << it->dr_values_ev.at(12.0) << "EV";
                     auto [px, py, angle] = *base_geom_12db;
-                    DrawThresholdIntersection(cr, ss.str(), current_curve.channel, px, py, angle, iso_index, i, group_size);
+                    DrawThresholdIntersection(cr, ss.str(), current_curve.channel, px, py, angle, iso_index, i, group_size, bounds, ctx);
                 }
                 if (base_geom_0db && it->dr_values_ev.count(0.0)) {
                     std::stringstream ss;
                     ss << std::fixed << std::setprecision(2) << it->dr_values_ev.at(0.0) << "EV";
                     auto [px, py, angle] = *base_geom_0db;
-                    DrawThresholdIntersection(cr, ss.str(), current_curve.channel, px, py, angle, iso_index, i, group_size);
+                    DrawThresholdIntersection(cr, ss.str(), current_curve.channel, px, py, angle, iso_index, i, group_size, bounds, ctx);
                 }
             }
         }

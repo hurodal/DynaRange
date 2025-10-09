@@ -21,8 +21,6 @@
 #include <algorithm>
 #include <map>
 #include <optional>
-#include <chrono>
-#include <ctime>
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
@@ -33,33 +31,6 @@ namespace fs = std::filesystem;
 
 namespace { // Anonymous namespace for private helper functions
 
-void DrawGeneratedTimestamp(cairo_t* cr) {
-    auto now = std::chrono::system_clock::now();
-    std::time_t time_now = std::chrono::system_clock::to_time_t(now);
-    std::tm local_tm;
-#ifdef _WIN32
-    localtime_s(&local_tm, &time_now);
-#else
-    localtime_r(&time_now, &local_tm);
-#endif
-    std::ostringstream timestamp_ss;
-    timestamp_ss << std::put_time(&local_tm, _("Generated at %Y-%m-%d %H:%M:%S"));
-    std::string generated_at_text = timestamp_ss.str();
-
-    cairo_select_font_face(cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12.0);
-    cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
-
-    cairo_text_extents_t ext;
-    cairo_text_extents(cr, generated_at_text.c_str(), &ext);
-
-    double x = 20;
-    double y = PlotDefs::BASE_HEIGHT - 20;
-
-    cairo_move_to(cr, x, y);
-    cairo_show_text(cr, generated_at_text.c_str());
-}
-
 std::optional<std::string> GeneratePlotInternal(
     const std::string& output_filename,
     const std::string& title,
@@ -69,12 +40,17 @@ std::optional<std::string> GeneratePlotInternal(
     const std::map<std::string, double>& bounds,
     std::ostream& log_stream)
 {
+    // The context is now created explicitly for file output from the base constants.
+    const auto render_ctx = DynaRange::Graphics::RenderContext{
+        DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH,
+        DynaRange::Graphics::Constants::PlotDefs::BASE_HEIGHT
+    };
 
     // Calculate dimensions and scale at runtime based on the selected plot format.
     bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG);
     double scale = is_vector ? DynaRange::Graphics::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
-    int width = static_cast<int>(PlotDefs::BASE_WIDTH * scale);
-    int height = static_cast<int>(PlotDefs::BASE_HEIGHT * scale);
+    int width = static_cast<int>(render_ctx.base_width * scale);
+    int height = static_cast<int>(render_ctx.base_height * scale);
 
     cairo_surface_t *surface = nullptr;
     switch (opts.plot_format) {
@@ -111,9 +87,11 @@ std::optional<std::string> GeneratePlotInternal(
     info_box.AddItem(_("Saturation"), sat_ss.str(), sat_annotation);
 
     std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;
-    DrawPlotBase(cr, title, opts, bounds, command_text, opts.snr_thresholds_db);
-    DrawCurvesAndData(cr, info_box, curves_to_plot, results_to_plot, bounds);
-    DrawGeneratedTimestamp(cr);
+    
+    // Pass the context to the drawing functions
+    DrawPlotBase(cr, render_ctx, title, opts, bounds, command_text, opts.snr_thresholds_db);
+    DrawCurvesAndData(cr, render_ctx, info_box, curves_to_plot, results_to_plot, bounds);
+    DrawGeneratedTimestamp(cr, render_ctx);
     
     bool success = false;
     switch (opts.plot_format) {
@@ -138,7 +116,6 @@ std::optional<std::string> GeneratePlotInternal(
     }
     return std::nullopt;
 }
-
 } // end anonymous namespace
 
 void GenerateSnrPlot(
@@ -282,7 +259,7 @@ std::map<std::string, std::string> GenerateIndividualPlots(
 
         const auto& first_curve = curves_for_this_file[0];
         fs::path plot_path = paths.GetIndividualPlotPath(first_curve, opts);
-        plot_paths_map[filename] = plot_path.string();
+        
         std::stringstream title_ss;
         title_ss << fs::path(filename).filename().string();
         if (!first_curve.camera_model.empty()) {
@@ -313,7 +290,11 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         bounds["max_ev"] = (max_ev < 0.0) ? 0.0 : ceil(max_ev) + 1.0;
         bounds["min_db"] = floor(min_db / 5.0) * 5.0;
         bounds["max_db"] = ceil(max_db / 5.0) * 5.0;
-        GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, bounds, log_stream);
+        
+        if (auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, bounds, log_stream)) {
+            plot_paths_map[filename] = *path_opt;
+        }
     }
     return plot_paths_map;
 }
+

@@ -5,19 +5,11 @@
  */
 #pragma once
 #include "../arguments/ArgumentsOptions.hpp"
+#include "RenderContext.hpp" // Include the new RenderContext
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
 #include <map>
-
-// --- Centralized Plot Dimension Constants ---
-namespace PlotDefs {
-    constexpr int BASE_WIDTH = 1920;
-    constexpr int BASE_HEIGHT = 1080;
-
-    // IS_VECTOR, SCALE, WIDTH, and HEIGHT have been removed as they are now
-    // runtime values calculated in Plotting.cpp based on ProgramOptions.
-}
 
 
 // Margins are now based on the unscaled base dimensions.
@@ -31,21 +23,23 @@ constexpr int MARGIN_BOTTOM = 120;
  * @param ev Exposure value (x-axis).
  * @param db SNR in dB (y-axis).
  * @param bounds Map containing plot boundaries (min_ev, max_ev, min_db, max_db).
+ * @param ctx The rendering context with canvas dimensions.
  * @return Pair of pixel coordinates (x, y).
  * @details This function is defined as 'inline' to allow safe inclusion from multiple .cpp files.
  */
-inline std::pair<double, double> MapToPixelCoords(double ev, double db, const std::map<std::string, double>& bounds) {
-    // This function now uses the BASE dimensions, as it operates before the global cairo_scale.
-    const int plot_area_width = PlotDefs::BASE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
-    const int plot_area_height = PlotDefs::BASE_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
+inline std::pair<double, double> MapToPixelCoords(double ev, double db, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
+    const int plot_area_width = ctx.base_width - MARGIN_LEFT - MARGIN_RIGHT;
+    const int plot_area_height = ctx.base_height - MARGIN_TOP - MARGIN_BOTTOM;
+
     double px = MARGIN_LEFT + (ev - bounds.at("min_ev")) / (bounds.at("max_ev") - bounds.at("min_ev")) * plot_area_width;
-    double py = (PlotDefs::BASE_HEIGHT - MARGIN_BOTTOM) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height;
+    double py = (ctx.base_height - MARGIN_BOTTOM) - (db - bounds.at("min_db")) / (bounds.at("max_db") - bounds.at("min_db")) * plot_area_height;
     return std::make_pair(px, py);
 }
 
 /**
  * @brief Draws the static base of a plot (axes, grid, titles, threshold lines).
  * @param cr The cairo drawing context.
+ * @param ctx The rendering context with canvas dimensions.
  * @param title The main title of the plot.
  * @param opts The program options, used to display calibration values.
  * @param bounds A map containing the plot boundaries (min_ev, max_ev, min_db, max_db).
@@ -54,8 +48,16 @@ inline std::pair<double, double> MapToPixelCoords(double ev, double db, const st
  */
 void DrawPlotBase(
     cairo_t* cr,
+    const DynaRange::Graphics::RenderContext& ctx,
     const std::string& title,
     const ProgramOptions& opts,
     const std::map<std::string, double>& bounds,
     const std::string& command_text,
     const std::vector<double>& snr_thresholds);
+/**
+ * @brief Draws a timestamp at the bottom-left of the plot.
+ * @param cr The cairo drawing context.
+ * @param ctx The rendering context with canvas dimensions.
+ */
+void DrawGeneratedTimestamp(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx);
+

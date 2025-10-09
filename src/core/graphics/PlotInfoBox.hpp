@@ -9,6 +9,7 @@
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
+#include "RenderContext.hpp"
 
 class PlotInfoBox {
 public:
@@ -23,8 +24,9 @@ public:
     /**
      * @brief Draws all the added items onto the cairo context.
      * @param cr The cairo drawing context.
+     * @param ctx The rendering context for scaling fonts.
      */
-    void Draw(cairo_t* cr) const;
+    void Draw(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx) const;
 
 private:
     // This struct now holds the data for each item, including the optional annotation.

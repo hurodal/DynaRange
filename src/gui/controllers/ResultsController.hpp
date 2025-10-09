@@ -7,12 +7,12 @@
 #include <memory>
 #include <string>
 #include <wx/event.h>
+#include <wx/image.h> // Required for wxImage
 
 // Forward declarations
 class DynaRangeFrame;
 class ResultsGridManager;
 class wxSplitterEvent;
-class wxWebView; 
 
 class ResultsController {
 public:
@@ -20,18 +20,20 @@ public:
     ~ResultsController();
 
     // Methods to update the view
-    void LoadGraphImage(const std::string& path);
-    void LoadDefaultContent(); 
-    void LoadLogoImage();
+    void DisplayImage(const wxImage& image);
+    void LoadDefaultContent();
     bool DisplayResults(const std::string& csv_path);
     void SetUiState(bool is_processing);
+
+    // Getter for the view
+    const wxImage& GetSourceImage() const;
 
     // Event handling logic
     void OnSplitterSashDClick(wxSplitterEvent& event);
 
 private:
     DynaRangeFrame* m_frame;
-    wxWebView* m_webView; 
     std::unique_ptr<ResultsGridManager> m_gridManager;
+    wxImage m_sourceImage; // In-memory source image for the canvas
     int m_lastSashPosition;
 };

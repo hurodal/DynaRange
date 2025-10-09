@@ -44,6 +44,7 @@ void GenerateSnrPlot(
     const ProgramOptions& opts,
     std::ostream& log_stream 
 );
+
 /**
  * @brief Generates and saves a summary plot containing all SNR curves.
  * @details Creates a comprehensive overview plot comparing all processed RAW files.
@@ -66,6 +67,15 @@ std::optional<std::string> GenerateSummaryPlot(
     std::ostream& log_stream 
 );
 
+/**
+ * @brief Generates and saves all individual plots.
+ * @param all_curves_data Vector of all curve data.
+ * @param all_dr_results Vector of all DR results.
+ * @param opts The program options.
+ * @param paths The PathManager for generating output paths.
+ * @param log_stream Stream for logging.
+ * @return A map where the key is the source RAW filename and the value is the path to the generated plot.
+ */
 std::map<std::string, std::string> GenerateIndividualPlots(
     const std::vector<CurveData>& all_curves_data,
     const std::vector<DynamicRangeResult>& all_dr_results,
