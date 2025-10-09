@@ -39,10 +39,12 @@ bool WriteCsv(
         return false;
     }
 
-    // Se usan las nuevas funciones refactorizadas del módulo Formatters.
-    csv_file << Formatters::FormatCsvHeader(opts) << std::endl;
+    // Write the new, fixed header
+    csv_file << Formatters::FormatCsvHeader() << std::endl;
+    
+    // Iterate through results and write the multiple rows that each may generate
     for (const auto& res : all_results) {
-        csv_file << Formatters::FormatCsvRow(res, opts) << std::endl;
+        csv_file << Formatters::FormatCsvRows(res);
     }
 
     csv_file.close();

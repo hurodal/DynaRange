@@ -128,29 +128,36 @@ void GuiPresenter::UpdateCommandPreview() {
 }
 
 void GuiPresenter::StartAnalysis() {
+    if (!m_view->ValidateSnrThresholds()) {
+        m_view->ShowError(
+            _("Invalid Input"),
+            _("The 'SNR Thresholds' field contains invalid characters. Please enter only numbers separated by spaces.")
+        );
+        return; // Abort the analysis
+    }
 
-  // 1. Update the manager with the current values from the GUI.
-  UpdateManagerFromView();
+    // 1. Update the manager with the current values from the GUI.
+    UpdateManagerFromView();
 
-  // 2. Get the options for the engine from the manager.
-  m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
-  if (m_lastRunOptions.input_files.empty()) {
-    m_view->ShowError(_("Error"),
+    // 2. Get the options for the engine from the manager.
+    m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
+    if (m_lastRunOptions.input_files.empty()) {
+        m_view->ShowError(_("Error"),
                       _("Please select at least one input RAW file."));
-    return;
-  }
+        return;
+    }
 
-  m_view->SetUiState(true);
+    m_view->SetUiState(true);
 
-  if (m_workerThread.joinable()) {
-    m_workerThread.join();
-  }
+    if (m_workerThread.joinable()) {
+        m_workerThread.join();
+    }
 
-  m_cancelWorker = false;
-  m_workerThread = std::thread([this] {
-    this->AnalysisWorker(m_lastRunOptions);
-    m_isWorkerRunning = false;
-  });
+    m_cancelWorker = false;
+    m_workerThread = std::thread([this] {
+        this->AnalysisWorker(m_lastRunOptions);
+        m_isWorkerRunning = false;
+    });
 }
 
 void GuiPresenter::AnalysisWorker(ProgramOptions opts) {
@@ -231,25 +238,34 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string> &files_to_add) {
   UpdateCommandPreview();
 }
 
-void GuiPresenter::HandleGridCellClick(int row) {
-    // A click on the header (row <= 0) displays the summary plot.
-    if (row <= 0) {
+void GuiPresenter::HandleGridCellClick(const std::string& basename) {
+    // If the basename is empty, it's a header click or invalid row, so show the summary plot.
+    if (basename.empty()) {
         if (m_summaryImage.IsOk()) {
             m_view->DisplayImage(m_summaryImage);
         }
-    } else { // Data rows start from grid row index 1.
-        int result_index = row - 1;
-        if (result_index < m_lastReport.dr_results.size()) {
-            std::string filename = m_lastReport.dr_results[result_index].filename;
+        return;
+    }
+
+    // Find the corresponding full path by searching through the last report results.
+    // The m_individualImages map uses the full path as its key.
+    for (const auto& result : m_lastReport.dr_results) {
+        if (fs::path(result.filename).filename().string() == basename) {
+            // Found the matching full path.
+            const std::string& full_path = result.filename;
             
-            if (m_individualImages.count(filename)) {
-                const wxImage& individual_image = m_individualImages.at(filename);
+            if (m_individualImages.count(full_path)) {
+                const wxImage& individual_image = m_individualImages.at(full_path);
                 if (individual_image.IsOk()) {
                     m_view->DisplayImage(individual_image);
+                    return; // Found and displayed, so we are done.
                 }
             }
         }
     }
+    
+    // If we get here, it means no matching image was found for the clicked filename.
+    // In this case, we simply do nothing and leave the current image displayed.
 }
 
 void GuiPresenter::RemoveInputFiles(const std::vector<int> &indices) {
@@ -269,6 +285,12 @@ void GuiPresenter::RemoveInputFiles(const std::vector<int> &indices) {
   m_view->UpdateInputFileList(current_files);
   // Call the presenter's own method
   UpdateCommandPreview();
+}
+
+void GuiPresenter::RemoveAllInputFiles() {
+    m_inputFiles.clear();
+    m_view->UpdateInputFileList(m_inputFiles);
+    UpdateCommandPreview();
 }
 
 const ProgramOptions &GuiPresenter::GetLastRunOptions() const {

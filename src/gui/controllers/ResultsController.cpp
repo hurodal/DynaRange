@@ -59,7 +59,13 @@ const wxImage& ResultsController::GetSourceImage() const
 }
 
 bool ResultsController::DisplayResults(const std::string& csv_path) {
-    return m_gridManager->LoadFromCsv(csv_path);
+    bool success = m_gridManager->LoadFromCsv(csv_path);
+    if (success) {
+        // Force the sizer of the parent panel to recalculate the layout.
+        // This makes the scrollbars appear immediately if the grid is too large.
+        m_frame->m_leftPanel->Layout();
+    }
+    return success;
 }
 
 void ResultsController::SetUiState(bool is_processing) {

@@ -45,9 +45,9 @@ public:
 
   /**
    * @brief Handles a click on the results grid, triggering a plot display.
-   * @param row The row index that was clicked.
+   * @param filename The filename (basename) corresponding to the clicked row.
    */
-  void HandleGridCellClick(int row);
+  void HandleGridCellClick(const std::string& filename);
 
   /**
    * @brief Gets the options used for the most recent analysis run.
@@ -78,6 +78,11 @@ public:
    * @param indices The vector of zero-based indices to remove.
    */
   void RemoveInputFiles(const std::vector<int> &indices);
+
+  /**
+   * @brief Removes all files from the current input list.
+   */
+  void RemoveAllInputFiles();
 
   /**
    * @brief Signals the worker thread to stop its processing.

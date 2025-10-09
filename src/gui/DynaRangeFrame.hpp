@@ -64,10 +64,16 @@ public:
     int GetChartPatchesN() const;
     std::string GetPrintPatchesFilename() const;
     RawChannelSelection GetRawChannelSelection() const;
-
+    /**
+     * @brief Delegates validation of the SNR thresholds input to the controller.
+     * @return true if the input is valid, false otherwise.
+     */
+    bool ValidateSnrThresholds() const;
+    bool ShouldSaveLog() const;
 protected:
     // --- Event Handlers ---
     void OnAddFilesClick(wxCommandEvent& event);
+    void OnRemoveAllFilesClick(wxCommandEvent& event);
     void OnChartChartPatchChanged(wxCommandEvent& event);
     void OnChartColorSliderChanged(wxScrollEvent& event);
     void OnChartCreateClick(wxCommandEvent& event);

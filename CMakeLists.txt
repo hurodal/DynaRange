@@ -8,7 +8,7 @@ project(dynaRange CXX)
 # Establece el directorio de salida para todos los ejecutables (rango, dynaRangeGui)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(PROJECT_VERSION "1.1.0")
+set(PROJECT_VERSION "1.1.1")
 
 # Establece la política para normalizar las rutas de instalación y silenciar el aviso.
 cmake_policy(SET CMP0177 NEW)

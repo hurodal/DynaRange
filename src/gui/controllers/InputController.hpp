@@ -39,6 +39,16 @@ public:
     int GetChartPatchesM() const; // Rows
     int GetChartPatchesN() const; // Cols
     RawChannelSelection GetRawChannelSelection() const;
+    /**
+     * @brief Checks if the "Save Log" checkbox is currently checked.
+     * @return true if the log should be saved to a file, false otherwise.
+     */
+    bool ShouldSaveLog() const;
+    /**
+     * @brief Validates the content of the SNR thresholds text control.
+     * @return true if the input is a valid list of numbers, false otherwise.
+     */
+    bool ValidateSnrThresholds() const;
 
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);

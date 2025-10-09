@@ -310,3 +310,26 @@ DynaRange::Graphics::Constants::PlotOutputFormat InputController::GetPlotFormat(
         default: return DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
     }
 }
+
+bool InputController::ValidateSnrThresholds() const {
+    std::string text = std::string(m_frame->m_snrThresholdsValues->GetValue().mb_str());
+    if (text.empty()) {
+        return true; // An empty list is valid (will use defaults)
+    }
+
+    std::stringstream ss(text);
+    double value;
+    
+    // Try to read numbers separated by whitespace
+    while (ss >> value) {
+        // Successfully read a number
+    }
+
+    // After reading all numbers, the stream should be at the end.
+    // If it's not, it means there were leftover non-numeric characters.
+    return ss.eof();
+}
+
+bool InputController::ShouldSaveLog() const {
+    return m_frame->m_saveLog->IsChecked();
+}

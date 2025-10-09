@@ -4,16 +4,19 @@
  * @brief Implementation of the DynaRange GUI's main frame (the View).
  */
 #include "DynaRangeFrame.hpp"
+#include "Constants.hpp" 
 #include "controllers/InputController.hpp"
 #include "controllers/LogController.hpp"
 #include "controllers/ResultsController.hpp"
 #include "controllers/ChartController.hpp"
 #include "../graphics/Constants.hpp"
+#include "../core/utils/PathManager.hpp"
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <wx/dcclient.h>
 #include <wx/graphics.h>
 #include <wx/dcbuffer.h>
+#include <fstream> 
 
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -61,6 +64,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
+    m_removeAllFiles->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveAllFilesClick, this);
+    m_saveLog->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
     m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
     m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
@@ -260,7 +265,22 @@ void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) { m_presenter->StartA
 void DynaRangeFrame::OnGaugeTimer(wxTimerEvent& event) { m_processingGauge->Pulse();
 }
 
-void DynaRangeFrame::OnGridCellClick(wxGridEvent& event) { m_presenter->HandleGridCellClick(event.GetRow()); event.Skip(); }
+void DynaRangeFrame::OnGridCellClick(wxGridEvent& event) {
+    int row = event.GetRow();
+    std::string filename_basename;
+
+    // A click on a data row (row > 0) extracts the filename from the first column.
+    // A click on the header row (row == 0) or the actual column labels (row < 0)
+    // will result in an empty filename, which signals the presenter to show the summary plot.
+    if (row > 0 && m_cvsGrid->GetNumberRows() > row) {
+        filename_basename = m_cvsGrid->GetCellValue(row, 0).ToStdString();
+    }
+    
+    // Pass the extracted basename (or an empty string) to the presenter.
+    m_presenter->HandleGridCellClick(filename_basename);
+    
+    event.Skip();
+}
 
 void DynaRangeFrame::OnInputChanged(wxEvent& event) { m_presenter->UpdateCommandPreview(); }
 
@@ -283,6 +303,14 @@ void DynaRangeFrame::OnSplitterSashChanged(wxSplitterEvent& event) { event.Skip(
 void DynaRangeFrame::OnSplitterSashDClick(wxSplitterEvent& event) { m_resultsController->OnSplitterSashDClick(event);
 }
 
+bool DynaRangeFrame::ShouldSaveLog() const {
+    return m_inputController->ShouldSaveLog();
+}
+
+void DynaRangeFrame::OnRemoveAllFilesClick(wxCommandEvent& event) {
+    m_presenter->RemoveAllInputFiles();
+}
+
 void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     SetUiState(false);
     const ReportOutput& report = m_presenter->GetLastReport();
@@ -300,7 +328,26 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
         m_resultsController->LoadDefaultContent();
     }
+
+    // --- Lógica para guardar el log ---
+    if (ShouldSaveLog()) {
+        ProgramOptions temp_opts;
+        temp_opts.output_filename = GetOutputFilePath(); // Usa la ruta del CSV como base
+        PathManager paths(temp_opts);
+        fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
+
+        wxString log_content = m_logOutputTextCtrl->GetValue();
+        std::ofstream log_file(log_path);
+        if (log_file.is_open()) {
+            log_file << log_content.ToStdString();
+            log_file.close();
+            m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
+        } else {
+            m_logController->AppendText(wxString::Format(_("\n[ERROR] Could not save log to file: %s\n"), log_path.string()));
+        }
+    }
 }
+
 void DynaRangeFrame::OnClearDarkFile(wxCommandEvent& event) {
     m_darkFilePicker->SetPath(""); // Vacía la selección
     OnInputChanged(event);         // Actualiza el comando CLI
@@ -437,4 +484,8 @@ void DynaRangeFrame::OnChartPreviewPaint(wxPaintEvent& event)
             delete gc;
         }
     }
+}
+
+bool DynaRangeFrame::ValidateSnrThresholds() const {
+    return m_inputController->ValidateSnrThresholds();
 }

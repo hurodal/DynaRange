@@ -140,10 +140,10 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_drNormalizationStaticText->Wrap( -1 );
 	drNormalizationSizer->Add( m_drNormalizationStaticText, 0, wxALL|wxEXPAND, 5 );
 
-	m_drNormalizationSlider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 8, 0, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	m_drNormalizationSlider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 0, 0, 200, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
 	drNormalizationSizer->Add( m_drNormalizationSlider, 1, wxALL|wxEXPAND, 5 );
 
-	m_drNormalizationValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("8Mpx"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_drNormalizationValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("0Mpx"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_drNormalizationValueText->Wrap( -1 );
 	drNormalizationSizer->Add( m_drNormalizationValueText, 0, wxALL|wxEXPAND, 5 );
 
@@ -211,6 +211,9 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_plotFormatChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
 	m_plotFormatChoice->SetSelection( 0 );
 	outputSizer->Add( m_plotFormatChoice, 0, wxALL, 5 );
+
+	m_saveLog = new wxCheckBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Save Log"), wxDefaultPosition, wxDefaultSize, 0 );
+	outputSizer->Add( m_saveLog, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
 	analysisParamsSizer->Add( outputSizer, 0, wxALL, 3 );
@@ -462,6 +465,11 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_removeRawFilesButton->Enable( false );
 
 	AddRemoveRawsSbSizer7->Add( m_removeRawFilesButton, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_removeAllFiles = new wxButton( rawFilesSbSizer->GetStaticBox(), wxID_ANY, _("Remove All"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_removeAllFiles->SetBitmap( Icono_BAD_Mark_Red_alpha_22x22_png_to_wx_bitmap() );
+	AddRemoveRawsSbSizer7->Add( m_removeAllFiles, 0, wxALL, 5 );
 
 
 	rawFilesSbSizer->Add( AddRemoveRawsSbSizer7, 0, wxEXPAND, 5 );

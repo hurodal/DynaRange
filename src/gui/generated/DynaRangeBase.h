@@ -74,6 +74,7 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_outputTextCtrl;
 		wxStaticText* graphicFormatStaticText;
 		wxChoice* m_plotFormatChoice;
+		wxCheckBox* m_saveLog;
 		wxStaticText* R_staticText;
 		wxCheckBox* R_checkBox;
 		wxStaticText* G1_staticText;
@@ -103,6 +104,7 @@ class MyFrameBase : public wxFrame
 		wxListBox* m_rawFileslistBox;
 		wxButton* m_addRawFilesButton;
 		wxButton* m_removeRawFilesButton;
+		wxButton* m_removeAllFiles;
 		wxPanel* right_column_panel_Down;
 		wxTextCtrl* m_equivalentCliTextCtrl;
 		wxButton* m_executeButton;

@@ -19,4 +19,9 @@ namespace DynaRange::Gui::Constants {
      */
     constexpr double GUI_RENDER_SCALE_FACTOR = 0.75;
 
+    /**
+     * @brief The default filename for the log output when saving is enabled.
+     */
+    constexpr const char* LOG_OUTPUT_FILENAME = "DynaRange Analysis Results.txt";
+
 } // namespace DynaRange::Gui::Constants
