@@ -4,8 +4,8 @@
  * @brief Declares a controller class for the InputPanel's logic.
  */
 #pragma once
-#include "../arguments/ArgumentsOptions.hpp"
-#include "../graphics/Constants.hpp"
+#include "../../core/arguments/ArgumentsOptions.hpp"
+#include "../../core/graphics/Constants.hpp"
 #include <wx/event.h>
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@ public:
     double GetSaturationValue() const;
     double GetPatchRatio() const;
     std::string GetOutputFilePath() const;
-    double GetSnrThreshold() const;
+    std::vector<double> GetSnrThresholds() const;
     double GetDrNormalization() const;
     int GetPolyOrder() const;
     int GetPlotMode() const;
@@ -52,7 +52,6 @@ public:
     void OnRemoveFilesClick(wxCommandEvent& event);
     void OnListBoxSelectionChanged(wxCommandEvent& event);
     void OnListBoxKeyDown(wxKeyEvent& event);
-    void OnSnrSliderChanged(wxScrollEvent& event);
     void OnDrNormSliderChanged(wxScrollEvent& event);
     void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
 

@@ -20,7 +20,7 @@ std::string GenerateCommand(CommandFormat format)
     std::stringstream command_ss;
     command_ss << DynaRange::Utils::Constants::CLI_EXECUTABLE_NAME;
     auto& mgr = ArgumentManager::Instance();
-    
+
     auto add_arg = [&](const std::string& name) {
         bool use_short = (format == CommandFormat::PlotShort);
         if (name == "poly-fit") command_ss << (use_short ? " -f" : " --poly-fit");
@@ -55,23 +55,19 @@ std::string GenerateCommand(CommandFormat format)
     }
 
     if (!mgr.Get<bool>("snr-threshold-is-default")) {
-        command_ss << " --snrthreshold-db " << mgr.Get<double>("snrthreshold-db");
+        // Retrieve the thresholds as a vector and iterate through them.
+        command_ss << " --snrthreshold-db";
+        const auto& thresholds = mgr.Get<std::vector<double>>("snrthreshold-db");
+        for (const auto& threshold : thresholds) {
+            command_ss << " " << threshold;
+        }
     }
 
     command_ss << " --drnormalization-mpx " << mgr.Get<double>("drnormalization-mpx");
     command_ss << " --poly-fit " << mgr.Get<int>("poly-fit");
     command_ss << " --patch-ratio " << mgr.Get<double>("patch-ratio");
     command_ss << " --plot " << mgr.Get<int>("plot");
-
-    // The --print-patches argument is a debug tool and will no longer be shown
-    // in the equivalent command string to keep it clean.
-    /*
-    const auto& print_patches_file = mgr.Get<std::string>("print-patches");
-    if (!print_patches_file.empty()) {
-        command_ss << " --print-patches \"" << print_patches_file << "\"";
-    }
-    */
-
+    
     const auto& chart_coords = mgr.Get<std::vector<double>>("chart-coords");
     if (!chart_coords.empty()) {
         command_ss << " --chart-coords";

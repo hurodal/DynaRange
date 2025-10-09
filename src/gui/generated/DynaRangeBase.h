@@ -61,12 +61,11 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
-		wxStaticText* m_snrThresholdStaticText;
-		wxSlider* m_snrThresholdslider;
-		wxStaticText* m_snrThresholdValueText;
 		wxStaticText* m_drNormalizationStaticText;
 		wxSlider* m_drNormalizationSlider;
 		wxStaticText* m_drNormalizationValueText;
+		wxStaticText* m_snrThresholdStaticText;
+		wxTextCtrl* m_snrThresholdsValues;
 		wxStaticText* m_polynomicStaticText;
 		wxChoice* m_PlotChoice;
 		wxStaticText* m_plotingStaticText;

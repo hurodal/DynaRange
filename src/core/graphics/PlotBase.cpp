@@ -53,7 +53,8 @@ void DrawGridLines(cairo_t* cr, const std::map<std::string, double>& bounds, con
         return MapToPixelCoords(ev, db, bounds, ctx);
     };
 
-    PlotColors::cairo_set_source_grey_20(cr);
+    // Change the internal grid color to a light gray (GREY_90)
+    PlotColors::cairo_set_source_grey_90(cr);
     cairo_set_line_width(cr, 1.0);
 
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
@@ -75,6 +76,9 @@ void DrawThresholdLines(cairo_t* cr, const std::map<std::string, double>& bounds
     };
 
     const DynaRange::Graphics::FontManager font_manager(ctx);
+    
+    // Set a dark gray color for the threshold lines and text
+    PlotColors::cairo_set_source_grey_20(cr);
     cairo_set_line_width(cr, 2.0);
     font_manager.SetThresholdLabelFont(cr);
 
@@ -96,6 +100,10 @@ void DrawXAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, c
 
     const DynaRange::Graphics::FontManager font_manager(ctx);
     font_manager.SetAxisTickFont(cr);
+    
+    // Set the color to black for the axis tick labels
+    PlotColors::cairo_set_source_black(cr);
+    
     cairo_text_extents_t extents;
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { 
         std::string ev_str = std::to_string((int)ev);
@@ -113,6 +121,10 @@ void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, c
 
     const DynaRange::Graphics::FontManager font_manager(ctx);
     font_manager.SetAxisTickFont(cr);
+    
+    // Set the color to black for the axis tick labels
+    PlotColors::cairo_set_source_black(cr);
+
     cairo_text_extents_t extents;
     for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) { 
         std::string db_str = std::to_string((int)db);

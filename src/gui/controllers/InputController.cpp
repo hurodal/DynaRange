@@ -16,6 +16,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <sstream>
 
 namespace { // Anonymous namespace for internal helpers
 
@@ -92,8 +93,6 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->m_outputTextCtrl->SetValue(DEFAULT_OUTPUT_FILENAME);
     m_frame->m_patchRatioSlider->SetValue(static_cast<int>(DEFAULT_PATCH_RATIO * 100));
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", DEFAULT_PATCH_RATIO));
-    m_frame->m_snrThresholdslider->SetValue(static_cast<int>(DEFAULT_SNR_THRESHOLD_DB));
-    m_frame->m_snrThresholdValueText->SetLabel(wxString::Format("%.0fdB", DEFAULT_SNR_THRESHOLD_DB));
     m_frame->m_drNormalizationSlider->SetValue(static_cast<int>(DEFAULT_DR_NORMALIZATION_MPX));
     m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", DEFAULT_DR_NORMALIZATION_MPX));
     m_frame->m_plotingChoice->SetSelection(DEFAULT_PLOT_MODE);
@@ -113,7 +112,6 @@ double InputController::GetDarkValue() const { double val; m_frame->m_darkValueT
 double InputController::GetSaturationValue() const { double val; m_frame->m_saturationValueTextCtrl->GetValue().ToDouble(&val); return val; }
 double InputController::GetPatchRatio() const { return static_cast<double>(m_frame->m_patchRatioSlider->GetValue()) / 100.0; }
 std::string InputController::GetOutputFilePath() const { return std::string(m_frame->m_outputTextCtrl->GetValue().mb_str()); }
-double InputController::GetSnrThreshold() const { return static_cast<double>(m_frame->m_snrThresholdslider->GetValue()); }
 double InputController::GetDrNormalization() const { return static_cast<double>(m_frame->m_drNormalizationSlider->GetValue()); }
 int InputController::GetPolyOrder() const { return PolyOrderFromIndex(m_frame->m_PlotChoice->GetSelection()); }
 int InputController::GetPlotMode() const { return m_frame->m_plotingChoice->GetSelection(); }
@@ -124,7 +122,17 @@ std::vector<std::string> InputController::GetInputFiles() const {
     }
     return files;
 }
+std::vector<double> InputController::GetSnrThresholds() const {
+    std::vector<double> thresholds;
+    std::string text = std::string(m_frame->m_snrThresholdsValues->GetValue().mb_str());
+    std::stringstream ss(text);
+    double value;
 
+    while (ss >> value) {
+        thresholds.push_back(value);
+    }
+    return thresholds;
+}
 // --- View Updaters ---
 void InputController::UpdateInputFileList(const std::vector<std::string>& files) {
     m_frame->m_rawFileslistBox->Clear();
@@ -173,10 +181,7 @@ void InputController::OnPatchRatioSliderChanged(wxScrollEvent& event) {
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", GetPatchRatio()));
     m_frame->OnInputChanged(event); // Notify frame to update preview
 }
-void InputController::OnSnrSliderChanged(wxScrollEvent& event) {
-    m_frame->m_snrThresholdValueText->SetLabel(wxString::Format("%.0fdB", GetSnrThreshold()));
-    m_frame->OnInputChanged(event);
-}
+
 void InputController::OnDrNormSliderChanged(wxScrollEvent& event) {
     m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", GetDrNormalization()));
     m_frame->OnInputChanged(event);

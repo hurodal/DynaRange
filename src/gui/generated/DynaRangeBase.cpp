@@ -133,23 +133,6 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	analysisParamsSizer->Add( patchRatioSizer, 0, wxEXPAND, 5 );
 
-	wxBoxSizer* snrThresholdSizer;
-	snrThresholdSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_snrThresholdStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("SNR Threshold"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_snrThresholdStaticText->Wrap( -1 );
-	snrThresholdSizer->Add( m_snrThresholdStaticText, 0, wxALL|wxEXPAND, 5 );
-
-	m_snrThresholdslider = new wxSlider( analysisParamsSizer->GetStaticBox(), wxID_ANY, 12, -12, 24, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
-	snrThresholdSizer->Add( m_snrThresholdslider, 1, wxALL|wxEXPAND, 5 );
-
-	m_snrThresholdValueText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("12dB"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_snrThresholdValueText->Wrap( -1 );
-	snrThresholdSizer->Add( m_snrThresholdValueText, 0, wxALL|wxEXPAND, 5 );
-
-
-	analysisParamsSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
-
 	wxBoxSizer* drNormalizationSizer;
 	drNormalizationSizer = new wxBoxSizer( wxHORIZONTAL );
 
@@ -166,6 +149,19 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 
 	analysisParamsSizer->Add( drNormalizationSizer, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* snrThresholdSizer;
+	snrThresholdSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_snrThresholdStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("SNR Thresholds"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_snrThresholdStaticText->Wrap( -1 );
+	snrThresholdSizer->Add( m_snrThresholdStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_snrThresholdsValues = new wxTextCtrl( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("0 12"), wxDefaultPosition, wxDefaultSize, 0 );
+	snrThresholdSizer->Add( m_snrThresholdsValues, 1, wxALL, 5 );
+
+
+	analysisParamsSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* plotPolyOutputSizer;
 	plotPolyOutputSizer = new wxBoxSizer( wxHORIZONTAL );

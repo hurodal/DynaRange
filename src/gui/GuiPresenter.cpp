@@ -69,7 +69,7 @@ void GuiPresenter::UpdateManagerFromView() {
   mgr.Set("patch-ratio", m_view->GetPatchRatio());
   mgr.Set("input-files", m_view->GetInputFiles());
   mgr.Set("output-file", m_view->GetOutputFilePath());
-  mgr.Set("snrthreshold-db", m_view->GetSnrThreshold());
+  mgr.Set("snrthreshold-db", m_view->GetSnrThresholds());
   mgr.Set("drnormalization-mpx", m_view->GetDrNormalization());
   mgr.Set("poly-fit", m_view->GetPolyOrder());
   
@@ -98,21 +98,22 @@ void GuiPresenter::UpdateManagerFromView() {
   };
   mgr.Set("raw-channel", channels_vec);
   
-  // Correctly update the "is_default" flags. A value is considered "default"
-  // only if the user has NOT provided a file for it. This logic is now aligned
-  // with the user's expectation. If a user enters a value manually, that is also
-  // considered a user-provided value, but the cleanest way to check for user
-  // interaction is by the presence of a file path, which covers the main use case.
-  // To be fully robust, we check both file path and value.
   bool black_is_default = m_view->GetDarkFilePath().empty();
   mgr.Set("black-level-is-default", black_is_default);
   bool sat_is_default = m_view->GetSaturationFilePath().empty();
   mgr.Set("saturation-level-is-default", sat_is_default);
+  
+  // The default flag is now determined by the user providing the argument in the CLI.
+  // In the GUI, we can assume if the user has touched the control, it's not default.
+  // A simple check is to see if the content is different from the default "0 12".
+  std::vector<double> current_thresholds = m_view->GetSnrThresholds();
+  bool snr_is_default = (current_thresholds.size() == 2 && current_thresholds[0] == 0 && current_thresholds[1] == 12);
+  mgr.Set("snr-threshold-is-default", snr_is_default);
+
 
   // Añadir el valor de print-patches al manager
   mgr.Set("print-patches", m_view->GetPrintPatchesFilename());
 }
-
 
 void GuiPresenter::UpdateCommandPreview() {
 

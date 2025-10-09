@@ -22,7 +22,7 @@
 // Anonymous namespace for internal helper functions
 namespace {
 
-void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
+void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx, double alpha) {
     if (curve.curve_points.empty()) {
         return;
     }
@@ -30,7 +30,7 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
         return MapToPixelCoords(ev, db, bounds, ctx);
     };
 
-    PlotColors::SetSourceFromChannel(cr, curve.channel);
+    PlotColors::SetSourceFromChannelWithAlpha(cr, curve.channel, alpha);
     cairo_set_line_width(cr, 2.0);
 
     const auto& first_point = curve.curve_points[0];
@@ -44,22 +44,20 @@ void DrawCurve(cairo_t* cr, const CurveData& curve, const std::map<std::string, 
     cairo_stroke(cr);
 }
 
-void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
+void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx, double alpha) {
     auto map_coords = [&](double ev, double db) {
         return MapToPixelCoords(ev, db, bounds, ctx);
     };
 
-    // If the main curve is AVG, color each point by its original source.
-    // Otherwise, all points have the same color as the curve.
     if (curve.channel == DataSource::AVG) {
         for (const auto& point : curve.points) {
-            PlotColors::SetSourceFromChannel(cr, point.channel);
+            PlotColors::SetSourceFromChannelWithAlpha(cr, point.channel, alpha);
             auto [px, py] = map_coords(point.ev, point.snr_db);
             cairo_arc(cr, px, py, 2.5, 0, 2 * M_PI);
             cairo_fill(cr);
         }
     } else {
-        PlotColors::SetSourceFromChannel(cr, curve.channel);
+        PlotColors::SetSourceFromChannelWithAlpha(cr, curve.channel, alpha);
         for (const auto& point : curve.points) {
             auto [px, py] = map_coords(point.ev, point.snr_db);
             cairo_arc(cr, px, py, 2.5, 0, 2 * M_PI);
@@ -67,6 +65,7 @@ void DrawDataPoints(cairo_t* cr, const CurveData& curve, const std::map<std::str
         }
     }
 }
+
 
 void DrawCurveLabel(cairo_t* cr, const CurveData& curve, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
     if (curve.points.empty()) return;
@@ -151,14 +150,39 @@ void DrawCurvesAndData(cairo_t* cr,
                        const std::map<std::string, double>& bounds)
 {
     info_box.Draw(cr, ctx);
-    // --- PASS 1: Draw curves and points ---
-    for (const auto& curve : curves) {
+    
+    // --- Define the desired drawing order (from back to front) ---
+    const std::vector<DataSource> draw_order = {
+        DataSource::AVG,
+        DataSource::G1,
+        DataSource::G2,
+        DataSource::R,
+        DataSource::B
+    };
+
+    // --- Create a new vector of curves sorted by the desired draw order ---
+    std::vector<const CurveData*> sorted_curves;
+    for (DataSource channel_to_find : draw_order) {
+        for (const auto& curve : curves) {
+            if (curve.channel == channel_to_find) {
+                sorted_curves.push_back(&curve);
+            }
+        }
+    }
+    
+    // --- PASS 1: Draw sorted curves and points with new opacity logic ---
+    for (size_t i = 0; i < sorted_curves.size(); ++i) {
+        const CurveData& curve = *sorted_curves[i];
         if (curve.points.empty()) continue;
-        DrawCurve(cr, curve, bounds, ctx);
-        DrawDataPoints(cr, curve, bounds, ctx);
+
+        // The first curve (index 0) is 100% opaque. All subsequent curves have a fixed transparency.
+        double alpha = (i == 0) ? 1.0 : (1.0 - PlotColors::OPACITY_DECREMENT_STEP);
+
+        DrawCurve(cr, curve, bounds, ctx, alpha);
+        DrawDataPoints(cr, curve, bounds, ctx, alpha);
     }
 
-    // --- PASS 2: Draw labels ---
+    // --- PASS 2: Draw labels (always on top and fully opaque) ---
     std::set<std::string> drawn_iso_labels;
     // Group curves by filename (ISO) to handle them as a block
     std::map<std::string, std::vector<const CurveData*>> curves_by_iso;
@@ -209,26 +233,34 @@ void DrawCurvesAndData(cairo_t* cr,
             }
             return std::nullopt;
         };
+        
+        // Get all unique SNR thresholds from the results to be plotted
+        std::set<double> snr_thresholds_to_plot;
+        for (const auto& res : results) {
+            for (const auto& p : res.dr_values_ev) {
+                snr_thresholds_to_plot.insert(p.first);
+            }
+        }
 
-        auto base_geom_12db = calculate_base_geometry(12.0);
-        auto base_geom_0db  = calculate_base_geometry(0.0);
-        // 3. Draw all labels in the group using the shared base line geometry
-        int group_size = iso_curves_group.size();
-        for (int i = 0; i < group_size; ++i) {
-            const CurveData& current_curve = *iso_curves_group[i];
-            auto it = std::find_if(results.begin(), results.end(),
-                [&](const DynamicRangeResult& r){ return r.filename == current_curve.filename && r.channel == current_curve.channel; });
-            if (it != results.end()) {
-                if (base_geom_12db && it->dr_values_ev.count(12.0)) {
+        // Iterate over all thresholds that have results
+        for (double threshold : snr_thresholds_to_plot) {
+            auto base_geometry = calculate_base_geometry(threshold);
+            if (!base_geometry) {
+                continue; // Cannot determine geometry if primary curve doesn't have this threshold
+            }
+            
+            auto [px, py, angle] = *base_geometry;
+            int group_size = iso_curves_group.size();
+            
+            // Draw all labels in the group for the current threshold
+            for (int i = 0; i < group_size; ++i) {
+                const CurveData& current_curve = *iso_curves_group[i];
+                auto it = std::find_if(results.begin(), results.end(),
+                    [&](const DynamicRangeResult& r){ return r.filename == current_curve.filename && r.channel == current_curve.channel; });
+
+                if (it != results.end() && it->dr_values_ev.count(threshold)) {
                     std::stringstream ss;
-                    ss << std::fixed << std::setprecision(2) << it->dr_values_ev.at(12.0) << "EV";
-                    auto [px, py, angle] = *base_geom_12db;
-                    DrawThresholdIntersection(cr, ss.str(), current_curve.channel, px, py, angle, iso_index, i, group_size, bounds, ctx);
-                }
-                if (base_geom_0db && it->dr_values_ev.count(0.0)) {
-                    std::stringstream ss;
-                    ss << std::fixed << std::setprecision(2) << it->dr_values_ev.at(0.0) << "EV";
-                    auto [px, py, angle] = *base_geom_0db;
+                    ss << std::fixed << std::setprecision(2) << it->dr_values_ev.at(threshold) << "EV";
                     DrawThresholdIntersection(cr, ss.str(), current_curve.channel, px, py, angle, iso_index, i, group_size, bounds, ctx);
                 }
             }

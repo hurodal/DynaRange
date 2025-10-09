@@ -34,24 +34,20 @@ void ArgumentManager::RegisterAllArguments() {
 
     m_descriptors["black-level"] = {"black-level", "B", _("Camera RAW black level"), ArgType::Double, DEFAULT_BLACK_LEVEL};
     m_descriptors["black-file"] = {"black-file", "b", _("Totally dark RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
-    
     m_descriptors["saturation-level"] = {"saturation-level", "S", _("Camera RAW saturation level"), ArgType::Double, DEFAULT_SATURATION_LEVEL};
     m_descriptors["saturation-file"] = {"saturation-file", "s", _("Totally clipped RAW file ideally shot at base ISO"), ArgType::String, std::string("")};
-    
     m_descriptors["input-files"] = {"input-files", "i", _("Input RAW files shot over the test chart ideally for every ISO"), ArgType::StringVector, std::vector<std::string>{}, false};
     m_descriptors["patch-ratio"] = {"patch-ratio", "r", _("Relative patch width/height used to compute signal and noise readings (default=0.5)"), ArgType::Double, DEFAULT_PATCH_RATIO, false, 0.0, 1.0};
-    m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::Double, DEFAULT_SNR_THRESHOLD_DB};
+    m_descriptors["snrthreshold-db"] = {"snrthreshold-db", "d", _("SNR threshold in dB for DR calculation (default=12dB (photo DR) plus 0dB (engineering DR))"), ArgType::DoubleVector, std::vector<double>{12.0, 0.0}};
     m_descriptors["drnormalization-mpx"] = {"drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=8Mpx)"), ArgType::Double, DEFAULT_DR_NORMALIZATION_MPX};
     m_descriptors["poly-fit"] = {"poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3};
     m_descriptors["output-file"] = {"output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME)};
     m_descriptors["plot"] = {"plot", "p", _("Export SNR curves in PNG/PDF/SVG format..."), ArgType::Int, DEFAULT_PLOT_MODE};
-    
     m_descriptors["print-patches"] = {"print-patches", "g", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("")};
-    
     m_descriptors["raw-channel"] = {"raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int>{0, 0, 0, 0, 1}};
     m_descriptors["generate-plot"] = {"generate-plot", "", "", ArgType::Flag, false};
     m_descriptors["plot-format"] = {"plot-format", "", "", ArgType::Int, DynaRange::Graphics::Constants::PlotOutputFormat::PNG};
-
+    
     // Internal flags
     m_descriptors["snr-threshold-is-default"] = {"snr-threshold-is-default", "", "", ArgType::Flag, true};
     m_descriptors["black-level-is-default"] = {"black-level-is-default", "", "", ArgType::Flag, true};
@@ -63,6 +59,7 @@ void ArgumentManager::RegisterAllArguments() {
     m_descriptors["create-chart-mode"] = {"create-chart-mode", "", "", ArgType::Flag, false};
     m_descriptors["chart-coords"] = {"chart-coords", "x", _("Test chart defined by 4 corners: tl, bl, br, tr"), ArgType::DoubleVector, std::vector<double>()};
     m_descriptors["chart-patches"] = {"chart-patches", "M", _("Specify number of patches over rows (M) and columns (N) (default M=4, N=6)"), ArgType::IntVector, std::vector<int>()};
+    
     m_is_registered = true;
 }
 
@@ -227,10 +224,11 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
     opts.black_level_is_default = Get<bool>("black-level-is-default");
     opts.saturation_level_is_default = Get<bool>("saturation-level-is-default");
 
+    // The logic is corrected to properly handle a vector of doubles.
     if (Get<bool>("snr-threshold-is-default")) {
          opts.snr_thresholds_db = {12.0, 0.0};
     } else {
-         opts.snr_thresholds_db = { Get<double>("snrthreshold-db") };
+         opts.snr_thresholds_db = Get<std::vector<double>>("snrthreshold-db");
     }
 
     auto channels_vec = Get<std::vector<int>>("raw-channel");
@@ -244,7 +242,6 @@ ProgramOptions ArgumentManager::ToProgramOptions() {
 
     return opts;
 }
-
 
 void ArgumentManager::Set(const std::string& long_name, std::any value)
 {

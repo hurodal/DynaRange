@@ -18,8 +18,8 @@ namespace PlotColors {
     // Core Colors
     constexpr double BLACK[] = {0.0, 0.0, 0.0};
     constexpr double WHITE[] = {1.0, 1.0, 1.0};
-    constexpr double RED[]   = {255.0/255.0, 0.0, 0.0};      // Vibrant red
-    constexpr double BLUE[]  = {0.0, 0.0, 220.0/255.0};      // Vibrant blue
+    constexpr double RED[]   = {255.0/255.0, 0.0, 0.0}; // Vibrant red
+    constexpr double BLUE[]  = {0.0, 0.0, 220.0/255.0}; // Vibrant blue
     constexpr double GREEN_LIGHT[] = {0.0, 255.0/255.0, 0.0};// A clear green for G1
     constexpr double GREEN_DARK[] = {0.0, 200.0/255.0, 0.0}; // A darker green for G2    
 
@@ -28,6 +28,12 @@ namespace PlotColors {
     constexpr double GREY_20[] = {0.2, 0.2, 0.2};
     constexpr double GREY_50[] = {0.5, 0.5, 0.5};
     constexpr double GREY_90[] = {0.9, 0.9, 0.9};
+
+    /**
+     * @brief The percentage of opacity to decrease for each overlapping curve layer.
+     * @details A value of 0.05 corresponds to a 5% decrement per layer.
+     */
+    constexpr double OPACITY_DECREMENT_STEP = 0.0;
 
     // --- HELPER FUNCTIONS FOR CAIRO ---
     inline void cairo_set_source_black(cairo_t* cr) { cairo_set_source_rgb(cr, BLACK[0], BLACK[1], BLACK[2]); }
@@ -41,14 +47,25 @@ namespace PlotColors {
     inline void cairo_set_source_grey_50(cairo_t* cr) { cairo_set_source_rgb(cr, GREY_50[0], GREY_50[1], GREY_50[2]); }
     inline void cairo_set_source_grey_90(cairo_t* cr) { cairo_set_source_rgb(cr, GREY_90[0], GREY_90[1], GREY_90[2]); }
 
-    // New helper to set color based on the data source channel.
+    // Helper to set color based on the data source channel.
     inline void SetSourceFromChannel(cairo_t* cr, DataSource channel) {
         switch (channel) {
-            case DataSource::R:   cairo_set_source_red(cr);         break;
+            case DataSource::R:   cairo_set_source_red(cr); break;
             case DataSource::G1:  cairo_set_source_green_light(cr); break;
             case DataSource::G2:  cairo_set_source_green_dark(cr);  break;
             case DataSource::B:   cairo_set_source_blue(cr);        break;
-            case DataSource::AVG: cairo_set_source_black(cr);       break;
+            case DataSource::AVG: cairo_set_source_black(cr); break;
+        }
+    }
+    
+    // New helper to set color with an alpha channel for opacity.
+    inline void SetSourceFromChannelWithAlpha(cairo_t* cr, DataSource channel, double alpha) {
+        switch (channel) {
+            case DataSource::R:   cairo_set_source_rgba(cr, RED[0], RED[1], RED[2], alpha); break;
+            case DataSource::G1:  cairo_set_source_rgba(cr, GREEN_LIGHT[0], GREEN_LIGHT[1], GREEN_LIGHT[2], alpha); break;
+            case DataSource::G2:  cairo_set_source_rgba(cr, GREEN_DARK[0], GREEN_DARK[1], GREEN_DARK[2], alpha); break;
+            case DataSource::B:   cairo_set_source_rgba(cr, BLUE[0], BLUE[1], BLUE[2], alpha); break;
+            case DataSource::AVG: cairo_set_source_rgba(cr, BLACK[0], BLACK[1], BLACK[2], alpha); break;
         }
     }
 }

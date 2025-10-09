@@ -44,7 +44,7 @@ public:
     void SetUiState(bool is_processing);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
-    void DisplayImage(const wxImage& image); // Replaces LoadGraphImage
+    void DisplayImage(const wxImage& image);
 
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
@@ -53,7 +53,7 @@ public:
     double GetSaturationValue() const;
     double GetPatchRatio() const;
     std::string GetOutputFilePath() const;
-    double GetSnrThreshold() const;
+    std::vector<double> GetSnrThresholds() const;
     double GetDrNormalization() const;
     int GetPolyOrder() const;
     int GetPlotMode() const;
@@ -89,7 +89,6 @@ protected:
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
     void OnRemoveFilesClick(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
-    void OnSnrSliderChanged(wxScrollEvent& event);
     void OnSplitterSashChanged(wxSplitterEvent& event);
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
@@ -124,7 +123,6 @@ private:
     friend class ChartController;
     friend class FileDropTarget;
 };
-
 class FileDropTarget : public wxFileDropTarget
 {
 public:

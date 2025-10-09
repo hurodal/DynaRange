@@ -84,8 +84,15 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_mainNotebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &DynaRangeFrame::OnNotebookPageChanged, this);
     m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
     m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
-    m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
-    m_snrThresholdslider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnSnrSliderChanged, this);
+    
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // Se eliminan los Bind del antiguo wxSlider
+    // m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
+    // m_snrThresholdslider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnSnrSliderChanged, this);
+    // Se añade el Bind para el nuevo wxTextCtrl
+    m_snrThresholdsValues->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    // --- FIN DE LA MODIFICACIÓN ---
+
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnDrNormSliderChanged, this);
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnDrNormSliderChanged, this);
     m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
@@ -202,7 +209,7 @@ double DynaRangeFrame::GetSaturationValue() const { return m_inputController->Ge
 double DynaRangeFrame::GetPatchRatio() const { return m_inputController->GetPatchRatio();
 }
 std::string DynaRangeFrame::GetOutputFilePath() const { return m_inputController->GetOutputFilePath(); }
-double DynaRangeFrame::GetSnrThreshold() const { return m_inputController->GetSnrThreshold(); }
+std::vector<double> DynaRangeFrame::GetSnrThresholds() const {  return m_inputController->GetSnrThresholds();  }
 double DynaRangeFrame::GetDrNormalization() const { return m_inputController->GetDrNormalization();
 }
 int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrder(); }
@@ -270,8 +277,6 @@ void DynaRangeFrame::OnRemoveFilesClick(wxCommandEvent& event) { m_inputControll
 }
 
 void DynaRangeFrame::OnSize(wxSizeEvent& event) { event.Skip();}
-
-void DynaRangeFrame::OnSnrSliderChanged(wxScrollEvent& event) { m_inputController->OnSnrSliderChanged(event); }
 
 void DynaRangeFrame::OnSplitterSashChanged(wxSplitterEvent& event) { event.Skip(); }
 
