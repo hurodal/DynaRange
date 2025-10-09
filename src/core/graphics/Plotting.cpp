@@ -9,19 +9,14 @@
  */
 
 #include "Plotting.hpp"
-#include "PlotBase.hpp"
-#include "PlotData.hpp"
-#include "PlotInfoBox.hpp"
+#include "PlotOrchestrator.hpp"
 #include "Constants.hpp"
 #include "../io/OutputWriter.hpp"
-#include "PlotDataGenerator.hpp" 
 #include <cairo/cairo.h>
 #include <cairo/cairo-svg.h>
 #include <iostream>
-#include <algorithm>
 #include <map>
 #include <optional>
-#include <iomanip>
 #include <sstream>
 #include <libintl.h>
 
@@ -37,16 +32,15 @@ std::optional<std::string> GeneratePlotInternal(
     const std::vector<CurveData>& curves_to_plot,
     const std::vector<DynamicRangeResult>& results_to_plot,
     const ProgramOptions& opts,
-    const std::map<std::string, double>& bounds,
     std::ostream& log_stream)
 {
-    // The context is now created explicitly for file output from the base constants.
+    // 1. Create the context for high-resolution file output.
     const auto render_ctx = DynaRange::Graphics::RenderContext{
         DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH,
         DynaRange::Graphics::Constants::PlotDefs::BASE_HEIGHT
     };
 
-    // Calculate dimensions and scale at runtime based on the selected plot format.
+    // 2. Prepare the Cairo surface based on the desired file format.
     bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG);
     double scale = is_vector ? DynaRange::Graphics::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
     int width = static_cast<int>(render_ctx.base_width * scale);
@@ -74,30 +68,16 @@ std::optional<std::string> GeneratePlotInternal(
     if (scale != 1.0) {
         cairo_scale(cr, scale, scale);
     }
-
-    PlotInfoBox info_box;
-    std::stringstream black_ss, sat_ss;
     
-    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
-    std::string black_annotation = opts.black_level_is_default ? _(" (estimated)") : "";
-    info_box.AddItem(_("Black"), black_ss.str(), black_annotation);
-
-    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
-    std::string sat_annotation = opts.saturation_level_is_default ? _(" (estimated)") : "";
-    info_box.AddItem(_("Saturation"), sat_ss.str(), sat_annotation);
-
-    std::string command_text = curves_to_plot.empty() ? "" : curves_to_plot[0].generated_command;
+    // 3. Call the central "skeleton" function to do all the drawing.
+    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_to_plot, results_to_plot, title, opts);
     
-    // Pass the context to the drawing functions
-    DrawPlotBase(cr, render_ctx, title, opts, bounds, command_text, opts.snr_thresholds_db);
-    DrawCurvesAndData(cr, render_ctx, info_box, curves_to_plot, results_to_plot, bounds);
-    DrawGeneratedTimestamp(cr, render_ctx);
-    
+    // 4. Finalize and save the file.
     bool success = false;
     switch (opts.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
             cairo_surface_flush(surface);
-            success = (cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS); // Check status on surface
+            success = (cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS);
             if (success) {
                 log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
             }
@@ -140,18 +120,8 @@ void GenerateSnrPlot(
         return;
     }
 
-    auto min_max_ev = std::minmax_element(signal_ev.begin(), signal_ev.end());
-    double min_ev_data = *min_max_ev.first;
-    double max_ev_data = *min_max_ev.second;
-    auto min_max_db = std::minmax_element(snr_db.begin(), snr_db.end());
-    double min_db_data = *min_max_db.first;
-    double max_db_data = *min_max_db.second;
-
-    std::map<std::string, double> bounds;
-    bounds["min_ev"] = floor(min_ev_data) - 1.0;
-    bounds["max_ev"] = (max_ev_data < 0.0) ? 0.0 : ceil(max_ev_data) + 1.0;
-    bounds["min_db"] = floor(min_db_data / 5.0) * 5.0;
-    bounds["max_db"] = ceil(max_db_data / 5.0) * 5.0;
+    // The logic for calculating 'bounds' has been removed from this function,
+    // as it is now handled centrally by the plot orchestrator called by GeneratePlotInternal.
 
     CurveData single_curve_data;
     single_curve_data.filename = plot_title;
@@ -169,12 +139,15 @@ void GenerateSnrPlot(
     single_curve_data.poly_coeffs = poly_coeffs;
     single_curve_data.generated_command = opts.generated_command;
     
-    single_curve_data.curve_points = PlotDataGenerator::GenerateCurvePoints(single_curve_data);
+    // curve_points are now generated inside the central orchestrator,
+    // so this line is no longer needed here.
+    // single_curve_data.curve_points = PlotDataGenerator::GenerateCurvePoints(single_curve_data);
 
     std::vector<CurveData> single_curve_vec = {single_curve_data};
     std::vector<DynamicRangeResult> single_result_vec = {dr_result};
 
-    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, bounds, log_stream);
+    // Corrected call to GeneratePlotInternal without the 'bounds' argument.
+    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, log_stream);
 }
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -195,35 +168,9 @@ std::optional<std::string> GenerateSummaryPlot(
         return std::nullopt;
     }
 
-    std::vector<CurveData> curves_with_points = all_curves;
-    for (auto& curve : curves_with_points) {
-        curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
-    }
-
-    double min_ev_global = 1e6, max_ev_global = -1e6;
-    double min_db_global = 1e6, max_db_global = -1e6;
-    for (const auto& curve : curves_with_points) {
-        if (!curve.points.empty()) {
-            auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
-                [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
-            min_ev_global = std::min(min_ev_global, minmax_ev_it.first->ev);
-            max_ev_global = std::max(max_ev_global, minmax_ev_it.second->ev);
-
-            auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(),
-                [](const PointData& a, const PointData& b){ return a.snr_db < b.snr_db; });
-            min_db_global = std::min(min_db_global, minmax_db_it.first->snr_db);
-            max_db_global = std::max(max_db_global, minmax_db_it.second->snr_db);
-        }
-    }
-
-    std::map<std::string, double> bounds;
-    bounds["min_ev"] = floor(min_ev_global) - 1.0;
-    bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
-    bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
-    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     
-    return GeneratePlotInternal(output_filename, title, curves_with_points, all_results, opts, bounds, log_stream);
+    return GeneratePlotInternal(output_filename, title, all_curves, all_results, opts, log_stream);
 }
 
 std::map<std::string, std::string> GenerateIndividualPlots(
@@ -253,9 +200,6 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file[filename];
 
         if (curves_for_this_file.empty()) continue;
-        for (auto& curve : curves_for_this_file) {
-            curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
-        }
 
         const auto& first_curve = curves_for_this_file[0];
         fs::path plot_path = paths.GetIndividualPlotPath(first_curve, opts);
@@ -269,29 +213,8 @@ std::map<std::string, std::string> GenerateIndividualPlots(
             }
             title_ss << ")";
         }
-
-        double min_ev = 1e6, max_ev = -1e6, min_db = 1e6, max_db = -1e6;
-        for (const auto& curve : curves_for_this_file) {
-            if (!curve.points.empty()) {
-                auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
-                    [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
-                min_ev = std::min(min_ev, minmax_ev_it.first->ev);
-                max_ev = std::max(max_ev, minmax_ev_it.second->ev);
-
-                auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(),
-                    [](const PointData& a, const PointData& b){ return a.snr_db < b.snr_db; });
-                min_db = std::min(min_db, minmax_db_it.first->snr_db);
-                max_db = std::max(max_db, minmax_db_it.second->snr_db);
-            }
-        }
         
-        std::map<std::string, double> bounds;
-        bounds["min_ev"] = floor(min_ev) - 1.0;
-        bounds["max_ev"] = (max_ev < 0.0) ? 0.0 : ceil(max_ev) + 1.0;
-        bounds["min_db"] = floor(min_db / 5.0) * 5.0;
-        bounds["max_db"] = ceil(max_db / 5.0) * 5.0;
-        
-        if (auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, bounds, log_stream)) {
+        if (auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, log_stream)) {
             plot_paths_map[filename] = *path_opt;
         }
     }

@@ -79,6 +79,7 @@ set(CORE_SOURCES
     src/core/graphics/PlotData.cpp
     src/core/graphics/PlotDataGenerator.cpp
     src/core/graphics/PlotInfoBox.cpp
+    src/core/graphics/PlotOrchestrator.cpp
     src/core/graphics/Plotting.cpp
     src/core/io/OutputWriter.cpp
     src/core/io/RawFile.cpp
