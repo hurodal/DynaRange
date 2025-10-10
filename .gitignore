@@ -4,6 +4,7 @@
 DynRange.geany
 rango.sublime-workspace
 dynaRange.pot
+*.exe
 
 # Ignorar ejecutables
 sources.sh
