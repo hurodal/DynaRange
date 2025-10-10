@@ -108,8 +108,11 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	left_column_sizer->Add( darkSaturationSizer, 0, 0, 5 );
 
-	wxBoxSizer* right_column_sizer;
-	right_column_sizer = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* analysisGraphSizer;
+	analysisGraphSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* analysisSizer;
+	analysisSizer = new wxBoxSizer( wxVERTICAL );
 
 	wxStaticBoxSizer* analysisParamsSizer;
 	analysisParamsSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Analysis Parameters") ), wxVERTICAL );
@@ -163,66 +166,34 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	analysisParamsSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
 
-	wxBoxSizer* plotPolyOutputSizer;
-	plotPolyOutputSizer = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* polyOutLogSizer;
+	polyOutLogSizer = new wxBoxSizer( wxHORIZONTAL );
 
 	m_polynomicStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Polynomic Order"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_polynomicStaticText->Wrap( -1 );
-	plotPolyOutputSizer->Add( m_polynomicStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+	polyOutLogSizer->Add( m_polynomicStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	wxString m_PlotChoiceChoices[] = { _("2"), _("3") };
 	int m_PlotChoiceNChoices = sizeof( m_PlotChoiceChoices ) / sizeof( wxString );
 	m_PlotChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_PlotChoiceNChoices, m_PlotChoiceChoices, 0 );
 	m_PlotChoice->SetSelection( 1 );
-	plotPolyOutputSizer->Add( m_PlotChoice, 0, wxALL, 5 );
-
-
-	plotPolyOutputSizer->Add( 10, 0, 0, wxEXPAND, 5 );
-
-	m_plotingStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Graphics"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_plotingStaticText->Wrap( -1 );
-	plotPolyOutputSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
-	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
-	m_plotingChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
-	m_plotingChoice->SetSelection( 1 );
-	plotPolyOutputSizer->Add( m_plotingChoice, 0, wxALL, 5 );
-
-
-	analysisParamsSizer->Add( plotPolyOutputSizer, 0, wxEXPAND, 5 );
-
-	wxBoxSizer* outputSizer;
-	outputSizer = new wxBoxSizer( wxHORIZONTAL );
+	polyOutLogSizer->Add( m_PlotChoice, 0, wxALL, 5 );
 
 	m_outputStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Ouput file"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_outputStaticText->Wrap( -1 );
-	outputSizer->Add( m_outputStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
+	polyOutLogSizer->Add( m_outputStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
 
 	m_outputTextCtrl = new wxTextCtrl( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	outputSizer->Add( m_outputTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
-
-	graphicFormatStaticText = new wxStaticText( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
-	graphicFormatStaticText->Wrap( -1 );
-	outputSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
-	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
-	m_plotFormatChoice = new wxChoice( analysisParamsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
-	m_plotFormatChoice->SetSelection( 0 );
-	outputSizer->Add( m_plotFormatChoice, 0, wxALL, 5 );
+	polyOutLogSizer->Add( m_outputTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 3 );
 
 	m_saveLog = new wxCheckBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Save Log"), wxDefaultPosition, wxDefaultSize, 0 );
-	outputSizer->Add( m_saveLog, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	polyOutLogSizer->Add( m_saveLog, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
-	analysisParamsSizer->Add( outputSizer, 0, wxALL, 3 );
-
-
-	right_column_sizer->Add( analysisParamsSizer, 0, wxALL|wxEXPAND, 5 );
+	analysisParamsSizer->Add( polyOutLogSizer, 0, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* channelsSizer;
-	channelsSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Channels") ), wxHORIZONTAL );
+	channelsSizer = new wxStaticBoxSizer( new wxStaticBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Channels") ), wxHORIZONTAL );
 
 	R_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("R"), wxDefaultPosition, wxDefaultSize, 0 );
 	R_staticText->Wrap( -1 );
@@ -263,10 +234,63 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	channelsSizer->Add( AVG_checkBox, 0, wxALL, 5 );
 
 
-	right_column_sizer->Add( channelsSizer, 0, wxALL|wxEXPAND, 5 );
+	analysisParamsSizer->Add( channelsSizer, 0, wxALL|wxEXPAND, 5 );
 
 
-	left_column_sizer->Add( right_column_sizer, 1, wxEXPAND, 5 );
+	analysisSizer->Add( analysisParamsSizer, 0, wxALL|wxEXPAND, 5 );
+
+
+	analysisGraphSizer->Add( analysisSizer, 1, wxEXPAND, 5 );
+
+	wxStaticBoxSizer* graphicSizer;
+	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Graphics") ), wxVERTICAL );
+
+	wxBoxSizer* plotParamsSizer;
+	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_plotParamScattersCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Scatters"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, wxALL, 5 );
+
+	m_plotParamCurveCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Curves"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, wxALL, 5 );
+
+	m_plotParamLabelsCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Labels"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, wxALL, 5 );
+
+
+	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* graphicsOthersSizer;
+	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	graphicFormatStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
+	graphicFormatStaticText->Wrap( -1 );
+	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
+	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
+	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
+	m_plotFormatChoice->SetSelection( 0 );
+	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALL, 5 );
+
+	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphics"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_plotingStaticText->Wrap( -1 );
+	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
+	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
+	m_plotingChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
+	m_plotingChoice->SetSelection( 3 );
+	graphicsOthersSizer->Add( m_plotingChoice, 0, wxALL, 5 );
+
+
+	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
+
+
+	analysisGraphSizer->Add( graphicSizer, 0, wxALL|wxEXPAND, 5 );
+
+
+	left_column_sizer->Add( analysisGraphSizer, 0, wxEXPAND, 5 );
 
 
 	left_column_panel_Up->SetSizer( left_column_sizer );

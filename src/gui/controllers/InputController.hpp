@@ -6,9 +6,9 @@
 #pragma once
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../../core/graphics/Constants.hpp"
-#include <wx/event.h>
 #include <string>
 #include <vector>
+#include <wx/event.h>
 
 // Forward declarations
 class DynaRangeFrame;
@@ -20,7 +20,7 @@ class wxArrayString;
 class InputController {
 public:
     explicit InputController(DynaRangeFrame* frame);
-    
+
     // Getters that read directly from the controls
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
@@ -37,23 +37,15 @@ public:
     std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;
     int GetChartPatchesM() const; // Rows
-    int GetChartPatchesN() const; // Cols
+    int GetChartPatchesN() const;
+    // Cols
     RawChannelSelection GetRawChannelSelection() const;
-    /**
-     * @brief Checks if the "Save Log" checkbox is currently checked.
-     * @return true if the log should be saved to a file, false otherwise.
-     */
+    PlottingDetails GetPlottingDetails() const;
     bool ShouldSaveLog() const;
-    /**
-     * @brief Validates the content of the SNR thresholds text control.
-     * @return true if the input is a valid list of numbers, false otherwise.
-     */
     bool ValidateSnrThresholds() const;
-
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
-    void EnableExecuteButton(bool enable);
     void AddDroppedFiles(const wxArrayString& filenames);
 
     // Event handling logic, called by DynaRangeFrame's Bind()
@@ -68,6 +60,7 @@ public:
 private:
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);
-    
-    DynaRangeFrame* m_frame; // Pointer to the parent frame to access its controls
+
+    DynaRangeFrame* m_frame;
+    // Pointer to the parent frame to access its controls
 };

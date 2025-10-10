@@ -4,16 +4,16 @@
  * @brief Implements the low-level Cairo drawing functions for the plot base.
  */
 #include "PlotBase.hpp"
-#include "Colour.hpp" 
+#include "Colour.hpp"
 #include "FontManager.hpp"
-#include <cmath>
-#include <iomanip>
-#include <sstream>
-#include <libintl.h>
-#include <vector>
-#include <string>
 #include <chrono>
+#include <cmath>
 #include <ctime>
+#include <iomanip>
+#include <libintl.h>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #define _(string) gettext(string)
 
@@ -22,10 +22,11 @@
 #endif
 
 // Anonymous namespace for helper functions in this file
-namespace { 
+namespace {
 
-void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, double dash_length = 20.0) {
-    double dashes[] = {dash_length, dash_length};
+void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, double dash_length = 20.0)
+{
+    double dashes[] = { dash_length, dash_length };
     cairo_save(cr);
     cairo_set_dash(cr, dashes, 2, 0);
     cairo_move_to(cr, x1, y1);
@@ -34,24 +35,24 @@ void DrawDashedLine(cairo_t* cr, double x1, double y1, double x2, double y2, dou
     cairo_restore(cr);
 }
 
-void DrawPlotBackgroundAndBorder(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx) {
+void DrawPlotBackgroundAndBorder(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx)
+{
     const int plot_area_width = ctx.base_width - MARGIN_LEFT - MARGIN_RIGHT;
     const int plot_area_height = ctx.base_height - MARGIN_TOP - MARGIN_BOTTOM;
-    
+
     PlotColors::cairo_set_source_white(cr);
     cairo_rectangle(cr, 0, 0, ctx.base_width, ctx.base_height);
     cairo_fill(cr);
-    
+
     PlotColors::cairo_set_source_black(cr);
     cairo_set_line_width(cr, 3.0);
     cairo_rectangle(cr, MARGIN_LEFT, MARGIN_TOP, plot_area_width, plot_area_height);
     cairo_stroke(cr);
 }
 
-void DrawGridLines(cairo_t* cr, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
-    auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds, ctx);
-    };
+void DrawGridLines(cairo_t* cr, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx)
+{
+    auto map_coords = [&](double ev, double db) { return MapToPixelCoords(ev, db, bounds, ctx); };
 
     // Change the internal grid color to a light gray (GREY_90)
     PlotColors::cairo_set_source_grey_90(cr);
@@ -60,29 +61,32 @@ void DrawGridLines(cairo_t* cr, const std::map<std::string, double>& bounds, con
     for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
         auto [p1x, p1y] = map_coords(ev, bounds.at("min_db"));
         auto [p2x, p2y] = map_coords(ev, bounds.at("max_db"));
-        cairo_move_to(cr, p1x, p1y); cairo_line_to(cr, p2x, p2y); cairo_stroke(cr);
+        cairo_move_to(cr, p1x, p1y);
+        cairo_line_to(cr, p2x, p2y);
+        cairo_stroke(cr);
     }
-    
+
     for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) {
         auto [p1x, p1y] = map_coords(bounds.at("min_ev"), db);
         auto [p2x, p2y] = map_coords(bounds.at("max_ev"), db);
-        cairo_move_to(cr, p1x, p1y); cairo_line_to(cr, p2x, p2y); cairo_stroke(cr);
+        cairo_move_to(cr, p1x, p1y);
+        cairo_line_to(cr, p2x, p2y);
+        cairo_stroke(cr);
     }
 }
 
-void DrawThresholdLines(cairo_t* cr, const std::map<std::string, double>& bounds, const std::vector<double>& snr_thresholds, const DynaRange::Graphics::RenderContext& ctx) {
-    auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds, ctx);
-    };
+void DrawThresholdLines(cairo_t* cr, const std::map<std::string, double>& bounds, const std::vector<double>& snr_thresholds, const DynaRange::Graphics::RenderContext& ctx)
+{
+    auto map_coords = [&](double ev, double db) { return MapToPixelCoords(ev, db, bounds, ctx); };
 
     const DynaRange::Graphics::FontManager font_manager(ctx);
-    
+
     // Set a dark gray color for the threshold lines and text
     PlotColors::cairo_set_source_grey_20(cr);
     cairo_set_line_width(cr, 2.0);
     font_manager.SetThresholdLabelFont(cr);
 
-    for(const double threshold : snr_thresholds) {
+    for (const double threshold : snr_thresholds) {
         auto [p1x, p1y] = map_coords(bounds.at("min_ev"), threshold);
         auto [p2x, p2y] = map_coords(bounds.at("max_ev"), threshold);
         DrawDashedLine(cr, p1x, p1y, p2x, p2y);
@@ -93,19 +97,18 @@ void DrawThresholdLines(cairo_t* cr, const std::map<std::string, double>& bounds
     }
 }
 
-void DrawXAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
-    auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds, ctx);
-    };
+void DrawXAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx)
+{
+    auto map_coords = [&](double ev, double db) { return MapToPixelCoords(ev, db, bounds, ctx); };
 
     const DynaRange::Graphics::FontManager font_manager(ctx);
     font_manager.SetAxisTickFont(cr);
-    
+
     // Set the color to black for the axis tick labels
     PlotColors::cairo_set_source_black(cr);
-    
+
     cairo_text_extents_t extents;
-    for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) { 
+    for (double ev = ceil(bounds.at("min_ev")); ev <= floor(bounds.at("max_ev")); ev += 1.0) {
         std::string ev_str = std::to_string((int)ev);
         cairo_text_extents(cr, ev_str.c_str(), &extents);
         auto [px, py] = map_coords(ev, bounds.at("min_db"));
@@ -114,19 +117,18 @@ void DrawXAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, c
     }
 }
 
-void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx) {
-    auto map_coords = [&](double ev, double db) {
-        return MapToPixelCoords(ev, db, bounds, ctx);
-    };
+void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, const DynaRange::Graphics::RenderContext& ctx)
+{
+    auto map_coords = [&](double ev, double db) { return MapToPixelCoords(ev, db, bounds, ctx); };
 
     const DynaRange::Graphics::FontManager font_manager(ctx);
     font_manager.SetAxisTickFont(cr);
-    
+
     // Set the color to black for the axis tick labels
     PlotColors::cairo_set_source_black(cr);
 
     cairo_text_extents_t extents;
-    for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) { 
+    for (double db = ceil(bounds.at("min_db")); db <= floor(bounds.at("max_db")); db += 5.0) {
         std::string db_str = std::to_string((int)db);
         cairo_text_extents(cr, db_str.c_str(), &extents);
         auto [px, py] = map_coords(bounds.at("min_ev"), db);
@@ -135,10 +137,11 @@ void DrawYAxisLabels(cairo_t* cr, const std::map<std::string, double>& bounds, c
     }
 }
 
-void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOptions& opts, const std::string& command_text, const DynaRange::Graphics::RenderContext& ctx) {
+void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOptions& opts, const std::string& command_text, const DynaRange::Graphics::RenderContext& ctx)
+{
     const DynaRange::Graphics::FontManager font_manager(ctx);
     cairo_text_extents_t extents;
-    
+
     // --- Main Title ---
     PlotColors::cairo_set_source_black(cr);
     font_manager.SetTitleFont(cr);
@@ -170,13 +173,12 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOpt
             prefix += _("Average & ");
         }
         prefix += _("Channels -> ");
-        
+
         cairo_move_to(cr, current_x, current_y);
         cairo_show_text(cr, prefix.c_str());
         cairo_text_extents(cr, prefix.c_str(), &extents);
         current_x += extents.x_advance;
 
-   
         auto draw_channel_name = [&](const std::string& name, DataSource channel) {
             cairo_move_to(cr, current_x, current_y);
             PlotColors::SetSourceFromChannel(cr, channel);
@@ -185,10 +187,14 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOpt
             current_x += extents.x_advance;
         };
 
-        if (has_r) draw_channel_name("R ", DataSource::R);
-        if (has_g1) draw_channel_name("G1 ", DataSource::G1);
-        if (has_g2) draw_channel_name("G2 ", DataSource::G2);
-        if (has_b) draw_channel_name("B ", DataSource::B);
+        if (has_r)
+            draw_channel_name("R ", DataSource::R);
+        if (has_g1)
+            draw_channel_name("G1 ", DataSource::G1);
+        if (has_g2)
+            draw_channel_name("G2 ", DataSource::G2);
+        if (has_b)
+            draw_channel_name("B ", DataSource::B);
 
         PlotColors::cairo_set_source_grey_50(cr);
         cairo_move_to(cr, current_x, current_y);
@@ -200,11 +206,11 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOpt
     font_manager.SetAxisLabelFont(cr);
     std::string x_label = _("RAW exposure (EV)");
     cairo_text_extents(cr, x_label.c_str(), &extents);
-    
+
     // Adjusted the vertical offset to be closer to the grid
     const double vertical_offset = font_manager.calculateScaledSize(60.0);
     cairo_move_to(cr, ctx.base_width / 2.0 - extents.width / 2.0, ctx.base_height - MARGIN_BOTTOM + vertical_offset);
-    
+
     cairo_show_text(cr, x_label.c_str());
 
     std::string y_label = _("SNR (dB)");
@@ -229,14 +235,8 @@ void DrawPlotAnnotations(cairo_t* cr, const std::string& title, const ProgramOpt
 
 } // end of anonymous namespace
 
-void DrawPlotBase(
-    cairo_t* cr,
-    const DynaRange::Graphics::RenderContext& ctx,
-    const std::string& title,
-    const ProgramOptions& opts,
-    const std::map<std::string, double>& bounds,
-    const std::string& command_text,
-    const std::vector<double>& snr_thresholds)
+void DrawPlotBase(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx, const std::string& title, const ProgramOptions& opts, const std::map<std::string, double>& bounds,
+    const std::string& command_text, const std::vector<double>& snr_thresholds)
 {
     DrawPlotBackgroundAndBorder(cr, ctx);
     DrawGridLines(cr, bounds, ctx);
@@ -246,7 +246,8 @@ void DrawPlotBase(
     DrawPlotAnnotations(cr, title, opts, command_text, ctx);
 }
 
-void DrawGeneratedTimestamp(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx) {
+void DrawGeneratedTimestamp(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx)
+{
     auto now = std::chrono::system_clock::now();
     std::time_t time_now = std::chrono::system_clock::to_time_t(now);
     std::tm local_tm;
@@ -262,14 +263,12 @@ void DrawGeneratedTimestamp(cairo_t* cr, const DynaRange::Graphics::RenderContex
     const DynaRange::Graphics::FontManager font_manager(ctx);
     font_manager.SetTimestampFont(cr);
     cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
-
     cairo_text_extents_t ext;
     cairo_text_extents(cr, generated_at_text.c_str(), &ext);
 
     double x = 20;
-    // Positioned it higher, at the very bottom of the bottom margin
-    double y = ctx.base_height - 15;
-
+    // Positioned it at the top-left corner of the image.
+    double y = 20;
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, generated_at_text.c_str());
 }

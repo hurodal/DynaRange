@@ -68,12 +68,8 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_snrThresholdsValues;
 		wxStaticText* m_polynomicStaticText;
 		wxChoice* m_PlotChoice;
-		wxStaticText* m_plotingStaticText;
-		wxChoice* m_plotingChoice;
 		wxStaticText* m_outputStaticText;
 		wxTextCtrl* m_outputTextCtrl;
-		wxStaticText* graphicFormatStaticText;
-		wxChoice* m_plotFormatChoice;
 		wxCheckBox* m_saveLog;
 		wxStaticText* R_staticText;
 		wxCheckBox* R_checkBox;
@@ -85,6 +81,13 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
 		wxCheckBox* AVG_checkBox;
+		wxCheckBox* m_plotParamScattersCheckBox;
+		wxCheckBox* m_plotParamCurveCheckBox;
+		wxCheckBox* m_plotParamLabelsCheckBox;
+		wxStaticText* graphicFormatStaticText;
+		wxChoice* m_plotFormatChoice;
+		wxStaticText* m_plotingStaticText;
+		wxChoice* m_plotingChoice;
 		wxPanel* right_column_panel_Up;
 		wxTextCtrl* m_coordX1Value;
 		wxTextCtrl* m_coordY1Value;

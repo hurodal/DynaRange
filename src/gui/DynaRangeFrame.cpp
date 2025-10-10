@@ -178,16 +178,37 @@ void DynaRangeFrame::ShowError(const wxString& title, const wxString& message) {
 }
 
 void DynaRangeFrame::SetUiState(bool is_processing) {
-    m_inputController->EnableExecuteButton(!is_processing);
-
     if (is_processing) {
+        m_executeButton->SetLabel(_("Stop Processing"));
+        m_executeButton->Enable(true); // Ensure the button is enabled to allow stopping.
         m_mainNotebook->SetSelection(1);
         m_logController->Clear();
         m_gaugeTimer->Start(100); // Start the animation timer
     } else {
+        m_executeButton->SetLabel(_("Execute"));
+        m_executeButton->Enable(true); // Ensure the button is re-enabled after processing.
         m_gaugeTimer->Stop(); // Stop the animation timer
     }
+    
+    // Force the sizer to recalculate the layout to fit the new button label.
+    m_inputPanel->Layout();
+
     m_resultsController->SetUiState(is_processing);
+}
+
+void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) {
+    if (m_presenter->IsWorkerRunning()) {
+        // If the worker is running, the button acts as a "Stop" button.
+        m_presenter->RequestWorkerCancellation();
+        
+        // Change the UI to a "waiting to stop" state immediately.
+        m_executeButton->SetLabel(_("Waiting stop..."));
+        m_executeButton->Enable(false); // Disable the button to prevent multiple clicks.
+        m_inputPanel->Layout(); // Adjust layout for the new text
+    } else {
+        // If the worker is not running, the button acts as an "Execute" button.
+        m_presenter->StartAnalysis();
+    }
 }
 
 void DynaRangeFrame::PostLogUpdate(const std::string& text) {
@@ -226,8 +247,8 @@ int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChar
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN();
 }
 std::string DynaRangeFrame::GetPrintPatchesFilename() const { return m_inputController->GetPrintPatchesFilename(); }
-RawChannelSelection DynaRangeFrame::GetRawChannelSelection() const { return m_inputController->GetRawChannelSelection();
-}
+RawChannelSelection DynaRangeFrame::GetRawChannelSelection() const { return m_inputController->GetRawChannelSelection(); }
+PlottingDetails DynaRangeFrame::GetPlottingDetails() const { return m_inputController->GetPlottingDetails(); }
 
 // =============================================================================
 // EVENT HANDLERS
@@ -259,8 +280,6 @@ void DynaRangeFrame::OnClose(wxCloseEvent& event) {
 }
 
 void DynaRangeFrame::OnDrNormSliderChanged(wxScrollEvent& event) { m_inputController->OnDrNormSliderChanged(event); }
-
-void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) { m_presenter->StartAnalysis(); }
 
 void DynaRangeFrame::OnGaugeTimer(wxTimerEvent& event) { m_processingGauge->Pulse();
 }
@@ -314,37 +333,47 @@ void DynaRangeFrame::OnRemoveAllFilesClick(wxCommandEvent& event) {
 void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     SetUiState(false);
     const ReportOutput& report = m_presenter->GetLastReport();
+
+    // If the final_csv_path is empty, it indicates that the analysis was
+    // either cancelled by the user or failed before producing any results.
+    // In this case, we should not attempt to display the results.
+    if (report.final_csv_path.empty()) {
+        // The log already contains a cancellation/error message from the engine.
+        // We can just return here, leaving the user on the current tab.
+        return;
+    }
+
+    // --- If we proceed, it means the analysis completed successfully ---
     const wxImage& summary_image = m_presenter->GetLastSummaryImage();
     
     DisplayResults(report.final_csv_path);
-
-    if (summary_image.IsOk()) {
+if (summary_image.IsOk()) {
         DisplayImage(summary_image);
-    } else if (GetPlotMode() != 0) {
+} else if (GetPlotMode() != 0) {
         m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
-        m_resultsController->LoadDefaultContent(); 
+m_resultsController->LoadDefaultContent(); 
         m_logController->AppendText(_("\nError: Summary plot could not be generated."));
     } else {
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
-        m_resultsController->LoadDefaultContent();
+m_resultsController->LoadDefaultContent();
     }
 
     // --- Lógica para guardar el log ---
     if (ShouldSaveLog()) {
         ProgramOptions temp_opts;
-        temp_opts.output_filename = GetOutputFilePath(); // Usa la ruta del CSV como base
+temp_opts.output_filename = GetOutputFilePath(); // Usa la ruta del CSV como base
         PathManager paths(temp_opts);
-        fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
+fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
 
         wxString log_content = m_logOutputTextCtrl->GetValue();
         std::ofstream log_file(log_path);
-        if (log_file.is_open()) {
+if (log_file.is_open()) {
             log_file << log_content.ToStdString();
             log_file.close();
-            m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
+m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
         } else {
             m_logController->AppendText(wxString::Format(_("\n[ERROR] Could not save log to file: %s\n"), log_path.string()));
-        }
+}
     }
 }
 

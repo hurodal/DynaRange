@@ -141,7 +141,6 @@ void InputController::UpdateInputFileList(const std::vector<std::string>& files)
     }
 }
 void InputController::UpdateCommandPreview(const std::string& command) { m_frame->m_equivalentCliTextCtrl->ChangeValue(command); }
-void InputController::EnableExecuteButton(bool enable) { m_frame->m_executeButton->Enable(enable); }
 
 // --- Event Logic ---
 void InputController::OnAddFilesClick(wxCommandEvent& event) {
@@ -332,4 +331,12 @@ bool InputController::ValidateSnrThresholds() const {
 
 bool InputController::ShouldSaveLog() const {
     return m_frame->m_saveLog->IsChecked();
+}
+
+PlottingDetails InputController::GetPlottingDetails() const {
+    PlottingDetails details;
+    details.show_scatters = m_frame->m_plotParamScattersCheckBox->IsChecked();
+    details.show_curve = m_frame->m_plotParamCurveCheckBox->IsChecked();
+    details.show_labels = m_frame->m_plotParamLabelsCheckBox->IsChecked();
+    return details;
 }

@@ -6,11 +6,11 @@
 #include "PlotOrchestrator.hpp"
 #include "PlotBase.hpp"
 #include "PlotData.hpp"
-#include "PlotInfoBox.hpp"
 #include "PlotDataGenerator.hpp"
+#include "PlotInfoBox.hpp"
 #include <algorithm>
-#include <libintl.h>
 #include <iomanip>
+#include <libintl.h>
 #include <sstream>
 
 #define _(string) gettext(string)
@@ -18,12 +18,7 @@
 namespace DynaRange::Graphics {
 
 void DrawPlotToCairoContext(
-    cairo_t* cr,
-    const RenderContext& ctx,
-    const std::vector<CurveData>& curves,
-    const std::vector<DynamicRangeResult>& results,
-    const std::string& title,
-    const ProgramOptions& opts)
+    cairo_t* cr, const RenderContext& ctx, const std::vector<CurveData>& curves, const std::vector<DynamicRangeResult>& results, const std::string& title, const ProgramOptions& opts)
 {
     if (curves.empty()) {
         return;
@@ -42,13 +37,11 @@ void DrawPlotToCairoContext(
     double min_db_global = 1e6, max_db_global = -1e6;
     for (const auto& curve : curves_with_points) {
         if (!curve.points.empty()) {
-            auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(),
-                [](const PointData& a, const PointData& b){ return a.ev < b.ev; });
+            auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(), [](const PointData& a, const PointData& b) { return a.ev < b.ev; });
             min_ev_global = std::min(min_ev_global, minmax_ev_it.first->ev);
             max_ev_global = std::max(max_ev_global, minmax_ev_it.second->ev);
 
-            auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(),
-                [](const PointData& a, const PointData& b){ return a.snr_db < b.snr_db; });
+            auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(), [](const PointData& a, const PointData& b) { return a.snr_db < b.snr_db; });
             min_db_global = std::min(min_db_global, minmax_db_it.first->snr_db);
             max_db_global = std::max(max_db_global, minmax_db_it.second->snr_db);
         }
@@ -59,7 +52,6 @@ void DrawPlotToCairoContext(
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
     bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
-    
     // --- Common Logic: Prepare Info Box ---
 
     PlotInfoBox info_box;
@@ -74,8 +66,7 @@ void DrawPlotToCairoContext(
     // --- Common Logic: Call low-level drawing functions in sequence ---
 
     DrawPlotBase(cr, ctx, title, opts, bounds, command_text, opts.snr_thresholds_db);
-    DrawCurvesAndData(cr, ctx, info_box, curves_with_points, results, bounds);
+    DrawCurvesAndData(cr, ctx, info_box, curves_with_points, results, bounds, opts);
     DrawGeneratedTimestamp(cr, ctx);
 }
-
 } // namespace DynaRange::Graphics
