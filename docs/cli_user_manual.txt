@@ -21,7 +21,7 @@ Usage: rango [OPTION]... [FILE]...
 --poly-fit            -f <int 2-3>         : Polynomic order to fit the SNR curve (default=3)
 --output-file         -o <file>            : Output CSV text file(s) with all results: black level, sat level, SNR samples, DR values, fitting params (default="results.csv")
 --plot-format         -p <PNG/SVG>         : Export SNR curves plot in PNG/SVG format (default format=PNG)
---plot-params         -P <S C L> <int 1-3> : Export SNR curves plot in PNG/SVG format (default=1 1 1 3)
+--plot-params         -P <S C L> <int 1-3> : Export SNR curves with SCL 1-3 info (default=1 1 1 3)
 --print-patches       -g <file>            : Save keystone/ETTR/gamma corrected test chart in PNG format indicating the grid of patches used for all calculations (default="printpatches.png")
 
 
@@ -161,6 +161,7 @@ Usage: the user can additionally supply a output name for the PNG file
 Examples (first example is default and is equivalent to not specifying the parameter):
 --print-patches -g                     (display used patches in "printpatches.png") 
 --print-patches -g patch_debugging.png (display used patches in "patch_debugging.png") 
+
 
 
 
