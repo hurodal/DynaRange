@@ -18,7 +18,7 @@ PRIORITARIAS
 NO PRIORITARIAS
 ===============
 
-6: CÁLCULO DE BLACK/SAT SI NO SE SUMINISTRA VALOR NI FICHERO
+6: (HECHO) CÁLCULO DE BLACK/SAT SI NO SE SUMINISTRA VALOR NI FICHERO
      BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
 
      prompt: "write a C++ function that calculates the black level of a sensor as the lowest power of 2 with data in the RAW file mimus 1. E.g. if the lowest value in the RAW data is 900 -> BLACK=1023"
@@ -86,6 +86,7 @@ NO PRIORITARIAS
 7: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
 
 8: SUSTITUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
+
 
 
 
