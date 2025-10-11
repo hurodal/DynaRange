@@ -40,11 +40,9 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
     placeholderSizer->Add(m_resultsCanvasPanel, 1, wxEXPAND, 0);
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
-
     // Create a drawing canvas for the Chart Preview tab
     m_chartPreviewPanel = new wxPanel(m_webView2PlaceholderPanel, wxID_ANY);
     m_chartPreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    
     wxBoxSizer* chartPlaceholderSizer = new wxBoxSizer(wxVERTICAL);
     chartPlaceholderSizer->Add(m_chartPreviewPanel, 1, wxEXPAND, 0);
     m_webView2PlaceholderPanel->SetSizer(chartPlaceholderSizer);
@@ -67,8 +65,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_removeAllFiles->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveAllFilesClick, this);
     m_saveLog->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
-    m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
-    m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnInputChanged, this);
+    m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnDarkFileChanged, this);
+    m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnSaturationFileChanged, this);
     m_clearDarkFileButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnClearDarkFile, this);
     m_clearSaturationFileButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnClearSaturationFile, this);
     m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
@@ -90,13 +88,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
     m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
     
-    // --- INICIO DE LA MODIFICACIÓN ---
-    // Se eliminan los Bind del antiguo wxSlider
-    // m_snrThresholdslider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnSnrSliderChanged, this);
-    // m_snrThresholdslider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnSnrSliderChanged, this);
-    // Se añade el Bind para el nuevo wxTextCtrl
     m_snrThresholdsValues->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    // --- FIN DE LA MODIFICACIÓN ---
 
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnDrNormSliderChanged, this);
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnDrNormSliderChanged, this);
@@ -131,6 +123,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     G2_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     B_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
     AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
     m_dropTarget = new FileDropTarget(this);
@@ -517,4 +510,14 @@ void DynaRangeFrame::OnChartPreviewPaint(wxPaintEvent& event)
 
 bool DynaRangeFrame::ValidateSnrThresholds() const {
     return m_inputController->ValidateSnrThresholds();
+}
+
+void DynaRangeFrame::OnDarkFileChanged(wxFileDirPickerEvent& event)
+{
+    m_inputController->OnCalibrationFileChanged(event);
+}
+
+void DynaRangeFrame::OnSaturationFileChanged(wxFileDirPickerEvent& event)
+{
+    m_inputController->OnCalibrationFileChanged(event);
 }

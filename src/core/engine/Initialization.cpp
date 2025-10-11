@@ -11,11 +11,12 @@
 #include "../setup/PlotLabelGenerator.hpp"
 #include "../setup/SensorResolution.hpp"
 #include "../utils/CommandGenerator.hpp"
-#include <set> 
-#include <iomanip>
-#include <filesystem>
-#include <libintl.h>
+#include <algorithm>
 #include <cstring>
+#include <filesystem>
+#include <iomanip>
+#include <libintl.h>
+#include <set> 
 
 #define _(string) gettext(string)
 

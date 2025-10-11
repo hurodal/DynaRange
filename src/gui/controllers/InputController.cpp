@@ -142,40 +142,6 @@ void InputController::UpdateInputFileList(const std::vector<std::string>& files)
 }
 void InputController::UpdateCommandPreview(const std::string& command) { m_frame->m_equivalentCliTextCtrl->ChangeValue(command); }
 
-// --- Event Logic ---
-void InputController::OnAddFilesClick(wxCommandEvent& event) {
-    // 1. Obtener la lista de extensiones dinámicamente.
-    const auto& supported_extensions = GetSupportedRawExtensions();
-
-    // 2. Construir la cadena de comodines (wildcard).
-    wxString wildcard;
-    for (size_t i = 0; i < supported_extensions.size(); ++i) {
-        wxString ext_lower = supported_extensions[i];
-        wxString ext_upper = ext_lower.Upper();
-        
-        wildcard += wxString::Format("*.%s;*.%s", ext_lower, ext_upper);
-        
-        if (i < supported_extensions.size() - 1) {
-            wildcard += ";";
-        }
-    }
-
-    // 3. Construir la cadena de filtro final para el diálogo.
-    wxString filter = wxString::Format(
-        _("RAW files (%s)|%s|All files (*.*)|*.*"),
-        wildcard, wildcard
-    );
-
-    // 4. Crear y mostrar el diálogo de selección de ficheros.
-    wxFileDialog openFileDialog(m_frame, _("Select RAW files"), "", "", filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
-    
-    if (openFileDialog.ShowModal() == wxID_CANCEL) { return; }
-    
-    wxArrayString paths;
-    openFileDialog.GetPaths(paths);
-    AddDroppedFiles(paths);
-}
-
 void InputController::OnPatchRatioSliderChanged(wxScrollEvent& event) {
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", GetPatchRatio()));
     m_frame->OnInputChanged(event); // Notify frame to update preview
@@ -339,4 +305,63 @@ PlottingDetails InputController::GetPlottingDetails() const {
     details.show_curve = m_frame->m_plotParamCurveCheckBox->IsChecked();
     details.show_labels = m_frame->m_plotParamLabelsCheckBox->IsChecked();
     return details;
+}
+
+void InputController::OnCalibrationFileChanged(wxFileDirPickerEvent& event)
+{
+    wxString path = event.GetPath();
+    if (path.IsEmpty()) {
+        m_frame->OnInputChanged(event);
+        return;
+    }
+
+    m_lastDirectoryPath = wxFileName(path).GetPath();
+
+    // Set the initial directory for both pickers to the new path.
+    m_frame->m_darkFilePicker->SetInitialDirectory(m_lastDirectoryPath);
+    m_frame->m_saturationFilePicker->SetInitialDirectory(m_lastDirectoryPath);
+
+    m_frame->OnInputChanged(event);
+}
+
+void InputController::OnAddFilesClick(wxCommandEvent& event) {
+    // 1. Obtener la lista de extensiones dinámicamente.
+    const auto& supported_extensions = GetSupportedRawExtensions();
+
+    // 2. Construir la cadena de comodines (wildcard).
+    wxString wildcard;
+    for (size_t i = 0; i < supported_extensions.size(); ++i) {
+        wxString ext_lower = supported_extensions[i];
+        wxString ext_upper = ext_lower.Upper();
+        
+        wildcard += wxString::Format("*.%s;*.%s", ext_lower, ext_upper);
+        
+        if (i < supported_extensions.size() - 1) {
+            wildcard += ";";
+        }
+    }
+
+    // 3. Construir la cadena de filtro final para el diálogo.
+    wxString filter = wxString::Format(
+        _("RAW files (%s)|%s|All files (*.*)|*.*"),
+        wildcard, wildcard
+    );
+
+    // 4. Crear y mostrar el diálogo de selección de ficheros, usando la ruta recordada.
+    wxFileDialog openFileDialog(m_frame, _("Select RAW files"), m_lastDirectoryPath, "", filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    
+    if (openFileDialog.ShowModal() == wxID_CANCEL) { return;
+    }
+    
+    wxArrayString paths;
+    openFileDialog.GetPaths(paths);
+
+    // 5. Recordar la nueva ruta y actualizar los directorios iniciales de los otros selectores.
+    if (paths.GetCount() > 0) {
+        m_lastDirectoryPath = wxFileName(paths[0]).GetPath();
+        m_frame->m_darkFilePicker->SetInitialDirectory(m_lastDirectoryPath);
+        m_frame->m_saturationFilePicker->SetInitialDirectory(m_lastDirectoryPath);
+    }
+    
+    AddDroppedFiles(paths);
 }
