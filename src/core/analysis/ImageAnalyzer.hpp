@@ -14,6 +14,8 @@
  * @param NCOLS The number of columns in the patch grid.
  * @param NROWS The number of rows in the patch grid.
  * @param patch_ratio The relative area of the center of each patch to sample.
+ * @param create_overlay_image If true, an image with patch overlays will be generated.
+ * @param min_snr_db The minimum SNR in dB for a patch to be considered valid.
  * @return A PatchAnalysisResult struct containing the signal and noise vectors.
  */
-PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio);
+PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio, bool create_overlay_image, double min_snr_db);

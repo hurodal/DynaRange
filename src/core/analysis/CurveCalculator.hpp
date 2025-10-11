@@ -4,20 +4,18 @@
  * @brief Declares functions for calculating SNR curves and dynamic range from patch data.
  */
 #pragma once
-
 #include "Analysis.hpp"
-#include "../arguments/ProgramOptions.hpp"
-
+#include "../arguments/ArgumentsOptions.hpp"
 namespace CurveCalculator {
-
 /**
  * @brief Calculates the SNR curve from patch signal and noise data.
- * @param patch_data The result of the patch analysis.
+ * @param patch_data The result of the patch analysis, containing signal, noise, and optionally channel data.
  * @param opts The program options (for normalization and polynomial order).
  * @param camera_resolution_mpx The camera's actual resolution in megapixels.
+ * @param source_channel The primary channel for this analysis (used if per-point channels aren't provided).
  * @return An SnrCurve struct containing the calculated curve data.
  */
-SnrCurve CalculateSnrCurve(PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx);
+SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx, DataSource source_channel);
 
 /**
  * @brief Calculates dynamic range values for a set of SNR thresholds.
@@ -26,5 +24,4 @@ SnrCurve CalculateSnrCurve(PatchAnalysisResult& patch_data, const ProgramOptions
  * @return A map of threshold to calculated dynamic range in EV.
  */
 std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const std::vector<double>& thresholds_db);
-
 } // namespace CurveCalculator

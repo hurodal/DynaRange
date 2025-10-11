@@ -9,23 +9,31 @@
 #include <cairo/cairo.h>
 #include <string>
 #include <vector>
-#include <utility>
+#include "RenderContext.hpp"
 
 class PlotInfoBox {
 public:
     /**
-     * @brief Adds a new key-value pair to be displayed in the info box.
+     * @brief Adds a new key-value pair, with an optional annotation, to the info box.
      * @param label The label or key (e.g., "Black").
-     * @param value The value to display (e.g., "256.0").
+     * @param value The value to display (e.g., "256.00").
+     * @param annotation An optional string to append in a different color (e.g., "(estimated)").
      */
-    void AddItem(const std::string& label, const std::string& value);
+    void AddItem(const std::string& label, const std::string& value, const std::string& annotation = "");
 
     /**
      * @brief Draws all the added items onto the cairo context.
      * @param cr The cairo drawing context.
+     * @param ctx The rendering context for scaling fonts.
      */
-    void Draw(cairo_t* cr) const;
+    void Draw(cairo_t* cr, const DynaRange::Graphics::RenderContext& ctx) const;
 
 private:
-    std::vector<std::pair<std::string, std::string>> m_items;
+    // This struct now holds the data for each item, including the optional annotation.
+    struct InfoItem {
+        std::string label;
+        std::string value;
+        std::string annotation;
+    };
+    std::vector<InfoItem> m_items;
 };

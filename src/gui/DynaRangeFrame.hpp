@@ -1,94 +1,142 @@
-// File: gui/DynaRangeFrame.hpp
+// File: src/gui/DynaRangeFrame.hpp
 /**
- * @file gui/DynaRangeFrame.hpp
- * @brief Main frame of the DynaRange GUI application (The View).
- * @author Juanma Font
- * @date 2025-09-10
+ * @file DynaRangeFrame.hpp
+ * @brief Implementation of the DynaRange GUI's main frame (the View).
  */
 #pragma once
 
-#include "DynaRangeBase.h"
-#include "GuiPresenter.hpp" // Include the presenter
-#include <wx/arrstr.h>
-#include <wx/dnd.h>
-#include <wx/timer.h>
+#include "../core/arguments/ArgumentsOptions.hpp"
+#include "../graphics/Constants.hpp"
+#include "GuiPresenter.hpp"
+#include "generated/DynaRangeBase.h"
+#include <cairo.h>
 #include <string>
-#include <memory> // For std::unique_ptr
+#include <wx/bitmap.h>
+#include <wx/dnd.h>
+#include <wx/image.h> // Needed for wxImage
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/timer.h>
 
-// Custom event declarations for thread communication
+// Forward declarations
+class ChartController;
+class FileDropTarget;
+class InputController;
+class LogController;
+class ResultsController;
+class wxSplitterEvent;
+
+// Custom event declarations
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 
-class FileDropTarget;
-
-/**
- * @class DynaRangeFrame
- * @brief Implements the application's main window (the View).
- * @details This class is responsible only for UI elements and events. It delegates
- * all application logic to a GuiPresenter instance.
- */
-class DynaRangeFrame : public MyFrameBase
-{
+class DynaRangeFrame : public MyFrameBase {
 public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
-
-    // --- Methods called by external classes (e.g., FileDropTarget) ---
-    void AddDroppedFiles(const wxArrayString& filenames);
-
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
     void DisplayResults(const std::string& csv_path);
-    void ShowError(const std::string& title, const std::string& message);
+    void ShowError(const wxString& title, const wxString& message);
     void SetUiState(bool is_processing);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
-    void LoadGraphImage(const std::string& image_path);
-
-    // --- Methods for the Presenter to get data from the View ---
+    void DisplayImage(const wxImage& image);
+    // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
     double GetDarkValue() const;
     double GetSaturationValue() const;
     double GetPatchRatio() const;
-    
+    std::string GetOutputFilePath() const;
+    std::vector<double> GetSnrThresholds() const;
+    double GetDrNormalization() const;
+    int GetPolyOrder() const;
+    int GetPlotMode() const;
+    DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
+    std::vector<double> GetChartCoords() const;
+    std::vector<std::string> GetInputFiles() const;
+    int GetChartPatchesM() const;
+    int GetChartPatchesN() const;
+    std::string GetPrintPatchesFilename() const;
+    RawChannelSelection GetRawChannelSelection() const;
+    PlottingDetails GetPlottingDetails() const;
+    /**
+     * @brief Delegates validation of the SNR thresholds input to the controller.
+     * @return true if the input is valid, false otherwise.
+     */
+    bool ValidateSnrThresholds() const;
+    bool ShouldSaveLog() const;
+
 protected:
-    // Event Handlers that delegate to the Presenter
-    void OnExecuteClick(wxCommandEvent& event);
+    // --- Event Handlers ---
     void OnAddFilesClick(wxCommandEvent& event);
+    void OnRemoveAllFilesClick(wxCommandEvent& event);
+    void OnChartChartPatchChanged(wxCommandEvent& event);
+    void OnChartColorSliderChanged(wxScrollEvent& event);
+    void OnChartCreateClick(wxCommandEvent& event);
+    void OnChartInputChanged(wxCommandEvent& event);
+    void OnChartPreviewClick(wxCommandEvent& event);
+    void OnClearDarkFile(wxCommandEvent& event);
+    void OnClearSaturationFile(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
+    void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
+    void OnDrNormSliderChanged(wxScrollEvent& event);
+    void OnExecuteClick(wxCommandEvent& event);
+    void OnGaugeTimer(wxTimerEvent& event);
     void OnGridCellClick(wxGridEvent& event);
     void OnInputChanged(wxEvent& event);
-    void OnGaugeTimer(wxTimerEvent& event);
+    void OnInputChartPatchChanged(wxCommandEvent& event);
+    void OnListBoxKeyDown(wxKeyEvent& event);
+    void OnListBoxSelectionChanged(wxCommandEvent& event);
+    void OnNotebookPageChanged(wxNotebookEvent& event);
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
     void OnRemoveFilesClick(wxCommandEvent& event);
-    void OnListBoxSelectionChanged(wxCommandEvent& event);
-    void OnListBoxKeyDown(wxKeyEvent& event);
-
-    // Worker thread event handlers
-    void OnWorkerUpdate(wxThreadEvent& event);
+    void OnSize(wxSizeEvent& event);
+    void OnSplitterSashChanged(wxSplitterEvent& event);
+    void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
-    void OnClose(wxCloseEvent& event);
+    void OnWorkerUpdate(wxThreadEvent& event);
+    void OnResultsCanvasPaint(wxPaintEvent& event);
+    void OnChartPreviewPaint(wxPaintEvent& event);
+    void OnDarkFileChanged(wxFileDirPickerEvent& event);
+    void OnSaturationFileChanged(wxFileDirPickerEvent& event);
     
-private:
-    // Private UI helper functions
-    void ClearLog();
-    void AppendLog(const wxString& text);
-    bool IsSupportedRawFile(const wxString& filePath);
-    void LoadLogoImage();
-    void PerformFileRemoval();
+    // --- UI Components ---
+    wxPanel* m_resultsCanvasPanel;
+    wxPanel* m_chartPreviewPanel;
 
-    // Member variables
+    // --- Data for Drawing ---
+    wxBitmap m_chartPreviewBitmap;
+
+private:
+    // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
-    FileDropTarget* m_dropTarget;
     wxTimer* m_gaugeTimer;
+    FileDropTarget* m_dropTarget;
+    // Added a flag to prevent infinite event loops during sync.
+    bool m_isUpdatingPatches = false;
+    // --- Controller Class Members ---
+    std::unique_ptr<InputController> m_inputController;
+    std::unique_ptr<LogController> m_logController;
+    std::unique_ptr<ResultsController> m_resultsController;
+    std::unique_ptr<ChartController> m_chartController;
+    // Grant controllers access to protected UI members.
+    friend class InputController;
+    friend class ResultsController;
+    friend class ChartController;
+    friend class FileDropTarget;
 };
 
-class FileDropTarget : public wxFileDropTarget
-{
+class FileDropTarget : public wxFileDropTarget {
 public:
-    FileDropTarget(DynaRangeFrame* owner) : m_owner(owner) {}
+    FileDropTarget(DynaRangeFrame* owner)
+        : m_owner(owner)
+    {
+    }
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) override;
+
 private:
     DynaRangeFrame* m_owner;
 };

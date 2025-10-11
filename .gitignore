@@ -1,9 +1,13 @@
 # Ignorar la configuración del editor VS Code, Geany, Sublime-text
 .vscode
+.clang-format
 DynRange.geany
 rango.sublime-workspace
+dynaRange.pot
+*.exe
 
 # Ignorar ejecutables
+sources.sh
 dynaRange.exe
 rango.exe
 dynaRangeGui.exe
@@ -17,4 +21,4 @@ raws
 build
 sources
 .cache
-dynaRange.pot
+#dynaRange.pot

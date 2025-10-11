@@ -4,7 +4,7 @@
  * @brief Declares the function to initialize the analysis environment.
  */
 #pragma once
-#include "../arguments/ProgramOptions.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <ostream>
 
 /**

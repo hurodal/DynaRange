@@ -1,60 +1,86 @@
-/**
- * @file src/core/analysis/CurveCalculator.cpp
- * @brief Implements the mathematical calculations for SNR curve and dynamic range.
- */
+// File: src/core/analysis/CurveCalculator.cpp
+
 #include "CurveCalculator.hpp"
 #include "../math/Math.hpp"
 #include <cmath>
-#include <algorithm>
+#include <vector>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 namespace CurveCalculator {
 
-SnrCurve CalculateSnrCurve(PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx) {
-    SnrCurve curve;
 
-    // 1. Calculate linear SNR values first
-    std::vector<double> snr_linear;
-    snr_linear.reserve(patch_data.signal.size());
-    for (size_t i = 0; i < patch_data.signal.size(); ++i) {
-        if (patch_data.noise[i] > 0) {
-            snr_linear.push_back(patch_data.signal[i] / patch_data.noise[i]);
-        }
+SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx, DataSource source_channel) {
+    if (patch_data.signal.empty()) {
+        return {};
     }
 
-    // 2. Apply normalization factor to SNR values (after calculation, before fitting)
+    // RESTORED LOGIC: Normalization factor is calculated once.
+    double norm_factor = 1.0;
     if (opts.dr_normalization_mpx > 0 && camera_resolution_mpx > 0) {
-        double norm_factor = sqrt(camera_resolution_mpx / opts.dr_normalization_mpx);
-        for (double& snr : snr_linear) {
-            snr *= norm_factor;
-        }
+        norm_factor = std::sqrt(camera_resolution_mpx / opts.dr_normalization_mpx);
     }
 
-    // 3. Convert final linear SNR to dB and calculate EV from ORIGINAL signal
-    for (size_t i = 0; i < snr_linear.size(); ++i) {
-        curve.snr_db.push_back(20 * log10(snr_linear[i]));
-        curve.signal_ev.push_back(log2(patch_data.signal[i])); // ← ¡CORRECTO!
+    std::vector<PointData> points;
+    points.reserve(patch_data.signal.size());
+
+    std::vector<double> ev_values;
+    std::vector<double> snr_db_values;
+    ev_values.reserve(patch_data.signal.size());
+    snr_db_values.reserve(patch_data.signal.size());
+
+    for (size_t i = 0; i < patch_data.signal.size(); ++i) {
+        double S = patch_data.signal[i];
+        double N = patch_data.noise[i];
+
+        if (S <= 0.0 || N <= 0.0) continue;
+
+        // RESTORED LOGIC: Calculate SNR linear, apply normalization, and then convert to dB.
+        double snr_linear = (S / N) * norm_factor;
+
+        PointData point;
+        // RESTORED LOGIC: EV is the absolute log2 of the signal.
+        point.ev = std::log2(S);
+        point.snr_db = 20.0 * std::log10(snr_linear);
+        point.channel = (i < patch_data.channels.size()) ? patch_data.channels[i] : source_channel;
+        
+        points.push_back(point);
+        ev_values.push_back(point.ev);
+        snr_db_values.push_back(point.snr_db);
+    }
+    
+    if (points.size() < static_cast<size_t>(opts.poly_order + 1)) {
+        return {points, cv::Mat()};
     }
 
-    // 4. Fit polynomial to the final data
-    cv::Mat signal_mat_global(curve.signal_ev.size(), 1, CV_64F, curve.signal_ev.data());
-    cv::Mat snr_mat_global(curve.snr_db.size(), 1, CV_64F, curve.snr_db.data());
-    PolyFit(signal_mat_global, snr_mat_global, curve.poly_coeffs, opts.poly_order);
-    return curve;
+    // RESTORED LOGIC: The model is EV = f(SNR_dB), so PolyFit's arguments are swapped.
+    // PolyFit(x, y, coeffs) -> PolyFit(snr_db, ev, coeffs)
+    cv::Mat ev_mat(ev_values.size(), 1, CV_64F, ev_values.data());
+    cv::Mat snr_db_mat(snr_db_values.size(), 1, CV_64F, snr_db_values.data());
+    cv::Mat poly_coeffs;
+    PolyFit(snr_db_mat, ev_mat, poly_coeffs, opts.poly_order);
+    
+    return {points, poly_coeffs};
 }
 
 std::map<double, double> CalculateDynamicRange(const SnrCurve& snr_curve, const std::vector<double>& thresholds_db) {
-    std::map<double, double> dr_values_ev;
-    if (snr_curve.signal_ev.empty()) {
-        return dr_values_ev;
+    std::map<double, double> dr_map;
+    const auto& poly_coeffs = snr_curve.poly_coeffs;
+    if (snr_curve.points.empty() || poly_coeffs.empty()) {
+        return dr_map;
     }
-    auto min_max_ev = std::minmax_element(snr_curve.signal_ev.begin(), snr_curve.signal_ev.end());
-    for (const double threshold_db : thresholds_db) {
-        auto ev_opt = FindIntersectionEV(snr_curve.poly_coeffs, threshold_db, *min_max_ev.first, *min_max_ev.second);
-        if (ev_opt) {
-            dr_values_ev[threshold_db] = -(*ev_opt);
-        }
+    
+    // RESTORED LOGIC: With the EV = f(SNR_dB) model, the calculation is a direct evaluation.
+    // The complex solvers are no longer needed.
+    for (double threshold : thresholds_db) {
+        // We evaluate the polynomial at the SNR threshold to get the corresponding EV.
+        double ev_at_threshold = EvaluatePolynomial(poly_coeffs, threshold);
+        // The DR formula remains DR = -EV_threshold.
+        dr_map[threshold] = -ev_at_threshold;
     }
-    return dr_values_ev;
+
+    return dr_map;
 }
 
 } // namespace CurveCalculator

@@ -10,15 +10,23 @@
 #include <map>
 #include "../analysis/Analysis.hpp"
 #include "PlotInfoBox.hpp"
+#include "RenderContext.hpp" // Include the new RenderContext
 
 /**
  * @brief Draws the dynamic data onto the plot (data points, curves, labels).
  * @param cr The cairo drawing context.
+ * @param ctx The rendering context with canvas dimensions.
+ * @param info_box The info box containing plot titles.
  * @param curves A vector of CurveData structs, each representing a curve to draw.
+ * @param results A vector of DynamicRangeResult, containing DR data for labels.
  * @param bounds A map containing the plot boundaries to correctly map data coordinates.
+ * @param opts The program options, used to conditionally draw plot elements.
  */
 void DrawCurvesAndData(
     cairo_t* cr,
+    const DynaRange::Graphics::RenderContext& ctx,
     const PlotInfoBox& info_box,
     const std::vector<CurveData>& curves,
-    const std::map<std::string, double>& bounds);
+    const std::vector<DynamicRangeResult>& results,
+    const std::map<std::string, double>& bounds,
+    const ProgramOptions& opts);

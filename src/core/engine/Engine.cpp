@@ -10,6 +10,9 @@
 #include "Validation.hpp"
 #include <atomic>
 #include <ostream>
+#include <libintl.h>
+
+#define _(string) gettext(string)
 
 namespace DynaRange {
 
@@ -28,18 +31,26 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
     
     // Phase 2: Processing of all files
     ProcessingResult results = ProcessFiles(opts, log_stream, cancel_flag);
-
+    
     // Check if the user cancelled the operation during processing
     if (cancel_flag) {
-        log_stream << "\n[INFO] Analysis cancelled by user." << std::endl;
+        log_stream << "\n" << _("[INFO] Analysis cancelled by user.") << std::endl;
         return {};
     }
 
     // Phase 3: Validate SNR data before final reporting
     ValidateSnrResults(results, opts, log_stream);
-    
+
     // Phase 4: Generation of final reports
-    return FinalizeAndReport(results, opts, log_stream);
+    ReportOutput report = FinalizeAndReport(results, opts, log_stream);
+
+    // Populate the new dr_results member with the sorted results.
+    // for combining the report artifacts with the numerical results
+    // Needed when click event on grid results.csv and show graphic at GUI
+    report.dr_results = results.dr_results;
+    report.curve_data = results.curve_data;
+
+    return report;
 }
 
 } // namespace DynaRange

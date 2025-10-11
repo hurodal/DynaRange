@@ -1,18 +1,22 @@
 // File: gui/GuiPresenter.cpp
 /**
- * @file GuiPresenter.cpp
+ * @file gui/GuiPresenter.cpp
  * @brief Implements the application logic presenter for the GUI.
  */
 #include "GuiPresenter.hpp"
-#include "DynaRangeFrame.hpp" // Include the full View definition
+#include "../core/arguments/ArgumentManager.hpp"
 #include "../core/engine/Engine.hpp"
-#include "../core/arguments/CommandGenerator.hpp"
-#include <wx/stdpaths.h>
-#include <wx/msgdlg.h>
+#include "../core/utils/CommandGenerator.hpp"
+#include "../core/arguments/Constants.hpp"
+#include "DynaRangeFrame.hpp" // Include the full View definition
+#include "helpers/GuiPlotter.hpp" // Include the new GUI plotter
+#include <algorithm>
 #include <filesystem>
 #include <ostream>
+#include <set>
 #include <streambuf>
-#include <algorithm> // Needed for std::sort
+#include <wx/msgdlg.h>
+#include <wx/stdpaths.h>
 
 namespace fs = std::filesystem;
 
@@ -20,161 +24,328 @@ namespace fs = std::filesystem;
 // This streambuf redirects std::ostream to the View's log through wxEvents
 class WxLogStreambuf : public std::streambuf {
 public:
-    WxLogStreambuf(DynaRangeFrame* view) : m_view(view) {
-        // The line "m_cancelWorker = false;" was here and has been removed.
+    WxLogStreambuf(DynaRangeFrame* view)
+        : m_view(view)
+    {
     }
+
 protected:
-    virtual int sync() override {
+    virtual int sync() override
+    {
         if (!m_buffer.empty() && m_view) {
             m_view->PostLogUpdate(m_buffer);
             m_buffer.clear();
         }
         return 0;
     }
-    virtual int overflow(int c) override {
+
+    virtual int overflow(int c) override
+    {
         if (c != EOF) {
             m_buffer += static_cast<char>(c);
-            if (c == '\n') { sync(); }
+            if (c == '\n') {
+                sync();
+            }
         }
         return c;
     }
+
 private:
     DynaRangeFrame* m_view;
     std::string m_buffer;
 };
 
-
-GuiPresenter::GuiPresenter(DynaRangeFrame* view) : m_view(view) {
+GuiPresenter::GuiPresenter(DynaRangeFrame* view)
+    : m_view(view)
+{
     m_cancelWorker = false;
 }
 
-GuiPresenter::~GuiPresenter() {
+GuiPresenter::~GuiPresenter()
+{
     if (m_workerThread.joinable()) {
         m_workerThread.join();
     }
 }
 
-void GuiPresenter::StartAnalysis() {
-    m_lastRunOptions = BuildProgramOptions();
+void GuiPresenter::UpdateManagerFromView()
+{
+    using namespace DynaRange::Arguments::Constants;
+    auto& mgr = ArgumentManager::Instance();
+    
+    mgr.Set(BlackFile, m_view->GetDarkFilePath());
+    mgr.Set(SaturationFile, m_view->GetSaturationFilePath());
+    mgr.Set(BlackLevel, m_view->GetDarkValue());
+    mgr.Set(SaturationLevel, m_view->GetSaturationValue());
+    mgr.Set(PatchRatio, m_view->GetPatchRatio());
+    mgr.Set(InputFiles, m_view->GetInputFiles());
+    mgr.Set(OutputFile, m_view->GetOutputFilePath());
+    mgr.Set(SnrThresholdDb, m_view->GetSnrThresholds());
+    mgr.Set(DrNormalizationMpx, m_view->GetDrNormalization());
+    mgr.Set(PolyFit, m_view->GetPolyOrder());
+
+    int plotModeChoice = m_view->GetPlotMode();
+    bool generatePlot = (plotModeChoice != 0);
+    mgr.Set(GeneratePlot, generatePlot);
+
+    if (generatePlot) {
+        DynaRange::Graphics::Constants::PlotOutputFormat format_enum = m_view->GetPlotFormat();
+        std::string format_str = "PNG";
+        if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::PDF) {
+            format_str = "PDF";
+        } else if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::SVG) {
+            format_str = "SVG";
+        }
+        mgr.Set(PlotFormat, format_str);
+
+        PlottingDetails details = m_view->GetPlottingDetails();
+        int commandMode = plotModeChoice; // 1: No cmd, 2: Short, 3: Long
+        std::vector<int> params = { static_cast<int>(details.show_scatters), static_cast<int>(details.show_curve), static_cast<int>(details.show_labels), commandMode };
+        mgr.Set(PlotParams, params);
+    }
+
+    mgr.Set(ChartCoords, m_view->GetChartCoords());
+    
+    std::vector<int> patches = { m_view->GetChartPatchesM(), m_view->GetChartPatchesN() };
+    mgr.Set(ChartPatches, patches);
+    
+    RawChannelSelection channels = m_view->GetRawChannelSelection();
+    std::vector<int> channels_vec = { static_cast<int>(channels.R), static_cast<int>(channels.G1), static_cast<int>(channels.G2), static_cast<int>(channels.B), static_cast<int>(channels.AVG) };
+    mgr.Set(RawChannels, channels_vec);
+
+    bool black_is_default = m_view->GetDarkFilePath().empty();
+    mgr.Set(BlackLevelIsDefault, black_is_default);
+    bool sat_is_default = m_view->GetSaturationFilePath().empty();
+    mgr.Set(SaturationLevelIsDefault, sat_is_default);
+    
+    std::vector<double> current_thresholds = m_view->GetSnrThresholds();
+    bool snr_is_default = (current_thresholds.size() == 2 && current_thresholds[0] == 0 && current_thresholds[1] == 12);
+    mgr.Set(SnrThresholdIsDefault, snr_is_default);
+    
+    mgr.Set(PrintPatches, m_view->GetPrintPatchesFilename());
+}
+
+void GuiPresenter::UpdateCommandPreview()
+{
+
+    // First, sync the manager with the current state of the GUI controls
+    UpdateManagerFromView();
+
+    // The call to generate the command is now delegated to the new CommandGenerator module.
+    std::string command = CommandGenerator::GenerateCommand(CommandFormat::GuiPreview);
+
+    // Update the view with the newly generated command
+    m_view->UpdateCommandPreview(command);
+}
+
+void GuiPresenter::StartAnalysis()
+{
+    if (!m_view->ValidateSnrThresholds()) {
+        m_view->ShowError(_("Invalid Input"), _("The 'SNR Thresholds' field contains invalid characters. Please enter only numbers separated by spaces."));
+        return; // Abort the analysis
+    }
+
+    // 1. Update the manager with the current values from the GUI.
+    UpdateManagerFromView();
+
+    // 2. Get the options for the engine from the manager.
+    m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
     if (m_lastRunOptions.input_files.empty()) {
-        m_view->ShowError("Error", "Please select at least one input RAW file.");
+        m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
 
-    m_view->SetUiState(true); // Tell the view to enter "processing" mode
+    // 3. Exclude calibration files from the input list before starting the analysis.
+    if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
+        std::set<std::string> calibration_files;
+        if (!m_lastRunOptions.dark_file_path.empty()) {
+            calibration_files.insert(m_lastRunOptions.dark_file_path);
+        }
+        if (!m_lastRunOptions.sat_file_path.empty()) {
+            calibration_files.insert(m_lastRunOptions.sat_file_path);
+        }
+
+        m_lastRunOptions.input_files.erase(
+            std::remove_if(m_lastRunOptions.input_files.begin(), m_lastRunOptions.input_files.end(),
+                [&](const std::string& input_file) {
+                    return calibration_files.count(input_file);
+                }),
+            m_lastRunOptions.input_files.end()
+        );
+
+        // Update the GUI to reflect the filtered list.
+        m_view->UpdateInputFileList(m_lastRunOptions.input_files);
+        // Also update the argument manager with the cleaned list for command preview consistency.
+        ArgumentManager::Instance().Set("input-files", m_lastRunOptions.input_files);
+        UpdateCommandPreview();
+    }
+
+
+    m_view->SetUiState(true);
 
     if (m_workerThread.joinable()) {
         m_workerThread.join();
     }
-    
-    m_cancelWorker = false; // Reset the flag before starting
 
-    // Launch the thread with a lambda to update the state upon completion
+    m_cancelWorker = false;
     m_workerThread = std::thread([this] {
-        // We run the worker with the options already stored in m_lastRunOptions
-        this->AnalysisWorker(m_lastRunOptions);    
-        // When AnalysisWorker finishes, we update the flag
+        this->AnalysisWorker(m_lastRunOptions);
         m_isWorkerRunning = false;
     });
 }
 
-void GuiPresenter::AnalysisWorker(ProgramOptions opts) {
-    m_isWorkerRunning = true; // Inform that the thread has started
+void GuiPresenter::AnalysisWorker(ProgramOptions opts)
+{
+    m_isWorkerRunning = true;
+    // Clear previous results
+    m_summaryImage = wxImage();
+    m_individualImages.clear();
+
     WxLogStreambuf log_streambuf(m_view);
     std::ostream log_stream(&log_streambuf);
 
+    // 1. Run core analysis to get raw data and file-based reports
     m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
 
-    // Notify the view on the main thread that the work is done
+    if (m_cancelWorker) {
+        if (m_view)
+            m_view->PostAnalysisComplete();
+        return;
+    }
+
+    // 2. After core analysis, generate in-memory images for the GUI
+    if (opts.generate_plot && !m_lastReport.curve_data.empty()) {
+        log_stream << _("\nGenerating in-memory plots for GUI...") << std::endl;
+
+        // Generate summary plot image
+        // --- CORRECTION START ---
+        // First, build the full title as a wxString
+        wxString summary_title_wx = _("SNR Curves - Summary (") + wxString(m_lastReport.curve_data[0].camera_model) + ")";
+        // Then, convert the wxString to std::string for the function call
+        std::string summary_title = std::string(summary_title_wx.mb_str());
+        // --- CORRECTION END ---
+        m_summaryImage = GuiPlotter::GeneratePlotAsWxImage(m_lastReport.curve_data, m_lastReport.dr_results, summary_title, opts);
+
+        // Generate individual plot images
+        std::map<std::string, std::vector<CurveData>> curves_by_file;
+        for (const auto& curve : m_lastReport.curve_data) {
+            curves_by_file[curve.filename].push_back(curve);
+        }
+        std::map<std::string, std::vector<DynamicRangeResult>> results_by_file;
+        for (const auto& result : m_lastReport.dr_results) {
+            results_by_file[result.filename].push_back(result);
+        }
+
+        for (const auto& pair : curves_by_file) {
+            const std::string& filename = pair.first;
+            std::stringstream title_ss;
+            title_ss << fs::path(filename).filename().string() << " (" << pair.second[0].camera_model << ")";
+            m_individualImages[filename] = GuiPlotter::GeneratePlotAsWxImage(pair.second, results_by_file[filename], title_ss.str(), opts);
+        }
+        log_stream << _("In-memory plot generation complete.") << std::endl;
+    }
+
+    // 3. Notify the view on the main thread that all work is done
     if (m_view) {
         m_view->PostAnalysisComplete();
     }
 }
 
-ProgramOptions GuiPresenter::BuildProgramOptions() {
-    ProgramOptions opts;
-    
-    // --- Get values from the View ---
-    opts.dark_file_path = m_view->GetDarkFilePath();
-    opts.sat_file_path = m_view->GetSaturationFilePath();
-    opts.dark_value = m_view->GetDarkValue();
-    opts.saturation_value = m_view->GetSaturationValue();
-    opts.input_files = m_inputFiles;
+void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
+{
+    std::vector<std::string> current_files = m_view->GetInputFiles();
+    std::set<std::string> existing_files(current_files.begin(), current_files.end());
 
-    // --- Business Logic: Apply defaults for GUI context ---
-    opts.snr_thresholds_db = {12.0, 0.0};
-    opts.dr_normalization_mpx = 8.0;
-    opts.poly_order = 3;
-    opts.patch_ratio = m_view->GetPatchRatio();
-    opts.plot_mode = 2; // Always generate plots and command for the GUI
-    
-    wxString docsPath = wxStandardPaths::Get().GetDocumentsDir();
-    fs::path output_dir = fs::path(std::string(docsPath.mb_str()));
-    opts.output_filename = (output_dir / "DR_results.csv").string();
+    // Get the current calibration files to ensure they are not added to the input list.
+    std::set<std::string> calibration_files;
+    std::string dark_file = m_view->GetDarkFilePath();
+    if (!dark_file.empty()) {
+        calibration_files.insert(dark_file);
+    }
+    std::string sat_file = m_view->GetSaturationFilePath();
+    if (!sat_file.empty()) {
+        calibration_files.insert(sat_file);
+    }
 
-    return opts;
-}
+    for (const auto& file : files_to_add) {
+        // A file is added only if it's not a duplicate AND it's not a calibration file.
+        bool is_calibration_file = calibration_files.count(file) > 0;
+        bool is_new_file = existing_files.insert(file).second;
 
-void GuiPresenter::AddInputFiles(const std::vector<std::string>& files) {
-    m_inputFiles.insert(m_inputFiles.end(), files.begin(), files.end());
-    m_view->UpdateInputFileList(m_inputFiles);
+        if (is_new_file && !is_calibration_file) {
+            current_files.push_back(file);
+        }
+    }
+
+    // Update the view with the final, de-duplicated, and filtered list.
+    m_view->UpdateInputFileList(current_files);
     UpdateCommandPreview();
 }
 
-void GuiPresenter::UpdateCommandPreview() {
-    ProgramOptions current_opts = BuildProgramOptions();
-    std::string command = GenerateCommand(current_opts);
-    m_view->UpdateCommandPreview(command);
-}
-
-void GuiPresenter::HandleGridCellClick(int row) {
-    if (row == 0) { // Summary plot row
-        if (m_lastReport.summary_plot_path.has_value()) {
-            m_view->LoadGraphImage(*m_lastReport.summary_plot_path);
+void GuiPresenter::HandleGridCellClick(const std::string& basename)
+{
+    // If the basename is empty, it's a header click or invalid row, so show the summary plot.
+    if (basename.empty()) {
+        if (m_summaryImage.IsOk()) {
+            m_view->DisplayImage(m_summaryImage);
         }
-    } else if (row >= 1) { // Data row for an individual file
-        // The grid row index corresponds to the input file index of the last run
-        int result_index = row - 1;
-        if (result_index < m_lastRunOptions.input_files.size()) {
-            std::string filename = m_lastRunOptions.input_files[result_index];
-            if (m_lastReport.individual_plot_paths.count(filename)) {
-                m_view->LoadGraphImage(m_lastReport.individual_plot_paths.at(filename));
+        return;
+    }
+
+    // Find the corresponding full path by searching through the last report results.
+    // The m_individualImages map uses the full path as its key.
+    for (const auto& result : m_lastReport.dr_results) {
+        if (fs::path(result.filename).filename().string() == basename) {
+            // Found the matching full path.
+            const std::string& full_path = result.filename;
+
+            if (m_individualImages.count(full_path)) {
+                const wxImage& individual_image = m_individualImages.at(full_path);
+                if (individual_image.IsOk()) {
+                    m_view->DisplayImage(individual_image);
+                    return; // Found and displayed, so we are done.
+                }
             }
         }
     }
+
+    // If we get here, it means no matching image was found for the clicked filename.
+    // In this case, we simply do nothing and leave the current image displayed.
 }
 
-void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices) {
+void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
+{
     // It is CRITICAL to delete items from the end to the beginning
     // to avoid invalidating the indices of the remaining items.
+    std::vector<std::string> current_files = m_view->GetInputFiles();
     std::vector<int> sorted_indices = indices;
     std::sort(sorted_indices.rbegin(), sorted_indices.rend());
 
     for (int index : sorted_indices) {
-        if (index < m_inputFiles.size()) {
-            m_inputFiles.erase(m_inputFiles.begin() + index);
+        if (index < current_files.size()) {
+            current_files.erase(current_files.begin() + index);
         }
     }
 
     // Notify the view to update itself
-    m_view->UpdateInputFileList(m_inputFiles);
-
+    m_view->UpdateInputFileList(current_files);
     // Call the presenter's own method
     UpdateCommandPreview();
 }
 
-const ProgramOptions& GuiPresenter::GetLastRunOptions() const {
-    return m_lastRunOptions;
+void GuiPresenter::RemoveAllInputFiles()
+{
+    m_inputFiles.clear();
+    m_view->UpdateInputFileList(m_inputFiles);
+    UpdateCommandPreview();
 }
 
-const ReportOutput& GuiPresenter::GetLastReport() const {
-    return m_lastReport;
-}
+const ProgramOptions& GuiPresenter::GetLastRunOptions() const { return m_lastRunOptions; }
 
-bool GuiPresenter::IsWorkerRunning() const {
-    return m_isWorkerRunning;
-}
+const ReportOutput& GuiPresenter::GetLastReport() const { return m_lastReport; }
 
-void GuiPresenter::RequestWorkerCancellation() {
-    m_cancelWorker = true;
-}
+bool GuiPresenter::IsWorkerRunning() const { return m_isWorkerRunning; }
+
+void GuiPresenter::RequestWorkerCancellation() { m_cancelWorker = true; }
+
+const wxImage& GuiPresenter::GetLastSummaryImage() const { return m_summaryImage; }

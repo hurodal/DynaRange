@@ -6,42 +6,67 @@
 #pragma once
 
 #include "../io/RawFile.hpp"
-#include "../ChartProfile.hpp"
-#include "../arguments/ProgramOptions.hpp"
-#include <vector>
+#include "../setup/ChartProfile.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
+#include "../analysis/Analysis.hpp" // For DataSource
 #include <opencv2/core.hpp>
 #include <Eigen/Dense>
+#include <optional>
 
-/**
- * @brief Calculates keystone distortion parameters from four pairs of points.
- * @param src_points The four corner points in the distorted source image.
- * @param dst_points The corresponding four corner points in the target rectified image.
- * @return An Eigen::VectorXd containing the 8 transformation parameters.
- */
+cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
 Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points);
 
 /**
- * @brief Applies an inverse keystone correction to an image.
- * @param imgSrc The source image to be corrected.
+ * @brief Applies an inverse keystone correction to a single-channel float image.
+ * @param imgSrc The source image (CV_32FC1) to be corrected.
  * @param k An Eigen::VectorXd containing the 8 transformation parameters.
  * @return A new cv::Mat containing the rectified image.
  */
 cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k);
+cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value);
+
+cv::Mat PrepareChartImage(
+    const RawFile& raw_file,
+    const ProgramOptions& opts,
+    const Eigen::VectorXd& keystone_params,
+    const ChartProfile& chart,
+    std::ostream& log_stream,
+    DataSource channel_to_extract // New parameter
+);
 
 /**
- * @brief Prepares a chart image for analysis.
- * @details Performs all necessary steps: normalization, Bayer channel extraction,
- * keystone correction, and cropping based on a chart profile.
+ * @brief Detects the four corner points of the test chart from a single-channel Bayer image.
+ * @param bayer_image The input single-channel image.
+ * @param log_stream The output stream for logging messages.
+ * @return An optional containing a vector of 4 corner points (TL, BL, BR, TR) on success, or std::nullopt on failure.
+ */
+std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream);
+
+/**
+ * @brief Draws cross markers on an image at specified corner locations.
+ * @param image The source image to draw on.
+ * @param corners A vector of 4 corner points.
+ * @return A new image with the markers drawn on it.
+ */
+cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners);
+
+/**
+ * @brief Prepares all four Bayer channels from a single RAW file in one pass.
+ * @details This optimized function loads and normalizes the RAW image once,
+ * extracts all four channels (R, G1, G2, B), and then applies keystone
+ * correction and cropping to each.
  * @param raw_file The source RawFile object.
  * @param opts The program options (for black/saturation levels).
  * @param keystone_params The pre-calculated keystone transformation parameters.
  * @param chart The chart profile defining the geometry.
  * @param log_stream Stream for logging messages.
- * @return A prepared cv::Mat, ready for patch analysis. Returns empty Mat on failure.
+ * @return A map where the key is the DataSource (R, G1, G2, B) and the value
+ * is the fully prepared cv::Mat for that channel.
  */
-cv::Mat PrepareChartImage(
-    const RawFile& raw_file, 
-    const ProgramOptions& opts, 
+std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
+    const RawFile& raw_file,
+    const ProgramOptions& opts,
     const Eigen::VectorXd& keystone_params,
-    const ChartProfile& chart, 
-    std::ostream& log_stream);
+    const ChartProfile& chart,
+    std::ostream& log_stream
+);

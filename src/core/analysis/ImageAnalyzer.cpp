@@ -4,38 +4,71 @@
  * @brief Implements the patch detection and measurement logic for chart analysis.
  */
 #include "ImageAnalyzer.hpp"
+#include "../../core/DebugConfig.hpp"
 #include <opencv2/imgproc.hpp>
 
-PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio) {
-    std::vector<double> signal_vec, noise_vec;
-    const double patch_width = (double)imgcrop.cols / NCOLS;
-    const double patch_height = (double)imgcrop.rows / NROWS;
-    const double safe_x = patch_width * (1.0 - patch_ratio) / 2.0;
-    const double safe_y = patch_height * (1.0 - patch_ratio) / 2.0;
+PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double patch_ratio, bool create_overlay_image, double min_snr_db) {
+    cv::Mat image_with_overlays;
+    if (create_overlay_image) {
+        image_with_overlays = imgcrop.clone();
+    }
 
-    for (int j = 0; j < NROWS; ++j) {
-        for (int i = 0; i < NCOLS; ++i) {
-            int x1 = round((double)i * patch_width + safe_x);
-            int x2 = round((double)(i + 1) * patch_width - safe_x);
-            int y1 = round((double)j * patch_height + safe_y);
-            int y2 = round((double)(j + 1) * patch_height - safe_y);
+    const double patch_width_float = (double)imgcrop.cols / NCOLS;
+    const double patch_height_float = (double)imgcrop.rows / NROWS;
+    const double safe_x = patch_width_float * (1.0 - patch_ratio) / 2.0;
+    const double safe_y = patch_height_float * (1.0 - patch_ratio) / 2.0;
 
+    std::vector<double> signal;
+    std::vector<double> noise;
+    double max_pixel_value = 0.0;
+    signal.reserve(NCOLS * NROWS);
+    noise.reserve(NCOLS * NROWS);
+    for (int j = 0; j < NROWS; j++) {
+        for (int i = 0; i < NCOLS; i++) {
+            int x1 = round((double)i * patch_width_float + safe_x);
+            int x2 = round((double)(i + 1) * patch_width_float - safe_x);
+            int y1 = round((double)j * patch_height_float + safe_y);
+            int y2 = round((double)(j + 1) * patch_height_float - safe_y);
             if (x1 >= x2 || y1 >= y2) continue;
+            cv::Rect roi_rect(x1, y1, x2 - x1, y2 - y1);
+            if (roi_rect.x < 0 || roi_rect.y < 0 || roi_rect.x + roi_rect.width > imgcrop.cols || roi_rect.y + roi_rect.height > imgcrop.rows) continue;
+            cv::Mat roi = imgcrop(roi_rect);
 
-            cv::Mat patch = imgcrop(cv::Rect(x1, y1, x2 - x1, y2 - y1));
-            cv::Scalar mean, stddev;
-            cv::meanStdDev(patch, mean, stddev);
-            double S = mean[0], N = stddev[0];
-            int sat_count = cv::countNonZero(patch > 0.9);
-            double sat_ratio = (double)sat_count / (patch.rows * patch.cols);
+            cv::Scalar mean_val, stddev_val;
+            cv::meanStdDev(roi, mean_val, stddev_val);
+            double S = mean_val[0];
+            double N = stddev_val[0];
+            int sat_count = cv::countNonZero(roi > 0.9);
+            double sat_ratio = (double)sat_count / (roi.rows * roi.cols);
 
-            if (S > 0 && N > 0 && 20 * log10(S / N) >= -10 && sat_ratio < 0.01) {
-                signal_vec.push_back(S);
-                noise_vec.push_back(N);
-                cv::rectangle(imgcrop, {x1, y1}, {x2, y2}, cv::Scalar(0.0), 1);
-                cv::rectangle(imgcrop, {x1 - 1, y1 - 1}, {x2 + 1, y2 + 1}, cv::Scalar(1.0), 1);
+            // Se reemplaza el valor fijo -10 por el nuevo parámetro dinámico.
+            if (S > 0 && N > 0 && 20 * log10(S / N) >= min_snr_db && sat_ratio < 0.01) {
+                signal.push_back(S);
+                noise.push_back(N);
+                max_pixel_value = std::max(max_pixel_value, S);
+
+                if (create_overlay_image) {
+                    #if DYNA_RANGE_DEBUG_MODE == 1
+                        cv::rectangle(image_with_overlays, roi_rect.tl() - cv::Point(1,1), roi_rect.br() + cv::Point(1,1), 
+                                      cv::Scalar(DynaRange::Debug::PATCH_OUTLINE_OUTER_COLOR[2], DynaRange::Debug::PATCH_OUTLINE_OUTER_COLOR[1], DynaRange::Debug::PATCH_OUTLINE_OUTER_COLOR[0]), 1);
+                        cv::rectangle(image_with_overlays, roi_rect, 
+                                      cv::Scalar(DynaRange::Debug::PATCH_OUTLINE_INNER_COLOR[2], DynaRange::Debug::PATCH_OUTLINE_INNER_COLOR[1], DynaRange::Debug::PATCH_OUTLINE_INNER_COLOR[0]), 1);
+                    #else
+                        cv::rectangle(image_with_overlays, roi_rect.tl() - cv::Point(1,1), roi_rect.br() + cv::Point(1,1), cv::Scalar(1.0), 1);
+                        cv::rectangle(image_with_overlays, roi_rect, cv::Scalar(0.0), 1);
+                    #endif
+                }
             }
         }
     }
-    return {signal_vec, noise_vec, imgcrop};
+
+    PatchAnalysisResult result;
+    result.signal = signal;
+    result.noise = noise;
+    result.max_pixel_value = max_pixel_value;
+    if (create_overlay_image) {
+        result.image_with_patches = image_with_overlays;
+    }
+
+    return result;
 }
