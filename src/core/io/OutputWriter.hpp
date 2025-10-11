@@ -7,13 +7,11 @@
  */
 #pragma once
 
-#include <vector>
 #include <ostream>
 #include <filesystem>
 #include <cairo/cairo.h>
 #include <opencv2/core.hpp>
-#include "../analysis/Analysis.hpp"
-#include "../arguments/ArgumentsOptions.hpp"
+#include "../utils/Formatters.hpp"
 
 namespace fs = std::filesystem;
 
@@ -41,16 +39,13 @@ bool WriteDebugImage(const cv::Mat& image, const fs::path& path, std::ostream& l
 
 /**
  * @brief Writes the analysis results to a CSV file.
- * @param all_results The vector of DynamicRangeResult structs to write.
- * @param opts The program options, used to get the SNR thresholds for the header.
+ * @param sorted_rows The flattened and sorted vector of result rows to write.
  * @param path The full filesystem path for the output CSV.
  * @param log_stream A stream for logging success or error messages.
  * @return true on success, false on failure.
  */
 bool WriteCsv(
-    const std::vector<DynamicRangeResult>& all_results,
-    const ProgramOptions& opts,
+    const std::vector<Formatters::FlatResultRow>& sorted_rows,
     const fs::path& path,
     std::ostream& log_stream);
-
 } // namespace OutputWriter

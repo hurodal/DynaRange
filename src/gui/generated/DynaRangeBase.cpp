@@ -493,7 +493,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_removeAllFiles = new wxButton( rawFilesSbSizer->GetStaticBox(), wxID_ANY, _("Remove All"), wxDefaultPosition, wxDefaultSize, wxBU_LEFT );
 
 	m_removeAllFiles->SetBitmap( Icono_BAD_Mark_Red_alpha_22x22_png_to_wx_bitmap() );
-	AddRemoveRawsSbSizer7->Add( m_removeAllFiles, 0, wxALL, 5 );
+	AddRemoveRawsSbSizer7->Add( m_removeAllFiles, 0, wxALL|wxEXPAND, 5 );
 
 
 	rawFilesSbSizer->Add( AddRemoveRawsSbSizer7, 0, wxEXPAND, 5 );

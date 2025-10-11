@@ -5,6 +5,7 @@
  */
 #include "CommandGenerator.hpp"
 #include "../arguments/ArgumentManager.hpp"
+#include "../arguments/Constants.hpp"
 #include "Constants.hpp"
 #include <filesystem>
 #include <iomanip>
@@ -12,12 +13,14 @@
 #include <sstream>
 
 #define _(string) gettext(string)
+
 namespace fs = std::filesystem;
 
 namespace CommandGenerator {
 
 std::string GenerateCommand(CommandFormat format)
 {
+    using namespace DynaRange::Arguments::Constants;
     std::stringstream command_ss;
     command_ss << DynaRange::Utils::Constants::CLI_EXECUTABLE_NAME;
     auto& mgr = ArgumentManager::Instance();
@@ -28,104 +31,103 @@ std::string GenerateCommand(CommandFormat format)
             command_ss << " --" << name;
             return;
         }
-        // Map long names to short names for the short command format
+        
         static const std::map<std::string, std::string> short_map
-            = { { "black-level", " -B" }, { "black-file", " -b" }, { "saturation-level", " -S" }, { "saturation-file", " -s" }, { "input-files", " -i" }, { "patch-ratio", " -r" },
-                  { "snrthreshold-db", " -d" }, { "drnormalization-mpx", " -m" }, { "poly-fit", " -f" }, { "output-file", " -o" }, { "plot-format", " -p" }, { "plot-params", " -P" },
-                  { "print-patches", " -g" }, { "raw-channel", " -w" }, { "chart", " -c" }, { "chart-colour", " -C" }, { "chart-coords", " -x" }, { "chart-patches", " -M" } };
+            = { { BlackLevel, " -B" }, { BlackFile, " -b" }, { SaturationLevel, " -S" }, { SaturationFile, " -s" }, { InputFiles, " -i" }, { PatchRatio, " -r" },
+                  { SnrThresholdDb, " -d" }, { DrNormalizationMpx, " -m" }, { PolyFit, " -f" }, { OutputFile, " -o" }, { PlotFormat, " -p" }, { PlotParams, " -P" },
+                  { PrintPatches, " -g" }, { RawChannels, " -w" }, { Chart, " -c" }, { ChartColour, " -C" }, { ChartCoords, " -x" }, { ChartPatches, " -M" } };
         auto it = short_map.find(name);
         if (it != short_map.end()) {
             command_ss << it->second;
         } else {
-            command_ss << " --" << name; // Fallback for args without a short version
+            command_ss << " --" << name; 
         }
     };
 
-    std::string black_file = mgr.Get<std::string>("black-file");
+    std::string black_file = mgr.Get<std::string>(BlackFile);
     if (!black_file.empty()) {
-        add_arg("black-file");
+        add_arg(BlackFile);
         if (format == CommandFormat::GuiPreview || format == CommandFormat::Full) {
             command_ss << " \"" << black_file << "\"";
         } else {
             command_ss << " \"" << fs::path(black_file).filename().string() << "\"";
         }
     } else {
-        add_arg("black-level");
-        command_ss << " " << std::fixed << std::setprecision(2) << mgr.Get<double>("black-level");
+        add_arg(BlackLevel);
+        command_ss << " " << std::fixed << std::setprecision(2) << mgr.Get<double>(BlackLevel);
     }
 
-    std::string sat_file = mgr.Get<std::string>("saturation-file");
+    std::string sat_file = mgr.Get<std::string>(SaturationFile);
     if (!sat_file.empty()) {
-        add_arg("saturation-file");
+        add_arg(SaturationFile);
         if (format == CommandFormat::GuiPreview || format == CommandFormat::Full) {
             command_ss << " \"" << sat_file << "\"";
         } else {
             command_ss << " \"" << fs::path(sat_file).filename().string() << "\"";
         }
     } else {
-        add_arg("saturation-level");
-        command_ss << " " << std::fixed << std::setprecision(2) << mgr.Get<double>("saturation-level");
+        add_arg(SaturationLevel);
+        command_ss << " " << std::fixed << std::setprecision(2) << mgr.Get<double>(SaturationLevel);
     }
 
     if (format == CommandFormat::Full) {
-        add_arg("output-file");
-        command_ss << " \"" << mgr.Get<std::string>("output-file") << "\"";
+        add_arg(OutputFile);
+        command_ss << " \"" << mgr.Get<std::string>(OutputFile) << "\"";
     }
 
-    if (!mgr.Get<bool>("snr-threshold-is-default")) {
-        add_arg("snrthreshold-db");
-        const auto& thresholds = mgr.Get<std::vector<double>>("snrthreshold-db");
+    if (!mgr.Get<bool>(SnrThresholdIsDefault)) {
+        add_arg(SnrThresholdDb);
+        const auto& thresholds = mgr.Get<std::vector<double>>(SnrThresholdDb);
         for (const auto& threshold : thresholds) {
             command_ss << " " << threshold;
         }
     }
 
-    add_arg("drnormalization-mpx");
-    command_ss << " " << mgr.Get<double>("drnormalization-mpx");
-    add_arg("poly-fit");
-    command_ss << " " << mgr.Get<int>("poly-fit");
-    add_arg("patch-ratio");
-    command_ss << " " << mgr.Get<double>("patch-ratio");
+    add_arg(DrNormalizationMpx);
+    command_ss << " " << mgr.Get<double>(DrNormalizationMpx);
+    add_arg(PolyFit);
+    command_ss << " " << mgr.Get<int>(PolyFit);
+    add_arg(PatchRatio);
+    command_ss << " " << mgr.Get<double>(PatchRatio);
 
-    if (mgr.Get<bool>("generate-plot")) {
-        add_arg("plot-format");
-        command_ss << " " << mgr.Get<std::string>("plot-format");
+    if (mgr.Get<bool>(GeneratePlot)) {
+        add_arg(PlotFormat);
+        command_ss << " " << mgr.Get<std::string>(PlotFormat);
 
-        add_arg("plot-params");
-        const auto& plot_params = mgr.Get<std::vector<int>>("plot-params");
+        add_arg(PlotParams);
+        const auto& plot_params = mgr.Get<std::vector<int>>(PlotParams);
         for (const auto& val : plot_params) {
             command_ss << " " << val;
         }
     }
 
-    const auto& chart_coords = mgr.Get<std::vector<double>>("chart-coords");
+    const auto& chart_coords = mgr.Get<std::vector<double>>(ChartCoords);
     if (!chart_coords.empty()) {
-        add_arg("chart-coords");
+        add_arg(ChartCoords);
         for (const auto& coord : chart_coords)
             command_ss << " " << coord;
     }
 
-    const auto& chart_patches = mgr.Get<std::vector<int>>("chart-patches");
+    const auto& chart_patches = mgr.Get<std::vector<int>>(ChartPatches);
     if (!chart_patches.empty()) {
-        add_arg("chart-patches");
+        add_arg(ChartPatches);
         for (const auto& val : chart_patches)
             command_ss << " " << val;
     }
 
-    // Add --raw-channel to the command string if it's not the default.
-    const auto& raw_channels_vec = mgr.Get<std::vector<int>>("raw-channel");
+    const auto& raw_channels_vec = mgr.Get<std::vector<int>>(RawChannels);
     const std::vector<int> default_channels = { 0, 0, 0, 0, 1 };
     if (raw_channels_vec != default_channels) {
-        add_arg("raw-channel");
+        add_arg(RawChannels);
         for (const auto& val : raw_channels_vec) {
             command_ss << " " << val;
         }
     }
 
     if (format == CommandFormat::Full || format == CommandFormat::GuiPreview) {
-        const auto& input_files = mgr.Get<std::vector<std::string>>("input-files");
+        const auto& input_files = mgr.Get<std::vector<std::string>>(InputFiles);
         if (!input_files.empty()) {
-            add_arg("input-files");
+            add_arg(InputFiles);
             for (const auto& file : input_files) {
                 command_ss << " \"" << file << "\"";
             }
