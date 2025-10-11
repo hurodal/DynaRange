@@ -111,7 +111,7 @@ void GuiPresenter::UpdateManagerFromView()
     // Read the state of the new channel checkboxes and set the argument.
     RawChannelSelection channels = m_view->GetRawChannelSelection();
     std::vector<int> channels_vec = { static_cast<int>(channels.R), static_cast<int>(channels.G1), static_cast<int>(channels.G2), static_cast<int>(channels.B), static_cast<int>(channels.AVG) };
-    mgr.Set("raw-channel", channels_vec);
+    mgr.Set("raw-channels", channels_vec);
 
     bool black_is_default = m_view->GetDarkFilePath().empty();
     mgr.Set("black-level-is-default", black_is_default);
@@ -156,6 +156,32 @@ void GuiPresenter::StartAnalysis()
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
+
+    // 3. Exclude calibration files from the input list before starting the analysis.
+    if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
+        std::set<std::string> calibration_files;
+        if (!m_lastRunOptions.dark_file_path.empty()) {
+            calibration_files.insert(m_lastRunOptions.dark_file_path);
+        }
+        if (!m_lastRunOptions.sat_file_path.empty()) {
+            calibration_files.insert(m_lastRunOptions.sat_file_path);
+        }
+
+        m_lastRunOptions.input_files.erase(
+            std::remove_if(m_lastRunOptions.input_files.begin(), m_lastRunOptions.input_files.end(),
+                [&](const std::string& input_file) {
+                    return calibration_files.count(input_file);
+                }),
+            m_lastRunOptions.input_files.end()
+        );
+
+        // Update the GUI to reflect the filtered list.
+        m_view->UpdateInputFileList(m_lastRunOptions.input_files);
+        // Also update the argument manager with the cleaned list for command preview consistency.
+        ArgumentManager::Instance().Set("input-files", m_lastRunOptions.input_files);
+        UpdateCommandPreview();
+    }
+
 
     m_view->SetUiState(true);
 

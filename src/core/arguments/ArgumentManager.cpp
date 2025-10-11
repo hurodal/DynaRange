@@ -46,8 +46,7 @@ void ArgumentManager::RegisterAllArguments()
     m_descriptors["drnormalization-mpx"] = { "drnormalization-mpx", "m", _("Number of Mpx for DR normalization (default=0Mpx)"), ArgType::Double, DEFAULT_DR_NORMALIZATION_MPX };
     m_descriptors["poly-fit"] = { "poly-fit", "f", _("Polynomic order (default=3) to fit the SNR curve"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3 };
     m_descriptors["output-file"] = { "output-file", "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME) };
-    m_descriptors["plot"] = { "plot", "p", _("Enables plot generation and optionally sets the output filename."), ArgType::String, std::string("") };
-    m_descriptors["plot-format"] = { "plot-format", "F", _("Export SNR curves in PNG/PDF/SVG format..."), ArgType::String, std::string("PNG") };
+    m_descriptors["plot-format"] = { "plot-format", "p", _("Export SNR curves in PNG/PDF/SVG format..."), ArgType::String, std::string("PNG") };
     m_descriptors["plot-params"] = { "plot-params", "P", _("Plot details: Scatters, Curves, Labels (0/1) and CLI mode (1-3)"), ArgType::IntVector, std::vector<int> { 1, 1, 1, 3 } };
     m_descriptors["print-patches"] = { "print-patches", "g", _("Saves a debug image ('chartpatches.png') with the patch overlay."), ArgType::String, std::string("") };
     m_descriptors["raw-channel"] = { "raw-channel", "w", _("Specify which RAW channels to analyze (R G1 G2 B AVG)"), ArgType::IntVector, std::vector<int> { 0, 0, 0, 0, 1 } };
@@ -76,8 +75,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[])
     ProgramOptions temp_opts;
     std::vector<double> temp_snr_thresholds;
     std::vector<int> temp_raw_channels;
-    std::vector<std::string> plot_params;
-    int plot_command_mode = 1;
+    std::string temp_plot_format;
+    std::vector<int> temp_plot_params;
 
     // --- Define all options ---
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, m_descriptors.at("chart").help_text)->expected(5);
@@ -98,8 +97,8 @@ void ArgumentManager::ParseCli(int argc, char* argv[])
                             ->check(CLI::IsMember(std::vector<int>(std::begin(VALID_POLY_ORDERS), std::end(VALID_POLY_ORDERS))));
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, m_descriptors.at("patch-ratio").help_text)->check(CLI::Range(0.0, 1.0));
 
-    auto plot_opt = app.add_option("-p,--plot", plot_params, _("Export SNR curves. Can specify [FORMAT] or [FILENAME FORMAT]."))->expected(0, 2)->trigger_on_parse();
-    app.add_option("--plot-cmd", plot_command_mode, _("Set plot command mode (0-3)."))->check(CLI::Range(0, 3));
+    auto plot_format_opt = app.add_option("-p,--plot-format", temp_plot_format, m_descriptors.at("plot-format").help_text);
+    auto plot_params_opt = app.add_option("-P,--plot-params", temp_plot_params, m_descriptors.at("plot-params").help_text)->expected(4);
 
     auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, m_descriptors.at("print-patches").help_text)->expected(0, 1)->default_str("chartpatches.png");
     auto raw_channel_opt = app.add_option("-w,--raw-channel", temp_raw_channels, m_descriptors.at("raw-channel").help_text)->expected(5);
@@ -117,6 +116,10 @@ void ArgumentManager::ParseCli(int argc, char* argv[])
     // --- Store Parsed Values ---
     if (chart_opt->count() > 0 || chart_colour_opt->count() > 0) {
         m_values["create-chart-mode"] = true;
+    }
+
+    if (plot_format_opt->count() > 0 || plot_params_opt->count() > 0) {
+        m_values["generate-plot"] = true;
     }
 
     if (chart_opt->count() > 0)
@@ -159,50 +162,10 @@ void ArgumentManager::ParseCli(int argc, char* argv[])
     if (patch_ratio_opt->count() > 0)
         m_values["patch-ratio"] = temp_opts.patch_ratio;
 
-    if (plot_opt->count() > 0) {
-        m_values["generate-plot"] = true;
-        std::string format_str = "PNG"; // Default format
-        std::string filename = "";
-        // Default to mode 1 if no integer is found.
-        plot_command_mode = 1;
-        for (const auto& param : plot_params) {
-            std::string upper_param = param;
-            std::transform(upper_param.begin(), upper_param.end(), upper_param.begin(), ::toupper);
-
-            // Check if the parameter is a valid integer mode (1, 2, or 3)
-            if (param == "1" || param == "2" || param == "3") {
-                try {
-                    plot_command_mode = std::stoi(param);
-                } catch (...) { /* Ignore conversion errors, will fallback to default */
-                }
-            } else if (upper_param == "PNG" || upper_param == "PDF" || upper_param == "SVG") {
-                format_str = upper_param;
-            } else {
-                filename = param;
-            }
-        }
-
-        // Store the correctly parsed command mode.
-        m_values["plot"] = plot_command_mode;
-
-        if (filename.empty()) {
-            std::string ext;
-            if (format_str == "SVG")
-                ext = ".svg";
-            else if (format_str == "PDF")
-                ext = ".pdf";
-            else
-                ext = ".png";
-            filename = "snrcurves" + ext;
-        }
-
-        if (format_str == "SVG")
-            m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::SVG;
-        else if (format_str == "PDF")
-            m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::PDF;
-        else
-            m_values["plot-format"] = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
-    }
+    if (plot_format_opt->count() > 0)
+        m_values["plot-format"] = temp_plot_format;
+    if (plot_params_opt->count() > 0)
+        m_values["plot-params"] = temp_plot_params;
 
     if (print_patch_opt->count() > 0)
         m_values["print-patches"] = temp_opts.print_patch_filename;
@@ -266,7 +229,7 @@ ProgramOptions ArgumentManager::ToProgramOptions()
         opts.snr_thresholds_db = Get<std::vector<double>>("snrthreshold-db");
     }
 
-    auto channels_vec = Get<std::vector<int>>("raw-channel");
+    auto channels_vec = Get<std::vector<int>>("raw-channels");
     if (channels_vec.size() == 5) {
         opts.raw_channels.R = (channels_vec[0] != 0);
         opts.raw_channels.G1 = (channels_vec[1] != 0);

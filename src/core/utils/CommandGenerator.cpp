@@ -31,7 +31,7 @@ std::string GenerateCommand(CommandFormat format)
         // Map long names to short names for the short command format
         static const std::map<std::string, std::string> short_map
             = { { "black-level", " -B" }, { "black-file", " -b" }, { "saturation-level", " -S" }, { "saturation-file", " -s" }, { "input-files", " -i" }, { "patch-ratio", " -r" },
-                  { "snrthreshold-db", " -d" }, { "drnormalization-mpx", " -m" }, { "poly-fit", " -f" }, { "output-file", " -o" }, { "plot-format", " -F" }, { "plot-params", " -P" },
+                  { "snrthreshold-db", " -d" }, { "drnormalization-mpx", " -m" }, { "poly-fit", " -f" }, { "output-file", " -o" }, { "plot-format", " -p" }, { "plot-params", " -P" },
                   { "print-patches", " -g" }, { "raw-channel", " -w" }, { "chart", " -c" }, { "chart-colour", " -C" }, { "chart-coords", " -x" }, { "chart-patches", " -M" } };
         auto it = short_map.find(name);
         if (it != short_map.end()) {
