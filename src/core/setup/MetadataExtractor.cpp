@@ -10,6 +10,8 @@
 #include <future>
 #include <mutex>
 #include <filesystem>
+#include <thread>
+#include <utility>
 
 namespace fs = std::filesystem;
 
@@ -17,9 +19,9 @@ namespace fs = std::filesystem;
 
 // The function now returns a pair: the FileInfo vector for sorting, and the vector of loaded RawFile objects.
 std::pair<std::vector<FileInfo>, std::vector<RawFile>> ExtractFileInfo(const std::vector<std::string>& input_files, std::ostream& log_stream) {
-    std::vector<std::future<std::pair<std::optional<FileInfo>, RawFile>>> futures;
     std::mutex log_mutex;
 
+    // This lambda function contains the work to be done for a single file.
     auto process_single_file = 
         [&log_stream, &log_mutex](const std::string& name) -> std::pair<std::optional<FileInfo>, RawFile> {
         
@@ -47,17 +49,31 @@ std::pair<std::vector<FileInfo>, std::vector<RawFile>> ExtractFileInfo(const std
         return {info, std::move(raw_file)};
     };
 
-    for (const std::string& name : input_files) {
-        futures.push_back(std::async(std::launch::async, process_single_file, name));
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 1;
     }
+    log_stream << _("Starting parallel pre-analysis with ") << num_threads << _(" threads...") << std::endl;
 
     std::vector<FileInfo> file_info_list;
     std::vector<RawFile> loaded_raw_files;
-    for (auto& fut : futures) {
-        auto [info_opt, raw_file] = fut.get();
-        if (info_opt.has_value()) {
-            file_info_list.push_back(*info_opt);
-            loaded_raw_files.push_back(std::move(raw_file));
+
+    // Process files in batches based on the number of available threads.
+    for (size_t i = 0; i < input_files.size(); i += num_threads) {
+        std::vector<std::future<std::pair<std::optional<FileInfo>, RawFile>>> batch_futures;
+
+        // Launch a batch of asynchronous tasks.
+        for (size_t j = i; j < std::min(i + num_threads, input_files.size()); ++j) {
+            batch_futures.push_back(std::async(std::launch::async, process_single_file, input_files[j]));
+        }
+
+        // Wait for the current batch to complete and collect the results.
+        for (auto& fut : batch_futures) {
+            auto [info_opt, raw_file] = fut.get();
+            if (info_opt.has_value()) {
+                file_info_list.push_back(*info_opt);
+                loaded_raw_files.push_back(std::move(raw_file));
+            }
         }
     }
     
