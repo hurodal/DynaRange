@@ -67,13 +67,23 @@ set(CORE_SOURCES
     src/core/analysis/RawProcessor.cpp
     src/core/arguments/ArgumentManager.cpp
     src/core/arguments/ChartOptionsParser.cpp
+    src/core/arguments/parsing/ArgumentRegistry.cpp
+    src/core/arguments/parsing/CliParser.cpp
+    src/core/arguments/parsing/OptionsConverter.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
-    src/core/engine/Processing.cpp
+    src/core/engine/PatchAnalysisStrategy.cpp
+    src/core/engine/processing/CornerDetectionHandler.cpp
+    src/core/engine/processing/Processing.cpp
+    src/core/engine/processing/ResultAggregator.cpp
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
+    src/core/graphics/detection/ChartCornerDetector.cpp
+    src/core/graphics/drawing/CurveDrawer.cpp
+    src/core/graphics/drawing/LabelDrawer.cpp
     src/core/graphics/FontManager.cpp
+    src/core/graphics/geometry/KeystoneCorrection.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp

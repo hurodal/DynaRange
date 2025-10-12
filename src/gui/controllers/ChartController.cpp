@@ -77,16 +77,6 @@ void ChartController::OnCreateClick(wxCommandEvent& event) {
     }
 }
 
-void ChartController::OnColorSliderChanged(wxCommandEvent& event) {
-    m_frame->m_rParamValue->SetLabel(std::to_string(m_frame->m_rParamSlider->GetValue()));
-    m_frame->m_gParamValue->SetLabel(std::to_string(m_frame->m_gParamSlider->GetValue()));
-    m_frame->m_bParamValue->SetLabel(std::to_string(m_frame->m_bParamSlider->GetValue()));
-}
-
-void ChartController::OnInputChanged(wxCommandEvent& event) {
-    // This can be used later to trigger live preview if desired.
-}
-
 ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
     ChartGeneratorOptions opts{};
     opts.R = m_frame->m_rParamSlider->GetValue();
@@ -100,4 +90,27 @@ ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
     opts.patches_m = m_frame->GetChartPatchesM();
     opts.patches_n = m_frame->GetChartPatchesN();
     return opts;
+}
+
+void ChartController::OnColorSliderChanged(wxCommandEvent& event) {
+    m_frame->m_rParamValue->SetLabel(std::to_string(m_frame->m_rParamSlider->GetValue()));
+    m_frame->m_gParamValue->SetLabel(std::to_string(m_frame->m_gParamSlider->GetValue()));
+    m_frame->m_bParamValue->SetLabel(std::to_string(m_frame->m_bParamSlider->GetValue()));
+}
+
+void ChartController::OnInputChanged(wxCommandEvent& event) {
+    // This can be used later to trigger live preview if desired.
+}
+
+void ChartController::OnChartChartPatchChanged(wxCommandEvent& event) {
+    if (m_frame->m_isUpdatingPatches) return;
+    m_frame->m_isUpdatingPatches = true;
+
+    m_frame->m_chartPatchRowValue1->ChangeValue(m_frame->m_chartPatchRowValue->GetValue());
+    m_frame->m_chartPatchColValue1->ChangeValue(m_frame->m_chartPatchColValue->GetValue());
+    
+    // This event doesn't affect the CLI command, so no need to call UpdateCommandPreview.
+    
+    m_frame->m_isUpdatingPatches = false;
+    event.Skip();
 }

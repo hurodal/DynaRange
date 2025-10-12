@@ -8,7 +8,7 @@
 #include <any>
 #include <map>
 #include <optional>
-#include <stdexcept> // For std::runtime_error
+#include <stdexcept>
 #include <string>
 
 enum class ArgType { Int, Double, String, StringVector, IntVector, DoubleVector, Flag };
@@ -50,9 +50,6 @@ private:
     ArgumentManager(const ArgumentManager&) = delete;
     ArgumentManager& operator=(const ArgumentManager&) = delete;
 
-    void RegisterAllArguments();
-
     std::map<std::string, ArgumentDescriptor> m_descriptors;
     std::map<std::string, std::any> m_values;
-    bool m_is_registered = false;
 };

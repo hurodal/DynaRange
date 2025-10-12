@@ -13,7 +13,6 @@
 
 namespace OutputWriter {
 
-// This function existed previously and has been modified.
 bool WritePng(cairo_surface_t* surface, const fs::path& path, std::ostream& log_stream) {
     if (!surface) return false;
     // Use path.string().c_str() for cross-platform compatibility.

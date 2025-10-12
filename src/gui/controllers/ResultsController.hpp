@@ -13,6 +13,7 @@
 class DynaRangeFrame;
 class ResultsGridManager;
 class wxSplitterEvent;
+class wxGridEvent;
 
 class ResultsController {
 public:
@@ -28,8 +29,9 @@ public:
     // Getter for the view
     const wxImage& GetSourceImage() const;
 
-    // Event handling logic
+    // --- Event Handling Logic ---
     void OnSplitterSashDClick(wxSplitterEvent& event);
+    void OnGridCellClick(wxGridEvent& event);
 
 private:
     DynaRangeFrame* m_frame;

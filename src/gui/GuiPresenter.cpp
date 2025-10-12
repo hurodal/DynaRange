@@ -253,10 +253,7 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
 
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
 {
-    std::vector<std::string> current_files = m_view->GetInputFiles();
-    std::set<std::string> existing_files(current_files.begin(), current_files.end());
-
-    // Get the current calibration files to ensure they are not added to the input list.
+    // Get the current calibration files to build an exclusion list.
     std::set<std::string> calibration_files;
     std::string dark_file = m_view->GetDarkFilePath();
     if (!dark_file.empty()) {
@@ -267,19 +264,32 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
         calibration_files.insert(sat_file);
     }
 
-    for (const auto& file : files_to_add) {
-        // A file is added only if it's not a duplicate AND it's not a calibration file.
-        bool is_calibration_file = calibration_files.count(file) > 0;
-        bool is_new_file = existing_files.insert(file).second;
+    // Create a temporary list for files that are valid to add.
+    std::vector<std::string> new_valid_files;
+    // Use a set of existing files for efficient lookup.
+    std::set<std::string> existing_files(m_inputFiles.begin(), m_inputFiles.end());
 
-        if (is_new_file && !is_calibration_file) {
-            current_files.push_back(file);
+    for (const auto& file : files_to_add) {
+        bool is_calibration_file = calibration_files.count(file) > 0;
+        bool is_already_in_list = existing_files.count(file) > 0;
+
+        // A file is valid to be added only if it's not a calibration file
+        // AND it's not already in the input list.
+        if (!is_calibration_file && !is_already_in_list) {
+            new_valid_files.push_back(file);
         }
     }
 
-    // Update the view with the final, de-duplicated, and filtered list.
-    m_view->UpdateInputFileList(current_files);
-    UpdateCommandPreview();
+    // If there are any new valid files, update the state and the view.
+    if (!new_valid_files.empty()) {
+        // Update the internal state first by appending the new files.
+        m_inputFiles.insert(m_inputFiles.end(), new_valid_files.begin(), new_valid_files.end());
+        std::sort(m_inputFiles.begin(), m_inputFiles.end());
+
+        // Update the view from the single source of truth.
+        m_view->UpdateInputFileList(m_inputFiles);
+        UpdateCommandPreview();
+    }
 }
 
 void GuiPresenter::HandleGridCellClick(const std::string& basename)
@@ -317,25 +327,24 @@ void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
 {
     // It is CRITICAL to delete items from the end to the beginning
     // to avoid invalidating the indices of the remaining items.
-    std::vector<std::string> current_files = m_view->GetInputFiles();
     std::vector<int> sorted_indices = indices;
     std::sort(sorted_indices.rbegin(), sorted_indices.rend());
 
     for (int index : sorted_indices) {
-        if (index < current_files.size()) {
-            current_files.erase(current_files.begin() + index);
+        if (index < m_inputFiles.size()) {
+            m_inputFiles.erase(m_inputFiles.begin() + index);
         }
     }
 
-    // Notify the view to update itself
-    m_view->UpdateInputFileList(current_files);
-    // Call the presenter's own method
+    // Update the view from the single source of truth.
+    m_view->UpdateInputFileList(m_inputFiles);
     UpdateCommandPreview();
 }
 
 void GuiPresenter::RemoveAllInputFiles()
 {
     m_inputFiles.clear();
+    // Update the view from the single source of truth.
     m_view->UpdateInputFileList(m_inputFiles);
     UpdateCommandPreview();
 }
@@ -349,3 +358,37 @@ bool GuiPresenter::IsWorkerRunning() const { return m_isWorkerRunning; }
 void GuiPresenter::RequestWorkerCancellation() { m_cancelWorker = true; }
 
 const wxImage& GuiPresenter::GetLastSummaryImage() const { return m_summaryImage; }
+
+void GuiPresenter::UpdateCalibrationFiles()
+{
+    std::string dark_file = m_view->GetDarkFilePath();
+    std::string sat_file = m_view->GetSaturationFilePath();
+
+    std::set<std::string> calibration_files;
+    if (!dark_file.empty()) {
+        calibration_files.insert(dark_file);
+    }
+    if (!sat_file.empty()) {
+        calibration_files.insert(sat_file);
+    }
+
+    if (!calibration_files.empty()) {
+        // Perform the filtering on the internal state (the single source of truth).
+        auto original_size = m_inputFiles.size();
+        m_inputFiles.erase(
+            std::remove_if(m_inputFiles.begin(), m_inputFiles.end(),
+                [&](const std::string& input_file) {
+                    return calibration_files.count(input_file) > 0;
+                }),
+            m_inputFiles.end()
+        );
+
+        // Only update the view if a change actually occurred.
+        if (m_inputFiles.size() != original_size) {
+            m_view->UpdateInputFileList(m_inputFiles);
+        }
+    }
+
+    // Always update the command preview to reflect the current state.
+    UpdateCommandPreview();
+}

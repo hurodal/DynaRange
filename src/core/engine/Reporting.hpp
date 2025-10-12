@@ -4,10 +4,9 @@
  * @brief Defines the functionality for generating final reports and plots.
  */
 #pragma once
-#include "Processing.hpp" // For ProcessingResult
+#include "processing/Processing.hpp" // For ProcessingResult
 #include <string>
 #include <optional>
-#include <map>
 
 /**
  * @struct ReportOutput

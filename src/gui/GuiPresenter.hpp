@@ -89,6 +89,14 @@ public:
    */
   void RequestWorkerCancellation();
 
+  /**
+   * @brief Updates the input file list by filtering out selected calibration files.
+   * @details This method ensures that if a user selects a dark or saturation
+   * file that is already in the input list, it is removed from that list to
+   * avoid being processed as both a calibration and an analysis file.
+   */
+  void UpdateCalibrationFiles();
+
 private:
   /**
    * @brief The main function for the worker thread.
