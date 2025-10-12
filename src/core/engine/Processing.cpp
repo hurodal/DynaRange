@@ -99,7 +99,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     }
     const double strict_min_snr_db = -10.0 - norm_adjustment;
     const double permissive_min_snr_db = DynaRange::Analysis::Constants::MIN_SNR_DB_THRESHOLD - norm_adjustment;
-
     // Find the highest SNR threshold requested by the user for the validation check.
     double max_requested_threshold = 0.0;
     if (!opts.snr_thresholds_db.empty()) {
@@ -126,10 +125,8 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
-
         // --- Pass 1: Analyze with the strict threshold ---
         PatchAnalysisResult patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay, strict_min_snr_db);
-
         // --- Validation Step ---
         bool needs_reanalysis = false;
         if (!patch_data.signal.empty()) {
@@ -151,7 +148,8 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         // --- Pass 2 (Conditional): Re-analyze with the permissive threshold ---
         if (needs_reanalysis) {
             log_stream << "  - Info: Re-analyzing channel " << Formatters::DataSourceToString(channel) 
-                       << " with permissive threshold to find low-SNR data." << std::endl;
+                       << " with permissive threshold to find low-SNR data."
+                       << std::endl;
             patch_data = AnalyzePatches(img_prepared, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, should_draw_overlay, permissive_min_snr_db);
         }
 
@@ -187,14 +185,16 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         if (final_patch_data.signal.empty()) continue;
-
+        
         auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, final_channel);
 
+        dr_result.iso_speed = raw_file.GetIsoSpeed(); // Populate the new ISO field
         dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
-        dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
+        dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ?
+        individual_channel_patches.at(DataSource::G1).signal.size() : 0;
         dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
         dr_result.samples_B = individual_channel_patches.count(DataSource::B) ? individual_channel_patches.at(DataSource::B).signal.size() : 0;
-
+        
         if(opts.plot_labels.count(raw_file.GetFilename())) {
             curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
         } else {

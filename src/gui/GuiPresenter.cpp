@@ -7,6 +7,7 @@
 #include "../core/arguments/ArgumentManager.hpp"
 #include "../core/engine/Engine.hpp"
 #include "../core/utils/CommandGenerator.hpp"
+#include "../core/arguments/Constants.hpp"
 #include "DynaRangeFrame.hpp" // Include the full View definition
 #include "helpers/GuiPlotter.hpp" // Include the new GUI plotter
 #include <algorithm>
@@ -69,22 +70,23 @@ GuiPresenter::~GuiPresenter()
 
 void GuiPresenter::UpdateManagerFromView()
 {
+    using namespace DynaRange::Arguments::Constants;
     auto& mgr = ArgumentManager::Instance();
-    // This is where the controls are connected to the argument manager
-    mgr.Set("black-file", m_view->GetDarkFilePath());
-    mgr.Set("saturation-file", m_view->GetSaturationFilePath());
-    mgr.Set("black-level", m_view->GetDarkValue());
-    mgr.Set("saturation-level", m_view->GetSaturationValue());
-    mgr.Set("patch-ratio", m_view->GetPatchRatio());
-    mgr.Set("input-files", m_view->GetInputFiles());
-    mgr.Set("output-file", m_view->GetOutputFilePath());
-    mgr.Set("snrthreshold-db", m_view->GetSnrThresholds());
-    mgr.Set("drnormalization-mpx", m_view->GetDrNormalization());
-    mgr.Set("poly-fit", m_view->GetPolyOrder());
+    
+    mgr.Set(BlackFile, m_view->GetDarkFilePath());
+    mgr.Set(SaturationFile, m_view->GetSaturationFilePath());
+    mgr.Set(BlackLevel, m_view->GetDarkValue());
+    mgr.Set(SaturationLevel, m_view->GetSaturationValue());
+    mgr.Set(PatchRatio, m_view->GetPatchRatio());
+    mgr.Set(InputFiles, m_view->GetInputFiles());
+    mgr.Set(OutputFile, m_view->GetOutputFilePath());
+    mgr.Set(SnrThresholdDb, m_view->GetSnrThresholds());
+    mgr.Set(DrNormalizationMpx, m_view->GetDrNormalization());
+    mgr.Set(PolyFit, m_view->GetPolyOrder());
 
     int plotModeChoice = m_view->GetPlotMode();
     bool generatePlot = (plotModeChoice != 0);
-    mgr.Set("generate-plot", generatePlot);
+    mgr.Set(GeneratePlot, generatePlot);
 
     if (generatePlot) {
         DynaRange::Graphics::Constants::PlotOutputFormat format_enum = m_view->GetPlotFormat();
@@ -94,37 +96,33 @@ void GuiPresenter::UpdateManagerFromView()
         } else if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::SVG) {
             format_str = "SVG";
         }
-        mgr.Set("plot-format", format_str);
+        mgr.Set(PlotFormat, format_str);
 
         PlottingDetails details = m_view->GetPlottingDetails();
         int commandMode = plotModeChoice; // 1: No cmd, 2: Short, 3: Long
         std::vector<int> params = { static_cast<int>(details.show_scatters), static_cast<int>(details.show_curve), static_cast<int>(details.show_labels), commandMode };
-        mgr.Set("plot-params", params);
+        mgr.Set(PlotParams, params);
     }
 
-    mgr.Set("chart-coords", m_view->GetChartCoords());
-
-    // Correctly set the "chart-patches" argument as a vector of two integers.
+    mgr.Set(ChartCoords, m_view->GetChartCoords());
+    
     std::vector<int> patches = { m_view->GetChartPatchesM(), m_view->GetChartPatchesN() };
-    mgr.Set("chart-patches", patches);
-
-    // Read the state of the new channel checkboxes and set the argument.
+    mgr.Set(ChartPatches, patches);
+    
     RawChannelSelection channels = m_view->GetRawChannelSelection();
     std::vector<int> channels_vec = { static_cast<int>(channels.R), static_cast<int>(channels.G1), static_cast<int>(channels.G2), static_cast<int>(channels.B), static_cast<int>(channels.AVG) };
-    mgr.Set("raw-channel", channels_vec);
+    mgr.Set(RawChannels, channels_vec);
 
     bool black_is_default = m_view->GetDarkFilePath().empty();
-    mgr.Set("black-level-is-default", black_is_default);
+    mgr.Set(BlackLevelIsDefault, black_is_default);
     bool sat_is_default = m_view->GetSaturationFilePath().empty();
-    mgr.Set("saturation-level-is-default", sat_is_default);
-    // The default flag is now determined by the user providing the argument in the CLI.
-    // In the GUI, we can assume if the user has touched the control, it's not default.
-    // A simple check is to see if the content is different from the default "0 12".
+    mgr.Set(SaturationLevelIsDefault, sat_is_default);
+    
     std::vector<double> current_thresholds = m_view->GetSnrThresholds();
     bool snr_is_default = (current_thresholds.size() == 2 && current_thresholds[0] == 0 && current_thresholds[1] == 12);
-    mgr.Set("snr-threshold-is-default", snr_is_default);
-    // Añadir el valor de print-patches al manager
-    mgr.Set("print-patches", m_view->GetPrintPatchesFilename());
+    mgr.Set(SnrThresholdIsDefault, snr_is_default);
+    
+    mgr.Set(PrintPatches, m_view->GetPrintPatchesFilename());
 }
 
 void GuiPresenter::UpdateCommandPreview()
@@ -156,6 +154,32 @@ void GuiPresenter::StartAnalysis()
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
+
+    // 3. Exclude calibration files from the input list before starting the analysis.
+    if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
+        std::set<std::string> calibration_files;
+        if (!m_lastRunOptions.dark_file_path.empty()) {
+            calibration_files.insert(m_lastRunOptions.dark_file_path);
+        }
+        if (!m_lastRunOptions.sat_file_path.empty()) {
+            calibration_files.insert(m_lastRunOptions.sat_file_path);
+        }
+
+        m_lastRunOptions.input_files.erase(
+            std::remove_if(m_lastRunOptions.input_files.begin(), m_lastRunOptions.input_files.end(),
+                [&](const std::string& input_file) {
+                    return calibration_files.count(input_file);
+                }),
+            m_lastRunOptions.input_files.end()
+        );
+
+        // Update the GUI to reflect the filtered list.
+        m_view->UpdateInputFileList(m_lastRunOptions.input_files);
+        // Also update the argument manager with the cleaned list for command preview consistency.
+        ArgumentManager::Instance().Set("input-files", m_lastRunOptions.input_files);
+        UpdateCommandPreview();
+    }
+
 
     m_view->SetUiState(true);
 
@@ -230,21 +254,30 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
 {
     std::vector<std::string> current_files = m_view->GetInputFiles();
-
-    // Use a set to efficiently track existing files and prevent duplicates.
     std::set<std::string> existing_files(current_files.begin(), current_files.end());
 
+    // Get the current calibration files to ensure they are not added to the input list.
+    std::set<std::string> calibration_files;
+    std::string dark_file = m_view->GetDarkFilePath();
+    if (!dark_file.empty()) {
+        calibration_files.insert(dark_file);
+    }
+    std::string sat_file = m_view->GetSaturationFilePath();
+    if (!sat_file.empty()) {
+        calibration_files.insert(sat_file);
+    }
+
     for (const auto& file : files_to_add) {
-        // The insert method of a set returns a pair. The '.second' element is
-        // true if the insertion took place (the element was new), and false if it
-        // was already there.
-        if (existing_files.insert(file).second) {
-            // If the file was new, add it to our list to be displayed.
+        // A file is added only if it's not a duplicate AND it's not a calibration file.
+        bool is_calibration_file = calibration_files.count(file) > 0;
+        bool is_new_file = existing_files.insert(file).second;
+
+        if (is_new_file && !is_calibration_file) {
             current_files.push_back(file);
         }
     }
 
-    // Update the view with the final, de-duplicated list.
+    // Update the view with the final, de-duplicated, and filtered list.
     m_view->UpdateInputFileList(current_files);
     UpdateCommandPreview();
 }

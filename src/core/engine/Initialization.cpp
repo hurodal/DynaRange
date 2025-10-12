@@ -11,11 +11,12 @@
 #include "../setup/PlotLabelGenerator.hpp"
 #include "../setup/SensorResolution.hpp"
 #include "../utils/CommandGenerator.hpp"
-#include <set> 
-#include <iomanip>
-#include <filesystem>
-#include <libintl.h>
+#include <algorithm>
 #include <cstring>
+#include <filesystem>
+#include <iomanip>
+#include <libintl.h>
+#include <set> 
 
 #define _(string) gettext(string)
 
@@ -23,7 +24,40 @@ namespace fs = std::filesystem;
 
 bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
 
-    // --- 1. Deduplicate Input Files ---
+    // --- 1. Exclude Calibration Files from Analysis ---
+    if (!opts.dark_file_path.empty() || !opts.sat_file_path.empty()) {
+        std::set<std::string> calibration_files;
+        if (!opts.dark_file_path.empty()) {
+            calibration_files.insert(opts.dark_file_path);
+        }
+        if (!opts.sat_file_path.empty()) {
+            calibration_files.insert(opts.sat_file_path);
+        }
+
+        std::vector<std::string> files_to_remove;
+        auto original_size = opts.input_files.size();
+
+        opts.input_files.erase(
+            std::remove_if(opts.input_files.begin(), opts.input_files.end(),
+                [&](const std::string& input_file) {
+                    if (calibration_files.count(input_file)) {
+                        files_to_remove.push_back(input_file);
+                        return true;
+                    }
+                    return false;
+                }),
+            opts.input_files.end()
+        );
+
+        if (!files_to_remove.empty()) {
+            log_stream << _("[INFO] The following files were excluded from the analysis because they are used for calibration:") << std::endl;
+            for (const auto& file : files_to_remove) {
+                log_stream << "  - " << fs::path(file).filename().string() << std::endl;
+            }
+        }
+    }
+
+    // --- 2. Deduplicate Input Files ---
     if (!opts.input_files.empty()) {
         std::vector<std::string> unique_files;
         std::set<std::string> seen_files;
@@ -38,7 +72,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         opts.input_files = unique_files;
     }
 
-    // --- 2. Pre-analysis of all files to get metadata (moved to the beginning) ---
+    // --- 3. Pre-analysis of all files to get metadata (moved to the beginning) ---
     log_stream << _("Pre-analyzing files to extract metadata...") << std::endl;
     auto file_info = ExtractFileInfo(opts.input_files, log_stream);
     if (file_info.empty()) {
@@ -46,7 +80,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         return false;
     }
 
-    // --- 3. DEFAULT CALIBRATION ESTIMATION (now uses pre-analyzed data) ---
+    // --- 4. DEFAULT CALIBRATION ESTIMATION (now uses pre-analyzed data) ---
     if (opts.dark_file_path.empty() && opts.black_level_is_default) {
         log_stream << _("[INFO] Black level not specified. Attempting to estimate from RAW file...") << std::endl;
         auto estimated_black = CalibrationEstimator::EstimateBlackLevel(opts, file_info, log_stream);
@@ -69,7 +103,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         }
     }
 
-    // --- 4. CALIBRATION FROM EXPLICIT FILES ---
+    // --- 5. CALIBRATION FROM EXPLICIT FILES ---
     if (!opts.dark_file_path.empty()) {
         auto dark_val_opt = ProcessDarkFrame(opts.dark_file_path, log_stream);
         if (!dark_val_opt) { log_stream << _("Fatal error processing dark frame.") << std::endl; return false;
@@ -83,7 +117,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         opts.saturation_value = *sat_val_opt;
     }
 
-    // --- 5. SETUP PROCESS ORCHESTRATION (using already extracted metadata) ---
+    // --- 6. SETUP PROCESS ORCHESTRATION (using already extracted metadata) ---
     // --- Print table with dynamic widths ---
     size_t max_file_width = strlen("File");
     size_t max_bright_width = strlen("Brightness");
@@ -127,7 +161,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
         opts.sensor_resolution_mpx = DetectSensorResolution(opts.input_files, log_stream);
     }
 
-    // --- 6. PRINT FINAL CONFIGURATION ---
+    // --- 7. PRINT FINAL CONFIGURATION ---
     log_stream << std::fixed << std::setprecision(2);
     log_stream << "\n" << _("[Final configuration]") << std::endl;
     log_stream << _("Black level: ") << opts.dark_value 
@@ -148,7 +182,7 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     }
     
     std::string channel_label = (selected_channels.size() > 1) ?
-        _("Analysis channels: ") : _("Analysis channel: ");
+_("Analysis channels: ") : _("Analysis channel: ");
     log_stream << channel_label << channels_ss.str() << std::endl;
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
@@ -161,13 +195,13 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
     log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
     log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
-    
     log_stream << _("Plotting: ");
     if (!opts.generate_plot) {
         log_stream << _("No graphics") << std::endl;
     } else {
         switch (opts.plot_command_mode) {
-            case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
+            case 1: log_stream << _("Graphics without command CLI") << std::endl;
+            break;
             case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
             case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
             default: log_stream << _("Graphics enabled") << std::endl; break;
@@ -175,7 +209,6 @@ bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
     }
     
     log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
-
     if (opts.plot_command_mode == 2) {
         opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);
     } else if (opts.plot_command_mode == 3) {

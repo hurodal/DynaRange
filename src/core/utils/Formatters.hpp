@@ -12,8 +12,36 @@
 
 namespace Formatters {
 
+/**
+ * @struct FlatResultRow
+ * @brief Represents a single, flattened row of data for final output.
+ */
+struct FlatResultRow {
+    std::string filename;
+    double snr_threshold_db;
+    DataSource channel;
+    float iso_speed;
+    int samples_R;
+    int samples_G1;
+    int samples_G2;
+    int samples_B;
+    double dr_ev;
+};
+
 std::string DataSourceToString(DataSource channel);
-std::string FormatResultsTable(const std::vector<DynamicRangeResult>& all_results, const ProgramOptions& opts);
+
+/**
+ * @brief Flattens and sorts the hierarchical analysis results into a simple list of rows.
+ * @details The sorting is performed based on three keys in order:
+ * 1. SNR threshold (descending)
+ * 2. ISO speed (ascending)
+ * 3. Filename (ascending)
+ * @param all_results The vector of hierarchical DynamicRangeResult structs.
+ * @return A sorted vector of FlatResultRow structs, ready for display or saving.
+ */
+std::vector<FlatResultRow> FlattenAndSortResults(const std::vector<DynamicRangeResult>& all_results);
+
+std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows);
 
 /**
  * @brief Formats the CSV header string according to the new "long" format.
@@ -22,13 +50,12 @@ std::string FormatResultsTable(const std::vector<DynamicRangeResult>& all_result
 std::string FormatCsvHeader();
 
 /**
- * @brief Formats all the CSV rows for a single DynamicRangeResult.
- * @details This function iterates through all calculated DR values for a given
- * result and creates a separate CSV row for each one.
- * @param res The DynamicRangeResult to format.
- * @return A string containing one or more CSV rows, each ending with a newline.
+ * @brief Formats a single flattened result row into a CSV string.
+ * @param row The FlatResultRow to format.
+ * @return A string containing a single CSV row, ending with a newline.
  */
-std::string FormatCsvRows(const DynamicRangeResult& res);
+std::string FormatCsvRow(const FlatResultRow& row);
+
 
 /**
  * @brief Generates a filename suffix based on the selected RAW channels.

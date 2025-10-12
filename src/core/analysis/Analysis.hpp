@@ -14,7 +14,6 @@
 // --- STRUCTURE DEFINITIONS ---
 
 enum class DataSource { R, G1, G2, B, AVG };
-
 /**
  * @struct PointData
  * @brief Holds the data for a single plotted point, including its source channel.
@@ -28,6 +27,7 @@ struct PointData {
 struct DynamicRangeResult {
     std::string filename;
     DataSource channel;
+    float iso_speed = 0.0f;
     std::map<double, double> dr_values_ev;
     int samples_R = 0;
     int samples_G1 = 0;
@@ -57,7 +57,8 @@ struct CurveData {
 };
 
 struct SnrCurve {
-    std::vector<PointData> points; // Replaced separate signal_ev and snr_db vectors
+    std::vector<PointData> points;
+    // Replaced separate signal_ev and snr_db vectors
     cv::Mat poly_coeffs;
 };
 

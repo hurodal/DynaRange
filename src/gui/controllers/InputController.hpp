@@ -1,4 +1,4 @@
-// File: src/gui/controllers/InputController.hpp
+// File: gui/controllers/InputController.hpp
 /**
  * @file gui/controllers/InputController.hpp
  * @brief Declares a controller class for the InputPanel's logic.
@@ -6,9 +6,9 @@
 #pragma once
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../../core/graphics/Constants.hpp"
+#include <wx/event.h>
 #include <string>
 #include <vector>
-#include <wx/event.h>
 
 // Forward declarations
 class DynaRangeFrame;
@@ -16,11 +16,12 @@ class wxCommandEvent;
 class wxScrollEvent;
 class wxKeyEvent;
 class wxArrayString;
+class wxFileDirPickerEvent;
 
 class InputController {
 public:
     explicit InputController(DynaRangeFrame* frame);
-
+    
     // Getters that read directly from the controls
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
@@ -37,12 +38,12 @@ public:
     std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;
     int GetChartPatchesM() const; // Rows
-    int GetChartPatchesN() const;
-    // Cols
+    int GetChartPatchesN() const; // Cols
     RawChannelSelection GetRawChannelSelection() const;
     PlottingDetails GetPlottingDetails() const;
     bool ShouldSaveLog() const;
     bool ValidateSnrThresholds() const;
+
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
@@ -56,11 +57,12 @@ public:
     void OnListBoxKeyDown(wxKeyEvent& event);
     void OnDrNormSliderChanged(wxScrollEvent& event);
     void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
+    void OnCalibrationFileChanged(wxFileDirPickerEvent& event);
 
 private:
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);
-
-    DynaRangeFrame* m_frame;
-    // Pointer to the parent frame to access its controls
+    
+    DynaRangeFrame* m_frame; // Pointer to the parent frame to access its controls
+    wxString m_lastDirectoryPath; ///< Stores the path of the last directory accessed by any file picker.
 };

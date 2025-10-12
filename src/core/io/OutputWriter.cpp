@@ -28,8 +28,7 @@ bool WritePng(cairo_surface_t* surface, const fs::path& path, std::ostream& log_
 }
 
 bool WriteCsv(
-    const std::vector<DynamicRangeResult>& all_results,
-    const ProgramOptions& opts,
+    const std::vector<Formatters::FlatResultRow>& sorted_rows,
     const fs::path& path,
     std::ostream& log_stream)
 {
@@ -42,9 +41,9 @@ bool WriteCsv(
     // Write the new, fixed header
     csv_file << Formatters::FormatCsvHeader() << std::endl;
     
-    // Iterate through results and write the multiple rows that each may generate
-    for (const auto& res : all_results) {
-        csv_file << Formatters::FormatCsvRows(res);
+    // Iterate through the pre-sorted rows and write each one.
+    for (const auto& row : sorted_rows) {
+        csv_file << Formatters::FormatCsvRow(row);
     }
 
     csv_file.close();

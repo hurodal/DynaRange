@@ -46,13 +46,16 @@ ReportOutput FinalizeAndReport(
     PathManager paths(opts);
     ReportOutput output;
 
+    // Flatten and sort the results before any output is generated.
+    auto sorted_rows = Formatters::FlattenAndSortResults(results.dr_results);
+
     output.final_csv_path = paths.GetCsvOutputPath().string();
     output.individual_plot_paths = GenerateIndividualPlots(results.curve_data, results.dr_results, opts, paths, log_stream);
     
     log_stream << "\n--- " << _("Dynamic Range Results") << " ---" << std::endl;
-    log_stream << Formatters::FormatResultsTable(results.dr_results, opts);
+    log_stream << Formatters::FormatResultsTable(sorted_rows);
     
-    OutputWriter::WriteCsv(results.dr_results, opts, paths.GetCsvOutputPath(), log_stream);
+    OutputWriter::WriteCsv(sorted_rows, paths.GetCsvOutputPath(), log_stream);
     
     output.summary_plot_path = GenerateSummaryPlotReport(results.curve_data, results.dr_results, opts, paths, log_stream);
 
