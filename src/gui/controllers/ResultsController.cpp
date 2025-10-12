@@ -85,6 +85,19 @@ void ResultsController::SetUiState(bool is_processing) {
     m_frame->m_rightPanel->Refresh();
 }
 
+void ResultsController::OnGridCellClick(wxGridEvent& event) {
+    int row = event.GetRow();
+    std::string filename_basename;
+    
+    if (row > 0 && m_frame->m_cvsGrid->GetNumberRows() > row) {
+        filename_basename = m_frame->m_cvsGrid->GetCellValue(row, 0).ToStdString();
+    }
+    
+    m_frame->m_presenter->HandleGridCellClick(filename_basename);
+    
+    event.Skip();
+}
+
 void ResultsController::OnSplitterSashDClick(wxSplitterEvent& event) {
     if (m_frame->m_splitterResults->IsSplit()) {
         m_lastSashPosition = event.GetSashPosition();

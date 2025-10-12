@@ -4,7 +4,7 @@
  * @brief Implements the sensor resolution detection logic.
  */
 #include "SensorResolution.hpp"
-#include "../io/RawFile.hpp"
+#include "../io/raw/RawFile.hpp"
 #include <iomanip>
 #include <libintl.h>
 

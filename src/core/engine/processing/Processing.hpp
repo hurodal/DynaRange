@@ -6,8 +6,8 @@
 #pragma once
 #include "../analysis/Analysis.hpp" 
 #include "../arguments/ArgumentsOptions.hpp"
+#include "raw/RawFile.hpp"
 #include <vector>
-#include <Eigen/Dense>
 #include <atomic>
 #include <optional>
 
@@ -37,7 +37,7 @@ struct SingleFileResult {
  */
 struct ProcessingResult {
     std::vector<DynamicRangeResult> dr_results; ///< Collection of DR results for each file.
-    std::vector<CurveData> curve_data;          ///< Collection of curve data for each file.
+    std::vector<CurveData> curve_data;
     std::optional<cv::Mat> debug_patch_image;   ///< The final debug image for --print-patches.
 };
 
@@ -46,6 +46,7 @@ struct ProcessingResult {
  * @param opts The program options containing all configuration settings.
  * @param log_stream The output stream for logging messages.
  * @param cancel_flag Canceled. Try closing app.
+ * @param raw_files A vector of pre-loaded RawFile objects to be processed.
  * @return A ProcessingResult struct containing the aggregated results.
  */
-ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag);
+ProcessingResult ProcessFiles(const ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag, const std::vector<RawFile>& raw_files);

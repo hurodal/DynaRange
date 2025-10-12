@@ -36,7 +36,6 @@ find_package(PkgConfig REQUIRED)
 # --- Dependencias Comunes (CLI y GUI) ---
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
-find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
@@ -67,13 +66,33 @@ set(CORE_SOURCES
     src/core/analysis/RawProcessor.cpp
     src/core/arguments/ArgumentManager.cpp
     src/core/arguments/ChartOptionsParser.cpp
+    src/core/arguments/parsing/ArgumentRegistry.cpp
+    src/core/arguments/parsing/CliParser.cpp
+    src/core/arguments/parsing/OptionsConverter.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
-    src/core/engine/Processing.cpp
+    src/core/engine/initialization/CalibrationHandler.cpp
+    src/core/engine/initialization/ConfigReporter.cpp
+    src/core/engine/initialization/FileSorter.cpp
+    src/core/engine/initialization/InputFileFilter.cpp
+    src/core/engine/PatchAnalysisStrategy.cpp
+    src/core/engine/processing/AnalysisLoopRunner.cpp
+    src/core/engine/processing/CornerDetectionHandler.cpp
+    src/core/engine/processing/Processing.cpp
+    src/core/engine/processing/ResultAggregator.cpp
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
+    src/core/graphics/detection/ChartCornerDetector.cpp
+    src/core/graphics/drawing/AxisDrawer.cpp
+    src/core/graphics/drawing/AxisLabelDrawer.cpp
+    src/core/graphics/drawing/CurveDrawer.cpp
+    src/core/graphics/drawing/FooterDrawer.cpp
+    src/core/graphics/drawing/GridDrawer.cpp    
+    src/core/graphics/drawing/LabelDrawer.cpp
+    src/core/graphics/drawing/TitleDrawer.cpp
     src/core/graphics/FontManager.cpp
+    src/core/graphics/geometry/KeystoneCorrection.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
     src/core/graphics/PlotData.cpp
@@ -82,11 +101,13 @@ set(CORE_SOURCES
     src/core/graphics/PlotOrchestrator.cpp
     src/core/graphics/Plotting.cpp
     src/core/io/OutputWriter.cpp
-    src/core/io/RawFile.cpp
+    src/core/io/raw/RawFile.cpp
+    src/core/io/raw/RawImageAccessor.cpp
+    src/core/io/raw/RawLoader.cpp
+    src/core/io/raw/RawMetadataExtractor.cpp
     src/core/math/Math.cpp
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
-    src/core/setup/FileSorter.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
     src/core/setup/SensorResolution.cpp
@@ -112,7 +133,6 @@ endif()
 target_include_directories(rango PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
@@ -139,11 +159,24 @@ add_executable(dynaRangeGui WIN32
 if(WIN32)
     target_sources(dynaRangeGui PRIVATE assets/windows/icono_noise.rc)
 endif()
+# =============================================================================
+# INICIO DEL BLOQUE A AÑADIR PARA COMPATIBILIDAD CON MACOS
+# =============================================================================
+if(APPLE)
+    set_target_properties(dynaRangeGui PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/macos/icono.icns
+    )
+    # Aquí puedes añadir también un fichero de icono si lo tienes
+    # MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/macos/icono.icns
+endif()
+# =============================================================================
+# FIN DEL BLOQUE A AÑADIR
+# =============================================================================
 
 target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
@@ -173,7 +206,6 @@ target_link_libraries(rango PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
-    Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
@@ -188,7 +220,6 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
-    Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}

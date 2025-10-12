@@ -16,17 +16,14 @@ public:
     explicit ChartController(DynaRangeFrame* frame);
     ~ChartController();
 
-    // Event handling logic
+    // --- Event Handling Logic ---
     void OnPreviewClick(wxCommandEvent& event);
     void OnCreateClick(wxCommandEvent& event);
     void OnColorSliderChanged(wxCommandEvent& event);
     void OnInputChanged(wxCommandEvent& event);
+    void OnChartChartPatchChanged(wxCommandEvent& event);
 
 private:
-    /**
-     * @brief Reads all chart-related controls from the UI and creates an options struct.
-     * @return A ChartGeneratorOptions struct populated with the current UI values.
-     */
     ChartGeneratorOptions GetCurrentOptionsFromUi() const;
 
     DynaRangeFrame* m_frame; // Pointer to the parent frame

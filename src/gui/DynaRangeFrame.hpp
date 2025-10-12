@@ -34,15 +34,17 @@ class DynaRangeFrame : public MyFrameBase {
 public:
     DynaRangeFrame(wxWindow* parent);
     ~DynaRangeFrame();
+
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);
     void DisplayResults(const std::string& csv_path);
     void ShowError(const wxString& title, const wxString& message);
-    void SetUiState(bool is_processing);
+    void SetUiState(bool is_processing, int num_threads = 0);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
     void DisplayImage(const wxImage& image);
+
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
@@ -62,47 +64,23 @@ public:
     std::string GetPrintPatchesFilename() const;
     RawChannelSelection GetRawChannelSelection() const;
     PlottingDetails GetPlottingDetails() const;
-    /**
-     * @brief Delegates validation of the SNR thresholds input to the controller.
-     * @return true if the input is valid, false otherwise.
-     */
     bool ValidateSnrThresholds() const;
     bool ShouldSaveLog() const;
 
 protected:
-    // --- Event Handlers ---
-    void OnAddFilesClick(wxCommandEvent& event);
-    void OnRemoveAllFilesClick(wxCommandEvent& event);
-    void OnChartChartPatchChanged(wxCommandEvent& event);
-    void OnChartColorSliderChanged(wxScrollEvent& event);
-    void OnChartCreateClick(wxCommandEvent& event);
-    void OnChartInputChanged(wxCommandEvent& event);
-    void OnChartPreviewClick(wxCommandEvent& event);
-    void OnClearDarkFile(wxCommandEvent& event);
-    void OnClearSaturationFile(wxCommandEvent& event);
-    void OnClose(wxCloseEvent& event);
-    void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
-    void OnDrNormSliderChanged(wxScrollEvent& event);
+    // --- Event Handlers that remain in the Frame ---
     void OnExecuteClick(wxCommandEvent& event);
-    void OnGaugeTimer(wxTimerEvent& event);
-    void OnGridCellClick(wxGridEvent& event);
-    void OnInputChanged(wxEvent& event);
-    void OnInputChartPatchChanged(wxCommandEvent& event);
-    void OnListBoxKeyDown(wxKeyEvent& event);
-    void OnListBoxSelectionChanged(wxCommandEvent& event);
-    void OnNotebookPageChanged(wxNotebookEvent& event);
-    void OnPatchRatioSliderChanged(wxScrollEvent& event);
-    void OnRemoveFilesClick(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnSplitterSashChanged(wxSplitterEvent& event);
-    void OnSplitterSashDClick(wxSplitterEvent& event);
+    void OnNotebookPageChanged(wxNotebookEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
     void OnWorkerUpdate(wxThreadEvent& event);
     void OnResultsCanvasPaint(wxPaintEvent& event);
     void OnChartPreviewPaint(wxPaintEvent& event);
-    void OnDarkFileChanged(wxFileDirPickerEvent& event);
-    void OnSaturationFileChanged(wxFileDirPickerEvent& event);
-    
+    void OnGaugeTimer(wxTimerEvent& event);
+    void OnRemoveAllFilesClick(wxCommandEvent& event);
+
     // --- UI Components ---
     wxPanel* m_resultsCanvasPanel;
     wxPanel* m_chartPreviewPanel;
@@ -115,13 +93,14 @@ private:
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
-    // Added a flag to prevent infinite event loops during sync.
     bool m_isUpdatingPatches = false;
+
     // --- Controller Class Members ---
     std::unique_ptr<InputController> m_inputController;
     std::unique_ptr<LogController> m_logController;
     std::unique_ptr<ResultsController> m_resultsController;
     std::unique_ptr<ChartController> m_chartController;
+
     // Grant controllers access to protected UI members.
     friend class InputController;
     friend class ResultsController;

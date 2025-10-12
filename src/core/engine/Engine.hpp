@@ -11,5 +11,6 @@
 #include <atomic>
 
 namespace DynaRange {
+    // This declaration does not need to change as the new parameter is an internal detail.
     ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag);
 }

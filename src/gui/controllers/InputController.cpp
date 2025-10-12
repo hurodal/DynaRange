@@ -142,26 +142,6 @@ void InputController::UpdateInputFileList(const std::vector<std::string>& files)
 }
 void InputController::UpdateCommandPreview(const std::string& command) { m_frame->m_equivalentCliTextCtrl->ChangeValue(command); }
 
-void InputController::OnPatchRatioSliderChanged(wxScrollEvent& event) {
-    m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", GetPatchRatio()));
-    m_frame->OnInputChanged(event); // Notify frame to update preview
-}
-
-void InputController::OnDrNormSliderChanged(wxScrollEvent& event) {
-    m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", GetDrNormalization()));
-    m_frame->OnInputChanged(event);
-}
-void InputController::OnRemoveFilesClick(wxCommandEvent& event) { PerformFileRemoval(); }
-void InputController::OnListBoxSelectionChanged(wxCommandEvent& event) {
-    wxArrayInt selections;
-    m_frame->m_removeRawFilesButton->Enable(m_frame->m_rawFileslistBox->GetSelections(selections) > 0);
-}
-void InputController::OnListBoxKeyDown(wxKeyEvent& event) {
-    if (event.GetKeyCode() == WXK_DELETE || event.GetKeyCode() == WXK_BACK) {
-        PerformFileRemoval();
-    }
-    event.Skip();
-}
 void InputController::PerformFileRemoval() {
     wxArrayInt selections;
     if (m_frame->m_rawFileslistBox->GetSelections(selections) == 0) return;
@@ -247,14 +227,6 @@ std::string InputController::GetPrintPatchesFilename() const {
     return "";
 }
 
-void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
-    bool is_checked = m_frame->m_debugPatchesCheckBox->IsChecked();
-    m_frame->m_debugPatchesFileNameValue->Enable(is_checked);
-
-    if (is_checked && m_frame->m_debugPatchesFileNameValue->GetValue().IsEmpty()) {
-        m_frame->m_debugPatchesFileNameValue->SetValue("printpatches.png");
-    }
-}
 
 RawChannelSelection InputController::GetRawChannelSelection() const {
     RawChannelSelection selection;
@@ -307,22 +279,6 @@ PlottingDetails InputController::GetPlottingDetails() const {
     return details;
 }
 
-void InputController::OnCalibrationFileChanged(wxFileDirPickerEvent& event)
-{
-    wxString path = event.GetPath();
-    if (path.IsEmpty()) {
-        m_frame->OnInputChanged(event);
-        return;
-    }
-
-    m_lastDirectoryPath = wxFileName(path).GetPath();
-
-    // Set the initial directory for both pickers to the new path.
-    m_frame->m_darkFilePicker->SetInitialDirectory(m_lastDirectoryPath);
-    m_frame->m_saturationFilePicker->SetInitialDirectory(m_lastDirectoryPath);
-
-    m_frame->OnInputChanged(event);
-}
 
 void InputController::OnAddFilesClick(wxCommandEvent& event) {
     // 1. Obtener la lista de extensiones dinámicamente.
@@ -364,4 +320,86 @@ void InputController::OnAddFilesClick(wxCommandEvent& event) {
     }
     
     AddDroppedFiles(paths);
+}
+
+void InputController::OnInputChanged(wxEvent& event) {
+    m_frame->m_presenter->UpdateCommandPreview();
+}
+
+void InputController::OnPatchRatioSliderChanged(wxScrollEvent& event) {
+    m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", GetPatchRatio()));
+    OnInputChanged(event);
+}
+
+void InputController::OnDrNormSliderChanged(wxScrollEvent& event) {
+    m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", GetDrNormalization()));
+    OnInputChanged(event);
+}
+
+void InputController::OnRemoveFilesClick(wxCommandEvent& event) {
+    PerformFileRemoval();
+}
+
+void InputController::OnListBoxSelectionChanged(wxCommandEvent& event) {
+    wxArrayInt selections;
+    m_frame->m_removeRawFilesButton->Enable(m_frame->m_rawFileslistBox->GetSelections(selections) > 0);
+    event.Skip();
+}
+
+void InputController::OnListBoxKeyDown(wxKeyEvent& event) {
+    if (event.GetKeyCode() == WXK_DELETE || event.GetKeyCode() == WXK_BACK) {
+        PerformFileRemoval();
+    }
+    event.Skip();
+}
+
+void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
+    bool is_checked = m_frame->m_debugPatchesCheckBox->IsChecked();
+    m_frame->m_debugPatchesFileNameValue->Enable(is_checked);
+    if (is_checked && m_frame->m_debugPatchesFileNameValue->GetValue().IsEmpty()) {
+        m_frame->m_debugPatchesFileNameValue->SetValue("printpatches.png");
+    }
+    OnInputChanged(event);
+}
+
+void InputController::OnCalibrationFileChanged(wxFileDirPickerEvent& event)
+{
+    wxString path = event.GetPath();
+    
+    if (!path.IsEmpty()) {
+        m_lastDirectoryPath = wxFileName(path).GetPath();
+        m_frame->m_darkFilePicker->SetInitialDirectory(m_lastDirectoryPath);
+        m_frame->m_saturationFilePicker->SetInitialDirectory(m_lastDirectoryPath);
+    }
+
+    // Delegate the logic of updating the file list to the presenter
+    m_frame->m_presenter->UpdateCalibrationFiles();
+    
+    // The event must be skipped to allow the native control to process it.
+    event.Skip();
+}
+
+void InputController::OnClearDarkFile(wxCommandEvent& event) {
+    m_frame->m_darkFilePicker->SetPath("");
+    // Delegate the logic of updating the file list to the presenter
+    m_frame->m_presenter->UpdateCalibrationFiles();
+}
+
+void InputController::OnClearSaturationFile(wxCommandEvent& event) {
+    m_frame->m_saturationFilePicker->SetPath("");
+    // Delegate the logic of updating the file list to the presenter
+    m_frame->m_presenter->UpdateCalibrationFiles();
+}
+
+void InputController::OnInputChartPatchChanged(wxCommandEvent& event) {
+    if (m_frame->m_isUpdatingPatches) return;
+    m_frame->m_isUpdatingPatches = true;
+
+    m_frame->m_chartPatchRowValue->ChangeValue(m_frame->m_chartPatchRowValue1->GetValue());
+    m_frame->m_chartPatchColValue->ChangeValue(m_frame->m_chartPatchColValue1->GetValue());
+    
+    OnInputChanged(event);
+
+    m_frame->m_isUpdatingPatches = false;
+    event.Skip();
 }

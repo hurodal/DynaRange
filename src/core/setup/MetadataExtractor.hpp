@@ -6,6 +6,7 @@
  * a structured list of their essential metadata for further processing.
  */
 #pragma once
+#include "raw/RawFile.hpp"
 #include <string>
 #include <vector>
 #include <ostream>
@@ -21,10 +22,13 @@ struct FileInfo {
     float iso_speed = 0.0f;
 };
 
+
 /**
- * @brief Extracts metadata (brightness, ISO) from a list of RAW files.
+ * @brief Extracts metadata and loads RawFile objects in parallel.
  * @param input_files The list of input file paths.
  * @param log_stream Stream for logging messages.
- * @return A vector of FileInfo structs, one for each successfully processed file.
+ * @return A pair containing:
+ * 1. A vector of FileInfo structs for each successfully processed file.
+ * 2. A vector of the fully loaded RawFile objects.
  */
-std::vector<FileInfo> ExtractFileInfo(const std::vector<std::string>& input_files, std::ostream& log_stream);
+std::pair<std::vector<FileInfo>, std::vector<RawFile>> ExtractFileInfo(const std::vector<std::string>& input_files, std::ostream& log_stream);

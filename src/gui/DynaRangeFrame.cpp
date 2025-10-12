@@ -17,6 +17,7 @@
 #include <wx/graphics.h>
 #include <wx/dcbuffer.h>
 #include <fstream> 
+#include <thread>
 
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -25,32 +26,29 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
+
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) 
     : MyFrameBase(parent)
 {
     // --- Create Controllers for each tab ---
     m_inputController = std::make_unique<InputController>(this);
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
+    m_resultsController = std::make_unique<ResultsController>(this);
+    m_chartController = std::make_unique<ChartController>(this);
 
     // --- Manual UI Component Creation ---
-    // Create a unified drawing canvas for the Results tab
     m_resultsCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
     m_resultsCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
     placeholderSizer->Add(m_resultsCanvasPanel, 1, wxEXPAND, 0);
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
-    // Create a drawing canvas for the Chart Preview tab
     m_chartPreviewPanel = new wxPanel(m_webView2PlaceholderPanel, wxID_ANY);
     m_chartPreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
     wxBoxSizer* chartPlaceholderSizer = new wxBoxSizer(wxVERTICAL);
     chartPlaceholderSizer->Add(m_chartPreviewPanel, 1, wxEXPAND, 0);
     m_webView2PlaceholderPanel->SetSizer(chartPlaceholderSizer);
-
-    // --- Continue creating other controllers ---
-    m_resultsController = std::make_unique<ResultsController>(this);
-    m_chartController = std::make_unique<ChartController>(this);
-
+    
     // --- Create the Presenter ---
     m_presenter = std::make_unique<GuiPresenter>(this);
 
@@ -60,69 +58,76 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_resultsCanvasPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_resultsCanvasPanel->Refresh(); event.Skip(); });
     m_chartPreviewPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_chartPreviewPanel->Refresh(); event.Skip(); });
     
+    // Top-level events that remain handled by the Frame
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
-    m_addRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnAddFilesClick, this);
     m_removeAllFiles->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveAllFilesClick, this);
-    m_saveLog->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &DynaRangeFrame::OnGridCellClick, this);
-    m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnDarkFileChanged, this);
-    m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &DynaRangeFrame::OnSaturationFileChanged, this);
-    m_clearDarkFileButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnClearDarkFile, this);
-    m_clearSaturationFileButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnClearSaturationFile, this);
-    m_darkValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_removeRawFilesButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveFilesClick, this);
-    m_rawFileslistBox->Bind(wxEVT_LISTBOX, &DynaRangeFrame::OnListBoxSelectionChanged, this);
-    m_rawFileslistBox->Bind(wxEVT_KEY_DOWN, &DynaRangeFrame::OnListBoxKeyDown, this);
-    m_PlotChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
-    m_plotingChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
-    m_plotFormatChoice->Bind(wxEVT_CHOICE, &DynaRangeFrame::OnInputChanged, this);
-    m_outputTextCtrl->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
     Bind(wxEVT_COMMAND_WORKER_UPDATE, &DynaRangeFrame::OnWorkerUpdate, this);
     Bind(wxEVT_COMMAND_WORKER_COMPLETED, &DynaRangeFrame::OnWorkerCompleted, this);
     Bind(wxEVT_CLOSE_WINDOW, &DynaRangeFrame::OnClose, this);
     Bind(wxEVT_SIZE, &DynaRangeFrame::OnSize, this);
-    m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_DOUBLECLICKED, &DynaRangeFrame::OnSplitterSashDClick, this);
-    m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
     m_mainNotebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &DynaRangeFrame::OnNotebookPageChanged, this);
-    m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
-    m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnPatchRatioSliderChanged, this);
+    m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
     
-    m_snrThresholdsValues->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
+    // --- Event bindings delegated directly to controllers ---
+    
+    // InputController bindings
+    m_addRawFilesButton->Bind(wxEVT_BUTTON, &InputController::OnAddFilesClick, m_inputController.get());
+    m_saveLog->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &InputController::OnCalibrationFileChanged, m_inputController.get());
+    m_saturationFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &InputController::OnCalibrationFileChanged, m_inputController.get());
+    m_clearDarkFileButton->Bind(wxEVT_BUTTON, &InputController::OnClearDarkFile, m_inputController.get());
+    m_clearSaturationFileButton->Bind(wxEVT_BUTTON, &InputController::OnClearSaturationFile, m_inputController.get());
+    m_darkValueTextCtrl->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_saturationValueTextCtrl->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_removeRawFilesButton->Bind(wxEVT_BUTTON, &InputController::OnRemoveFilesClick, m_inputController.get());
+    m_rawFileslistBox->Bind(wxEVT_LISTBOX, &InputController::OnListBoxSelectionChanged, m_inputController.get());
+    m_rawFileslistBox->Bind(wxEVT_KEY_DOWN, &InputController::OnListBoxKeyDown, m_inputController.get());
+    m_PlotChoice->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
+    m_plotingChoice->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
+    m_plotFormatChoice->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
+    m_outputTextCtrl->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &InputController::OnPatchRatioSliderChanged, m_inputController.get());
+    m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &InputController::OnPatchRatioSliderChanged, m_inputController.get());
+    m_snrThresholdsValues->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &InputController::OnDrNormSliderChanged, m_inputController.get());
+    m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &InputController::OnDrNormSliderChanged, m_inputController.get());
+    m_coordX1Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordY1Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordX2Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordY2Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordX3Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordY3Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordX4Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_coordY4Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_chartPatchRowValue1->Bind(wxEVT_TEXT, &InputController::OnInputChartPatchChanged, m_inputController.get());
+    m_chartPatchColValue1->Bind(wxEVT_TEXT, &InputController::OnInputChartPatchChanged, m_inputController.get());
+    m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &InputController::OnDebugPatchesCheckBoxChanged, m_inputController.get());
+    m_debugPatchesFileNameValue->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    R_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    G1_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    G2_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    B_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    AVG_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
 
-    m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnDrNormSliderChanged, this);
-    m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnDrNormSliderChanged, this);
-    m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_rParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_gParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_gParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    m_bParamSlider->Bind(wxEVT_SCROLL_CHANGED, &DynaRangeFrame::OnChartColorSliderChanged, this);
-    chartButtonPreview->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartPreviewClick, this);
-    chartButtonCreate->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnChartCreateClick, this);
-    m_InvGammaValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    m_chartDimXValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    m_chartDimWValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    m_chartDimHValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartInputChanged, this);
-    m_coordX1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordY1Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordX2Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordY2Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordX3Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordY3Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordX4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_coordY4Value->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    m_chartPatchRowValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
-    m_chartPatchColValue1->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChartPatchChanged, this);
-    m_chartPatchRowValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
-    m_chartPatchColValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnChartChartPatchChanged, this);
-    m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnDebugPatchesCheckBoxChanged, this);
-    m_debugPatchesFileNameValue->Bind(wxEVT_TEXT, &DynaRangeFrame::OnInputChanged, this);
-    R_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    G1_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    G2_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    B_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
-    AVG_checkBox->Bind(wxEVT_CHECKBOX, &DynaRangeFrame::OnInputChanged, this);
+    // ChartController bindings
+    m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
+    m_rParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
+    m_gParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
+    m_gParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
+    m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
+    m_bParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
+    chartButtonPreview->Bind(wxEVT_BUTTON, &ChartController::OnPreviewClick, m_chartController.get());
+    chartButtonCreate->Bind(wxEVT_BUTTON, &ChartController::OnCreateClick, m_chartController.get());
+    m_InvGammaValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
+    m_chartDimXValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
+    m_chartDimWValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
+    m_chartDimHValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
+    m_chartPatchRowValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
+    m_chartPatchColValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
+
+    // ResultsController bindings
+    m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &ResultsController::OnGridCellClick, m_resultsController.get());
+    m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_DOUBLECLICKED, &ResultsController::OnSplitterSashDClick, m_resultsController.get());
 
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
@@ -170,25 +175,35 @@ void DynaRangeFrame::ShowError(const wxString& title, const wxString& message) {
     wxMessageBox(message, title, wxOK | wxICON_ERROR, this);
 }
 
-void DynaRangeFrame::SetUiState(bool is_processing) {
+void DynaRangeFrame::SetUiState(bool is_processing, int num_threads) {
     if (is_processing) {
         m_executeButton->SetLabel(_("Stop Processing"));
-        m_executeButton->Enable(true); // Ensure the button is enabled to allow stopping.
+        m_executeButton->Enable(true);
         m_mainNotebook->SetSelection(1);
         m_logController->Clear();
-        m_gaugeTimer->Start(100); // Start the animation timer
+        m_gaugeTimer->Start(100);
+
+        // Set the new parallel processing message.
+        wxString status_label;
+        if (num_threads > 1) {
+            status_label = wxString::Format(_("Processing RAW files in parallel (%d processes)..."), num_threads);
+        } else {
+            status_label = _("Processing RAW files...");
+        }
+        m_generateGraphStaticText->SetLabel(status_label);
+        m_processingGauge->Show();
+
     } else {
         m_executeButton->SetLabel(_("Execute"));
-        m_executeButton->Enable(true); // Ensure the button is re-enabled after processing.
-        m_gaugeTimer->Stop(); // Stop the animation timer
+        m_executeButton->Enable(true);
+        m_gaugeTimer->Stop();
+        m_processingGauge->Hide();
+        m_generateGraphStaticText->SetLabel(_("Generated Graph:"));
     }
     
-    // Force the sizer to recalculate the layout to fit the new button label.
     m_inputPanel->Layout();
-
     m_resultsController->SetUiState(is_processing);
 }
-
 void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) {
     if (m_presenter->IsWorkerRunning()) {
         // If the worker is running, the button acts as a "Stop" button.
@@ -247,24 +262,6 @@ PlottingDetails DynaRangeFrame::GetPlottingDetails() const { return m_inputContr
 // EVENT HANDLERS
 // =============================================================================
 
-void DynaRangeFrame::OnAddFilesClick(wxCommandEvent& event) { m_inputController->OnAddFilesClick(event); }
-
-void DynaRangeFrame::OnChartColorSliderChanged(wxScrollEvent& event) {
-    if (m_chartController) m_chartController->OnColorSliderChanged(event);
-}
-
-void DynaRangeFrame::OnChartCreateClick(wxCommandEvent& event) {
-    if (m_chartController) m_chartController->OnCreateClick(event);
-}
-
-void DynaRangeFrame::OnChartInputChanged(wxCommandEvent& event) {
-    if (m_chartController) m_chartController->OnInputChanged(event);
-}
-
-void DynaRangeFrame::OnChartPreviewClick(wxCommandEvent& event) {
-    if (m_chartController) m_chartController->OnPreviewClick(event);
-}
-
 void DynaRangeFrame::OnClose(wxCloseEvent& event) {
     if (m_presenter->IsWorkerRunning()) {
         m_presenter->RequestWorkerCancellation();
@@ -272,48 +269,15 @@ void DynaRangeFrame::OnClose(wxCloseEvent& event) {
     Destroy();
 }
 
-void DynaRangeFrame::OnDrNormSliderChanged(wxScrollEvent& event) { m_inputController->OnDrNormSliderChanged(event); }
-
 void DynaRangeFrame::OnGaugeTimer(wxTimerEvent& event) { m_processingGauge->Pulse();
 }
 
-void DynaRangeFrame::OnGridCellClick(wxGridEvent& event) {
-    int row = event.GetRow();
-    std::string filename_basename;
-
-    // A click on a data row (row > 0) extracts the filename from the first column.
-    // A click on the header row (row == 0) or the actual column labels (row < 0)
-    // will result in an empty filename, which signals the presenter to show the summary plot.
-    if (row > 0 && m_cvsGrid->GetNumberRows() > row) {
-        filename_basename = m_cvsGrid->GetCellValue(row, 0).ToStdString();
-    }
-    
-    // Pass the extracted basename (or an empty string) to the presenter.
-    m_presenter->HandleGridCellClick(filename_basename);
-    
-    event.Skip();
-}
-
-void DynaRangeFrame::OnInputChanged(wxEvent& event) { m_presenter->UpdateCommandPreview(); }
-
-void DynaRangeFrame::OnListBoxKeyDown(wxKeyEvent& event) { m_inputController->OnListBoxKeyDown(event);
-}
-
-void DynaRangeFrame::OnListBoxSelectionChanged(wxCommandEvent& event) { m_inputController->OnListBoxSelectionChanged(event); event.Skip(); }
-
 void DynaRangeFrame::OnNotebookPageChanged(wxNotebookEvent& event) { event.Skip();}
 
-void DynaRangeFrame::OnPatchRatioSliderChanged(wxScrollEvent& event) { m_inputController->OnPatchRatioSliderChanged(event); }
-
-void DynaRangeFrame::OnRemoveFilesClick(wxCommandEvent& event) { m_inputController->OnRemoveFilesClick(event);
-}
 
 void DynaRangeFrame::OnSize(wxSizeEvent& event) { event.Skip();}
 
 void DynaRangeFrame::OnSplitterSashChanged(wxSplitterEvent& event) { event.Skip(); }
-
-void DynaRangeFrame::OnSplitterSashDClick(wxSplitterEvent& event) { m_resultsController->OnSplitterSashDClick(event);
-}
 
 bool DynaRangeFrame::ShouldSaveLog() const {
     return m_inputController->ShouldSaveLog();
@@ -370,47 +334,10 @@ m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), l
     }
 }
 
-void DynaRangeFrame::OnClearDarkFile(wxCommandEvent& event) {
-    m_darkFilePicker->SetPath(""); // Vacía la selección
-    OnInputChanged(event);         // Actualiza el comando CLI
-}
-void DynaRangeFrame::OnClearSaturationFile(wxCommandEvent& event) {
-    m_saturationFilePicker->SetPath(""); // Vacía la selección
-    OnInputChanged(event);         // Actualiza el comando CLI
-}
-
-void DynaRangeFrame::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
-    // Primero, se le dice al controlador que actualice la lógica de la UI
-    // (habilitar/deshabilitar el campo de texto, poner el valor por defecto, etc.).
-    m_inputController->OnDebugPatchesCheckBoxChanged(event);
-    
-    // Después, se le ordena explícitamente al presenter que actualice
-    // el "Equivalent CLI command", asegurando que el cambio se refleje.
-    m_presenter->UpdateCommandPreview();
-}
-
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
     wxString log_message = event.GetString();
-    // The original engine message is "Processing \""
-    wxString processing_prefix = _("Processing \"");
-    if (log_message.StartsWith(processing_prefix)) {
-        // Extract the filename, which is between quotes
-        wxString filename_part = log_message.Mid(processing_prefix.length());
-        int end_quote_pos = filename_part.find_first_of('"');
-
-        if (end_quote_pos != wxNOT_FOUND) {
-            wxString filename = filename_part.SubString(0, end_quote_pos - 1);
-
-            // Update the label in the "Results" tab with the dynamic message
-            wxString status_label = wxString::Format(
-                _("Calculating dynamic range, working on raw file %s..."),
-                filename
-            );
-            m_generateGraphStaticText->SetLabel(status_label);
-        }
-    }
-
-    // Always append the original message to the "Log" tab
+    
+    // Always append the original message to the "Log" tab.
     m_logController->AppendText(log_message);
 }
 
@@ -424,28 +351,6 @@ bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& file
         m_owner->m_inputController->AddDroppedFiles(filenames);
     }
     return true;
-}
-
-void DynaRangeFrame::OnInputChartPatchChanged(wxCommandEvent& event) {
-    if (m_isUpdatingPatches) return;
-    m_isUpdatingPatches = true;
-
-    m_chartPatchRowValue->ChangeValue(m_chartPatchRowValue1->GetValue());
-    m_chartPatchColValue->ChangeValue(m_chartPatchColValue1->GetValue());
-    m_presenter->UpdateCommandPreview();
-    m_isUpdatingPatches = false;
-    event.Skip();
-}
-
-void DynaRangeFrame::OnChartChartPatchChanged(wxCommandEvent& event) {
-    if (m_isUpdatingPatches) return;
-    m_isUpdatingPatches = true;
-
-    m_chartPatchRowValue1->ChangeValue(m_chartPatchRowValue->GetValue());
-    m_chartPatchColValue1->ChangeValue(m_chartPatchColValue->GetValue());
-    m_presenter->UpdateCommandPreview();
-    m_isUpdatingPatches = false;
-    event.Skip();
 }
 
 void DynaRangeFrame::OnResultsCanvasPaint(wxPaintEvent& event)
@@ -510,14 +415,4 @@ void DynaRangeFrame::OnChartPreviewPaint(wxPaintEvent& event)
 
 bool DynaRangeFrame::ValidateSnrThresholds() const {
     return m_inputController->ValidateSnrThresholds();
-}
-
-void DynaRangeFrame::OnDarkFileChanged(wxFileDirPickerEvent& event)
-{
-    m_inputController->OnCalibrationFileChanged(event);
-}
-
-void DynaRangeFrame::OnSaturationFileChanged(wxFileDirPickerEvent& event)
-{
-    m_inputController->OnCalibrationFileChanged(event);
 }

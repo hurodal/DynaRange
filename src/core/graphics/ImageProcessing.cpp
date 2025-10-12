@@ -1,66 +1,35 @@
 // File: src/core/graphics/ImageProcessing.cpp
 /**
- * @file core/ImageProcessing.cpp
- * @brief Implements geometric image processing functions.
+ * @file core/graphics/ImageProcessing.cpp
+ * @brief Implements high-level image processing orchestration and utilities.
  */
 #include "ImageProcessing.hpp"
+#include "geometry/KeystoneCorrection.hpp"
 #include "../DebugConfig.hpp"
-#include "../io/RawFile.hpp"
-#include "../math/Math.hpp"
+#include "../io/raw/RawFile.hpp"
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
-#include <optional>
 
 #define _(string) gettext(string)
 
-Eigen::VectorXd CalculateKeystoneParams(const std::vector<cv::Point2d>& src_points, const std::vector<cv::Point2d>& dst_points) {
-    Eigen::Matrix<double, 8, 8> A;
-    Eigen::Vector<double, 8> b;
-    for (int i = 0; i < 4; ++i) {
-        const auto& xu = src_points[i].x;
-        const auto& yu = src_points[i].y;
-        const auto& xd = dst_points[i].x; const auto& yd = dst_points[i].y;
-        A.row(2 * i)     << xd, yd, 1, 0,  0,  0, -xd * xu, -yd * xu;
-        A.row(2 * i + 1) << 0,  0,  0, xd, yd, 1, -xd * yu, -yd * yu;
-        b(2 * i) = xu; b(2 * i + 1) = yu;
+cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
+{
+    if (raw_image.empty()) {
+        return {};
     }
-    return A.colPivHouseholderQr().solve(b);
-}
+    cv::Mat float_img;
+    raw_image.convertTo(float_img, CV_32F);
 
-/**
- * @brief Applies an inverse keystone correction to an image using Nearest Neighbor interpolation.
- * @param imgSrc The source image to be corrected.
- * @param k An Eigen::VectorXd containing the 8 transformation parameters.
- * @return A new cv::Mat containing the rectified image.
- */
-cv::Mat UndoKeystone(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
-    int DIMX = imgSrc.cols;
-    int DIMY = imgSrc.rows;
-    cv::Mat imgCorrected = cv::Mat::zeros(DIMY, DIMX, CV_32FC1);
-    for (int y = 0; y < DIMY; ++y) {
-        for (int x = 0; x < DIMX; ++x) {
-            // Use the direct 0-based coordinate transformation.
-            // This is the correct math that aligns with the R script's C++ block
-            // and works with the conditional GAP logic.
-            double denom = k(6) * x + k(7) * y + 1;
-            if (std::abs(denom) < 1e-9) continue;
-            
-            int xu = static_cast<int>(round((k(0) * x + k(1) * y + k(2)) / denom));
-            int yu = static_cast<int>(round((k(3) * x + k(4) * y + k(5)) / denom));
-
-            if (xu >= 0 && xu < DIMX && yu >= 0 && yu < DIMY) {
-                imgCorrected.at<float>(y, x) = imgSrc.at<float>(yu, xu);
-            }
-        }
-    }
-    return imgCorrected;
+    // Normalize the image to a 0.0-1.0 range
+    float_img = (float_img - black_level) / (sat_level - black_level);
+    return float_img;
 }
 
 cv::Mat PrepareChartImage(
     const RawFile& raw_file, 
     const ProgramOptions& opts, 
-    const Eigen::VectorXd& keystone_params,
+    const cv::Mat& keystone_params,
     const ChartProfile& chart, 
     std::ostream& log_stream,
     DataSource channel_to_extract) 
@@ -70,7 +39,6 @@ cv::Mat PrepareChartImage(
         return {};
     }
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
-
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     switch (channel_to_extract) {
         case DataSource::R:
@@ -89,7 +57,7 @@ cv::Mat PrepareChartImage(
             return {};
     }
     
-    cv::Mat img_corrected = UndoKeystone(imgBayer, keystone_params);
+    cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(imgBayer, keystone_params);
 
     const auto& dst_pts = chart.GetDestinationPoints();
     double xtl = dst_pts[0].x;
@@ -106,7 +74,6 @@ cv::Mat PrepareChartImage(
     }
 
     cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
-    
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {
@@ -115,19 +82,6 @@ cv::Mat PrepareChartImage(
     }
     
     return img_corrected(crop_area).clone();
-}
-
-cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
-{
-    if (raw_image.empty()) {
-        return {};
-    }
-    cv::Mat float_img;
-    raw_image.convertTo(float_img, CV_32F);
-
-    // Normalize the image to a 0.0-1.0 range
-    float_img = (float_img - black_level) / (sat_level - black_level);
-    return float_img;
 }
 
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value)
@@ -150,121 +104,22 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     return gamma_corrected_image;
 }
 
-std::optional<std::vector<cv::Point2d>> DetectChartCorners(const cv::Mat& bayer_image, std::ostream& log_stream)
-{
-    if (bayer_image.empty()) return std::nullopt;
-    const int DIMX = bayer_image.cols;
-    const int DIMY = bayer_image.rows;
-    std::vector<cv::Point2d> detected_points;
-
-    std::vector<cv::Rect> sectors = {
-        {0, 0, DIMX / 2, DIMY / 2},
-        {0, DIMY / 2, DIMX / 2, DIMY / 2},
-        {DIMX / 2, DIMY / 2, DIMX / 2, DIMY / 2},
-        {DIMX / 2, 0, DIMX / 2, DIMY / 2}
-    };
-    const double diag = std::sqrt(static_cast<double>(DIMX * DIMX + DIMY * DIMY));
-    const double radius = diag * 0.01;
-    const double circle_area = M_PI * radius * radius;
-    const double quadrant_area = (DIMX / 2.0) * (DIMY / 2.0);
-    const double quantile_fraction = circle_area / quadrant_area;
-    const double quantile_threshold = 1.0 - (quantile_fraction / 4.0);
-
-    for (const auto& sector_rect : sectors) {
-        cv::Mat quadrant = bayer_image(sector_rect).clone();
-        if (quadrant.empty() || quadrant.total() == 0) continue;
-
-        std::vector<double> pixels;
-        quadrant.reshape(1, 1).convertTo(pixels, CV_64F);
-        double brightness_q_threshold = CalculateQuantile(pixels, quantile_threshold);
-
-        cv::Mat mask;
-        cv::threshold(quadrant, mask, brightness_q_threshold, 1.0, cv::THRESH_BINARY);
-        mask.convertTo(mask, CV_8U);
-        
-        std::vector<cv::Point> bright_pixels;
-        cv::findNonZero(mask, bright_pixels);
-        if (bright_pixels.empty()) {
-            log_stream << _("Warning: No corner circle found in one of the quadrants.") << std::endl;
-            return std::nullopt;
-        }
-
-        std::vector<int> x_coords, y_coords;
-        x_coords.reserve(bright_pixels.size());
-        y_coords.reserve(bright_pixels.size());
-        for(const auto& p : bright_pixels) {
-            x_coords.push_back(p.x);
-            y_coords.push_back(p.y);
-        }
-        std::sort(x_coords.begin(), x_coords.end());
-        std::sort(y_coords.begin(), y_coords.end());
-        
-        double median_x_local = static_cast<double>(x_coords[x_coords.size() / 2]);
-        double median_y_local = static_cast<double>(y_coords[y_coords.size() / 2]);
-        
-        double median_x = median_x_local + sector_rect.x;
-        double median_y = median_y_local + sector_rect.y;
-        detected_points.emplace_back(median_x, median_y);
-    }
-    
-    if (detected_points.size() == 4) {
-        cv::Point2d tl = detected_points[0];
-        cv::Point2d bl = detected_points[1];
-        cv::Point2d br = detected_points[2];
-        cv::Point2d tr = detected_points[3];
-        return std::vector<cv::Point2d>{tl, bl, br, tr};
-    }
-
-    return std::nullopt;
-}
-
-cv::Mat UndoKeystoneColor(const cv::Mat& imgSrc, const Eigen::VectorXd& k) {
-    int DIMX = imgSrc.cols;
-    int DIMY = imgSrc.rows;
-    // Create a destination image with 3 channels for color (CV_8UC3)
-    cv::Mat imgCorrected = cv::Mat::zeros(DIMY, DIMX, CV_8UC3);
-
-    for (int y = 0; y < DIMY; ++y) {
-        for (int x = 0; x < DIMX; ++x) {
-            double xd = x + 1.0, yd = y + 1.0;
-            double denom = k(6) * xd + k(7) * yd + 1;
-            if (std::abs(denom) < 1e-9) continue;
-
-            double xu = (k(0) * xd + k(1) * yd + k(2)) / denom - 1;
-            double yu = (k(3) * xd + k(4) * yd + k(5)) / denom - 1;
-            
-            int x_src = static_cast<int>(round(xu));
-            int y_src = static_cast<int>(round(yu));
-
-            if (x_src >= 0 && x_src < DIMX && y_src >= 0 && y_src < DIMY) {
-                // Access pixels using cv::Vec3b for 3-channel 8-bit images
-                imgCorrected.at<cv::Vec3b>(y, x) = imgSrc.at<cv::Vec3b>(y_src, x_src);
-            }
-        }
-    }
-    return imgCorrected;
-}
-
 cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners)
 {
-    // Convierte la imagen de un canal a una de 3 canales para poder dibujar en color.
     cv::Mat color_image;
     cv::cvtColor(image, color_image, cv::COLOR_GRAY2BGR);
 
     #if DYNA_RANGE_DEBUG_MODE == 1
-    // El color se define ahora en DebugConfig.hpp
     const cv::Scalar marker_color = cv::Scalar(
         DynaRange::Debug::CORNER_MARKER_COLOR[0],
         DynaRange::Debug::CORNER_MARKER_COLOR[1],
         DynaRange::Debug::CORNER_MARKER_COLOR[2]
     );
     #else
-    // Color por defecto si la depuración está desactivada (aunque este código no se compilará)
-    const cv::Scalar marker_color = cv::Scalar(1.0, 1.0, 1.0); // Blanco
+    const cv::Scalar marker_color = cv::Scalar(1.0, 1.0, 1.0); // White
     #endif
 
     for (const auto& point : corners) {
-        // Dibuja una cruz (+) del color especificado en cada coordenada.
         cv::drawMarker(color_image, point, marker_color, cv::MARKER_CROSS, 40, 2);
     }
     return color_image;
@@ -273,21 +128,17 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
 std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     const RawFile& raw_file,
     const ProgramOptions& opts,
-    const Eigen::VectorXd& keystone_params,
+    const cv::Mat& keystone_params,
     const ChartProfile& chart,
     std::ostream& log_stream)
 {
     std::map<DataSource, cv::Mat> prepared_channels;
-
-    // Step 1: Load and normalize the full RAW image ONCE.
     cv::Mat raw_img = raw_file.GetRawImage();
     if(raw_img.empty()){
         log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
         return prepared_channels;
     }
     cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
-
-    // Step 2: Create and populate all four channel matrices in a single pass.
     cv::Size bayer_size(img_float.cols / 2, img_float.rows / 2);
     cv::Mat r_bayer(bayer_size, CV_32FC1);
     cv::Mat g1_bayer(bayer_size, CV_32FC1);
@@ -306,8 +157,6 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
         {DataSource::R, r_bayer}, {DataSource::G1, g1_bayer},
         {DataSource::G2, g2_bayer}, {DataSource::B, b_bayer}
     };
-
-    // Step 3: Define the crop area using the (now correct) destination points.
     const auto& dst_pts = chart.GetDestinationPoints();
     double xtl = dst_pts[0].x;
     double ytl = dst_pts[0].y;
@@ -315,17 +164,14 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     double ybr = dst_pts[2].y;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
 
-    // Step 4: Apply keystone correction and then crop each channel.
     for (auto const& [channel, bayer_mat] : bayer_channels) {
-        cv::Mat img_corrected = UndoKeystone(bayer_mat, keystone_params);
-        
+        cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(bayer_mat, keystone_params);
         if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
             crop_area.x + crop_area.width > img_corrected.cols ||
             crop_area.y + crop_area.height > img_corrected.rows) {
             log_stream << _("Error: Invalid crop area for channel ") << Formatters::DataSourceToString(channel) << std::endl;
             prepared_channels[channel] = cv::Mat();
         } else {
-            // Re-introduce the crop step on the corrected image.
             prepared_channels[channel] = img_corrected(crop_area).clone();
         }
     }

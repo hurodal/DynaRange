@@ -49,7 +49,7 @@ public:
     void UpdateCommandPreview(const std::string& command);
     void AddDroppedFiles(const wxArrayString& filenames);
 
-    // Event handling logic, called by DynaRangeFrame's Bind()
+    // --- Event Handling Logic ---
     void OnAddFilesClick(wxCommandEvent& event);
     void OnPatchRatioSliderChanged(wxScrollEvent& event);
     void OnRemoveFilesClick(wxCommandEvent& event);
@@ -58,6 +58,10 @@ public:
     void OnDrNormSliderChanged(wxScrollEvent& event);
     void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
     void OnCalibrationFileChanged(wxFileDirPickerEvent& event);
+    void OnInputChanged(wxEvent& event);
+    void OnClearDarkFile(wxCommandEvent& event);
+    void OnClearSaturationFile(wxCommandEvent& event);
+    void OnInputChartPatchChanged(wxCommandEvent& event);
 
 private:
     void PerformFileRemoval();

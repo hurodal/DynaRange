@@ -7,7 +7,6 @@
  * the low-level drawing functions from PlotBase and PlotData. It handles
  * canvas creation, coordinate bounds calculation, and file output.
  */
-
 #include "Plotting.hpp"
 #include "PlotOrchestrator.hpp"
 #include "Constants.hpp"
@@ -20,6 +19,8 @@
 #include <optional>
 #include <sstream>
 #include <libintl.h>
+#include <future>
+#include <mutex>
 
 #define _(string) gettext(string)
 
@@ -33,15 +34,13 @@ std::optional<std::string> GeneratePlotInternal(
     const std::vector<CurveData>& curves_to_plot,
     const std::vector<DynamicRangeResult>& results_to_plot,
     const ProgramOptions& opts,
-    std::ostream& log_stream)
+    std::ostream& log_stream,
+    std::mutex& log_mutex)
 {
-    // 1. Create the context for high-resolution file output.
     const auto render_ctx = DynaRange::Graphics::RenderContext{
         DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH,
         DynaRange::Graphics::Constants::PlotDefs::BASE_HEIGHT
     };
-
-    // 2. Prepare the Cairo surface based on the desired file format.
     bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG || opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::PDF);
     double scale = is_vector ? DynaRange::Graphics::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
     int width = static_cast<int>(render_ctx.base_width * scale);
@@ -63,8 +62,10 @@ std::optional<std::string> GeneratePlotInternal(
 
     cairo_t *cr = cairo_create(surface);
     if (cairo_status(cr) != CAIRO_STATUS_SUCCESS) {
-        log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"."
-                   << std::endl;
+        {
+            std::lock_guard<std::mutex> lock(log_mutex);
+            log_stream << _("  - Error: Failed to create cairo context for plot \"") << title << "\"." << std::endl;
+        }
         cairo_surface_destroy(surface);
         return std::nullopt;
     }
@@ -73,10 +74,8 @@ std::optional<std::string> GeneratePlotInternal(
         cairo_scale(cr, scale, scale);
     }
     
-    // 3. Call the central "skeleton" function to do all the drawing.
     DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_to_plot, results_to_plot, title, opts);
     
-    // 4. Finalize and save the file.
     bool success = false;
     switch (opts.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
@@ -84,12 +83,17 @@ std::optional<std::string> GeneratePlotInternal(
             cairo_surface_flush(surface);
             success = (cairo_surface_status(surface) == CAIRO_STATUS_SUCCESS);
             if (success) {
+                std::lock_guard<std::mutex> lock(log_mutex);
                 log_stream << _("  - Info: Plot saved to: ") << output_filename << std::endl;
             }
             break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default:
-            success = OutputWriter::WritePng(surface, output_filename, log_stream);
+            {
+                // WritePng now needs a mutex for its log output
+                std::lock_guard<std::mutex> lock(log_mutex);
+                success = OutputWriter::WritePng(surface, output_filename, log_stream);
+            }
             break;
     }
 
@@ -121,13 +125,9 @@ void GenerateSnrPlot(
     }
 
     if (signal_ev.size() < 2) {
-        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")."
-                   << std::endl;
+        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")." << std::endl;
         return;
     }
-
-    // The logic for calculating 'bounds' has been removed from this function,
-    // as it is now handled centrally by the plot orchestrator called by GeneratePlotInternal.
 
     CurveData single_curve_data;
     single_curve_data.filename = plot_title;
@@ -144,16 +144,12 @@ void GenerateSnrPlot(
     
     single_curve_data.poly_coeffs = poly_coeffs;
     single_curve_data.generated_command = opts.generated_command;
-    
-    // curve_points are now generated inside the central orchestrator,
-    // so this line is no longer needed here.
-    // single_curve_data.curve_points = PlotDataGenerator::GenerateCurvePoints(single_curve_data);
 
     std::vector<CurveData> single_curve_vec = {single_curve_data};
     std::vector<DynamicRangeResult> single_result_vec = {dr_result};
-
-    // Corrected call to GeneratePlotInternal without the 'bounds' argument.
-    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, log_stream);
+    
+    std::mutex log_mutex; // Create a mutex for this single call
+    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, log_stream, log_mutex);
 }
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -176,7 +172,8 @@ std::optional<std::string> GenerateSummaryPlot(
 
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     
-    return GeneratePlotInternal(output_filename, title, all_curves, all_results, opts, log_stream);
+    std::mutex log_mutex; // Create a mutex for this single call
+    return GeneratePlotInternal(output_filename, title, all_curves, all_results, opts, log_stream, log_mutex);
 }
 
 std::map<std::string, std::string> GenerateIndividualPlots(
@@ -200,30 +197,44 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         results_by_file[result.filename].push_back(result);
     }
 
-    for (auto& pair : curves_by_file) {
+    std::vector<std::future<std::pair<std::string, std::optional<std::string>>>> futures;
+    std::mutex log_mutex;
+
+    for (const auto& pair : curves_by_file) {
         const std::string& filename = pair.first;
-        std::vector<CurveData>& curves_for_this_file = pair.second;
-        const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file[filename];
+        const std::vector<CurveData>& curves_for_this_file = pair.second;
+        const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file.at(filename);
 
         if (curves_for_this_file.empty()) continue;
 
-        const auto& first_curve = curves_for_this_file[0];
-        fs::path plot_path = paths.GetIndividualPlotPath(first_curve, opts);
-        
-        std::stringstream title_ss;
-        title_ss << fs::path(filename).filename().string();
-        if (!first_curve.camera_model.empty()) {
-            title_ss << " (" << first_curve.camera_model;
-            if (first_curve.iso_speed > 0) {
-                title_ss << ", " << _("ISO ") << static_cast<int>(first_curve.iso_speed);
+        futures.push_back(std::async(std::launch::async, 
+            [&, filename, curves_for_this_file, results_for_this_file]() -> std::pair<std::string, std::optional<std::string>> {
+                
+                const auto& first_curve = curves_for_this_file[0];
+                fs::path plot_path = paths.GetIndividualPlotPath(first_curve, opts);
+                
+                std::stringstream title_ss;
+                title_ss << fs::path(filename).filename().string();
+                if (!first_curve.camera_model.empty()) {
+                    title_ss << " (" << first_curve.camera_model;
+                    if (first_curve.iso_speed > 0) {
+                        title_ss << ", " << _("ISO ") << static_cast<int>(first_curve.iso_speed);
+                    }
+                    title_ss << ")";
+                }
+                
+                auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, log_stream, log_mutex);
+                return {filename, path_opt};
             }
-            title_ss << ")";
-        }
-        
-        if (auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, log_stream)) {
+        ));
+    }
+
+    for (auto& fut : futures) {
+        auto [filename, path_opt] = fut.get();
+        if (path_opt) {
             plot_paths_map[filename] = *path_opt;
         }
     }
+    
     return plot_paths_map;
 }
-
