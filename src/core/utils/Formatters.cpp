@@ -124,7 +124,7 @@ std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows) {
     std::stringstream table_ss;
     table_ss << std::left << std::setw(widths[0]) << headers[0]
              << std::right << std::setw(widths[1]) << headers[1]
-             << std::right << std::setw(widths[2]) << headers[2]
+             << std::left << std::setw(widths[2]) << headers[2]
              << std::left << std::setw(widths[3]) << headers[3]
              << std::right << std::setw(widths[4]) << headers[4]
              << std::right << std::setw(widths[5]) << headers[5]
@@ -140,7 +140,7 @@ std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows) {
     for (const auto& row : sorted_rows) {
         table_ss << std::left << std::setw(widths[0]) << fs::path(row.filename).filename().string()
                  << std::right << std::setw(widths[1]) << std::fixed << std::setprecision(2) << row.snr_threshold_db
-                 << std::right << std::setw(widths[2]) << static_cast<int>(row.iso_speed)
+                 << std::left << std::setw(widths[2]) << static_cast<int>(row.iso_speed) // Changed alignment to left
                  << std::left << std::setw(widths[3]) << DataSourceToString(row.channel)
                  << std::right << std::setw(widths[4]) << row.samples_R
                  << std::right << std::setw(widths[5]) << row.samples_G1

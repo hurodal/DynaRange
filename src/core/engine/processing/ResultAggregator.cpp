@@ -7,6 +7,7 @@
 #include "../../graphics/ImageProcessing.hpp"
 #include <libintl.h>
 #include <filesystem>
+#include <mutex>
 
 #define _(string) gettext(string)
 namespace fs = std::filesystem;
@@ -19,7 +20,8 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
     const ProgramOptions& opts,
     double camera_resolution_mpx,
     bool& generate_debug_image,
-    std::ostream& log_stream)
+    std::ostream& log_stream,
+    std::mutex& log_mutex)
 {
     std::vector<SingleFileResult> final_results;
     std::vector<DataSource> user_selected_channels;
@@ -70,6 +72,7 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
                 const auto& r_patches = individual_channel_patches.at(DataSource::R);
                 final_debug_image = CreateFinalDebugImage(r_patches.image_with_patches, r_patches.max_pixel_value);
                 if (final_debug_image.empty()) {
+                    std::lock_guard<std::mutex> lock(log_mutex);
                     log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
                 }
             }

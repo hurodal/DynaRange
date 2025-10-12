@@ -7,6 +7,7 @@
 #include "../analysis/ImageAnalyzer.hpp"
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
+#include <mutex>
 
 #define _(string) gettext(string)
 
@@ -21,7 +22,8 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
     double strict_min_snr_db,
     double permissive_min_snr_db,
     double max_requested_threshold,
-    bool create_overlay_image)
+    bool create_overlay_image,
+    std::mutex& log_mutex)
 {
     // --- Pass 1: Analyze with the strict threshold ---
     PatchAnalysisResult patch_data = AnalyzePatches(prepared_image, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, create_overlay_image, strict_min_snr_db);
@@ -38,7 +40,6 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
                 }
             }
         }
-        // Check if the lowest SNR found is still above the highest requested threshold.
         if (min_snr_found > max_requested_threshold) {
             needs_reanalysis = true;
         }
@@ -46,13 +47,17 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
 
     // --- Pass 2 (Conditional): Re-analyze with the permissive threshold ---
     if (needs_reanalysis) {
-        log_stream << "  - Info: Re-analyzing channel " << Formatters::DataSourceToString(channel) 
-                   << " with permissive threshold to find low-SNR data."
-                   << std::endl;
+        {
+            std::lock_guard<std::mutex> lock(log_mutex);
+            log_stream << "  - Info: Re-analyzing channel " << Formatters::DataSourceToString(channel) 
+                       << " with permissive threshold to find low-SNR data."
+                       << std::endl;
+        }
         patch_data = AnalyzePatches(prepared_image, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, create_overlay_image, permissive_min_snr_db);
     }
 
     if (patch_data.signal.empty()) {
+        std::lock_guard<std::mutex> lock(log_mutex);
         log_stream << _("Warning: No valid patches found for channel: ") << Formatters::DataSourceToString(channel) << std::endl;
     }
     

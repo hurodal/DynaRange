@@ -17,6 +17,7 @@
 #include <wx/graphics.h>
 #include <wx/dcbuffer.h>
 #include <fstream> 
+#include <thread>
 
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -174,25 +175,35 @@ void DynaRangeFrame::ShowError(const wxString& title, const wxString& message) {
     wxMessageBox(message, title, wxOK | wxICON_ERROR, this);
 }
 
-void DynaRangeFrame::SetUiState(bool is_processing) {
+void DynaRangeFrame::SetUiState(bool is_processing, int num_threads) {
     if (is_processing) {
         m_executeButton->SetLabel(_("Stop Processing"));
-        m_executeButton->Enable(true); // Ensure the button is enabled to allow stopping.
+        m_executeButton->Enable(true);
         m_mainNotebook->SetSelection(1);
         m_logController->Clear();
-        m_gaugeTimer->Start(100); // Start the animation timer
+        m_gaugeTimer->Start(100);
+
+        // Set the new parallel processing message.
+        wxString status_label;
+        if (num_threads > 1) {
+            status_label = wxString::Format(_("Processing RAW files in parallel (%d processes)..."), num_threads);
+        } else {
+            status_label = _("Processing RAW files...");
+        }
+        m_generateGraphStaticText->SetLabel(status_label);
+        m_processingGauge->Show();
+
     } else {
         m_executeButton->SetLabel(_("Execute"));
-        m_executeButton->Enable(true); // Ensure the button is re-enabled after processing.
-        m_gaugeTimer->Stop(); // Stop the animation timer
+        m_executeButton->Enable(true);
+        m_gaugeTimer->Stop();
+        m_processingGauge->Hide();
+        m_generateGraphStaticText->SetLabel(_("Generated Graph:"));
     }
     
-    // Force the sizer to recalculate the layout to fit the new button label.
     m_inputPanel->Layout();
-
     m_resultsController->SetUiState(is_processing);
 }
-
 void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) {
     if (m_presenter->IsWorkerRunning()) {
         // If the worker is running, the button acts as a "Stop" button.
@@ -325,26 +336,8 @@ m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), l
 
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
     wxString log_message = event.GetString();
-    // The original engine message is "Processing \""
-    wxString processing_prefix = _("Processing \"");
-    if (log_message.StartsWith(processing_prefix)) {
-        // Extract the filename, which is between quotes
-        wxString filename_part = log_message.Mid(processing_prefix.length());
-        int end_quote_pos = filename_part.find_first_of('"');
-
-        if (end_quote_pos != wxNOT_FOUND) {
-            wxString filename = filename_part.SubString(0, end_quote_pos - 1);
-
-            // Update the label in the "Results" tab with the dynamic message
-            wxString status_label = wxString::Format(
-                _("Calculating dynamic range, working on raw file %s..."),
-                filename
-            );
-            m_generateGraphStaticText->SetLabel(status_label);
-        }
-    }
-
-    // Always append the original message to the "Log" tab
+    
+    // Always append the original message to the "Log" tab.
     m_logController->AppendText(log_message);
 }
 

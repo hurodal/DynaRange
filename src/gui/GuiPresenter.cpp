@@ -17,6 +17,7 @@
 #include <streambuf>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
+#include <thread>
 
 namespace fs = std::filesystem;
 
@@ -142,20 +143,17 @@ void GuiPresenter::StartAnalysis()
 {
     if (!m_view->ValidateSnrThresholds()) {
         m_view->ShowError(_("Invalid Input"), _("The 'SNR Thresholds' field contains invalid characters. Please enter only numbers separated by spaces."));
-        return; // Abort the analysis
+        return;
     }
 
-    // 1. Update the manager with the current values from the GUI.
     UpdateManagerFromView();
 
-    // 2. Get the options for the engine from the manager.
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
     if (m_lastRunOptions.input_files.empty()) {
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
 
-    // 3. Exclude calibration files from the input list before starting the analysis.
     if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
         std::set<std::string> calibration_files;
         if (!m_lastRunOptions.dark_file_path.empty()) {
@@ -172,16 +170,17 @@ void GuiPresenter::StartAnalysis()
                 }),
             m_lastRunOptions.input_files.end()
         );
-
-        // Update the GUI to reflect the filtered list.
         m_view->UpdateInputFileList(m_lastRunOptions.input_files);
-        // Also update the argument manager with the cleaned list for command preview consistency.
         ArgumentManager::Instance().Set("input-files", m_lastRunOptions.input_files);
         UpdateCommandPreview();
     }
 
-
-    m_view->SetUiState(true);
+    // Determine number of threads and pass it to the view.
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 1; // Fallback for safety.
+    }
+    m_view->SetUiState(true, num_threads);
 
     if (m_workerThread.joinable()) {
         m_workerThread.join();

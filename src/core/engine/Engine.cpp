@@ -25,12 +25,14 @@ namespace DynaRange {
  */
 ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
     // Phase 1: Preparation
-    if (!InitializeAnalysis(opts, log_stream)) {
-        return {}; // Return an empty ReportOutput on failure
+    auto [init_success, loaded_raw_files] = InitializeAnalysis(opts, log_stream);
+    if (!init_success) {
+        return {};
+        // Return an empty ReportOutput on failure
     }
     
     // Phase 2: Processing of all files
-    ProcessingResult results = ProcessFiles(opts, log_stream, cancel_flag);
+    ProcessingResult results = ProcessFiles(opts, log_stream, cancel_flag, loaded_raw_files);
     
     // Check if the user cancelled the operation during processing
     if (cancel_flag) {
@@ -40,10 +42,10 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
 
     // Phase 3: Validate SNR data before final reporting
     ValidateSnrResults(results, opts, log_stream);
-
+    
     // Phase 4: Generation of final reports
     ReportOutput report = FinalizeAndReport(results, opts, log_stream);
-
+    
     // Populate the new dr_results member with the sorted results.
     // for combining the report artifacts with the numerical results
     // Needed when click event on grid results.csv and show graphic at GUI

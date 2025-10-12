@@ -4,7 +4,7 @@
  * @brief Declares a component for running the main analysis loop over a set of files.
  * @details This module adheres to SRP by encapsulating the entire loop execution,
  * including keystone optimization strategy and result aggregation, separating it
- * from the high-level orchestration in ProcessFiles.
+ * from the high-level orchestration in ProcessFiles. It supports parallel execution.
  */
 #pragma once
 
@@ -21,7 +21,7 @@ namespace DynaRange::Engine::Processing {
 
 /**
  * @class AnalysisLoopRunner
- * @brief Executes the analysis loop over a list of RAW files.
+ * @brief Executes the analysis loop over a list of RAW files, in parallel.
  */
 class AnalysisLoopRunner {
 public:
@@ -44,7 +44,7 @@ public:
     );
 
     /**
-     * @brief Runs the analysis loop.
+     * @brief Runs the analysis loop in parallel.
      * @return A ProcessingResult struct containing the aggregated results.
      */
     ProcessingResult Run();
@@ -57,5 +57,6 @@ private:
     std::ostream& m_log_stream;
     const std::atomic<bool>& m_cancel_flag;
 };
+
 
 } // namespace DynaRange::Engine::Processing

@@ -5,15 +5,14 @@
  */
 #pragma once
 #include "../arguments/ArgumentsOptions.hpp"
+#include "../io/raw/RawFile.hpp"
 #include <ostream>
 
 /**
  * @brief Prepares the analysis environment.
- * @details This function processes dark and saturation frames if provided,
- * prints the final configuration to the log, sorts the input files,
- * and generates a command string for plotting purposes.
+ * @details This function processes dark/saturation frames, sorts input files, etc.
  * @param opts A reference to the program options, which will be updated.
  * @param log_stream The output stream for logging messages.
- * @return true if initialization is successful, false otherwise.
+ * @return A pair containing a boolean for success and the vector of loaded RawFile objects.
  */
-bool InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream);
+std::pair<bool, std::vector<RawFile>> InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream);

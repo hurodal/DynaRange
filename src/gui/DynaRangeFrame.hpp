@@ -40,7 +40,7 @@ public:
     void UpdateCommandPreview(const std::string& command);
     void DisplayResults(const std::string& csv_path);
     void ShowError(const wxString& title, const wxString& message);
-    void SetUiState(bool is_processing);
+    void SetUiState(bool is_processing, int num_threads = 0);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
     void DisplayImage(const wxImage& image);
