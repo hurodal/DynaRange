@@ -1,28 +1,45 @@
 PRIORITARIAS
 ============
 
-- Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
+1: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+   Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
+   Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
-- Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
-y que os compartí el 10/10 en el chat a las 13:14
+2: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
-- CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+3: Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
+   y que os compartí el 10/10 en el chat a las 13:14
 
-- Corregir el fallo con las fotos de la Canon 5DMkII, que estan giradas 90º debido al sensor de orientación de la cámara. Estan en la carpeta "2025-09-12 Carta DynaRange Canon 5dMkII".
-Introduciendo manualmente las coordenadas que muestro en la captura "target Coords 5DMkII.jpg" no lo pilla bien.
+4: Corregir el fallo con las fotos de la Canon 5DMkII, que estan giradas 90º debido al sensor de orientación de la cámara. Estan en la carpeta "2025-09-12 Carta DynaRange Canon 5dMkII".
+   Introduciendo manualmente las coordenadas que muestro en la captura "target Coords 5DMkII.jpg" no lo pilla bien
 
-- GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
-
-- Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
 
 
 NO PRIORITARIAS
 ===============
 
-6: (HECHO) CÁLCULO DE BLACK/SAT SI NO SE SUMINISTRA VALOR NI FICHERO
+5: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
+
+6: SUSTITUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
+
+
+
+HECHOS
+======
+
+(HECHO) RENOMBRADO DE ALGUNOS PARÁMETROS (-b -B -s -S -p -P): MINÚSCULA SIEMPRE OPCIÓN MÁS USADA, MAYÚSCULA OPCIÓN SECUNDARIA. RENOMBRAR PARÁMETRO --raw_channels (con s) 
+
+(HECHO) IMPLEMENTAR LA REDEFINICÓN DE --plot --plot-params. JUGAR CON LAS TRANSPARENCIAS EN LA CREACIÓN DE LA CURVA DE S/N 
+
+(HECHO) SIMPLIFICAR PARÁMETRO --snrthreshold-db: -> SUMINISTRAR LISTA DE UMBRALES. CAMBIO ESTRUCTURA DATAFRAME: CAMPO --snrthreshold-db Y ÚNICO CAMPO DE DR (HECHO)
+
+(HECHO) DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y
+        saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
+
+(HECHO) CÁLCULO DE BLACK/SAT SI NO SE SUMINISTRA VALOR NI FICHERO
      BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
 
-     prompt: "write a C++ function that calculates the black level of a sensor as the lowest power of 2 with data in the RAW file mimus 1. E.g. if the lowest value in the RAW data is 900 -> BLACK=1023"
+     prompt: "write a C++ function that calculates the black level of a sensor as the lowest power of 2 with data in the RAW file mimus 1. E.g. if the lowest value in the RAW data is 900 ->                     BLACK=1023"
         #include <cmath>
         #include <cstdint>
         
@@ -83,22 +100,6 @@ NO PRIORITARIAS
               return 0;
           }
 
-
-7: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
-
-8: SUSTITUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
-
-
-HECHO
-============
-
-(HECHO) RENOMBRADO DE ALGUNOS PARÁMETROS (-b -B -s -S -p -P): MINÚSCULA SIEMPRE OPCIÓN MÁS USADA, MAYÚSCULA OPCIÓN SECUNDARIA. RENOMBRAR PARÁMETRO --raw_channels (con s) 
-
-1: (HECHO) IMPLEMENTAR LA REDEFINICÓN DE --plot --plot-params. JUGAR CON LAS TRANSPARENCIAS EN LA CREACIÓN DE LA CURVA DE S/N 
-
-2: (HECHO) SIMPLIFICAR PARÁMETRO --snrthreshold-db: -> SUMINISTRAR LISTA DE UMBRALES. CAMBIO ESTRUCTURA DATAFRAME: CAMPO --snrthreshold-db Y ÚNICO CAMPO DE DR (HECHO)
-
-(HECHO) DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis. 
 
 
 
