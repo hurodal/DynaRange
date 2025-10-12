@@ -159,6 +159,20 @@ add_executable(dynaRangeGui WIN32
 if(WIN32)
     target_sources(dynaRangeGui PRIVATE assets/windows/icono_noise.rc)
 endif()
+# =============================================================================
+# INICIO DEL BLOQUE A AÑADIR PARA COMPATIBILIDAD CON MACOS
+# =============================================================================
+if(APPLE)
+    set_target_properties(dynaRangeGui PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/macos/icono.icns
+    )
+    # Aquí puedes añadir también un fichero de icono si lo tienes
+    # MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/macos/icono.icns
+endif()
+# =============================================================================
+# FIN DEL BLOQUE A AÑADIR
+# =============================================================================
 
 target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
