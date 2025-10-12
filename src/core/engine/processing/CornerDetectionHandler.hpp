@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "../../io/RawFile.hpp"
+#include "../../io/raw/RawFile.hpp"
 #include "../../arguments/ArgumentsOptions.hpp"
 #include "../../utils/PathManager.hpp"
 #include <opencv2/core.hpp>

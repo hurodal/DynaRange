@@ -25,14 +25,12 @@ void DrawPlotToCairoContext(
     }
 
     // --- Common Logic: Prepare data for plotting ---
-
     std::vector<CurveData> curves_with_points = curves;
     for (auto& curve : curves_with_points) {
         curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
     }
 
     // --- Common Logic: Calculate plot boundaries ---
-
     double min_ev_global = 1e6, max_ev_global = -1e6;
     double min_db_global = 1e6, max_db_global = -1e6;
     for (const auto& curve : curves_with_points) {
@@ -52,8 +50,8 @@ void DrawPlotToCairoContext(
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
     bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
-    // --- Common Logic: Prepare Info Box ---
 
+    // --- Common Logic: Prepare Info Box ---
     PlotInfoBox info_box;
     std::stringstream black_ss, sat_ss;
     black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
@@ -64,9 +62,7 @@ void DrawPlotToCairoContext(
     std::string command_text = curves_with_points.empty() ? "" : curves_with_points[0].generated_command;
 
     // --- Common Logic: Call low-level drawing functions in sequence ---
-
     DrawPlotBase(cr, ctx, title, opts, bounds, command_text, opts.snr_thresholds_db);
     DrawCurvesAndData(cr, ctx, info_box, curves_with_points, results, bounds, opts);
-    DrawGeneratedTimestamp(cr, ctx);
 }
 } // namespace DynaRange::Graphics

@@ -4,7 +4,7 @@
  * @brief Implements the metadata extraction logic from RAW files.
  */
 #include "MetadataExtractor.hpp"
-#include "../io/RawFile.hpp"
+#include "../io/raw/RawFile.hpp"
 #include <opencv2/imgproc.hpp>
 #include <libintl.h>
 

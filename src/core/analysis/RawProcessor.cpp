@@ -5,7 +5,7 @@
  * calibration.
  */
 #include "RawProcessor.hpp"
-#include "../io/RawFile.hpp"
+#include "../io/raw/RawFile.hpp"
 #include "../math/Math.hpp"
 #include <iomanip>
 #include <iostream>

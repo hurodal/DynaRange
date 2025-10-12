@@ -10,7 +10,7 @@
 
 #include "Processing.hpp" // For SingleFileResult
 #include "../../analysis/Analysis.hpp"
-#include "../../io/RawFile.hpp"
+#include "../../io/raw/RawFile.hpp"
 #include "../../arguments/ArgumentsOptions.hpp"
 #include <vector>
 #include <map>

@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "../io/RawFile.hpp"
+#include "../io/raw/RawFile.hpp"
 #include "../setup/ChartProfile.hpp"
 #include "../arguments/ArgumentsOptions.hpp"
 #include "../analysis/Analysis.hpp" // For DataSource

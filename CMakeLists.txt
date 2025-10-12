@@ -72,7 +72,12 @@ set(CORE_SOURCES
     src/core/arguments/parsing/OptionsConverter.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
+    src/core/engine/initialization/CalibrationHandler.cpp
+    src/core/engine/initialization/ConfigReporter.cpp
+    src/core/engine/initialization/FileSorter.cpp
+    src/core/engine/initialization/InputFileFilter.cpp
     src/core/engine/PatchAnalysisStrategy.cpp
+    src/core/engine/processing/AnalysisLoopRunner.cpp
     src/core/engine/processing/CornerDetectionHandler.cpp
     src/core/engine/processing/Processing.cpp
     src/core/engine/processing/ResultAggregator.cpp
@@ -80,8 +85,13 @@ set(CORE_SOURCES
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
     src/core/graphics/detection/ChartCornerDetector.cpp
+    src/core/graphics/drawing/AxisDrawer.cpp
+    src/core/graphics/drawing/AxisLabelDrawer.cpp
     src/core/graphics/drawing/CurveDrawer.cpp
+    src/core/graphics/drawing/FooterDrawer.cpp
+    src/core/graphics/drawing/GridDrawer.cpp    
     src/core/graphics/drawing/LabelDrawer.cpp
+    src/core/graphics/drawing/TitleDrawer.cpp
     src/core/graphics/FontManager.cpp
     src/core/graphics/geometry/KeystoneCorrection.cpp
     src/core/graphics/ImageProcessing.cpp
@@ -92,11 +102,13 @@ set(CORE_SOURCES
     src/core/graphics/PlotOrchestrator.cpp
     src/core/graphics/Plotting.cpp
     src/core/io/OutputWriter.cpp
-    src/core/io/RawFile.cpp
+    src/core/io/raw/RawFile.cpp
+    src/core/io/raw/RawImageAccessor.cpp
+    src/core/io/raw/RawLoader.cpp
+    src/core/io/raw/RawMetadataExtractor.cpp
     src/core/math/Math.cpp
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
-    src/core/setup/FileSorter.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
     src/core/setup/SensorResolution.cpp

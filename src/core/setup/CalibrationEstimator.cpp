@@ -4,7 +4,7 @@
  * @brief Implements the calibration value estimation logic.
  */
 #include "CalibrationEstimator.hpp"
-#include "../io/RawFile.hpp"
+#include "../io/raw/RawFile.hpp"
 #include "../arguments/ArgumentsOptions.hpp" // For DEFAULT_BLACK_LEVEL
 #include <libintl.h>
 #include <filesystem>

@@ -6,7 +6,7 @@
 #include "ImageProcessing.hpp"
 #include "geometry/KeystoneCorrection.hpp"
 #include "../DebugConfig.hpp"
-#include "../io/RawFile.hpp"
+#include "../io/raw/RawFile.hpp"
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>

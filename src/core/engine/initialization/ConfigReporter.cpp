@@ -1,0 +1,101 @@
+// File: src/core/engine/initialization/ConfigReporter.cpp
+/**
+ * @file ConfigReporter.cpp
+ * @brief Implements the configuration reporting component.
+ */
+#include "ConfigReporter.hpp"
+#include <iomanip>
+#include <sstream>
+#include <filesystem>
+#include <cstring>
+#include <libintl.h>
+
+#define _(string) gettext(string)
+
+namespace fs = std::filesystem;
+
+namespace DynaRange::Engine::Initialization {
+
+void ConfigReporter::PrintPreAnalysisTable(const std::vector<FileInfo>& file_info, std::ostream& log_stream) const
+{
+    size_t max_file_width = strlen("File");
+    size_t max_bright_width = strlen("Brightness");
+    size_t max_iso_width = strlen("ISO");
+
+    for (const auto& info : file_info) {
+        max_file_width = std::max(max_file_width, fs::path(info.filename).filename().string().length());
+        std::stringstream bright_ss;
+        bright_ss << std::fixed << std::setprecision(2) << info.mean_brightness;
+        max_bright_width = std::max(max_bright_width, bright_ss.str().length());
+        std::stringstream iso_ss;
+        iso_ss << static_cast<int>(info.iso_speed);
+        max_iso_width = std::max(max_iso_width, iso_ss.str().length());
+    }
+
+    max_file_width += 2;
+    max_bright_width += 2;
+    max_iso_width += 2;
+    
+    log_stream << "\n" << _("Sorting files based on pre-analyzed data:") << std::endl;
+    log_stream << "  " << std::left << std::setw(max_file_width) << "File"
+               << std::right << std::setw(max_bright_width) << "Brightness"
+               << std::right << std::setw(max_iso_width) << "ISO" << std::endl;
+    log_stream << "  " << std::string(max_file_width + max_bright_width + max_iso_width, '-') << std::endl;
+    for (const auto& info : file_info) {
+        log_stream << "  " << std::left << std::setw(max_file_width) << fs::path(info.filename).filename().string()
+                   << std::right << std::setw(max_bright_width) << std::fixed << std::setprecision(2) << info.mean_brightness
+                   << std::right << std::setw(max_iso_width) << static_cast<int>(info.iso_speed) << std::endl;
+    }
+}
+
+void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::ostream& log_stream) const
+{
+    log_stream << std::fixed << std::setprecision(2);
+    log_stream << "\n" << _("[Final configuration]") << std::endl;
+    log_stream << _("Black level: ") << opts.dark_value 
+               << (opts.black_level_is_default ? _(" (estimated)") : "") << std::endl;
+    log_stream << _("Saturation point: ") << opts.saturation_value 
+               << (opts.saturation_level_is_default ? _(" (estimated)") : "") << std::endl;
+    
+    std::vector<std::string> selected_channels;
+    if (opts.raw_channels.R) selected_channels.push_back("R");
+    if (opts.raw_channels.G1) selected_channels.push_back("G1");
+    if (opts.raw_channels.G2) selected_channels.push_back("G2");
+    if (opts.raw_channels.B) selected_channels.push_back("B");
+    if (opts.raw_channels.AVG) selected_channels.push_back("AVG");
+
+    std::stringstream channels_ss;
+    for(size_t i = 0; i < selected_channels.size(); ++i) {
+        channels_ss << selected_channels[i] << (i < selected_channels.size() - 1 ? ", " : "");
+    }
+    
+    std::string channel_label = (selected_channels.size() > 1) ? _("Analysis channels: ") : _("Analysis channel: ");
+    log_stream << channel_label << channels_ss.str() << std::endl;
+    
+    if (opts.sensor_resolution_mpx > 0.0) {
+        log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
+    }
+    log_stream << _("SNR threshold(s): ");
+    for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
+        log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
+    }
+    log_stream << _(" dB") << std::endl;
+    log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
+    log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
+    log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
+    log_stream << _("Plotting: ");
+    if (!opts.generate_plot) {
+        log_stream << _("No graphics") << std::endl;
+    } else {
+        switch (opts.plot_command_mode) {
+            case 1: log_stream << _("Graphics without command CLI") << std::endl; break;
+            case 2: log_stream << _("Graphics with short command CLI") << std::endl; break;
+            case 3: log_stream << _("Graphics with long command CLI") << std::endl; break;
+            default: log_stream << _("Graphics enabled") << std::endl; break;
+        }
+    }
+    
+    log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
+}
+
+} // namespace DynaRange::Engine::Initialization
