@@ -1,18 +1,19 @@
 PRIORITARIAS
 ============
 
-0: (HECHO) RENOMBRADO DE ALGUNOS PARÁMETROS (-b -B -s -S -p -P): MINÚSCULA SIEMPRE OPCIÓN MÁS USADA, MAYÚSCULA OPCIÓN SECUNDARIA. RENOMBRAR PARÁMETRO --raw_channels (con s) 
+- Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
-1: (HECHO) IMPLEMENTAR LA REDEFINICÓN DE --plot --plot-params. JUGAR CON LAS TRANSPARENCIAS EN LA CREACIÓN DE LA CURVA DE S/N 
+- Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
+y que os compartí el 10/10 en el chat a las 13:14
 
-2: (HECHO) SIMPLIFICAR PARÁMETRO --snrthreshold-db: -> SUMINISTRAR LISTA DE UMBRALES. CAMBIO ESTRUCTURA DATAFRAME: CAMPO --snrthreshold-db Y ÚNICO CAMPO DE DR (HECHO)
+- CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
 
-3: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+- Corregir el fallo con las fotos de la Canon 5DMkII, que estan giradas 90º debido al sensor de orientación de la cámara. Estan en la carpeta "2025-09-12 Carta DynaRange Canon 5dMkII".
+Introduciendo manualmente las coordenadas que muestro en la captura "target Coords 5DMkII.jpg" no lo pilla bien.
 
-4: (HECHO) DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis. 
+- GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
-5: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
-
+- Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
 
 
 NO PRIORITARIAS
@@ -88,8 +89,16 @@ NO PRIORITARIAS
 8: SUSTITUIR CORRECCIÓN DE PERSPECTIVA POR HOMOGRAFÍA CON INTERACCIÓN VISUAL DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
 
 
+HECHO
+============
 
+(HECHO) RENOMBRADO DE ALGUNOS PARÁMETROS (-b -B -s -S -p -P): MINÚSCULA SIEMPRE OPCIÓN MÁS USADA, MAYÚSCULA OPCIÓN SECUNDARIA. RENOMBRAR PARÁMETRO --raw_channels (con s) 
 
+1: (HECHO) IMPLEMENTAR LA REDEFINICÓN DE --plot --plot-params. JUGAR CON LAS TRANSPARENCIAS EN LA CREACIÓN DE LA CURVA DE S/N 
+
+2: (HECHO) SIMPLIFICAR PARÁMETRO --snrthreshold-db: -> SUMINISTRAR LISTA DE UMBRALES. CAMBIO ESTRUCTURA DATAFRAME: CAMPO --snrthreshold-db Y ÚNICO CAMPO DE DR (HECHO)
+
+(HECHO) DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis. 
 
 
 
