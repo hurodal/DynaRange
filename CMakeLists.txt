@@ -36,7 +36,6 @@ find_package(PkgConfig REQUIRED)
 # --- Dependencias Comunes (CLI y GUI) ---
 pkg_check_modules(LIBRAW REQUIRED libraw)
 find_package(OpenCV 4 REQUIRED)
-find_package(Eigen3 REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
@@ -134,7 +133,6 @@ endif()
 target_include_directories(rango PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/arguments
@@ -165,7 +163,6 @@ endif()
 target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
     ${wxWidgets_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons
@@ -195,7 +192,6 @@ target_link_libraries(rango PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
-    Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}
@@ -210,7 +206,6 @@ target_link_libraries(dynaRangeGui PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
     CLI11::CLI11
-    Eigen3::Eigen
     ${GETTEXT_LIBRARIES}
     ${GETTEXT_EXTRA_LIBS}
     ${CAIRO_LIBRARIES}

@@ -29,7 +29,7 @@ cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double s
 cv::Mat PrepareChartImage(
     const RawFile& raw_file, 
     const ProgramOptions& opts, 
-    const Eigen::VectorXd& keystone_params,
+    const cv::Mat& keystone_params,
     const ChartProfile& chart, 
     std::ostream& log_stream,
     DataSource channel_to_extract) 
@@ -128,7 +128,7 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
 std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     const RawFile& raw_file,
     const ProgramOptions& opts,
-    const Eigen::VectorXd& keystone_params,
+    const cv::Mat& keystone_params,
     const ChartProfile& chart,
     std::ostream& log_stream)
 {

@@ -8,7 +8,6 @@
 #include "../arguments/ArgumentsOptions.hpp"
 #include "raw/RawFile.hpp"
 #include <vector>
-#include <Eigen/Dense>
 #include <atomic>
 #include <optional>
 

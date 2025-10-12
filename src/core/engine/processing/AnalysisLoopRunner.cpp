@@ -15,6 +15,7 @@
 #include <libintl.h>
 #include <future> 
 #include <mutex>
+#include <opencv2/core.hpp>
 
 #define _(string) gettext(string)
 
@@ -42,7 +43,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file,
     const ProgramOptions& opts,
     const ChartProfile& chart,
-    const Eigen::VectorXd& keystone_params,
+    const cv::Mat& keystone_params,
     std::ostream& log_stream,
     double camera_resolution_mpx,
     bool generate_debug_image,
@@ -54,7 +55,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         std::lock_guard<std::mutex> lock(log_mutex);
         log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
     }
-    
+
     if (cancel_flag) return {};
     
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
@@ -102,7 +103,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     {
         std::lock_guard<std::mutex> lock(log_mutex);
         log_stream << _("Processed \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"." << std::endl;
-        log_stream.flush(); // Force the stream to sync and send the update to the GUI immediately.
+        log_stream.flush(); 
     }
 
     return results;
@@ -133,7 +134,7 @@ ProcessingResult AnalysisLoopRunner::Run()
     
     std::mutex log_mutex;
 
-    Eigen::VectorXd keystone_params;
+    cv::Mat keystone_params;
     bool optimized = DynaRange::EngineConfig::OPTIMIZE_KEYSTONE_CALCULATION;
     if (optimized) {
         std::lock_guard<std::mutex> lock(log_mutex);
@@ -141,19 +142,16 @@ ProcessingResult AnalysisLoopRunner::Run()
         keystone_params = DynaRange::Graphics::Geometry::CalculateKeystoneParams(m_chart.GetCornerPoints(), m_chart.GetDestinationPoints());
     }
 
-    // Determine the number of concurrent threads to use for batch processing.
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) {
-        num_threads = 1; // Fallback for safety.
+        num_threads = 1; 
     }
 
-    // Process files in batches based on the number of available threads.
     for (size_t i = 0; i < m_raw_files.size(); i += num_threads) {
         if (m_cancel_flag) break;
         
         std::vector<std::future<std::vector<SingleFileResult>>> batch_futures;
 
-        // Launch a batch of asynchronous tasks.
         for (size_t j = i; j < std::min(i + num_threads, m_raw_files.size()); ++j) {
             const auto& raw_file = m_raw_files[j];
             if (!raw_file.IsLoaded()) continue;
@@ -162,9 +160,8 @@ ProcessingResult AnalysisLoopRunner::Run()
             
             batch_futures.push_back(std::async(std::launch::async, 
                 [&, generate_debug_image, keystone_params, &raw_file = raw_file]() {
-                    Eigen::VectorXd local_keystone = keystone_params;
+                    cv::Mat local_keystone = keystone_params;
                     if (!optimized) {
-                        // This part is for non-optimized mode, which is disabled by default.
                         local_keystone = DynaRange::Graphics::Geometry::CalculateKeystoneParams(m_chart.GetCornerPoints(), m_chart.GetDestinationPoints());
                     }
                     return AnalyzeSingleRawFile(raw_file, m_opts, m_chart, local_keystone, m_log_stream, m_opts.sensor_resolution_mpx, generate_debug_image, m_cancel_flag, log_mutex);
@@ -172,7 +169,6 @@ ProcessingResult AnalysisLoopRunner::Run()
             ));
         }
         
-        // Wait for all futures in the current batch to complete and aggregate their results.
         for (auto& fut : batch_futures) {
             if (m_cancel_flag) break;
             
