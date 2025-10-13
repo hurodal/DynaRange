@@ -22,13 +22,11 @@ constexpr const char* DEFAULT_OUTPUT_FILENAME = "results.csv";
 
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
-/**
- * @brief Helper function to convert a UI selection index to a polynomial order value.
- */
+
 inline int PolyOrderFromIndex(int index) {
     if (index >= 0 && static_cast<size_t>(index) < std::size(VALID_POLY_ORDERS)) {
         return VALID_POLY_ORDERS[index];
-}
+    }
     return DEFAULT_POLY_ORDER; // Fallback to a safe default
 }
 
@@ -54,6 +52,16 @@ struct PlottingDetails {
 };
 
 /**
+ * @enum AvgMode
+ * @brief Specifies the averaging mode for RAW channels.
+ */
+enum class AvgMode {
+    None = 0,     ///< Do not calculate an average.
+    Full = 1,     ///< Average all four RAW channels (R, G1, G2, B).
+    Selected = 2  ///< Average only the channels explicitly selected by the user.
+};
+
+/**
  * @struct RawChannelSelection
  * @brief Holds the boolean selection for which RAW channels to analyze.
  */
@@ -61,9 +69,10 @@ struct RawChannelSelection {
     bool R = false;
     bool G1 = false;
     bool G2 = false;
-bool B = false;
-    bool AVG = true; // Default behavior is to average all channels.
+    bool B = false;
+    AvgMode avg_mode = AvgMode::Full; // Replaced bool AVG. Default is to average all.
 };
+
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
@@ -73,34 +82,31 @@ struct ProgramOptions {
     double saturation_value = DEFAULT_SATURATION_LEVEL;
     std::string dark_file_path;
     std::string sat_file_path;
-std::string output_filename = DEFAULT_OUTPUT_FILENAME;
+    std::string output_filename = DEFAULT_OUTPUT_FILENAME;
     std::vector<std::string> input_files;
     int poly_order = DEFAULT_POLY_ORDER;
     double dr_normalization_mpx = DEFAULT_DR_NORMALIZATION_MPX;
     std::vector<double> snr_thresholds_db;
     double patch_ratio = DEFAULT_PATCH_RATIO;
-// The old 'plot_mode' is replaced by more descriptive members
     bool generate_plot = false;
-DynaRange::Graphics::Constants::PlotOutputFormat plot_format = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
+    DynaRange::Graphics::Constants::PlotOutputFormat plot_format = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
     int plot_command_mode = 0; // 0: No plot, 1: No command, 2: Short, 3: Long
     PlottingDetails plot_details;
-
     bool create_chart_mode = false;
-std::vector<std::string> chart_colour_params;
+    std::vector<std::string> chart_colour_params;
     std::vector<int> chart_params;
     std::vector<double> chart_coords;
     std::vector<int> chart_patches;
     // [M, N]
     RawChannelSelection raw_channels;
-// New member for channel selection
     std::string generated_command;
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
     std::string print_patch_filename;
-// --- Internal Flags ---
+    // --- Internal Flags ---
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
-int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
-}
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
+    }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

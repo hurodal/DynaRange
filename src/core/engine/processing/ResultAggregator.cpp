@@ -5,6 +5,7 @@
  */
 #include "ResultAggregator.hpp"
 #include "../../graphics/ImageProcessing.hpp"
+#include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <filesystem>
 #include <mutex>
@@ -13,6 +14,8 @@
 namespace fs = std::filesystem;
 
 namespace DynaRange::Engine::Processing {
+
+// File: src/core/engine/processing/ResultAggregator.cpp
 
 std::vector<SingleFileResult> AggregateAndFinalizeResults(
     const std::map<DataSource, PatchAnalysisResult>& individual_channel_patches,
@@ -29,24 +32,12 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
     if (opts.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
     if (opts.raw_channels.G2) user_selected_channels.push_back(DataSource::G2);
     if (opts.raw_channels.B) user_selected_channels.push_back(DataSource::B);
-    if (opts.raw_channels.AVG) user_selected_channels.push_back(DataSource::AVG);
-    
+
+    // First, process individual channels
     for (const auto& final_channel : user_selected_channels) {
         PatchAnalysisResult final_patch_data;
-        if (final_channel == DataSource::AVG) {
-            std::vector<DataSource> channels_to_pool = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
-            for (const auto& channel_to_pool : channels_to_pool) {
-                if (individual_channel_patches.count(channel_to_pool)) {
-                    const auto& patch_result = individual_channel_patches.at(channel_to_pool);
-                    final_patch_data.signal.insert(final_patch_data.signal.end(), patch_result.signal.begin(), patch_result.signal.end());
-                    final_patch_data.noise.insert(final_patch_data.noise.end(), patch_result.noise.begin(), patch_result.noise.end());
-                    final_patch_data.channels.insert(final_patch_data.channels.end(), patch_result.signal.size(), channel_to_pool);
-                }
-            }
-        } else {
-            if (individual_channel_patches.count(final_channel)) {
-                final_patch_data = individual_channel_patches.at(final_channel);
-            }
+        if (individual_channel_patches.count(final_channel)) {
+            final_patch_data = individual_channel_patches.at(final_channel);
         }
 
         if (final_patch_data.signal.empty()) continue;
@@ -76,11 +67,55 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
                     log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
                 }
             }
-            generate_debug_image = false; // Ensure it's only generated once
+            generate_debug_image = false;
         }
 
         final_results.push_back(SingleFileResult{dr_result, curve_data, final_debug_image});
     }
+
+    // Second, process the average channel if requested
+    if (opts.raw_channels.avg_mode != AvgMode::None) {
+        PatchAnalysisResult final_patch_data;
+        std::vector<DataSource> channels_to_pool;
+        std::string plot_label_suffix;
+
+        if (opts.raw_channels.avg_mode == AvgMode::Full) {
+            channels_to_pool = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
+            plot_label_suffix = " (Full)";
+        } else { // AvgMode::Selected
+            channels_to_pool = user_selected_channels;
+            plot_label_suffix = " (";
+            for(size_t i = 0; i < channels_to_pool.size(); ++i) {
+                plot_label_suffix += Formatters::DataSourceToString(channels_to_pool[i]) + (i < channels_to_pool.size() - 1 ? "," : "");
+            }
+            plot_label_suffix += ")";
+        }
+
+        for (const auto& channel_to_pool : channels_to_pool) {
+            if (individual_channel_patches.count(channel_to_pool)) {
+                const auto& patch_result = individual_channel_patches.at(channel_to_pool);
+                final_patch_data.signal.insert(final_patch_data.signal.end(), patch_result.signal.begin(), patch_result.signal.end());
+                final_patch_data.noise.insert(final_patch_data.noise.end(), patch_result.noise.begin(), patch_result.noise.end());
+                final_patch_data.channels.insert(final_patch_data.channels.end(), patch_result.signal.size(), channel_to_pool);
+            }
+        }
+
+        if (!final_patch_data.signal.empty()) {
+            auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, DataSource::AVG);
+            
+            dr_result.iso_speed = raw_file.GetIsoSpeed();
+            dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
+            dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
+            dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
+            dr_result.samples_B = individual_channel_patches.count(DataSource::B) ? individual_channel_patches.at(DataSource::B).signal.size() : 0;
+            
+            curve_data.plot_label = "AVG" + plot_label_suffix;
+            curve_data.iso_speed = raw_file.GetIsoSpeed();
+
+            final_results.push_back(SingleFileResult{dr_result, curve_data, cv::Mat()});
+        }
+    }
+    
     return final_results;
 }
 

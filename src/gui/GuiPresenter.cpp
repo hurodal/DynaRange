@@ -111,7 +111,13 @@ void GuiPresenter::UpdateManagerFromView()
     mgr.Set(ChartPatches, patches);
     
     RawChannelSelection channels = m_view->GetRawChannelSelection();
-    std::vector<int> channels_vec = { static_cast<int>(channels.R), static_cast<int>(channels.G1), static_cast<int>(channels.G2), static_cast<int>(channels.B), static_cast<int>(channels.AVG) };
+    std::vector<int> channels_vec = { 
+        static_cast<int>(channels.R), 
+        static_cast<int>(channels.G1), 
+        static_cast<int>(channels.G2), 
+        static_cast<int>(channels.B), 
+        static_cast<int>(channels.avg_mode) 
+    };
     mgr.Set(RawChannels, channels_vec);
 
     bool black_is_default = m_view->GetDarkFilePath().empty();

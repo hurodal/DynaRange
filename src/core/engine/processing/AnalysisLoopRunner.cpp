@@ -72,7 +72,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     }
 
     std::vector<DataSource> channels_to_analyze;
-    if (opts.raw_channels.AVG) {
+    if (opts.raw_channels.avg_mode != AvgMode::None) {
         channels_to_analyze = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
     } else {
         if (opts.raw_channels.R) channels_to_analyze.push_back(DataSource::R);
@@ -108,7 +108,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 
     return results;
 }
-
 } // end anonymous namespace
 namespace DynaRange::Engine::Processing {
 

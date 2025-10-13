@@ -17,7 +17,6 @@
 #include <wx/graphics.h>
 #include <wx/dcbuffer.h>
 #include <fstream> 
-#include <thread>
 
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -26,7 +25,6 @@ wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
-
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) 
     : MyFrameBase(parent)
 {
@@ -107,7 +105,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     G1_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     G2_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     B_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
-    AVG_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    AVG_ChoiceValue->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
 
     // ChartController bindings
     m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
@@ -120,6 +118,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     chartButtonCreate->Bind(wxEVT_BUTTON, &ChartController::OnCreateClick, m_chartController.get());
     m_InvGammaValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartDimXValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
+    // FIX: Bind chart dimension controls to the correct controller (ChartController)
     m_chartDimWValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartDimHValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());

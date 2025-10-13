@@ -102,7 +102,7 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->G1_checkBox->SetValue(false);
     m_frame->G2_checkBox->SetValue(false);
     m_frame->B_checkBox->SetValue(false);
-    m_frame->AVG_checkBox->SetValue(true); // Default is AVG only    
+    m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
 }
 
 // --- Getters ---
@@ -227,14 +227,20 @@ std::string InputController::GetPrintPatchesFilename() const {
     return "";
 }
 
-
 RawChannelSelection InputController::GetRawChannelSelection() const {
     RawChannelSelection selection;
     selection.R   = m_frame->R_checkBox->IsChecked();
     selection.G1  = m_frame->G1_checkBox->IsChecked();
     selection.G2  = m_frame->G2_checkBox->IsChecked();
     selection.B   = m_frame->B_checkBox->IsChecked();
-    selection.AVG = m_frame->AVG_checkBox->IsChecked();
+    
+    int avg_selection = m_frame->AVG_ChoiceValue->GetSelection();
+    if (avg_selection >= 0 && avg_selection <= 2) {
+        selection.avg_mode = static_cast<AvgMode>(avg_selection);
+    } else {
+        selection.avg_mode = AvgMode::Full; // Fallback
+    }
+
     return selection;
 }
 

@@ -20,16 +20,6 @@ namespace DynaRange::Graphics::Drawing {
 void FooterDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string& command_text) const
 {
     const FontManager font_manager(ctx);
-    
-    // --- Command Text ---
-    if (!command_text.empty()) {
-        PlotColors::cairo_set_source_grey_50(cr);
-        font_manager.SetCommandFont(cr);
-        cairo_text_extents_t cmd_extents;
-        cairo_text_extents(cr, command_text.c_str(), &cmd_extents);
-        cairo_move_to(cr, ctx.base_width - MARGIN_RIGHT - cmd_extents.width - 10, ctx.base_height - 15);
-        cairo_show_text(cr, command_text.c_str());
-    }
 
     // --- Timestamp ---
     auto now = std::chrono::system_clock::now();
@@ -46,8 +36,18 @@ void FooterDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string
 
     font_manager.SetTimestampFont(cr);
     cairo_set_source_rgb(cr, 0.4, 0.4, 0.4);
-    cairo_move_to(cr, 20, ctx.base_height - 15);
+    cairo_move_to(cr, 20, 30); // Positioned at the top-left
     cairo_show_text(cr, generated_at_text.c_str());
+
+    // --- Command Text ---
+    if (!command_text.empty()) {
+        PlotColors::cairo_set_source_grey_50(cr);
+        font_manager.SetCommandFont(cr);
+        cairo_text_extents_t cmd_extents;
+        cairo_text_extents(cr, command_text.c_str(), &cmd_extents);
+        cairo_move_to(cr, ctx.base_width - MARGIN_RIGHT - cmd_extents.width - 10, ctx.base_height - 15);
+        cairo_show_text(cr, command_text.c_str());
+    }
 }
 
 } // namespace DynaRange::Graphics::Drawing

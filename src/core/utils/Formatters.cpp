@@ -15,7 +15,6 @@
 #define _(string) gettext(string)
 
 namespace fs = std::filesystem;
-
 namespace Formatters {
 
 std::string DataSourceToString(DataSource channel) {
@@ -31,22 +30,31 @@ std::string DataSourceToString(DataSource channel) {
 
 std::string GenerateChannelSuffix(const RawChannelSelection& channels) {
     std::string suffix;
-    if (channels.AVG) {
+    std::vector<std::string> individual_channels_selected;
+    if (channels.R) individual_channels_selected.push_back("R");
+    if (channels.G1) individual_channels_selected.push_back("G1");
+    if (channels.G2) individual_channels_selected.push_back("G2");
+    if (channels.B) individual_channels_selected.push_back("B");
+
+    // Handle AVG part
+    if (channels.avg_mode == AvgMode::Full) {
         suffix += "_average";
-    }
-
-    std::vector<std::string> selected_channels;
-    if (channels.R) selected_channels.push_back("R");
-    if (channels.G1) selected_channels.push_back("G1");
-    if (channels.G2) selected_channels.push_back("G2");
-    if (channels.B) selected_channels.push_back("B");
-
-    if (!selected_channels.empty()) {
-        suffix += "_channels";
-        for(const auto& ch : selected_channels) {
+    } else if (channels.avg_mode == AvgMode::Selected) {
+        suffix += "_average";
+        // Append the channels used for the 'Selected' average
+        for (const auto& ch : individual_channels_selected) {
             suffix += "_" + ch;
         }
     }
+
+    // Handle individual channels part
+    if (!individual_channels_selected.empty()) {
+        suffix += "_selected";
+        for(const auto& ch : individual_channels_selected) {
+            suffix += "_" + ch;
+        }
+    }
+    
     return suffix;
 }
 
@@ -60,6 +68,7 @@ std::vector<FlatResultRow> FlattenAndSortResults(const std::vector<DynamicRangeR
                 pair.first, // snr_threshold_db
                 res.channel,
                 res.iso_speed,
+  
                 res.samples_R,
                 res.samples_G1,
                 res.samples_G2,
@@ -78,6 +87,7 @@ std::vector<FlatResultRow> FlattenAndSortResults(const std::vector<DynamicRangeR
             return a.iso_speed < b.iso_speed; // Ascending ISO
         }
         return a.filename < b.filename; // Ascending filename
+  
     });
 
     return flat_rows;
@@ -101,7 +111,6 @@ std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows) {
     // --- Measure max widths from data ---
     for (const auto& row : sorted_rows) {
         widths[0] = std::max(widths[0], fs::path(row.filename).filename().string().length());
-        
         std::stringstream ss_thresh, ss_iso, ss_dr;
         ss_thresh << std::fixed << std::setprecision(2) << row.snr_threshold_db;
         ss_iso << static_cast<int>(row.iso_speed);
@@ -118,7 +127,8 @@ std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows) {
     }
 
     // --- Build Table ---
-    auto add_padding = [](size_t& width) { width += 2; };
+    auto add_padding = [](size_t& width) { width += 2;
+    };
     for(auto& w : widths) add_padding(w);
 
     std::stringstream table_ss;
@@ -127,26 +137,27 @@ std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows) {
              << std::right << std::setw(widths[2]) << headers[2]
              << std::right << std::setw(widths[3]) << headers[3]
              << std::right << std::setw(widths[4]) << headers[4]
-             << std::right << std::setw(widths[5]) << headers[5]
+             << 
+ std::right << std::setw(widths[5]) << headers[5]
              << std::right << std::setw(widths[6]) << headers[6]
              << std::right << std::setw(widths[7]) << headers[7]
              << std::right << std::setw(widths[8]) << headers[8] << "\n";
-             
     size_t total_width = 0;
     for(auto w : widths) total_width += w;
     table_ss << std::string(total_width, '-') << "\n";
-    
     // Data rows from sorted list
     for (const auto& row : sorted_rows) {
         table_ss << std::left << std::setw(widths[0]) << fs::path(row.filename).filename().string()
                  << std::right << std::setw(widths[1]) << std::fixed << std::setprecision(2) << row.snr_threshold_db
-                 << std::right << std::setw(widths[2]) << static_cast<int>(row.iso_speed) // Changed alignment to left
+                 << std::right << std::setw(widths[2]) << static_cast<int>(row.iso_speed)
                  << std::right << std::setw(widths[3]) << DataSourceToString(row.channel)
+ 
                  << std::right << std::setw(widths[4]) << row.samples_R
                  << std::right << std::setw(widths[5]) << row.samples_G1
                  << std::right << std::setw(widths[6]) << row.samples_G2
                  << std::right << std::setw(widths[7]) << row.samples_B
-                 << std::right << std::setw(widths[8]) << std::fixed << std::setprecision(4) << row.dr_ev << "\n";
+             
+     << std::right << std::setw(widths[8]) << std::fixed << std::setprecision(4) << row.dr_ev << "\n";
     }
     return table_ss.str();
 }
@@ -163,7 +174,8 @@ std::string FormatCsvRow(const FlatResultRow& row) {
            << DataSourceToString(row.channel) << ","
            << row.samples_R << "," << row.samples_G1 << "," 
            << row.samples_G2 << "," << row.samples_B << ","
-           << std::fixed << std::setprecision(4) << row.dr_ev << "\n";
+           << std::fixed 
+ << std::setprecision(4) << row.dr_ev << "\n";
     return row_ss.str();
 }
 } // namespace Formatters

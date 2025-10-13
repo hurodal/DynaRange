@@ -80,7 +80,7 @@ class MyFrameBase : public wxFrame
 		wxStaticText* B_staticText;
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
-		wxCheckBox* AVG_checkBox;
+		wxChoice* AVG_ChoiceValue;
 		wxPanel* right_column_panel_Up;
 		wxStaticText* m_staticText38;
 		wxTextCtrl* m_coordX1Value;

@@ -7,6 +7,7 @@
 #include "../FontManager.hpp"
 #include "../Colour.hpp"
 #include "../PlotBase.hpp" // For MARGIN_TOP
+#include "../utils/Formatters.hpp"
 #include <libintl.h>
 
 #define _(string) gettext(string)
@@ -29,47 +30,89 @@ void TitleDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string&
 
     // --- Channel Subtitle ---
     font_manager.SetSubtitleFont(cr);
-    current_x += extents.x_advance + 10;
-    const auto& channels = opts.raw_channels;
-    bool has_avg = channels.AVG;
-    bool has_r = channels.R, has_g1 = channels.G1, has_g2 = channels.G2, has_b = channels.B;
-    bool has_channels = has_r || has_g1 || has_g2 || has_b;
     
-    if (has_avg && !has_channels) {
-        PlotColors::cairo_set_source_grey_50(cr);
-        std::string avg_text = _("(Average channels)");
+    // Calculate total width of subtitle for centering
+    std::string avg_prefix = _(" (Average: ");
+    std::string avg_suffix = "";
+    std::string channels_separator = "";
+    std::string channels_prefix = "";
+    std::string final_suffix = ")";
+    
+    const auto& channels = opts.raw_channels;
+    std::vector<DataSource> avg_channels_to_draw;
+    std::vector<DataSource> individual_channels_to_draw;
+
+    if (channels.R) individual_channels_to_draw.push_back(DataSource::R);
+    if (channels.G1) individual_channels_to_draw.push_back(DataSource::G1);
+    if (channels.G2) individual_channels_to_draw.push_back(DataSource::G2);
+    if (channels.B) individual_channels_to_draw.push_back(DataSource::B);
+
+    if (channels.avg_mode == AvgMode::Full) {
+        avg_channels_to_draw = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
+    } else if (channels.avg_mode == AvgMode::Selected) {
+        avg_channels_to_draw = individual_channels_to_draw;
+    }
+
+    if (!avg_channels_to_draw.empty() && !individual_channels_to_draw.empty()) {
+        channels_separator = " & ";
+        channels_prefix = _("Channels: ");
+    } else if (avg_channels_to_draw.empty() && !individual_channels_to_draw.empty()) {
+        avg_prefix = " ("; // No "Average" part
+        channels_prefix = _("Channels: ");
+    }
+    
+    // Get total width for centering
+    double total_width = 0;
+    cairo_text_extents(cr, avg_prefix.c_str(), &extents); total_width += extents.x_advance;
+    for(size_t i = 0; i < avg_channels_to_draw.size(); ++i) {
+        cairo_text_extents(cr, Formatters::DataSourceToString(avg_channels_to_draw[i]).c_str(), &extents); total_width += extents.x_advance;
+        if (i < avg_channels_to_draw.size() - 1) { cairo_text_extents(cr, ",", &extents); total_width += extents.x_advance; }
+    }
+    cairo_text_extents(cr, channels_separator.c_str(), &extents); total_width += extents.x_advance;
+    cairo_text_extents(cr, channels_prefix.c_str(), &extents); total_width += extents.x_advance;
+    for(size_t i = 0; i < individual_channels_to_draw.size(); ++i) {
+        cairo_text_extents(cr, Formatters::DataSourceToString(individual_channels_to_draw[i]).c_str(), &extents); total_width += extents.x_advance;
+        if (i < individual_channels_to_draw.size() - 1) { cairo_text_extents(cr, ",", &extents); total_width += extents.x_advance; }
+    }
+    cairo_text_extents(cr, final_suffix.c_str(), &extents); total_width += extents.x_advance;
+    
+    current_x = ctx.base_width / 2.0 - total_width / 2.0;
+    current_y += extents.height + font_manager.calculateScaledSize(5.0);
+
+    // Draw subtitle part by part
+    auto draw_text_part = [&](const std::string& text) {
         cairo_move_to(cr, current_x, current_y);
-        cairo_show_text(cr, avg_text.c_str());
-    } else if (has_channels) {
-        PlotColors::cairo_set_source_grey_50(cr);
-        std::string prefix = " (";
-        if (has_avg) {
-            prefix += _("Average & ");
+        cairo_show_text(cr, text.c_str());
+        cairo_text_extents_t part_extents;
+        cairo_text_extents(cr, text.c_str(), &part_extents);
+        current_x += part_extents.x_advance;
+    };
+
+    auto draw_channels = [&](const std::vector<DataSource>& channels_to_draw) {
+        for (size_t i = 0; i < channels_to_draw.size(); ++i) {
+            PlotColors::SetSourceFromChannel(cr, channels_to_draw[i]);
+            draw_text_part(Formatters::DataSourceToString(channels_to_draw[i]));
+            if (i < channels_to_draw.size() - 1) {
+                PlotColors::cairo_set_source_grey_50(cr);
+                draw_text_part(",");
+            }
         }
-        prefix += _("Channels -> ");
+    };
 
-        cairo_move_to(cr, current_x, current_y);
-        cairo_show_text(cr, prefix.c_str());
-        cairo_text_extents(cr, prefix.c_str(), &extents);
-        current_x += extents.x_advance;
-
-        auto draw_channel_name = 
-        [&](const std::string& name, DataSource channel) {
-            cairo_move_to(cr, current_x, current_y);
-            PlotColors::SetSourceFromChannel(cr, channel);
-            cairo_show_text(cr, name.c_str());
-            cairo_text_extents(cr, name.c_str(), &extents);
-            current_x += extents.x_advance;
-        };
-
-        if (has_r) draw_channel_name("R ", DataSource::R);
-        if (has_g1) draw_channel_name("G1 ", DataSource::G1);
-        if (has_g2) draw_channel_name("G2 ", DataSource::G2);
-        if (has_b) draw_channel_name("B ", DataSource::B);
-
+    if (!avg_channels_to_draw.empty() || !individual_channels_to_draw.empty())
+    {
         PlotColors::cairo_set_source_grey_50(cr);
-        cairo_move_to(cr, current_x, current_y);
-        cairo_show_text(cr, ")");
+        draw_text_part(avg_prefix);
+        draw_channels(avg_channels_to_draw);
+        
+        PlotColors::cairo_set_source_grey_50(cr);
+        draw_text_part(channels_separator);
+        draw_text_part(channels_prefix);
+        
+        draw_channels(individual_channels_to_draw);
+        
+        PlotColors::cairo_set_source_grey_50(cr);
+        draw_text_part(final_suffix);
     }
 }
 

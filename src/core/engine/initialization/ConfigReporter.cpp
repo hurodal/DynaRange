@@ -57,19 +57,41 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
     log_stream << _("Saturation point: ") << opts.saturation_value 
                << (opts.saturation_level_is_default ? _(" (estimated)") : "") << std::endl;
     
-    std::vector<std::string> selected_channels;
-    if (opts.raw_channels.R) selected_channels.push_back("R");
-    if (opts.raw_channels.G1) selected_channels.push_back("G1");
-    if (opts.raw_channels.G2) selected_channels.push_back("G2");
-    if (opts.raw_channels.B) selected_channels.push_back("B");
-    if (opts.raw_channels.AVG) selected_channels.push_back("AVG");
+    std::vector<std::string> channels_to_print;
+    if (opts.raw_channels.R) channels_to_print.push_back("R");
+    if (opts.raw_channels.G1) channels_to_print.push_back("G1");
+    if (opts.raw_channels.G2) channels_to_print.push_back("G2");
+    if (opts.raw_channels.B) channels_to_print.push_back("B");
+
+    if (opts.raw_channels.avg_mode != AvgMode::None) {
+        std::string avg_str = "AVG";
+        if (opts.raw_channels.avg_mode == AvgMode::Full) {
+            avg_str += " (Full)";
+        } else { // AvgMode::Selected
+            avg_str += " (";
+            std::vector<std::string> selected_for_avg;
+            if (opts.raw_channels.R) selected_for_avg.push_back("R");
+            if (opts.raw_channels.G1) selected_for_avg.push_back("G1");
+            if (opts.raw_channels.G2) selected_for_avg.push_back("G2");
+            if (opts.raw_channels.B) selected_for_avg.push_back("B");
+            
+            for (size_t i = 0; i < selected_for_avg.size(); ++i) {
+                avg_str += selected_for_avg[i];
+                if (i < selected_for_avg.size() - 1) {
+                    avg_str += ",";
+                }
+            }
+            avg_str += ")";
+        }
+        channels_to_print.push_back(avg_str);
+    }
 
     std::stringstream channels_ss;
-    for(size_t i = 0; i < selected_channels.size(); ++i) {
-        channels_ss << selected_channels[i] << (i < selected_channels.size() - 1 ? ", " : "");
+    for(size_t i = 0; i < channels_to_print.size(); ++i) {
+        channels_ss << channels_to_print[i] << (i < channels_to_print.size() - 1 ? ", " : "");
     }
     
-    std::string channel_label = (selected_channels.size() > 1) ? _("Analysis channels: ") : _("Analysis channel: ");
+    std::string channel_label = (channels_to_print.size() > 1) ? _("Analysis channels: ") : _("Analysis channel: ");
     log_stream << channel_label << channels_ss.str() << std::endl;
     
     if (opts.sensor_resolution_mpx > 0.0) {

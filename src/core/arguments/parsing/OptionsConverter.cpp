@@ -95,7 +95,13 @@ ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, st
         opts.raw_channels.G1 = (channels_vec[1] != 0);
         opts.raw_channels.G2 = (channels_vec[2] != 0);
         opts.raw_channels.B = (channels_vec[3] != 0);
-        opts.raw_channels.AVG = (channels_vec[4] != 0);
+        
+        int avg_val = channels_vec[4];
+        if (avg_val >= 0 && avg_val <= 2) {
+            opts.raw_channels.avg_mode = static_cast<AvgMode>(avg_val);
+        } else {
+            opts.raw_channels.avg_mode = AvgMode::Full; // Fallback to default
+        }
     }
 
     return opts;
