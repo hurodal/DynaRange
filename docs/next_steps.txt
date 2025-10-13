@@ -23,7 +23,7 @@ PRIORITARIAS
         * Si A=min(--snrthreshold_db) < B=min(S/N presente en los datos): "Overxposure, reduce exposure by" (B-A)/6 "EV"
         * Si C=max(--snrthreshold_db) > D=max(S/N presente en los datos): "Underexposure, increase exposure by" (C-D)/6 "EV"
 
-2: FLEXIBILIZAR PARÁMETRO --raw-channels PARA QUE PUEDA OBTENERSE EL AVG DE CUALQUIER COMBINACIÓN DE CANALES, NO SOLO LOS 4 A LA VEZ
+2: (HECHO) FLEXIBILIZAR PARÁMETRO --raw-channels PARA QUE PUEDA OBTENERSE EL AVG DE CUALQUIER COMBINACIÓN DE CANALES, NO SOLO LOS 4 A LA VEZ
 
 3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
