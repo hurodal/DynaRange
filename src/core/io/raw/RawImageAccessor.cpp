@@ -15,6 +15,13 @@ cv::Mat RawImageAccessor::GetRawImage() const {
     if (!m_raw_processor) return {};
     if (!m_raw_image_cache.empty()) return m_raw_image_cache;
 
+    // Check to ensure the raw image pointer is valid before creating the Mat.
+    // If this pointer is null (e.g., for compressed RAWs), we return an empty Mat
+    // to signal the failure to the calling function.
+    if (!m_raw_processor->imgdata.rawdata.raw_image) {
+        return {};
+    }
+
     m_raw_image_cache = cv::Mat(
         m_raw_processor->imgdata.sizes.raw_height,
         m_raw_processor->imgdata.sizes.raw_width,

@@ -24,4 +24,3 @@ std::optional<double> ProcessDarkFrame(const std::string& filename, std::ostream
  * @return An optional containing the calculated saturation level, or std::nullopt on failure.
  */
 std::optional<double> ProcessSaturationFrame(const std::string& filename, std::ostream& log_stream);
-std::optional<double> OriginalProcessSaturationFrame(const std::string& filename, std::ostream& log_stream);

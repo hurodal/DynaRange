@@ -68,9 +68,13 @@ cv::Mat PrepareChartImage(
     double gap_x = 0.0;
     double gap_y = 0.0;
 
+    //if (!chart.HasManualCoords()) {
+    //    gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
+    //    gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
+    //}
     if (!chart.HasManualCoords()) {
-        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
-        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
+        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1);
+        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1);
     }
 
     cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
