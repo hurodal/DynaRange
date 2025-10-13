@@ -5,7 +5,8 @@ PRIORITARIAS
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
-        El control de exposición se decide sobre todos solo los umbrales solicitados en el comando --snrthreshold_db, porque los valores de RD que queremos pelotear son todos y solo los solicitados en el comando --snrthreshold_db
+        El control de exposición se decide sobre todos solo los umbrales solicitados en el comando --snrthreshold_db, porque los valores de RD que queremos pelotear son todos y solo los
+        solicitados en el comando --snrthreshold_db
 
         Al final las curvas de S/N deben dibujarse para cada RAW:
         * Desde el min(S/N presente en los datos, min(--snrthreshold_db))
@@ -15,15 +16,18 @@ PRIORITARIAS
         * Si min(--snrthreshold_db)<min(S/N presente en los datos): discontinua en el tramo desde min(--snrthreshold_db) hasta min(S/N presente en los datos)
         * Si max(--snrthreshold_db)>min(S/N presente en los datos): discontinua en el tramo desde min(S/N presente en los datos) hasta min(--snrthreshold_db)
 
-           Solo sobre los más extremos solicitados. Es decir puedes empezar la comprobación calculando:
-        * min/max S/N presente en los datos (IMPORTANTE: solo sobre los valores de S/N supervivientes una vez pasada la selección de --raw-channels, el filtro de -10dB o el que pongamos finalmente, y la normalización de Mpx si se pide)
+        Solo sobre los más extremos solicitados. Es decir puedes empezar la comprobación calculando:
+        * min/max S/N presente en los datos (IMPORTANTE: solo sobre los valores de S/N supervivientes una vez pasada la selección de --raw-channels, el filtro de -10dB o el que pongamos
+         finalmente, y la normalización de Mpx si se pide)
         * min/max --snrthreshold_db (que será el mismo si solo pides un valor)
 
-        Y con esos límites hacer las comparaciones de arriba. Sobre la recomendación de exposición errónea, podemos aproximar al menos de entrada decirle al usuario cuando corresponda, una conversión entre exposición y S/N conservadora de 1EV/6dB, es decir:
+        Y con esos límites hacer las comparaciones de arriba. Sobre la recomendación de exposición errónea, podemos aproximar al menos de entrada decirle al usuario cuando corresponda,
+        una conversión entre exposición y S/N conservadora de 1EV/6dB, es decir:
         * Si A=min(--snrthreshold_db) < B=min(S/N presente en los datos): "Overxposure, reduce exposure by" (B-A)/6 "EV"
         * Si C=max(--snrthreshold_db) > D=max(S/N presente en los datos): "Underexposure, increase exposure by" (C-D)/6 "EV"
 
-2: (HECHO) FLEXIBILIZAR PARÁMETRO --raw-channels PARA QUE PUEDA OBTENERSE EL AVG DE CUALQUIER COMBINACIÓN DE CANALES, NO SOLO LOS 4 A LA VEZ
+2: UTILIZAR EL ARCHIVO RAW MÁS EXPUESTO PERO SIN PÍXELES SATURADOS PARA REALIZAR LA DETECCIÓN DE LAS 4 ESQUINAS. SI TODOS TIENEN PÍXELES SATURADOS TOMAR EL MENOS EXPUESTO
+   TAMBIÉN SERÁ ÉSE EL RAW USADO COMO SALIDA PARA EL DEBUG DE PARCHES
 
 3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
@@ -59,6 +63,8 @@ HECHOS
 
 (HECHO) DESCARTE DE LOS ARCHIVOS RAW SUMINISTRADOS COMO BLACK O COMO SATURACION DEL ANÁLISIS: si el usuario suministra alguno de los ficheros requeridos para calcular el nivel de negro y
         saturación, se comprobará si dichos ficheros también han sido suministrados para el análisis de ruido (-i o selección en el GUI), para descartarlos de dicho análisis.
+
+(HECHO) FLEXIBILIZAR PARÁMETRO --raw-channels PARA QUE PUEDA OBTENERSE EL AVG DE CUALQUIER COMBINACIÓN DE CANALES, NO SOLO LOS 4 A LA VEZ: 0-1 0-1 0-1 0-1 0-2
 
 (HECHO) CÁLCULO DE BLACK/SAT SI NO SE SUMINISTRA VALOR NI FICHERO
      BLACK=mínima potencia de 2 con datos en la toma ISO mínimo. P.ej. si el valor RAW más bajo es 900 -> BLACK=1023
@@ -123,6 +129,7 @@ HECHOS
               std::cout << "Saturation level = " << satLevel << std::endl;  // Output: 16383
               return 0;
           }
+
 
 
 
