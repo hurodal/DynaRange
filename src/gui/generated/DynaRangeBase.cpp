@@ -242,8 +242,166 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	analysisGraphSizer->Add( analysisSizer, 1, wxEXPAND, 5 );
 
+
+	left_column_sizer->Add( analysisGraphSizer, 0, wxEXPAND, 5 );
+
+
+	left_column_panel_Up->SetSizer( left_column_sizer );
+	left_column_panel_Up->Layout();
+	left_column_sizer->Fit( left_column_panel_Up );
+	two_columns_sizer_Up->Add( left_column_panel_Up, 0, wxALL, 5 );
+
+	right_column_panel_Up = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer50;
+	bSizer50 = new wxBoxSizer( wxVERTICAL );
+
+	wxFlexGridSizer* fgSizer4;
+	fgSizer4 = new wxFlexGridSizer( 1, 2, 5, 5 );
+	fgSizer4->AddGrowableCol( 1 );
+	fgSizer4->SetFlexibleDirection( wxBOTH );
+	fgSizer4->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	wxStaticBoxSizer* sbSizer18;
+	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Chart coordinates") ), wxVERTICAL );
+
+	wxFlexGridSizer* fgSizer5;
+	fgSizer5 = new wxFlexGridSizer( 0, 4, 5, 5 );
+	fgSizer5->AddGrowableCol( 1 );
+	fgSizer5->AddGrowableCol( 3 );
+	fgSizer5->SetFlexibleDirection( wxBOTH );
+	fgSizer5->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_staticText38 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("X1"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText38->Wrap( -1 );
+	fgSizer5->Add( m_staticText38, 0, wxALL, 5 );
+
+	m_coordX1Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordX1Value, 0, wxALL, 3 );
+
+	m_staticText381 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("Y1"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText381->Wrap( -1 );
+	fgSizer5->Add( m_staticText381, 0, wxALL, 5 );
+
+	m_coordY1Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordY1Value, 0, wxALL, 3 );
+
+	m_staticText42 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("X2"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText42->Wrap( -1 );
+	fgSizer5->Add( m_staticText42, 0, wxALL, 5 );
+
+	m_coordX2Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordX2Value, 0, wxALL, 3 );
+
+	m_staticText43 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("Y2"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText43->Wrap( -1 );
+	fgSizer5->Add( m_staticText43, 0, wxALL, 5 );
+
+	m_coordY2Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordY2Value, 0, wxALL, 3 );
+
+	m_staticText44 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("X3"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText44->Wrap( -1 );
+	fgSizer5->Add( m_staticText44, 0, wxALL, 5 );
+
+	m_coordX3Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordX3Value, 0, wxALL, 3 );
+
+	m_staticText45 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("Y3"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText45->Wrap( -1 );
+	fgSizer5->Add( m_staticText45, 0, wxALL, 5 );
+
+	m_coordY3Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordY3Value, 0, wxALL, 3 );
+
+	m_staticText46 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("X4"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText46->Wrap( -1 );
+	fgSizer5->Add( m_staticText46, 0, wxALL, 5 );
+
+	m_coordX4Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordX4Value, 0, wxALL, 3 );
+
+	m_staticText47 = new wxStaticText( sbSizer18->GetStaticBox(), wxID_ANY, _("Y4"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText47->Wrap( -1 );
+	fgSizer5->Add( m_staticText47, 0, wxALL, 5 );
+
+	m_coordY4Value = new wxTextCtrl( sbSizer18->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	fgSizer5->Add( m_coordY4Value, 0, wxALL, 3 );
+
+
+	sbSizer18->Add( fgSizer5, 1, wxEXPAND, 5 );
+
+
+	fgSizer4->Add( sbSizer18, 1, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer48;
+	bSizer48 = new wxBoxSizer( wxVERTICAL );
+
+	wxStaticBoxSizer* chartPatchStaticSizer1;
+	chartPatchStaticSizer1 = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Chart patches") ), wxVERTICAL );
+
+	wxBoxSizer* chartPatchSizer1;
+	chartPatchSizer1 = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* chartPatchRowSizer1;
+	chartPatchRowSizer1 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_chartPatchRowStaticText1 = new wxStaticText( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, _("Rows"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_chartPatchRowStaticText1->Wrap( -1 );
+	chartPatchRowSizer1->Add( m_chartPatchRowStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartPatchRowValue1 = new wxTextCtrl( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	chartPatchRowSizer1->Add( m_chartPatchRowValue1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	chartPatchSizer1->Add( chartPatchRowSizer1, 0, 0, 5 );
+
+	wxBoxSizer* chartPatchColSizer1;
+	chartPatchColSizer1 = new wxBoxSizer( wxHORIZONTAL );
+
+	chartPatchColStaticText1 = new wxStaticText( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, _("Cols."), wxDefaultPosition, wxDefaultSize, 0 );
+	chartPatchColStaticText1->Wrap( -1 );
+	chartPatchColSizer1->Add( chartPatchColStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartPatchColValue1 = new wxTextCtrl( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	chartPatchColSizer1->Add( m_chartPatchColValue1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	chartPatchSizer1->Add( chartPatchColSizer1, 0, 0, 5 );
+
+
+	chartPatchStaticSizer1->Add( chartPatchSizer1, 0, 0, 5 );
+
+
+	bSizer48->Add( chartPatchStaticSizer1, 0, wxALL|wxEXPAND, 5 );
+
+	wxStaticBoxSizer* debugPatchesStaticSizer;
+	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
+
+	wxBoxSizer* m_debugPatchesSizer;
+	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesFileNameValue->Enable( false );
+
+	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 1, wxALL|wxEXPAND, 5 );
+
+
+	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
+
+
+	bSizer48->Add( debugPatchesStaticSizer, 1, wxALL|wxEXPAND, 5 );
+
+
+	fgSizer4->Add( bSizer48, 1, wxEXPAND, 5 );
+
+
+	bSizer50->Add( fgSizer4, 1, wxEXPAND, 5 );
+
 	wxStaticBoxSizer* graphicSizer;
-	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( left_column_panel_Up, wxID_ANY, _("Graphics") ), wxVERTICAL );
+	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Graphics") ), wxVERTICAL );
 
 	wxBoxSizer* plotParamsSizer;
 	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -286,184 +444,20 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
 
+	wxBoxSizer* bSizer49;
+	bSizer49 = new wxBoxSizer( wxVERTICAL );
 
-	analysisGraphSizer->Add( graphicSizer, 0, wxALL|wxEXPAND, 5 );
 
+	graphicSizer->Add( bSizer49, 1, wxEXPAND, 5 );
 
-	left_column_sizer->Add( analysisGraphSizer, 0, wxEXPAND, 5 );
 
+	bSizer50->Add( graphicSizer, 0, wxALL|wxEXPAND, 5 );
 
-	left_column_panel_Up->SetSizer( left_column_sizer );
-	left_column_panel_Up->Layout();
-	left_column_sizer->Fit( left_column_panel_Up );
-	two_columns_sizer_Up->Add( left_column_panel_Up, 0, wxALL, 5 );
 
-	right_column_panel_Up = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* chartSizer;
-	chartSizer = new wxBoxSizer( wxVERTICAL );
-
-	wxStaticBoxSizer* chartCoordsSizer;
-	chartCoordsSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Chart coordinates") ), wxVERTICAL );
-
-	wxBoxSizer* coords1_2Sizer;
-	coords1_2Sizer = new wxBoxSizer( wxHORIZONTAL );
-
-	wxBoxSizer* coord1_Sizer;
-	coord1_Sizer = new wxBoxSizer( wxVERTICAL );
-
-	wxStaticBoxSizer* coord1StaticSizer;
-	coord1StaticSizer = new wxStaticBoxSizer( new wxStaticBox( chartCoordsSizer->GetStaticBox(), wxID_ANY, _("X1,Y1") ), wxHORIZONTAL );
-
-	m_coordX1Value = new wxTextCtrl( coord1StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord1StaticSizer->Add( m_coordX1Value, 0, wxALL, 3 );
-
-	m_coordY1Value = new wxTextCtrl( coord1StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord1StaticSizer->Add( m_coordY1Value, 0, wxALL, 3 );
-
-
-	coord1_Sizer->Add( coord1StaticSizer, 0, wxALL, 5 );
-
-
-	coords1_2Sizer->Add( coord1_Sizer, 0, 0, 5 );
-
-	wxBoxSizer* coord2_Sizer;
-	coord2_Sizer = new wxBoxSizer( wxHORIZONTAL );
-
-	wxStaticBoxSizer* coord2StaticSizer;
-	coord2StaticSizer = new wxStaticBoxSizer( new wxStaticBox( chartCoordsSizer->GetStaticBox(), wxID_ANY, _("X2,Y2") ), wxHORIZONTAL );
-
-	m_coordX2Value = new wxTextCtrl( coord2StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord2StaticSizer->Add( m_coordX2Value, 0, wxALL, 3 );
-
-	m_coordY2Value = new wxTextCtrl( coord2StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord2StaticSizer->Add( m_coordY2Value, 0, wxALL, 3 );
-
-
-	coord2_Sizer->Add( coord2StaticSizer, 0, wxALL, 5 );
-
-
-	coords1_2Sizer->Add( coord2_Sizer, 0, 0, 5 );
-
-
-	chartCoordsSizer->Add( coords1_2Sizer, 0, 0, 3 );
-
-	wxBoxSizer* coords3_4Sizer;
-	coords3_4Sizer = new wxBoxSizer( wxHORIZONTAL );
-
-	wxBoxSizer* coord3_Sizer;
-	coord3_Sizer = new wxBoxSizer( wxHORIZONTAL );
-
-	wxStaticBoxSizer* coord3StaticSizer;
-	coord3StaticSizer = new wxStaticBoxSizer( new wxStaticBox( chartCoordsSizer->GetStaticBox(), wxID_ANY, _("X3,Y3") ), wxHORIZONTAL );
-
-	m_coordX3Value = new wxTextCtrl( coord3StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord3StaticSizer->Add( m_coordX3Value, 0, wxALL, 3 );
-
-	m_coordY3Value = new wxTextCtrl( coord3StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord3StaticSizer->Add( m_coordY3Value, 0, wxALL, 3 );
-
-
-	coord3_Sizer->Add( coord3StaticSizer, 0, wxALL, 5 );
-
-
-	coords3_4Sizer->Add( coord3_Sizer, 0, 0, 5 );
-
-	wxBoxSizer* coord4_Sizer;
-	coord4_Sizer = new wxBoxSizer( wxVERTICAL );
-
-	wxStaticBoxSizer* coord4StaticSizer;
-	coord4StaticSizer = new wxStaticBoxSizer( new wxStaticBox( chartCoordsSizer->GetStaticBox(), wxID_ANY, _("X4,Y4") ), wxHORIZONTAL );
-
-	m_coordX4Value = new wxTextCtrl( coord4StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord4StaticSizer->Add( m_coordX4Value, 0, wxALL, 3 );
-
-	m_coordY4Value = new wxTextCtrl( coord4StaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	coord4StaticSizer->Add( m_coordY4Value, 0, wxALL, 3 );
-
-
-	coord4_Sizer->Add( coord4StaticSizer, 0, wxALL, 5 );
-
-
-	coords3_4Sizer->Add( coord4_Sizer, 0, 0, 5 );
-
-
-	chartCoordsSizer->Add( coords3_4Sizer, 0, 0, 3 );
-
-
-	chartSizer->Add( chartCoordsSizer, 0, wxALL, 5 );
-
-	wxBoxSizer* chartSizer2;
-	chartSizer2 = new wxBoxSizer( wxHORIZONTAL );
-
-	wxStaticBoxSizer* chartPatchStaticSizer1;
-	chartPatchStaticSizer1 = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Chart patches") ), wxVERTICAL );
-
-	wxBoxSizer* chartPatchSizer1;
-	chartPatchSizer1 = new wxBoxSizer( wxVERTICAL );
-
-	wxBoxSizer* chartPatchRowSizer1;
-	chartPatchRowSizer1 = new wxBoxSizer( wxHORIZONTAL );
-
-	m_chartPatchRowStaticText1 = new wxStaticText( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, _("Rows"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_chartPatchRowStaticText1->Wrap( -1 );
-	chartPatchRowSizer1->Add( m_chartPatchRowStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartPatchRowValue1 = new wxTextCtrl( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchRowSizer1->Add( m_chartPatchRowValue1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-
-	chartPatchSizer1->Add( chartPatchRowSizer1, 0, 0, 5 );
-
-	wxBoxSizer* chartPatchColSizer1;
-	chartPatchColSizer1 = new wxBoxSizer( wxHORIZONTAL );
-
-	chartPatchColStaticText1 = new wxStaticText( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, _("Cols."), wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchColStaticText1->Wrap( -1 );
-	chartPatchColSizer1->Add( chartPatchColStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartPatchColValue1 = new wxTextCtrl( chartPatchStaticSizer1->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchColSizer1->Add( m_chartPatchColValue1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-
-	chartPatchSizer1->Add( chartPatchColSizer1, 0, 0, 5 );
-
-
-	chartPatchStaticSizer1->Add( chartPatchSizer1, 0, 0, 5 );
-
-
-	chartSizer2->Add( chartPatchStaticSizer1, 0, wxALL, 5 );
-
-
-	chartSizer2->Add( 20, 0, 0, 0, 5 );
-
-	wxStaticBoxSizer* debugPatchesStaticSizer;
-	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( right_column_panel_Up, wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
-
-	wxBoxSizer* m_debugPatchesSizer;
-	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesFileNameValue->Enable( false );
-
-	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 1, wxALL|wxEXPAND, 5 );
-
-
-	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
-
-
-	chartSizer2->Add( debugPatchesStaticSizer, 1, wxALL, 5 );
-
-
-	chartSizer->Add( chartSizer2, 0, wxEXPAND, 5 );
-
-
-	right_column_panel_Up->SetSizer( chartSizer );
+	right_column_panel_Up->SetSizer( bSizer50 );
 	right_column_panel_Up->Layout();
-	chartSizer->Fit( right_column_panel_Up );
-	two_columns_sizer_Up->Add( right_column_panel_Up, 0, wxALL, 5 );
+	bSizer50->Fit( right_column_panel_Up );
+	two_columns_sizer_Up->Add( right_column_panel_Up, 1, wxALL|wxEXPAND, 5 );
 
 
 	mainPanelSizer->Add( two_columns_sizer_Up, 0, 0, 5 );
