@@ -14,7 +14,14 @@ PRIORITARIAS
         Y sabiendo que las extrapolaciones se pintan en discontinua:
         * Si min(--snrthreshold_db)<min(S/N presente en los datos): discontinua en el tramo desde min(--snrthreshold_db) hasta min(S/N presente en los datos)
         * Si max(--snrthreshold_db)>min(S/N presente en los datos): discontinua en el tramo desde min(S/N presente en los datos) hasta min(--snrthreshold_db)
-   
+
+           Solo sobre los más extremos solicitados. Es decir puedes empezar la comprobación calculando:
+        * min/max S/N presente en los datos (IMPORTANTE: solo sobre los valores de S/N supervivientes una vez pasada la selección de --raw-channels, el filtro de -10dB o el que pongamos finalmente, y la normalización de Mpx si se pide)
+        * min/max --snrthreshold_db (que será el mismo si solo pides un valor)
+
+        Y con esos límites hacer las comparaciones de arriba. Sobre la recomendación de exposición errónea, podemos aproximar al menos de entrada decirle al usuario cuando corresponda, una conversión entre exposición y S/N conservadora de 1EV/6dB, es decir:
+        * Si A=min(--snrthreshold_db) < B=min(S/N presente en los datos): "Overxposure, reduce exposure by" (B-A)/6 "EV"
+        * Si C=max(--snrthreshold_db) > D=max(S/N presente en los datos): "Underexposure, increase exposure by" (C-D)/6 "EV"
 
 2: FLEXIBILIZAR PARÁMETRO --raw-channels PARA QUE PUEDA OBTENERSE EL AVG DE CUALQUIER COMBINACIÓN DE CANALES, NO SOLO LOS 4 A LA VEZ
 
