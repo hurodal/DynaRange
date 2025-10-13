@@ -14,24 +14,19 @@
 #pragma once
 
 #include "../analysis/Analysis.hpp"
-#include "../arguments/ArgumentsOptions.hpp"
 #include "../setup/ChartProfile.hpp"
 #include <ostream>
 #include <mutex>
+
 
 namespace DynaRange::Engine {
 
 /**
  * @brief Executes a two-pass analysis strategy on a prepared single-channel image.
- * @details This function first analyzes the image with a strict SNR threshold. If it
- * detects that the resulting data points are all above the user's highest
- * requested SNR threshold (a "floating curve"), it discards the results and
- * re-analyzes the image with a much more permissive threshold to capture
- * deep shadow data.
  * @param prepared_image The single-channel image, already corrected for keystone and cropped.
  * @param channel The data source channel being analyzed (for logging).
  * @param chart The chart profile containing grid dimensions.
- * @param opts The program options.
+ * @param patch_ratio The relative area of the center of each patch to sample.
  * @param log_stream The output stream for logging messages.
  * @param strict_min_snr_db The strict minimum SNR threshold for the first pass.
  * @param permissive_min_snr_db The permissive minimum SNR threshold for the second pass.
@@ -44,7 +39,7 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
     const cv::Mat& prepared_image,
     DataSource channel,
     const ChartProfile& chart,
-    const ProgramOptions& opts,
+    double patch_ratio,
     std::ostream& log_stream,
     double strict_min_snr_db,
     double permissive_min_snr_db,
@@ -52,5 +47,4 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
     bool create_overlay_image,
     std::mutex& log_mutex
 );
-
-} // namespace DynaRange::Engine
+} 

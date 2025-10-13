@@ -19,13 +19,12 @@ void DrawCurvesAndData(
     const std::vector<CurveData>& curves,
     const std::vector<DynamicRangeResult>& results,
     const std::map<std::string, double>& bounds,
-    const ProgramOptions& opts)
+    const PlottingDetails& plot_details)
 {
     info_box.Draw(cr, ctx);
-
+    
     // --- Define the desired drawing order (from back to front) ---
     const std::vector<DataSource> draw_order = { DataSource::AVG, DataSource::G1, DataSource::G2, DataSource::R, DataSource::B };
-    
     std::vector<const CurveData*> sorted_curves;
     for (DataSource channel_to_find : draw_order) {
         for (const auto& curve : curves) {
@@ -44,16 +43,16 @@ void DrawCurvesAndData(
         
         double alpha = (i == 0) ? 1.0 : (1.0 - PlotColors::OPACITY_DECREMENT_STEP);
         
-        if (opts.plot_details.show_curve) {
+        if (plot_details.show_curve) {
             curve_drawer.Draw(cr, curve, bounds, ctx, alpha);
         }
-        if (opts.plot_details.show_scatters) {
+        if (plot_details.show_scatters) {
             curve_drawer.DrawPoints(cr, curve, bounds, ctx, alpha);
         }
     }
 
     // --- PASS 2: Draw textual labels using LabelDrawer ---
-    if (!opts.plot_details.show_labels) {
+    if (!plot_details.show_labels) {
         return; // Skip all label drawing if disabled
     }
 

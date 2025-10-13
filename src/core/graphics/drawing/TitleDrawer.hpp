@@ -21,13 +21,13 @@ namespace DynaRange::Graphics::Drawing {
 class TitleDrawer {
 public:
     /**
-     * @brief Draws the main title and channel subtitle onto a Cairo context.
+     * @brief (Modified function) Draws the main title and channel subtitle onto a Cairo context.
      * @param cr The cairo drawing context.
      * @param ctx The rendering context with canvas dimensions.
      * @param title The main title of the plot.
-     * @param opts The program options, used to determine the channel subtitle.
+     * @param channels The raw channel selection, used to determine the channel subtitle.
      */
-    void Draw(cairo_t* cr, const RenderContext& ctx, const std::string& title, const ProgramOptions& opts) const;
+    void Draw(cairo_t* cr, const RenderContext& ctx, const std::string& title, const RawChannelSelection& channels) const;
 };
 
 } // namespace DynaRange::Graphics::Drawing

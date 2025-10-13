@@ -6,16 +6,16 @@
 #pragma once
 #include "Analysis.hpp"
 #include "../arguments/ArgumentsOptions.hpp"
+
 namespace CurveCalculator {
 /**
  * @brief Calculates the SNR curve from patch signal and noise data.
- * @param patch_data The result of the patch analysis, containing signal, noise, and optionally channel data.
- * @param opts The program options (for normalization and polynomial order).
- * @param camera_resolution_mpx The camera's actual resolution in megapixels.
- * @param source_channel The primary channel for this analysis (used if per-point channels aren't provided).
+ * @param patch_data The result of the patch analysis.
+ * @param params The consolidated analysis parameters (for normalization and polynomial order).
+ * @param source_channel The primary channel for this analysis.
  * @return An SnrCurve struct containing the calculated curve data.
  */
-SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, const ProgramOptions& opts, double camera_resolution_mpx, DataSource source_channel);
+SnrCurve CalculateSnrCurve(const PatchAnalysisResult& patch_data, const AnalysisParameters& params, DataSource source_channel);
 
 /**
  * @brief Calculates dynamic range values for a set of SNR thresholds.

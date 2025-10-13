@@ -9,31 +9,29 @@
 #include <optional>
 #include <opencv2/core.hpp>
 #include <ostream>
-#include "../arguments/ArgumentsOptions.hpp" // Needed for the constructor
 
 /**
  * @class ChartProfile
  * @brief Encapsulates the geometric properties of a specific test chart.
- * @details This class removes hardcoded values from the processing engine by
- * providing a single source for chart-specific data like corner points,
- * crop areas, and patch grid dimensions. It can be initialized with default
- * values or with user-provided coordinates.
  */
 class ChartProfile {
 public:
     /**
      * @brief Constructs a chart profile based on program options and auto-detection results.
-     * @details It follows a clear priority:
-     * 1. Uses manual coordinates from `opts` if available.
-     * 2. Uses `detected_corners` if manual coordinates are not present and detection was successful.
-     * 3. Falls back to hardcoded default coordinates if both above are unavailable.
-     * It also logs which set of coordinates is being used.
-     * @param opts The program options containing potential manual coordinates.
+     * @param chart_coords Manually specified coordinates from user arguments.
+     * @param patches_m The number of rows in the patch grid.
+     * @param patches_n The number of columns in the patch grid.
      * @param detected_corners An optional vector with coordinates from automatic detection.
      * @param log_stream The output stream for logging messages.
      */
-    explicit ChartProfile(const ProgramOptions& opts, const std::optional<std::vector<cv::Point2d>>& detected_corners, std::ostream& log_stream);
-
+    explicit ChartProfile(
+        const std::vector<double>& chart_coords,
+        int patches_m,
+        int patches_n,
+        const std::optional<std::vector<cv::Point2d>>& detected_corners,
+        std::ostream& log_stream
+    );
+    
     /// @brief Gets the four corner points of the chart for keystone correction.
     const std::vector<cv::Point2d>& GetCornerPoints() const;
 

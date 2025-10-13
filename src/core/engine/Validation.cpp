@@ -19,8 +19,9 @@ static bool IsDebugEnabled() {
 
 namespace DynaRange {
 
-void ValidateSnrResults(const ProcessingResult& results, const ProgramOptions& opts, std::ostream& log_stream) {
-    const double THRESHOLD_DB = 12.0; // Fixed by spec for photographic DR
+void ValidateSnrResults(const ProcessingResult& results, const AnalysisParameters& params, std::ostream& log_stream) {
+    const double THRESHOLD_DB = 12.0;
+    // Fixed by spec for photographic DR
 
     for (const auto& curve : results.curve_data) {
         if (curve.points.empty()) {
@@ -38,25 +39,27 @@ void ValidateSnrResults(const ProcessingResult& results, const ProgramOptions& o
             log_stream << "DEBUG: ISO=" << curve.iso_speed
                        << " | min_snr_db=" << min_snr_db
                        << " | max_snr_db=" << max_snr_db
-                       << " | cam_res_mpx=" << opts.sensor_resolution_mpx
-                       << " | target_mpx=" << opts.dr_normalization_mpx
+                 
+                       << " | cam_res_mpx=" << params.sensor_resolution_mpx
+                       << " | target_mpx=" << params.dr_normalization_mpx
                        << std::endl;
         }
 
         // A valid DR calculation requires data points on both sides of the threshold.
         bool sufficient_data = (min_snr_db < THRESHOLD_DB && max_snr_db > THRESHOLD_DB);
-        
         if (!sufficient_data) {
             if (IsDebugEnabled()) {
                 log_stream << "DEBUG:   VALIDATION FAILED: min_db=" << min_snr_db
                            << " < " << THRESHOLD_DB << " ? " << (min_snr_db < THRESHOLD_DB)
+                   
                            << " | max_db=" << max_snr_db
                            << " > " << THRESHOLD_DB << " ? " << (max_snr_db > THRESHOLD_DB)
                            << std::endl;
             }
             log_stream << _("Warning: insufficient data to calculate ")
                        << THRESHOLD_DB << _("dB dynamic range at ")
-                       << opts.dr_normalization_mpx << _("Mpx normalization. ")
+                       << params.dr_normalization_mpx << _("Mpx normalization. ")
+                       
                        << _("Test chart may have been over/underexposed for this ISO.") << std::endl;
         }
     }

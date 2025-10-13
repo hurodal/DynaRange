@@ -14,7 +14,7 @@
 
 namespace DynaRange::Graphics::Drawing {
 
-void TitleDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string& title, const ProgramOptions& opts) const
+void TitleDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string& title, const RawChannelSelection& channels) const
 {
     const FontManager font_manager(ctx);
     cairo_text_extents_t extents;
@@ -33,20 +33,17 @@ void TitleDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string&
     
     // Calculate total width of subtitle for centering
     std::string avg_prefix = _(" (Average: ");
-    std::string avg_suffix = "";
     std::string channels_separator = "";
     std::string channels_prefix = "";
     std::string final_suffix = ")";
     
-    const auto& channels = opts.raw_channels;
-    std::vector<DataSource> avg_channels_to_draw;
     std::vector<DataSource> individual_channels_to_draw;
-
     if (channels.R) individual_channels_to_draw.push_back(DataSource::R);
     if (channels.G1) individual_channels_to_draw.push_back(DataSource::G1);
     if (channels.G2) individual_channels_to_draw.push_back(DataSource::G2);
     if (channels.B) individual_channels_to_draw.push_back(DataSource::B);
 
+    std::vector<DataSource> avg_channels_to_draw;
     if (channels.avg_mode == AvgMode::Full) {
         avg_channels_to_draw = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
     } else if (channels.avg_mode == AvgMode::Selected) {
@@ -59,6 +56,9 @@ void TitleDrawer::Draw(cairo_t* cr, const RenderContext& ctx, const std::string&
     } else if (avg_channels_to_draw.empty() && !individual_channels_to_draw.empty()) {
         avg_prefix = " ("; // No "Average" part
         channels_prefix = _("Channels: ");
+    } else if (avg_channels_to_draw.empty() && individual_channels_to_draw.empty()) {
+        // Neither AVG nor individual channels are selected for plotting, so no subtitle.
+        return;
     }
     
     // Get total width for centering

@@ -17,7 +17,7 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
     const cv::Mat& prepared_image,
     DataSource channel,
     const ChartProfile& chart,
-    const ProgramOptions& opts,
+    double patch_ratio,
     std::ostream& log_stream,
     double strict_min_snr_db,
     double permissive_min_snr_db,
@@ -26,8 +26,8 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
     std::mutex& log_mutex)
 {
     // --- Pass 1: Analyze with the strict threshold ---
-    PatchAnalysisResult patch_data = AnalyzePatches(prepared_image, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, create_overlay_image, strict_min_snr_db);
-
+    PatchAnalysisResult patch_data = AnalyzePatches(prepared_image, chart.GetGridCols(), chart.GetGridRows(), patch_ratio, create_overlay_image, strict_min_snr_db);
+    
     // --- Validation Step ---
     bool needs_reanalysis = false;
     if (!patch_data.signal.empty()) {
@@ -53,7 +53,7 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
                        << " with permissive threshold to find low-SNR data."
                        << std::endl;
         }
-        patch_data = AnalyzePatches(prepared_image, chart.GetGridCols(), chart.GetGridRows(), opts.patch_ratio, create_overlay_image, permissive_min_snr_db);
+        patch_data = AnalyzePatches(prepared_image, chart.GetGridCols(), chart.GetGridRows(), patch_ratio, create_overlay_image, permissive_min_snr_db);
     }
 
     if (patch_data.signal.empty()) {

@@ -20,14 +20,16 @@ namespace DynaRange::Engine::Processing {
 
 std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
     const std::vector<RawFile>& raw_files,
-    const ProgramOptions& opts,
+    const std::vector<double>& chart_coords,
+    double dark_value,
+    double saturation_value,
     const PathManager& paths,
     std::ostream& log_stream)
 {
-    if (opts.chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
+    if (chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
         log_stream << _("Manual coordinates not provided, attempting automatic corner detection...") << std::endl;
         cv::Mat raw_img = raw_files[0].GetRawImage();
-        cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
+        cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
 
         int bayer_rows = img_float.rows / 2;
         int bayer_cols = img_float.cols / 2;
@@ -40,10 +42,8 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
         }
 
         cv::threshold(g1_bayer, g1_bayer, 0.0, 0.0, cv::THRESH_TOZERO);
-        
-        // MODIFIED: Call the function from its new namespace
         std::optional<std::vector<cv::Point2d>> detected_corners_opt = DynaRange::Graphics::Detection::DetectChartCorners(g1_bayer, log_stream);
-
+        
         #if DYNA_RANGE_DEBUG_MODE == 1
         if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG && detected_corners_opt.has_value()) {
             log_stream << "  - [DEBUG] Saving corner detection visual confirmation to 'debug_corners_detected.png'..." << std::endl;
@@ -65,6 +65,7 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
             double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
             double detected_chart_area = cv::contourArea(corners_float);
             double area_percentage = (detected_chart_area / total_image_area);
+
             if (area_percentage < DynaRange::Engine::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
                 log_stream << _("Warning: Automatic corner detection found an area covering only ")
                            << std::fixed << std::setprecision(1) << (area_percentage * 100.0)

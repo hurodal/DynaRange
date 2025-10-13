@@ -33,7 +33,7 @@ std::optional<std::string> GeneratePlotInternal(
     const std::string& title,
     const std::vector<CurveData>& curves_to_plot,
     const std::vector<DynamicRangeResult>& results_to_plot,
-    const ProgramOptions& opts,
+    const ReportingParameters& reporting_params,
     std::ostream& log_stream,
     std::mutex& log_mutex)
 {
@@ -41,13 +41,13 @@ std::optional<std::string> GeneratePlotInternal(
         DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH,
         DynaRange::Graphics::Constants::PlotDefs::BASE_HEIGHT
     };
-    bool is_vector = (opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG || opts.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::PDF);
+    bool is_vector = (reporting_params.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::SVG || reporting_params.plot_format == DynaRange::Graphics::Constants::PlotOutputFormat::PDF);
     double scale = is_vector ? DynaRange::Graphics::Constants::VECTOR_PLOT_SCALE_FACTOR : 1.0;
     int width = static_cast<int>(render_ctx.base_width * scale);
     int height = static_cast<int>(render_ctx.base_height * scale);
 
     cairo_surface_t *surface = nullptr;
-    switch (opts.plot_format) {
+    switch (reporting_params.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
             surface = cairo_svg_surface_create(output_filename.c_str(), width, height);
             break;
@@ -74,10 +74,10 @@ std::optional<std::string> GeneratePlotInternal(
         cairo_scale(cr, scale, scale);
     }
     
-    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_to_plot, results_to_plot, title, opts);
+    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_to_plot, results_to_plot, title, reporting_params);
     
     bool success = false;
-    switch (opts.plot_format) {
+    switch (reporting_params.plot_format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG:
         case DynaRange::Graphics::Constants::PlotOutputFormat::PDF:
             cairo_surface_flush(surface);
@@ -108,59 +108,15 @@ std::optional<std::string> GeneratePlotInternal(
 
 } // end anonymous namespace
 
-void GenerateSnrPlot(
-    const std::string& output_filename,
-    const std::string& plot_title,
-    const std::string& curve_label,
-    DataSource channel,
-    const std::vector<double>& signal_ev,
-    const std::vector<double>& snr_db,
-    const cv::Mat& poly_coeffs,
-    const DynamicRangeResult& dr_result,
-    const ProgramOptions& opts,
-    std::ostream& log_stream)
-{
-    if (!opts.generate_plot) {
-        return;
-    }
-
-    if (signal_ev.size() < 2) {
-        log_stream << _("  - Warning: Skipping plot for \"") << plot_title << _("\" due to insufficient data points (") << signal_ev.size() << ")." << std::endl;
-        return;
-    }
-
-    CurveData single_curve_data;
-    single_curve_data.filename = plot_title;
-    single_curve_data.channel = channel;
-    single_curve_data.plot_label = curve_label;
-    single_curve_data.camera_model = "";
-    
-    std::vector<PointData> points;
-    points.reserve(signal_ev.size());
-    for(size_t i = 0; i < signal_ev.size(); ++i) {
-        points.push_back({signal_ev[i], snr_db[i], channel});
-    }
-    single_curve_data.points = points;
-    
-    single_curve_data.poly_coeffs = poly_coeffs;
-    single_curve_data.generated_command = opts.generated_command;
-
-    std::vector<CurveData> single_curve_vec = {single_curve_data};
-    std::vector<DynamicRangeResult> single_result_vec = {dr_result};
-    
-    std::mutex log_mutex; // Create a mutex for this single call
-    GeneratePlotInternal(output_filename, _("SNR Curve - ") + plot_title, single_curve_vec, single_result_vec, opts, log_stream, log_mutex);
-}
-
 std::optional<std::string> GenerateSummaryPlot(
     const std::string& output_filename,
     const std::string& camera_name,
     const std::vector<CurveData>& all_curves,
     const std::vector<DynamicRangeResult>& all_results,
-    const ProgramOptions& opts,
+    const ReportingParameters& reporting_params,
     std::ostream& log_stream)
 {
-    if (!opts.generate_plot) {
+    if (!reporting_params.generate_plot) {
         log_stream << "\n" << _("Plot generation skipped as per user request.") << std::endl;
         return std::nullopt;
     }
@@ -172,19 +128,20 @@ std::optional<std::string> GenerateSummaryPlot(
 
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     
-    std::mutex log_mutex; // Create a mutex for this single call
-    return GeneratePlotInternal(output_filename, title, all_curves, all_results, opts, log_stream, log_mutex);
+    std::mutex log_mutex;
+    // Create a mutex for this single call
+    return GeneratePlotInternal(output_filename, title, all_curves, all_results, reporting_params, log_stream, log_mutex);
 }
 
 std::map<std::string, std::string> GenerateIndividualPlots(
     const std::vector<CurveData>& all_curves_data,
     const std::vector<DynamicRangeResult>& all_dr_results,
-    const ProgramOptions& opts,
+    const ReportingParameters& reporting_params,
     const PathManager& paths,
     std::ostream& log_stream)
 {
     std::map<std::string, std::string> plot_paths_map;
-    if (!opts.generate_plot) return plot_paths_map;
+    if (!reporting_params.generate_plot) return plot_paths_map;
 
     log_stream << "\n" << _("Generating individual SNR plots...") << std::endl;
 
@@ -206,24 +163,27 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file.at(filename);
 
         if (curves_for_this_file.empty()) continue;
-
+        
         futures.push_back(std::async(std::launch::async, 
             [&, filename, curves_for_this_file, results_for_this_file]() -> std::pair<std::string, std::optional<std::string>> {
                 
                 const auto& first_curve = curves_for_this_file[0];
-                fs::path plot_path = paths.GetIndividualPlotPath(first_curve, opts);
+                fs::path plot_path = paths.GetIndividualPlotPath(first_curve, reporting_params.raw_channels, reporting_params.plot_format);
                 
+        
                 std::stringstream title_ss;
                 title_ss << fs::path(filename).filename().string();
                 if (!first_curve.camera_model.empty()) {
                     title_ss << " (" << first_curve.camera_model;
                     if (first_curve.iso_speed > 0) {
+      
                         title_ss << ", " << _("ISO ") << static_cast<int>(first_curve.iso_speed);
                     }
                     title_ss << ")";
                 }
                 
-                auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, opts, log_stream, log_mutex);
+ 
+                auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, reporting_params, log_stream, log_mutex);
                 return {filename, path_opt};
             }
         ));

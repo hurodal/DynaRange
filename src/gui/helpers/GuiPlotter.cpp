@@ -49,14 +49,13 @@ wxImage CairoSurfaceToWxImage(cairo_surface_t* surface)
 
 } // end anonymous namespace
 
-
 namespace GuiPlotter {
 
 wxImage GeneratePlotAsWxImage(
     const std::vector<CurveData>& curves,
     const std::vector<DynamicRangeResult>& results,
     const std::string& title,
-    const ProgramOptions& opts)
+    const ReportingParameters& reporting_params)
 {
     if (curves.empty()) {
         return wxImage();
@@ -66,18 +65,18 @@ wxImage GeneratePlotAsWxImage(
     const int gui_width = static_cast<int>(DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH * DynaRange::Gui::Constants::GUI_RENDER_SCALE_FACTOR);
     const int gui_height = static_cast<int>(DynaRange::Graphics::Constants::PlotDefs::BASE_HEIGHT * DynaRange::Gui::Constants::GUI_RENDER_SCALE_FACTOR);
     const auto render_ctx = DynaRange::Graphics::RenderContext{gui_width, gui_height};
-
+    
     // 2. Prepare the in-memory Cairo surface.
     cairo_surface_t* surface = cairo_image_surface_create(
         CAIRO_FORMAT_ARGB32, render_ctx.base_width, render_ctx.base_height);
     cairo_t* cr = cairo_create(surface);
 
     // 3. Call the central "skeleton" function to do all the drawing.
-    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves, results, title, opts);
+    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves, results, title, reporting_params);
     
     // 4. Convert the result to a wxImage.
     wxImage final_image = CairoSurfaceToWxImage(surface);
-
+    
     // 5. Clean up.
     cairo_destroy(cr);
     cairo_surface_destroy(surface);

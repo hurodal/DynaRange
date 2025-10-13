@@ -11,23 +11,28 @@
 
 #define _(string) gettext(string)
 
-
-ChartProfile::ChartProfile(const ProgramOptions& opts, const std::optional<std::vector<cv::Point2d>>& detected_corners, std::ostream& log_stream)
-    : m_grid_cols(opts.GetChartPatchesN()),
-      m_grid_rows(opts.GetChartPatchesM())
+ChartProfile::ChartProfile(
+    const std::vector<double>& chart_coords,
+    int patches_m,
+    int patches_n,
+    const std::optional<std::vector<cv::Point2d>>& detected_corners,
+    std::ostream& log_stream)
+    : m_grid_cols(patches_n),
+      m_grid_rows(patches_m)
 {
     // Priority 1: Use manually provided coordinates.
-    if (!opts.chart_coords.empty() && opts.chart_coords.size() == 8) {
+    if (!chart_coords.empty() && chart_coords.size() == 8) {
         m_has_manual_coords = true;
         std::vector<cv::Point2d> points;
         for (size_t i = 0; i < 8; i += 2) {
-            points.emplace_back(opts.chart_coords[i] / 2.0, opts.chart_coords[i + 1] / 2.0);
+            points.emplace_back(chart_coords[i] / 2.0, chart_coords[i + 1] / 2.0);
         }
         
         auto tl_it = std::min_element(points.begin(), points.end(),
             [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
         auto br_it = std::max_element(points.begin(), points.end(),
             [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
+        
         constexpr double epsilon = 1e-6;
         auto bl_it = std::min_element(points.begin(), points.end(),
             [epsilon](const cv::Point2d& a, const cv::Point2d& b) {
@@ -37,6 +42,7 @@ ChartProfile::ChartProfile(const ProgramOptions& opts, const std::optional<std::
             [epsilon](const cv::Point2d& a, const cv::Point2d& b) {
                 return a.x / (a.y + epsilon) < b.x / (b.y + epsilon);
             });
+
         m_corner_points = {*tl_it, *bl_it, *br_it, *tr_it};
         LogCornerPoints(m_corner_points, _("Using manually specified coordinates:"), log_stream);
     } 

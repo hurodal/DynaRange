@@ -11,7 +11,6 @@
 #include "Processing.hpp"
 #include "../../io/raw/RawFile.hpp"
 #include "../../setup/ChartProfile.hpp"
-#include "../../arguments/ArgumentsOptions.hpp"
 #include <vector>
 #include <string>
 #include <ostream>
@@ -28,7 +27,7 @@ public:
     /**
      * @brief Constructs an AnalysisLoopRunner with the required context.
      * @param raw_files The vector of loaded RawFile objects to process.
-     * @param opts The program options.
+     * @param params The consolidated analysis parameters.
      * @param chart The geometric profile of the test chart.
      * @param camera_model_name The detected camera model name.
      * @param log_stream The output stream for logging.
@@ -36,7 +35,7 @@ public:
      */
     AnalysisLoopRunner(
         const std::vector<RawFile>& raw_files,
-        const ProgramOptions& opts,
+        const AnalysisParameters& params,
         const ChartProfile& chart,
         const std::string& camera_model_name,
         std::ostream& log_stream,
@@ -51,12 +50,11 @@ public:
 
 private:
     const std::vector<RawFile>& m_raw_files;
-    const ProgramOptions& m_opts;
+    const AnalysisParameters& m_params;
     const ChartProfile& m_chart;
     const std::string& m_camera_model_name;
     std::ostream& m_log_stream;
     const std::atomic<bool>& m_cancel_flag;
 };
-
 
 } // namespace DynaRange::Engine::Processing

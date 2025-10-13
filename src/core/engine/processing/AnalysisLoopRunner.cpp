@@ -25,15 +25,11 @@ namespace { // Anonymous namespace for internal helper functions
 
 /**
  * @brief Analyzes a single RAW file to extract SNR and DR data.
- * @details This function orchestrates the analysis for one file, including
- * preparing the image, running the two-pass patch analysis for each
- * required channel, and aggregating the final results.
  * @param raw_file The loaded RawFile object to analyze.
- * @param opts The program configuration options.
+ * @param params The consolidated analysis parameters.
  * @param chart The geometric profile of the test chart.
  * @param keystone_params The pre-calculated keystone correction parameters.
  * @param log_stream The stream for logging messages.
- * @param camera_resolution_mpx The camera's sensor resolution in megapixels.
  * @param generate_debug_image Flag to indicate if a debug overlay image should be created.
  * @param cancel_flag The atomic flag to check for cancellation requests.
  * @param log_mutex A mutex to synchronize access to the log_stream.
@@ -41,11 +37,10 @@ namespace { // Anonymous namespace for internal helper functions
  */
 std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file,
-    const ProgramOptions& opts,
+    const AnalysisParameters& params,
     const ChartProfile& chart,
     const cv::Mat& keystone_params,
     std::ostream& log_stream,
-    double camera_resolution_mpx,
     bool generate_debug_image,
     const std::atomic<bool>& cancel_flag,
     std::mutex& log_mutex)
@@ -61,29 +56,31 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
     double norm_adjustment = 0.0;
-    if (opts.dr_normalization_mpx > 0.0 && camera_resolution_mpx > 0.0) {
-        norm_adjustment = 20.0 * std::log10(std::sqrt(camera_resolution_mpx / opts.dr_normalization_mpx));
+    if (params.dr_normalization_mpx > 0.0 && params.sensor_resolution_mpx > 0.0) {
+        norm_adjustment = 20.0 * std::log10(std::sqrt(params.sensor_resolution_mpx / params.dr_normalization_mpx));
     }
     const double strict_min_snr_db = -10.0 - norm_adjustment;
     const double permissive_min_snr_db = DynaRange::Analysis::Constants::MIN_SNR_DB_THRESHOLD - norm_adjustment;
+    
     double max_requested_threshold = 0.0;
-    if (!opts.snr_thresholds_db.empty()) {
-        max_requested_threshold = *std::max_element(opts.snr_thresholds_db.begin(), opts.snr_thresholds_db.end());
+    if (!params.snr_thresholds_db.empty()) {
+        max_requested_threshold = *std::max_element(params.snr_thresholds_db.begin(), params.snr_thresholds_db.end());
     }
 
     std::vector<DataSource> channels_to_analyze;
-    if (opts.raw_channels.avg_mode != AvgMode::None) {
+    if (params.raw_channels.avg_mode != AvgMode::None) {
         channels_to_analyze = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
     } else {
-        if (opts.raw_channels.R) channels_to_analyze.push_back(DataSource::R);
-        if (opts.raw_channels.G1) channels_to_analyze.push_back(DataSource::G1);
-        if (opts.raw_channels.G2) channels_to_analyze.push_back(DataSource::G2);
-        if (opts.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
+        if (params.raw_channels.R) channels_to_analyze.push_back(DataSource::R);
+        if (params.raw_channels.G1) channels_to_analyze.push_back(DataSource::G1);
+        if (params.raw_channels.G2) channels_to_analyze.push_back(DataSource::G2);
+        if (params.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
     }
 
     for (const auto& channel : channels_to_analyze) {
         if (cancel_flag) return {};
-        cv::Mat img_prepared = PrepareChartImage(raw_file, opts, keystone_params, chart, log_stream, channel);
+        
+        cv::Mat img_prepared = PrepareChartImage(raw_file, params.dark_value, params.saturation_value, keystone_params, chart, log_stream, channel);
         if (img_prepared.empty()) {
             std::lock_guard<std::mutex> lock(log_mutex);
             log_stream << _("Error: Failed to prepare image for channel: ") << Formatters::DataSourceToString(channel) << " for file " << raw_file.GetFilename() << std::endl;
@@ -91,15 +88,16 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
+        
         individual_channel_patches[channel] = DynaRange::Engine::PerformTwoPassPatchAnalysis(
-            img_prepared, channel, chart, opts, log_stream,
+            img_prepared, channel, chart, params.patch_ratio, log_stream,
             strict_min_snr_db, permissive_min_snr_db, max_requested_threshold, should_draw_overlay,
             log_mutex
         );
     }
 
-    auto results = DynaRange::Engine::Processing::AggregateAndFinalizeResults(individual_channel_patches, raw_file, opts, camera_resolution_mpx, generate_debug_image, log_stream, log_mutex);
-
+    auto results = DynaRange::Engine::Processing::AggregateAndFinalizeResults(individual_channel_patches, raw_file, params, generate_debug_image, log_stream, log_mutex);
+    
     {
         std::lock_guard<std::mutex> lock(log_mutex);
         log_stream << _("Processed \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"." << std::endl;
@@ -108,18 +106,18 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 
     return results;
 }
-} // end anonymous namespace
+}
 namespace DynaRange::Engine::Processing {
 
 AnalysisLoopRunner::AnalysisLoopRunner(
     const std::vector<RawFile>& raw_files,
-    const ProgramOptions& opts,
+    const AnalysisParameters& params,
     const ChartProfile& chart,
     const std::string& camera_model_name,
     std::ostream& log_stream,
     const std::atomic<bool>& cancel_flag)
     : m_raw_files(raw_files),
-      m_opts(opts),
+      m_params(params),
       m_chart(chart),
       m_camera_model_name(camera_model_name),
       m_log_stream(log_stream),
@@ -129,7 +127,6 @@ AnalysisLoopRunner::AnalysisLoopRunner(
 ProcessingResult AnalysisLoopRunner::Run()
 {
     ProcessingResult result;
-    PathManager paths(m_opts);
     
     std::mutex log_mutex;
 
@@ -143,7 +140,7 @@ ProcessingResult AnalysisLoopRunner::Run()
 
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) {
-        num_threads = 1; 
+        num_threads = 1;
     }
 
     for (size_t i = 0; i < m_raw_files.size(); i += num_threads) {
@@ -155,15 +152,16 @@ ProcessingResult AnalysisLoopRunner::Run()
             const auto& raw_file = m_raw_files[j];
             if (!raw_file.IsLoaded()) continue;
 
-            bool generate_debug_image = (j == 0 && !m_opts.print_patch_filename.empty());
+            bool generate_debug_image = (j == 0 && !m_params.print_patch_filename.empty());
             
             batch_futures.push_back(std::async(std::launch::async, 
                 [&, generate_debug_image, keystone_params, &raw_file = raw_file]() {
                     cv::Mat local_keystone = keystone_params;
                     if (!optimized) {
                         local_keystone = DynaRange::Graphics::Geometry::CalculateKeystoneParams(m_chart.GetCornerPoints(), m_chart.GetDestinationPoints());
+     
                     }
-                    return AnalyzeSingleRawFile(raw_file, m_opts, m_chart, local_keystone, m_log_stream, m_opts.sensor_resolution_mpx, generate_debug_image, m_cancel_flag, log_mutex);
+                    return AnalyzeSingleRawFile(raw_file, m_params, m_chart, local_keystone, m_log_stream, generate_debug_image, m_cancel_flag, log_mutex);
                 }
             ));
         }
@@ -176,7 +174,13 @@ ProcessingResult AnalysisLoopRunner::Run()
                 if (!file_result.final_debug_image.empty()) {
                     std::lock_guard<std::mutex> lock(log_mutex);
                     result.debug_patch_image = file_result.final_debug_image;
-                    fs::path debug_path = paths.GetCsvOutputPath().parent_path() / m_opts.print_patch_filename;
+                    
+                    // PathManager is needed here, but we don't have it.
+                    // This logic will be moved in a later step. For now, we temporarily create one.
+                    ProgramOptions temp_opts;
+                    temp_opts.output_filename = "results.csv"; // Dummy path
+                    PathManager paths(temp_opts);
+                    fs::path debug_path = paths.GetCsvOutputPath().parent_path() / m_params.print_patch_filename;
                     OutputWriter::WriteDebugImage(file_result.final_debug_image, debug_path, m_log_stream);
                 }
 

@@ -7,32 +7,27 @@
 #include "../../graphics/ImageProcessing.hpp"
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
-#include <filesystem>
 #include <mutex>
 
 #define _(string) gettext(string)
-namespace fs = std::filesystem;
 
 namespace DynaRange::Engine::Processing {
-
-// File: src/core/engine/processing/ResultAggregator.cpp
 
 std::vector<SingleFileResult> AggregateAndFinalizeResults(
     const std::map<DataSource, PatchAnalysisResult>& individual_channel_patches,
     const RawFile& raw_file,
-    const ProgramOptions& opts,
-    double camera_resolution_mpx,
+    const AnalysisParameters& params,
     bool& generate_debug_image,
     std::ostream& log_stream,
     std::mutex& log_mutex)
 {
     std::vector<SingleFileResult> final_results;
     std::vector<DataSource> user_selected_channels;
-    if (opts.raw_channels.R) user_selected_channels.push_back(DataSource::R);
-    if (opts.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
-    if (opts.raw_channels.G2) user_selected_channels.push_back(DataSource::G2);
-    if (opts.raw_channels.B) user_selected_channels.push_back(DataSource::B);
-
+    if (params.raw_channels.R) user_selected_channels.push_back(DataSource::R);
+    if (params.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
+    if (params.raw_channels.G2) user_selected_channels.push_back(DataSource::G2);
+    if (params.raw_channels.B) user_selected_channels.push_back(DataSource::B);
+    
     // First, process individual channels
     for (const auto& final_channel : user_selected_channels) {
         PatchAnalysisResult final_patch_data;
@@ -42,16 +37,15 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
 
         if (final_patch_data.signal.empty()) continue;
         
-        auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, final_channel);
-
+        auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, params, raw_file.GetFilename(), final_channel);
         dr_result.iso_speed = raw_file.GetIsoSpeed();
         dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
         dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
         dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
         dr_result.samples_B = individual_channel_patches.count(DataSource::B) ? individual_channel_patches.at(DataSource::B).signal.size() : 0;
         
-        if(opts.plot_labels.count(raw_file.GetFilename())) {
-            curve_data.plot_label = opts.plot_labels.at(raw_file.GetFilename());
+        if(params.plot_labels.count(raw_file.GetFilename())) {
+            curve_data.plot_label = params.plot_labels.at(raw_file.GetFilename());
         } else {
             curve_data.plot_label = fs::path(raw_file.GetFilename()).stem().string();
         }
@@ -74,12 +68,12 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
     }
 
     // Second, process the average channel if requested
-    if (opts.raw_channels.avg_mode != AvgMode::None) {
+    if (params.raw_channels.avg_mode != AvgMode::None) {
         PatchAnalysisResult final_patch_data;
         std::vector<DataSource> channels_to_pool;
         std::string plot_label_suffix;
 
-        if (opts.raw_channels.avg_mode == AvgMode::Full) {
+        if (params.raw_channels.avg_mode == AvgMode::Full) {
             channels_to_pool = {DataSource::R, DataSource::G1, DataSource::G2, DataSource::B};
             plot_label_suffix = " (Full)";
         } else { // AvgMode::Selected
@@ -101,8 +95,7 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
         }
 
         if (!final_patch_data.signal.empty()) {
-            auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, opts, raw_file.GetFilename(), camera_resolution_mpx, DataSource::AVG);
-            
+            auto [dr_result, curve_data] = CalculateResultsFromPatches(final_patch_data, params, raw_file.GetFilename(), DataSource::AVG);
             dr_result.iso_speed = raw_file.GetIsoSpeed();
             dr_result.samples_R = individual_channel_patches.count(DataSource::R) ? individual_channel_patches.at(DataSource::R).signal.size() : 0;
             dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
@@ -119,4 +112,4 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
     return final_results;
 }
 
-} // namespace DynaRange::Engine::Processing
+}

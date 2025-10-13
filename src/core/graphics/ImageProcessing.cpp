@@ -28,7 +28,8 @@ cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double s
 
 cv::Mat PrepareChartImage(
     const RawFile& raw_file, 
-    const ProgramOptions& opts, 
+    double dark_value,
+    double saturation_value,
     const cv::Mat& keystone_params,
     const ChartProfile& chart, 
     std::ostream& log_stream,
@@ -38,7 +39,8 @@ cv::Mat PrepareChartImage(
     if(raw_img.empty()){
         return {};
     }
-    cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
+    cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
+    
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     switch (channel_to_extract) {
         case DataSource::R:
@@ -72,10 +74,6 @@ cv::Mat PrepareChartImage(
         gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
         gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
     }
-    //if (!chart.HasManualCoords()) {
-    //    gap_x = (xbr - xtl) / (chart.GetGridCols() + 1);
-    //    gap_y = (ybr - ytl) / (chart.GetGridRows() + 1);
-    //}
 
     cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
@@ -131,7 +129,8 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
 
 std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     const RawFile& raw_file,
-    const ProgramOptions& opts,
+    double dark_value,
+    double saturation_value,
     const cv::Mat& keystone_params,
     const ChartProfile& chart,
     std::ostream& log_stream)
@@ -142,12 +141,14 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
         log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
         return prepared_channels;
     }
-    cv::Mat img_float = NormalizeRawImage(raw_img, opts.dark_value, opts.saturation_value);
+    cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
     cv::Size bayer_size(img_float.cols / 2, img_float.rows / 2);
+    
     cv::Mat r_bayer(bayer_size, CV_32FC1);
     cv::Mat g1_bayer(bayer_size, CV_32FC1);
     cv::Mat g2_bayer(bayer_size, CV_32FC1);
     cv::Mat b_bayer(bayer_size, CV_32FC1);
+    
     for (int r = 0; r < bayer_size.height; ++r) {
         for (int c = 0; c < bayer_size.width; ++c) {
             r_bayer.at<float>(r, c)  = img_float.at<float>(r * 2, c * 2);
@@ -161,6 +162,7 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
         {DataSource::R, r_bayer}, {DataSource::G1, g1_bayer},
         {DataSource::G2, g2_bayer}, {DataSource::B, b_bayer}
     };
+
     const auto& dst_pts = chart.GetDestinationPoints();
     double xtl = dst_pts[0].x;
     double ytl = dst_pts[0].y;

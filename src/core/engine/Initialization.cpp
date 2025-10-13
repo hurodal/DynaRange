@@ -12,54 +12,68 @@
 #include "../setup/PlotLabelGenerator.hpp"
 #include "../setup/SensorResolution.hpp"
 #include "../utils/CommandGenerator.hpp"
-#include "../io/raw/RawFile.hpp"
 #include <libintl.h>
 #include <utility> // For std::pair and std::move
 
 #define _(string) gettext(string)
 
-std::pair<bool, std::vector<RawFile>> InitializeAnalysis(ProgramOptions& opts, std::ostream& log_stream) {
+InitializationResult InitializeAnalysis(const ProgramOptions& opts, std::ostream& log_stream) {
     
-    const DynaRange::Engine::Initialization::InputFileFilter file_filter;
-    file_filter.Filter(opts, log_stream);
+    InitializationResult result;
+    // Create a mutable copy of opts to be used and modified within this function.
+    ProgramOptions local_opts = opts;
 
-    if (opts.input_files.empty()) {
+    const DynaRange::Engine::Initialization::InputFileFilter file_filter;
+    file_filter.Filter(local_opts, log_stream);
+
+    if (local_opts.input_files.empty()) {
         log_stream << _("Error: No valid input files remain after filtering for calibration files.") << std::endl;
-        return {false, std::vector<RawFile>{}};
+        return result; // success is false by default
     }
 
     log_stream << _("Pre-analyzing files to extract metadata...") << std::endl;
-    auto [file_info, loaded_raw_files] = ExtractFileInfo(opts.input_files, log_stream);
+    auto [file_info, loaded_raw_files] = ExtractFileInfo(local_opts.input_files, log_stream);
     
     if (file_info.empty()) {
         log_stream << _("Error: None of the input files could be processed.") << std::endl;
-        return {false, std::vector<RawFile>{}};
+        return result; // success is false by default
     }
 
     const DynaRange::Engine::Initialization::CalibrationHandler calib_handler;
-    if (!calib_handler.HandleCalibration(opts, file_info, log_stream)) {
-        return {false, std::vector<RawFile>{}};
-        // Fatal error during calibration file processing
+    if (!calib_handler.HandleCalibration(local_opts, file_info, log_stream)) {
+        return result; // Fatal error during calibration file processing
     }
     
     const DynaRange::Engine::Initialization::ConfigReporter reporter;
     reporter.PrintPreAnalysisTable(file_info, log_stream);
 
     FileOrderResult order = DetermineFileOrder(file_info, log_stream);
-    opts.input_files = order.sorted_filenames;
-    opts.plot_labels = GeneratePlotLabels(order.sorted_filenames, file_info, order.was_exif_sort_possible);
+    local_opts.input_files = order.sorted_filenames;
+    local_opts.plot_labels = GeneratePlotLabels(order.sorted_filenames, file_info, order.was_exif_sort_possible);
     
-    if (opts.sensor_resolution_mpx == 0.0) {
-        opts.sensor_resolution_mpx = DetectSensorResolution(opts.input_files, log_stream);
+    if (local_opts.sensor_resolution_mpx == 0.0) {
+        local_opts.sensor_resolution_mpx = DetectSensorResolution(local_opts.input_files, log_stream);
     }
     
-    reporter.PrintFinalConfiguration(opts, log_stream);
-    
-    if (opts.plot_command_mode == 2) {
-        opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);
-    } else if (opts.plot_command_mode == 3) {
-        opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotLong);
+    if (local_opts.plot_command_mode == 2) {
+        local_opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotShort);
+    } else if (local_opts.plot_command_mode == 3) {
+        local_opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotLong);
     }
     
-    return {true, std::move(loaded_raw_files)};
+    reporter.PrintFinalConfiguration(local_opts, log_stream);
+    
+    // Populate the result struct with all the final values.
+    result.success = true;
+    result.loaded_raw_files = std::move(loaded_raw_files);
+    result.sorted_filenames = local_opts.input_files;
+    result.plot_labels = local_opts.plot_labels;
+    result.sensor_resolution_mpx = local_opts.sensor_resolution_mpx;
+    result.generated_command = local_opts.generated_command;
+    result.dark_value = local_opts.dark_value;
+    result.saturation_value = local_opts.saturation_value;
+    result.black_level_is_default = local_opts.black_level_is_default;
+    result.saturation_level_is_default = local_opts.saturation_level_is_default;
+    
+    return result;
 }

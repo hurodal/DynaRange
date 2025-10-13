@@ -205,13 +205,13 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
     // Clear previous results
     m_summaryImage = wxImage();
     m_individualImages.clear();
-
+    
     WxLogStreambuf log_streambuf(m_view);
     std::ostream log_stream(&log_streambuf);
 
     // 1. Run core analysis to get raw data and file-based reports
     m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
-
+    
     if (m_cancelWorker) {
         if (m_view)
             m_view->PostAnalysisComplete();
@@ -222,15 +222,26 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
     if (opts.generate_plot && !m_lastReport.curve_data.empty()) {
         log_stream << _("\nGenerating in-memory plots for GUI...") << std::endl;
 
+        // Create the ReportingParameters struct needed by the plotter.
+        ReportingParameters reporting_params {
+            .raw_channels = opts.raw_channels,
+            .generate_plot = opts.generate_plot,
+            .plot_format = opts.plot_format,
+            .plot_details = opts.plot_details,
+            .plot_command_mode = opts.plot_command_mode,
+            .generated_command = m_lastReport.curve_data[0].generated_command, // Get from results
+            .dark_value = opts.dark_value,
+            .saturation_value = opts.saturation_value,
+            .black_level_is_default = opts.black_level_is_default,
+            .saturation_level_is_default = opts.saturation_level_is_default,
+            .snr_thresholds_db = opts.snr_thresholds_db
+        };
+        
         // Generate summary plot image
-        // --- CORRECTION START ---
-        // First, build the full title as a wxString
         wxString summary_title_wx = _("SNR Curves - Summary (") + wxString(m_lastReport.curve_data[0].camera_model) + ")";
-        // Then, convert the wxString to std::string for the function call
         std::string summary_title = std::string(summary_title_wx.mb_str());
-        // --- CORRECTION END ---
-        m_summaryImage = GuiPlotter::GeneratePlotAsWxImage(m_lastReport.curve_data, m_lastReport.dr_results, summary_title, opts);
-
+        m_summaryImage = GuiPlotter::GeneratePlotAsWxImage(m_lastReport.curve_data, m_lastReport.dr_results, summary_title, reporting_params);
+        
         // Generate individual plot images
         std::map<std::string, std::vector<CurveData>> curves_by_file;
         for (const auto& curve : m_lastReport.curve_data) {
@@ -245,7 +256,7 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
             const std::string& filename = pair.first;
             std::stringstream title_ss;
             title_ss << fs::path(filename).filename().string() << " (" << pair.second[0].camera_model << ")";
-            m_individualImages[filename] = GuiPlotter::GeneratePlotAsWxImage(pair.second, results_by_file[filename], title_ss.str(), opts);
+            m_individualImages[filename] = GuiPlotter::GeneratePlotAsWxImage(pair.second, results_by_file[filename], title_ss.str(), reporting_params);
         }
         log_stream << _("In-memory plot generation complete.") << std::endl;
     }

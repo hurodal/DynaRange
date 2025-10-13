@@ -9,7 +9,7 @@
 
 #include "RenderContext.hpp"
 #include "../analysis/Analysis.hpp"
-#include "../arguments/ArgumentsOptions.hpp"
+#include "../engine/Reporting.hpp"
 #include <cairo/cairo.h>
 #include <vector>
 #include <string>
@@ -18,15 +18,12 @@ namespace DynaRange::Graphics {
 
     /**
      * @brief Draws a complete plot onto a provided Cairo context.
-     * @details This is the central "skeleton" function for all plotting. It
-     * calculates boundaries, prepares data, and calls the low-level drawing
-     * functions in the correct sequence. It is agnostic of the final output format.
      * @param cr The Cairo context to draw on.
      * @param ctx The rendering context defining the canvas dimensions.
      * @param curves The curve data to be plotted.
      * @param results The dynamic range results for labeling.
      * @param title The main title for the plot.
-     * @param opts The program options used for the analysis.
+     * @param reporting_params The parameters required for rendering the plot.
      */
     void DrawPlotToCairoContext(
         cairo_t* cr,
@@ -34,7 +31,6 @@ namespace DynaRange::Graphics {
         const std::vector<CurveData>& curves,
         const std::vector<DynamicRangeResult>& results,
         const std::string& title,
-        const ProgramOptions& opts
+        const ReportingParameters& reporting_params
     );
-
 } // namespace DynaRange::Graphics

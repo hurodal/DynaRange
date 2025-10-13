@@ -93,7 +93,7 @@ fs::path PathManager::GetCsvOutputPath() const {
     return m_output_directory / m_csv_filename;
 }
 
-fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const ProgramOptions& opts) const {
+fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const RawChannelSelection& channels, DynaRange::Graphics::Constants::PlotOutputFormat format) const {
     std::stringstream new_filename_ss;
     new_filename_ss << fs::path(curve.filename).stem().string();
     if (curve.iso_speed > 0) {
@@ -107,11 +107,11 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const Progra
     }
 
     // Add the channel suffix.
-    new_filename_ss << Formatters::GenerateChannelSuffix(opts.raw_channels);
+    new_filename_ss << Formatters::GenerateChannelSuffix(channels);
 
     // Add the correct extension based on the runtime option.
     std::string extension;
-    switch (opts.plot_format) {
+    switch (format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
@@ -121,19 +121,19 @@ fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const Progra
     return m_output_directory / new_filename_ss.str();
 }
 
-fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const ProgramOptions& opts) const {
+fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const RawChannelSelection& channels, DynaRange::Graphics::Constants::PlotOutputFormat format) const {
     std::string safe_camera_name = camera_name;
     std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
     
     // Add the correct extension based on the runtime option.
     std::string extension;
-    switch (opts.plot_format) {
+    switch (format) {
         case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }
-    std::string filename = "DR_summary_plot_" + safe_camera_name + Formatters::GenerateChannelSuffix(opts.raw_channels) + extension;
+    std::string filename = "DR_summary_plot_" + safe_camera_name + Formatters::GenerateChannelSuffix(channels) + extension;
     return m_output_directory / filename;
 }
 

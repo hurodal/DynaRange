@@ -5,11 +5,13 @@
  */
 #pragma once
 
-#include "../arguments/ArgumentsOptions.hpp"
 #include <string>
 #include <vector>
 #include <map>
 #include <opencv2/core.hpp>
+
+// Forward declaration to break the circular dependency with Processing.hpp
+struct AnalysisParameters;
 
 // --- STRUCTURE DEFINITIONS ---
 
@@ -63,10 +65,17 @@ struct SnrCurve {
 };
 
 // --- HIGH-LEVEL ANALYSIS FUNCTION DECLARATIONS ---
+/**
+ * @brief (Modified function) Calculates dynamic range results and curve data from analyzed patch data.
+ * @param patch_data The result of the patch analysis.
+ * @param params The consolidated analysis parameters.
+ * @param filename The name of the source RAW file.
+ * @param channel The specific data source channel being analyzed.
+ * @return A pair containing the DynamicRangeResult and CurveData.
+ */
 std::pair<DynamicRangeResult, CurveData> CalculateResultsFromPatches(
     PatchAnalysisResult& patch_data,
-    const ProgramOptions& opts,
+    const AnalysisParameters& params,
     const std::string& filename,
-    double camera_resolution_mpx,
     DataSource channel
 );

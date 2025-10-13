@@ -18,7 +18,7 @@
 namespace DynaRange::Graphics {
 
 void DrawPlotToCairoContext(
-    cairo_t* cr, const RenderContext& ctx, const std::vector<CurveData>& curves, const std::vector<DynamicRangeResult>& results, const std::string& title, const ProgramOptions& opts)
+    cairo_t* cr, const RenderContext& ctx, const std::vector<CurveData>& curves, const std::vector<DynamicRangeResult>& results, const std::string& title, const ReportingParameters& reporting_params)
 {
     if (curves.empty()) {
         return;
@@ -50,19 +50,17 @@ void DrawPlotToCairoContext(
     bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
     bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
     bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
-
+    
     // --- Common Logic: Prepare Info Box ---
     PlotInfoBox info_box;
     std::stringstream black_ss, sat_ss;
-    black_ss << std::fixed << std::setprecision(2) << opts.dark_value;
-    info_box.AddItem(_("Black"), black_ss.str(), opts.black_level_is_default ? _(" (estimated)") : "");
-    sat_ss << std::fixed << std::setprecision(2) << opts.saturation_value;
-    info_box.AddItem(_("Saturation"), sat_ss.str(), opts.saturation_level_is_default ? _(" (estimated)") : "");
-
-    std::string command_text = curves_with_points.empty() ? "" : curves_with_points[0].generated_command;
+    black_ss << std::fixed << std::setprecision(2) << reporting_params.dark_value;
+    info_box.AddItem(_("Black"), black_ss.str(), reporting_params.black_level_is_default ? _(" (estimated)") : "");
+    sat_ss << std::fixed << std::setprecision(2) << reporting_params.saturation_value;
+    info_box.AddItem(_("Saturation"), sat_ss.str(), reporting_params.saturation_level_is_default ? _(" (estimated)") : "");
 
     // --- Common Logic: Call low-level drawing functions in sequence ---
-    DrawPlotBase(cr, ctx, title, opts, bounds, command_text, opts.snr_thresholds_db);
-    DrawCurvesAndData(cr, ctx, info_box, curves_with_points, results, bounds, opts);
+    DrawPlotBase(cr, ctx, title, reporting_params.raw_channels, bounds, reporting_params.generated_command, reporting_params.snr_thresholds_db);
+    DrawCurvesAndData(cr, ctx, info_box, curves_with_points, results, bounds, reporting_params.plot_details);
 }
 } // namespace DynaRange::Graphics
