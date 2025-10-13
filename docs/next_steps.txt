@@ -5,6 +5,17 @@ PRIORITARIAS
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
+        El control de exposición se decide sobre todos solo los umbrales solicitados en el comando --snrthreshold_db, porque los valores de RD que queremos pelotear son todos y solo los solicitados en el comando --snrthreshold_db
+
+        Al final las curvas de S/N deben dibujarse para cada RAW:
+        * Desde el min(S/N presente en los datos, min(--snrthreshold_db))
+        * Hasta el max(S/N presente en los datos, max(--snrthreshold_db))
+
+        Y sabiendo que las extrapolaciones se pintan en discontinua:
+        * Si min(--snrthreshold_db)<min(S/N presente en los datos): discontinua en el tramo desde min(--snrthreshold_db) hasta min(S/N presente en los datos)
+        * Si max(--snrthreshold_db)>min(S/N presente en los datos): discontinua en el tramo desde min(S/N presente en los datos) hasta min(--snrthreshold_db)
+   
+
 2: FLEXIBILIZAR PARÁMETRO --raw-channels PARA QUE PUEDA OBTENERSE EL AVG DE CUALQUIER COMBINACIÓN DE CANALES, NO SOLO LOS 4 A LA VEZ
 
 3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
