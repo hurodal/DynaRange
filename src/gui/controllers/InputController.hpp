@@ -35,7 +35,6 @@ public:
     int GetPlotMode() const;
     DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
     std::vector<std::string> GetInputFiles() const;
-    std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;
     int GetChartPatchesM() const; // Rows
     int GetChartPatchesN() const; // Cols

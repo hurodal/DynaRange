@@ -9,6 +9,7 @@
 #include "controllers/LogController.hpp"
 #include "controllers/ResultsController.hpp"
 #include "controllers/ChartController.hpp"
+#include "controllers/ManualCoordsController.hpp"
 #include "../graphics/Constants.hpp"
 #include "../core/utils/PathManager.hpp"
 #include <wx/msgdlg.h>
@@ -33,7 +34,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
     m_resultsController = std::make_unique<ResultsController>(this);
     m_chartController = std::make_unique<ChartController>(this);
-
+    m_manualCoordsController = std::make_unique<ManualCoordsController>(this); // Instantiate new controller
+    m_rawImagePreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
     // --- Manual UI Component Creation ---
     m_resultsCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
     m_resultsCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -46,7 +48,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     wxBoxSizer* chartPlaceholderSizer = new wxBoxSizer(wxVERTICAL);
     chartPlaceholderSizer->Add(m_chartPreviewPanel, 1, wxEXPAND, 0);
     m_webView2PlaceholderPanel->SetSizer(chartPlaceholderSizer);
-    
+
     // --- Create the Presenter ---
     m_presenter = std::make_unique<GuiPresenter>(this);
 
@@ -55,7 +57,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_chartPreviewPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnChartPreviewPaint, this);
     m_resultsCanvasPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_resultsCanvasPanel->Refresh(); event.Skip(); });
     m_chartPreviewPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_chartPreviewPanel->Refresh(); event.Skip(); });
-    
+
     // Top-level events that remain handled by the Frame
     m_executeButton->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnExecuteClick, this);
     m_removeAllFiles->Bind(wxEVT_BUTTON, &DynaRangeFrame::OnRemoveAllFilesClick, this);
@@ -65,7 +67,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     Bind(wxEVT_SIZE, &DynaRangeFrame::OnSize, this);
     m_mainNotebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &DynaRangeFrame::OnNotebookPageChanged, this);
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
-    
+
     // --- Event bindings delegated directly to controllers ---
     
     // InputController bindings
@@ -89,14 +91,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_snrThresholdsValues->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &InputController::OnDrNormSliderChanged, m_inputController.get());
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &InputController::OnDrNormSliderChanged, m_inputController.get());
-    m_coordX1Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordY1Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordX2Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordY2Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordX3Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordY3Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordX4Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_coordY4Value->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
     m_chartPatchRowValue1->Bind(wxEVT_TEXT, &InputController::OnInputChartPatchChanged, m_inputController.get());
     m_chartPatchColValue1->Bind(wxEVT_TEXT, &InputController::OnInputChartPatchChanged, m_inputController.get());
     m_debugPatchesCheckBox->Bind(wxEVT_CHECKBOX, &InputController::OnDebugPatchesCheckBoxChanged, m_inputController.get());
@@ -118,7 +112,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     chartButtonCreate->Bind(wxEVT_BUTTON, &ChartController::OnCreateClick, m_chartController.get());
     m_InvGammaValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartDimXValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
-    // FIX: Bind chart dimension controls to the correct controller (ChartController)
     m_chartDimWValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartDimHValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
@@ -249,7 +242,7 @@ int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrde
 int DynaRangeFrame::GetPlotMode() const { return m_inputController->GetPlotMode(); }
 std::vector<std::string> DynaRangeFrame::GetInputFiles() const { return m_inputController->GetInputFiles();
 }
-std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_inputController->GetChartCoords(); }
+std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_manualCoordsController->GetChartCoords(); }
 int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN();
 }
@@ -271,8 +264,13 @@ void DynaRangeFrame::OnClose(wxCloseEvent& event) {
 void DynaRangeFrame::OnGaugeTimer(wxTimerEvent& event) { m_processingGauge->Pulse();
 }
 
-void DynaRangeFrame::OnNotebookPageChanged(wxNotebookEvent& event) { event.Skip();}
-
+void DynaRangeFrame::OnNotebookPageChanged(wxNotebookEvent& event) {
+    // Check if the newly selected page is the "Input Manual Coords." tab
+    if (event.GetSelection() == m_mainNotebook->FindPage(m_inputManualCoords)) {
+        m_manualCoordsController->LoadSourceImage();
+    }
+    event.Skip();
+}
 
 void DynaRangeFrame::OnSize(wxSizeEvent& event) { event.Skip();}
 

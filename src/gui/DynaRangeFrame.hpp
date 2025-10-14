@@ -24,7 +24,9 @@ class FileDropTarget;
 class InputController;
 class LogController;
 class ResultsController;
+class ManualCoordsController; 
 class wxSplitterEvent;
+class wxNotebookEvent;
 
 // Custom event declarations
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -101,11 +103,13 @@ private:
     std::unique_ptr<LogController> m_logController;
     std::unique_ptr<ResultsController> m_resultsController;
     std::unique_ptr<ChartController> m_chartController;
-
+    std::unique_ptr<ManualCoordsController> m_manualCoordsController;
+    
     // Grant controllers access to protected UI members.
     friend class InputController;
     friend class ResultsController;
     friend class ChartController;
+    friend class ManualCoordsController;
     friend class FileDropTarget;
 };
 

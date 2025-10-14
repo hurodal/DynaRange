@@ -83,6 +83,7 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
+   
     src/core/graphics/detection/ChartCornerDetector.cpp
     src/core/graphics/drawing/AxisDrawer.cpp
     src/core/graphics/drawing/AxisLabelDrawer.cpp
@@ -107,6 +108,7 @@ set(CORE_SOURCES
     src/core/io/raw/RawLoader.cpp
     src/core/io/raw/RawMetadataExtractor.cpp
     src/core/math/Math.cpp
+   
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
     src/core/setup/MetadataExtractor.cpp
@@ -141,6 +143,7 @@ target_include_directories(rango PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+   
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
@@ -148,12 +151,15 @@ add_executable(dynaRangeGui WIN32
     src/gui/controllers/ChartController.cpp
     src/gui/controllers/InputController.cpp
     src/gui/controllers/LogController.cpp
+    src/gui/controllers/ManualCoordsController.cpp
     src/gui/controllers/ResultsController.cpp
     src/gui/DynaRangeFrame.cpp
     src/gui/DynaRangeGuiApp.cpp
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
+    src/gui/helpers/CvWxImageConverter.cpp
     src/gui/helpers/GuiPlotter.cpp 
+    src/gui/helpers/RawExtensionHelper.cpp
     src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
 )
@@ -230,6 +236,6 @@ target_link_libraries(dynaRangeGui PRIVATE
 # =============================================================================
 # 6. ASSET MANAGEMENT
 # =============================================================================
-# Esta sección es nueva. Se encarga de copiar los recursos necesarios (imágenes,
+# Se encarga de copiar los recursos necesarios (imágenes,
 # etc.) al directorio de salida para que los ejecutables puedan encontrarlos.
 file(COPY assets/images DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)

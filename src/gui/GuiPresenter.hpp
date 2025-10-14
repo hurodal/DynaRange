@@ -47,7 +47,7 @@ public:
    * @brief Handles a click on the results grid, triggering the summary plot display.
    */
   void HandleGridCellClick();
-
+  
   /**
    * @brief Gets the options used for the most recent analysis run.
    * @return A const reference to the ProgramOptions struct.

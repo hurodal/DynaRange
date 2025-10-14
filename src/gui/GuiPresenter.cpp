@@ -156,13 +156,15 @@ void GuiPresenter::StartAnalysis()
 
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
     
-    // Set the GUI-specific flag after creating the options from the manager
     m_lastRunOptions.generate_individual_plots = m_view->ShouldGenerateIndividualPlots();
 
     if (m_lastRunOptions.input_files.empty()) {
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
+    
+    // The source image selection logic is now handled inside RunDynamicRangeAnalysis,
+    // so it is no longer needed here. We just pass the options.
 
     if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
         std::set<std::string> calibration_files;
@@ -185,10 +187,9 @@ void GuiPresenter::StartAnalysis()
         UpdateCommandPreview();
     }
 
-    // Determine number of threads and pass it to the view.
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) {
-        num_threads = 1; // Fallback for safety.
+        num_threads = 1; 
     }
     m_view->SetUiState(true, num_threads);
     if (m_workerThread.joinable()) {

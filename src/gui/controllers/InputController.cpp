@@ -4,10 +4,12 @@
  * @brief Implements the InputController class.
  */
 #include "InputController.hpp"
+#include "../Constants.hpp"
 #include "../DynaRangeFrame.hpp" // To access frame members and their members
 #include "../GuiPresenter.hpp"   // To call presenter methods
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../graphics/Constants.hpp"
+#include "../helpers/RawExtensionHelper.hpp"
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
@@ -17,56 +19,6 @@
 #include <set>
 #include <string>
 #include <sstream>
-
-namespace { // Anonymous namespace for internal helpers
-
-const std::vector<std::string>& GetSupportedRawExtensions() {
-    static std::vector<std::string> extensions;
-    if (extensions.empty()) {
-        // Verificamos si la versión de LibRaw es >= 0.22.0 usando macros oficiales
-        #if defined(LIBRAW_MAJOR_VERSION) && defined(LIBRAW_MINOR_VERSION)
-            #if LIBRAW_MAJOR_VERSION > 0 || (LIBRAW_MAJOR_VERSION == 0 && LIBRAW_MINOR_VERSION >= 22)
-                // LibRaw 0.22.0+ → usamos la API dinámica
-                LibRaw proc;
-                int count = 0;
-                const char** ext_list = proc.get_supported_extensions_list(&count);
-                if (ext_list) {
-                    std::set<std::string> unique;
-                    for (int i = 0; i < count; ++i) {
-                        if (!ext_list[i]) continue;
-                        std::string ext(ext_list[i]);
-                        if (!ext.empty() && ext[0] == '.') {
-                            ext = ext.substr(1);
-                        }
-                        std::transform(ext.begin(), ext.end(), ext.begin(),
-                            [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
-                        if (!ext.empty()) {
-                            unique.insert(ext);
-                        }
-                    }
-                    extensions.assign(unique.begin(), unique.end());
-                }
-            #endif
-        #endif
-
-        // Si no se pudo obtener dinámicamente (versión antigua o fallo), usar fallback
-        if (extensions.empty()) {
-            // Lista completa de extensiones soportadas por LibRaw (hasta 0.21.4)
-            static const std::vector<std::string> fallback = {
-                "3fr", "ari", "arw", "bay", "crw", "cr2", "cr3",
-                "cap", "data", "dcs", "dcr", "dng", "drf", "eip",
-                "erf", "fff", "gpr", "iiq", "k25", "kdc", "mdc",
-                "mef", "mos", "mrw", "nef", "nrw", "obm", "orf",
-                "pef", "ptx", "pxn", "r3d", "raf", "raw", "rwl",
-                "rw2", "rwz", "sr2", "srf", "srw", "x3f"
-            };
-            extensions = fallback;
-        }
-    }
-    return extensions;
-}
-
-} // end anonymous namespace
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     // Dynamically populate the polynomial order choice control.
@@ -179,35 +131,6 @@ void InputController::AddDroppedFiles(const wxArrayString& filenames) {
     }
 }
 
-std::vector<double> InputController::GetChartCoords() const {
-    std::vector<double> coords;
-    coords.reserve(8);
-
-    // List of all coordinate text controls
-    std::vector<wxTextCtrl*> controls = {
-        m_frame->m_coordX1Value, m_frame->m_coordY1Value,
-        m_frame->m_coordX2Value, m_frame->m_coordY2Value,
-        m_frame->m_coordX3Value, m_frame->m_coordY3Value,
-        m_frame->m_coordX4Value, m_frame->m_coordY4Value
-    };
-
-    for (wxTextCtrl* control : controls) {
-        wxString value_str = control->GetValue();
-        // If any field is empty, we consider the whole set invalid.
-        if (value_str.IsEmpty()) {
-            return {}; // Return empty vector
-        }
-        double val;
-        if (!value_str.ToDouble(&val)) {
-            // If conversion fails for any field, also return empty.
-            return {};
-        }
-        coords.push_back(val);
-    }
-
-    return coords;
-}
-
 int InputController::GetChartPatchesM() const {
     long value = 0;
     m_frame->m_chartPatchRowValue1->GetValue().ToLong(&value);
@@ -290,38 +213,21 @@ bool InputController::ShouldGenerateIndividualPlots() const {
 }
 
 void InputController::OnAddFilesClick(wxCommandEvent& event) {
-    // 1. Obtener la lista de extensiones dinámicamente.
-    const auto& supported_extensions = GetSupportedRawExtensions();
+    // 1. Get the list of extensions using the helper.
+    const auto& supported_extensions = GuiHelpers::GetSupportedRawExtensions();
 
-    // 2. Construir la cadena de comodines (wildcard).
-    wxString wildcard;
-    for (size_t i = 0; i < supported_extensions.size(); ++i) {
-        wxString ext_lower = supported_extensions[i];
-        wxString ext_upper = ext_lower.Upper();
-        
-        wildcard += wxString::Format("*.%s;*.%s", ext_lower, ext_upper);
-        
-        if (i < supported_extensions.size() - 1) {
-            wildcard += ";";
-        }
-    }
-
-    // 3. Construir la cadena de filtro final para el diálogo.
-    wxString filter = wxString::Format(
-        _("RAW files (%s)|%s|All files (*.*)|*.*"),
-        wildcard, wildcard
-    );
-
-    // 4. Crear y mostrar el diálogo de selección de ficheros, usando la ruta recordada.
+    // 2. Build the wildcard string using the centralized function.
+    wxString filter = DynaRange::Gui::Constants::GetSupportedExtensionsWildcard(supported_extensions);
+    
+    // 3. Create and show the file dialog.
     wxFileDialog openFileDialog(m_frame, _("Select RAW files"), m_lastDirectoryPath, "", filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     
-    if (openFileDialog.ShowModal() == wxID_CANCEL) { return;
-    }
+    if (openFileDialog.ShowModal() == wxID_CANCEL) { return; }
     
     wxArrayString paths;
     openFileDialog.GetPaths(paths);
-
-    // 5. Recordar la nueva ruta y actualizar los directorios iniciales de los otros selectores.
+    
+    // 4. Remember the new path and update other pickers.
     if (paths.GetCount() > 0) {
         m_lastDirectoryPath = wxFileName(paths[0]).GetPath();
         m_frame->m_darkFilePicker->SetInitialDirectory(m_lastDirectoryPath);
