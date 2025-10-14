@@ -101,7 +101,7 @@ Definition: number of Mpx for DR normalization (default=8Mpx, no normalization=p
 Explanation: in order to properly and fairly compare different resolution cameras, the SNR values need to be normalized to a given output resolution before calculating the DR. This means DR figures will vary according to this resolution normalization, obtaining higher values the lower the number of Mpx specified
 Usage: by default a 8Mpx based DR is calculated. If no normalization is wanted (per-pixel DR) a value of 0 must be set for this parameter
 Examples (first example is default and is equivalent to not specifying the parameter):
---drnormalization-mpx .m      (DR normalized to 8Mpx)
+--drnormalization-mpx -m      (DR normalized to 8Mpx)
 --drnormalization-mpx -m 21.5 (DR normalized to 21.5Mpx)
 --drnormalization-mpx -m 0    (no normalization, per-pixel DR)
 
@@ -162,6 +162,7 @@ Usage: the user can additionally supply a output name for the PNG file
 Examples (first example is default and is equivalent to not specifying the parameter):
 --print-patches -g                     (display used patches in "printpatches.png") 
 --print-patches -g patch_debugging.png (display used patches in "patch_debugging.png") 
+
 
 
 
