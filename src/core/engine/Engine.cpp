@@ -29,6 +29,35 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
     if (!init_result.success) {
         return {}; // Return an empty ReportOutput on failure
     }
+
+    // --- New Logic: Select the source image for corner/patch detection ---
+    int source_image_index = 0; // Default to the darkest file (index 0)
+    bool found_non_saturated = false;
+    // Iterate backwards from the brightest file to find the first non-saturated one.
+    for (int i = init_result.loaded_raw_files.size() - 1; i >= 0; --i) {
+        const auto& raw_file = init_result.loaded_raw_files[i];
+        if (raw_file.IsLoaded()) {
+            cv::Mat active_img = raw_file.GetActiveRawImage();
+            if (!active_img.empty()) {
+                // A pixel is considered saturated if it's at 99% or more of the saturation level.
+                int saturated_pixels = cv::countNonZero(active_img >= (init_result.saturation_value * 0.99));
+                if (saturated_pixels == 0) {
+                    source_image_index = i;
+                    found_non_saturated = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (found_non_saturated) {
+        log_stream << _("[INFO] Selected '") << fs::path(init_result.loaded_raw_files[source_image_index].GetFilename()).filename().string()
+                   << _("' as the source image for detection (brightest non-saturated).") << std::endl;
+    } else {
+        log_stream << _("[INFO] All images contain saturated pixels. Selected '") << fs::path(init_result.loaded_raw_files[source_image_index].GetFilename()).filename().string()
+                   << _("' as the source image for detection (darkest).") << std::endl;
+    }
+    // --- End New Logic ---
     
     PathManager paths(opts);
     // Create the analysis parameters struct from the explicit results of the initialization phase.
@@ -47,7 +76,8 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .raw_channels = opts.raw_channels,
         .print_patch_filename = opts.print_patch_filename,
         .plot_labels = init_result.plot_labels,
-        .generated_command = init_result.generated_command
+        .generated_command = init_result.generated_command,
+        .source_image_index = source_image_index // Pass the selected index
     };
 
     // Phase 2: Processing of all files, now using the decoupled parameters.
@@ -84,5 +114,4 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
 
     return report;
 }
-
 } // namespace DynaRange

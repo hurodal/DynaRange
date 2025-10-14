@@ -19,16 +19,16 @@ namespace fs = std::filesystem;
 namespace DynaRange::Engine::Processing {
 
 std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
-    const std::vector<RawFile>& raw_files,
+    const RawFile& source_raw_file,
     const std::vector<double>& chart_coords,
     double dark_value,
     double saturation_value,
     const PathManager& paths,
     std::ostream& log_stream)
 {
-    if (chart_coords.empty() && !raw_files.empty() && raw_files[0].IsLoaded()) {
+    if (chart_coords.empty() && source_raw_file.IsLoaded()) {
         log_stream << _("Manual coordinates not provided, attempting automatic corner detection...") << std::endl;
-        cv::Mat raw_img = raw_files[0].GetRawImage();
+        cv::Mat raw_img = source_raw_file.GetRawImage();
         cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
 
         int bayer_rows = img_float.rows / 2;
@@ -65,7 +65,6 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
             double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
             double detected_chart_area = cv::contourArea(corners_float);
             double area_percentage = (detected_chart_area / total_image_area);
-
             if (area_percentage < DynaRange::Engine::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
                 log_stream << _("Warning: Automatic corner detection found an area covering only ")
                            << std::fixed << std::setprecision(1) << (area_percentage * 100.0)

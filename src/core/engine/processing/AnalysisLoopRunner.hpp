@@ -4,7 +4,8 @@
  * @brief Declares a component for running the main analysis loop over a set of files.
  * @details This module adheres to SRP by encapsulating the entire loop execution,
  * including keystone optimization strategy and result aggregation, separating it
- * from the high-level orchestration in ProcessFiles. It supports parallel execution.
+ * from the high-level orchestration in ProcessFiles.
+ * It supports parallel execution.
  */
 #pragma once
 
@@ -32,6 +33,7 @@ public:
      * @param camera_model_name The detected camera model name.
      * @param log_stream The output stream for logging.
      * @param cancel_flag The atomic flag for cancellation.
+     * @param source_image_index The index of the file to use for debug image generation.
      */
     AnalysisLoopRunner(
         const std::vector<RawFile>& raw_files,
@@ -39,7 +41,8 @@ public:
         const ChartProfile& chart,
         const std::string& camera_model_name,
         std::ostream& log_stream,
-        const std::atomic<bool>& cancel_flag
+        const std::atomic<bool>& cancel_flag,
+        int source_image_index
     );
 
     /**
@@ -55,6 +58,7 @@ private:
     const std::string& m_camera_model_name;
     std::ostream& m_log_stream;
     const std::atomic<bool>& m_cancel_flag;
+    int m_source_image_index;
 };
 
 } // namespace DynaRange::Engine::Processing

@@ -41,9 +41,18 @@ ProcessingResult ProcessFiles(
     const std::vector<RawFile>& raw_files)
 {
     // 1. Files are already loaded, so we proceed directly to analysis.
-
-    // 2. Attempt automatic corner detection
-    std::optional<std::vector<cv::Point2d>> detected_corners_opt = DynaRange::Engine::Processing::AttemptAutomaticCornerDetection(raw_files, params.chart_coords, params.dark_value, params.saturation_value, paths, log_stream);
+    // 2. Attempt automatic corner detection using only the selected source file.
+    std::optional<std::vector<cv::Point2d>> detected_corners_opt;
+    if (params.source_image_index < raw_files.size()) {
+        detected_corners_opt = DynaRange::Engine::Processing::AttemptAutomaticCornerDetection(
+            raw_files[params.source_image_index], // Pass the single RawFile object by const reference
+            params.chart_coords, 
+            params.dark_value, 
+            params.saturation_value, 
+            paths, 
+            log_stream
+        );
+    }
     
     // 3. Define the analysis context
     ChartProfile chart(params.chart_coords, params.chart_patches_m, params.chart_patches_n, detected_corners_opt, log_stream);
@@ -58,14 +67,14 @@ ProcessingResult ProcessFiles(
         log_stream << _("Debug patch image will be saved to: ") << debug_path.string() << std::endl;
     }
     log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
-    
     // Add a log message indicating parallel processing will be used.
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) num_threads = 1; // Fallback for safety
     log_stream << _("Starting parallel processing with ") << num_threads << _(" threads...") << std::endl;
     
     // 4. Delegate the entire analysis loop to the specialized runner.
-    DynaRange::Engine::Processing::AnalysisLoopRunner runner(raw_files, params, chart, camera_model_name, log_stream, cancel_flag);
+    // The missing 7th argument, params.source_image_index, is now provided.
+    DynaRange::Engine::Processing::AnalysisLoopRunner runner(raw_files, params, chart, camera_model_name, log_stream, cancel_flag, params.source_image_index);
     
     return runner.Run();
 }

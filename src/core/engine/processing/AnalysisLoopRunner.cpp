@@ -115,19 +115,20 @@ AnalysisLoopRunner::AnalysisLoopRunner(
     const ChartProfile& chart,
     const std::string& camera_model_name,
     std::ostream& log_stream,
-    const std::atomic<bool>& cancel_flag)
+    const std::atomic<bool>& cancel_flag,
+    int source_image_index) // New parameter
     : m_raw_files(raw_files),
       m_params(params),
       m_chart(chart),
       m_camera_model_name(camera_model_name),
       m_log_stream(log_stream),
-      m_cancel_flag(cancel_flag)
+      m_cancel_flag(cancel_flag),
+      m_source_image_index(source_image_index) // Initialize new member
 {}
 
 ProcessingResult AnalysisLoopRunner::Run()
 {
     ProcessingResult result;
-    
     std::mutex log_mutex;
 
     cv::Mat keystone_params;
@@ -145,15 +146,15 @@ ProcessingResult AnalysisLoopRunner::Run()
 
     for (size_t i = 0; i < m_raw_files.size(); i += num_threads) {
         if (m_cancel_flag) break;
-        
         std::vector<std::future<std::vector<SingleFileResult>>> batch_futures;
 
         for (size_t j = i; j < std::min(i + num_threads, m_raw_files.size()); ++j) {
             const auto& raw_file = m_raw_files[j];
             if (!raw_file.IsLoaded()) continue;
 
-            bool generate_debug_image = (j == 0 && !m_params.print_patch_filename.empty());
-            
+            // Use the selected source_image_index to decide which iteration generates the debug image.
+            bool generate_debug_image = (j == m_source_image_index && !m_params.print_patch_filename.empty());
+
             batch_futures.push_back(std::async(std::launch::async, 
                 [&, generate_debug_image, keystone_params, &raw_file = raw_file]() {
                     cv::Mat local_keystone = keystone_params;
@@ -168,15 +169,12 @@ ProcessingResult AnalysisLoopRunner::Run()
         
         for (auto& fut : batch_futures) {
             if (m_cancel_flag) break;
-            
             std::vector<SingleFileResult> file_results_vec = fut.get();
             for (auto& file_result : file_results_vec) {
                 if (!file_result.final_debug_image.empty()) {
                     std::lock_guard<std::mutex> lock(log_mutex);
                     result.debug_patch_image = file_result.final_debug_image;
                     
-                    // PathManager is needed here, but we don't have it.
-                    // This logic will be moved in a later step. For now, we temporarily create one.
                     ProgramOptions temp_opts;
                     temp_opts.output_filename = "results.csv"; // Dummy path
                     PathManager paths(temp_opts);
