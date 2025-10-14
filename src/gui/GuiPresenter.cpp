@@ -155,6 +155,10 @@ void GuiPresenter::StartAnalysis()
     UpdateManagerFromView();
 
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
+    
+    // Set the GUI-specific flag after creating the options from the manager
+    m_lastRunOptions.generate_individual_plots = m_view->ShouldGenerateIndividualPlots();
+
     if (m_lastRunOptions.input_files.empty()) {
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
@@ -187,7 +191,6 @@ void GuiPresenter::StartAnalysis()
         num_threads = 1; // Fallback for safety.
     }
     m_view->SetUiState(true, num_threads);
-
     if (m_workerThread.joinable()) {
         m_workerThread.join();
     }

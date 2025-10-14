@@ -344,6 +344,10 @@ DynaRange::Graphics::Constants::PlotOutputFormat DynaRangeFrame::GetPlotFormat()
     return m_inputController->GetPlotFormat();
 }
 
+bool DynaRangeFrame::ShouldGenerateIndividualPlots() const {
+    return m_inputController->ShouldGenerateIndividualPlots();
+}
+
 bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) {
     if (m_owner && m_owner->m_inputController) {
         // Delegate the file handling to the InputController

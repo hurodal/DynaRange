@@ -285,6 +285,9 @@ PlottingDetails InputController::GetPlottingDetails() const {
     return details;
 }
 
+bool InputController::ShouldGenerateIndividualPlots() const {
+    return m_frame->allIsosCheckBox->IsChecked();
+}
 
 void InputController::OnAddFilesClick(wxCommandEvent& event) {
     // 1. Obtener la lista de extensiones dinámicamente.

@@ -13,7 +13,6 @@
 
 // Forward declaration
 class PathManager;
-
 /**
  * @struct ReportingParameters
  * @brief (New struct) Encapsulates all parameters needed for the reporting phase.
@@ -22,12 +21,15 @@ class PathManager;
 struct ReportingParameters {
     // General reporting settings
     RawChannelSelection raw_channels;
+
     // Plot-specific settings
     bool generate_plot;
+    bool generate_individual_plots;
     DynaRange::Graphics::Constants::PlotOutputFormat plot_format;
     PlottingDetails plot_details;
     int plot_command_mode;
     std::string generated_command;
+
     // Data for plot info box
     double dark_value;
     double saturation_value;
@@ -35,7 +37,6 @@ struct ReportingParameters {
     bool saturation_level_is_default;
     std::vector<double> snr_thresholds_db;
 };
-
 /**
  * @struct ReportOutput
  * @brief Contains the results of the reporting phase, primarily file paths.
@@ -46,8 +47,10 @@ struct ReportOutput {
     
     /// @brief Maps each source RAW filename to the path of its generated individual plot.
     std::map<std::string, std::string> individual_plot_paths;
+
     /// @brief The final, absolute path where the CSV results file was saved.
     std::string final_csv_path;
+
     // Added the vector of results to this struct. This ensures the final,
     // sorted list of results is available to the GUI presenter.
     std::vector<DynamicRangeResult> dr_results;

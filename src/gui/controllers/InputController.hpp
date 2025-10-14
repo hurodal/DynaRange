@@ -43,7 +43,11 @@ public:
     PlottingDetails GetPlottingDetails() const;
     bool ShouldSaveLog() const;
     bool ValidateSnrThresholds() const;
-
+    /**
+     * @brief (New Function) Checks if the user wants to generate individual plot files.
+     * @return True if the "All ISOs" checkbox is checked, false otherwise.
+     */
+    bool ShouldGenerateIndividualPlots() const;
     // Methods to update the view
     void UpdateInputFileList(const std::vector<std::string>& files);
     void UpdateCommandPreview(const std::string& command);

@@ -148,7 +148,10 @@ std::map<std::string, std::string> GenerateIndividualPlots(
     std::ostream& log_stream)
 {
     std::map<std::string, std::string> plot_paths_map;
-    if (!reporting_params.generate_plot) return plot_paths_map;
+    // Check both the general plot flag and the new specific one for individual plots
+    if (!reporting_params.generate_plot || !reporting_params.generate_individual_plots) {
+        return plot_paths_map;
+    }
 
     log_stream << "\n" << _("Generating individual SNR plots...") << std::endl;
 
@@ -156,7 +159,6 @@ std::map<std::string, std::string> GenerateIndividualPlots(
     for (auto& curve : all_curves_with_points) {
         curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
     }
-    // Call the new centralized function
     const auto global_bounds = DynaRange::Graphics::CalculateGlobalBounds(all_curves_with_points);
 
     std::map<std::string, std::vector<CurveData>> curves_by_file;

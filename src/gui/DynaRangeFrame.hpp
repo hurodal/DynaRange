@@ -66,6 +66,7 @@ public:
     PlottingDetails GetPlottingDetails() const;
     bool ValidateSnrThresholds() const;
     bool ShouldSaveLog() const;
+    bool ShouldGenerateIndividualPlots() const;
 
 protected:
     // --- Event Handlers that remain in the Frame ---

@@ -22,7 +22,6 @@ constexpr const char* DEFAULT_OUTPUT_FILENAME = "results.csv";
 
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
-
 inline int PolyOrderFromIndex(int index) {
     if (index >= 0 && static_cast<size_t>(index) < std::size(VALID_POLY_ORDERS)) {
         return VALID_POLY_ORDERS[index];
@@ -40,7 +39,6 @@ enum class CommandFormat {
     PlotLong,
     GuiPreview
 };
-
 /**
  * @struct PlottingDetails
  * @brief Holds boolean flags for which components of a plot to draw.
@@ -50,7 +48,6 @@ struct PlottingDetails {
     bool show_curve = true;    ///< Draw the fitted polynomial curve.
     bool show_labels = true;   ///< Draw the DR value labels at the threshold intersections.
 };
-
 /**
  * @enum AvgMode
  * @brief Specifies the averaging mode for RAW channels.
@@ -60,7 +57,6 @@ enum class AvgMode {
     Full = 1,     ///< Average all four RAW channels (R, G1, G2, B).
     Selected = 2  ///< Average only the channels explicitly selected by the user.
 };
-
 /**
  * @struct RawChannelSelection
  * @brief Holds the boolean selection for which RAW channels to analyze.
@@ -72,7 +68,6 @@ struct RawChannelSelection {
     bool B = false;
     AvgMode avg_mode = AvgMode::Full; // Replaced bool AVG. Default is to average all.
 };
-
 /**
  * @struct ProgramOptions
  * @brief Holds all the configuration options for the dynamic range analysis.
@@ -96,17 +91,22 @@ struct ProgramOptions {
     std::vector<std::string> chart_colour_params;
     std::vector<int> chart_params;
     std::vector<double> chart_coords;
-    std::vector<int> chart_patches;
-    // [M, N]
+    std::vector<int> chart_patches; // [M, N]
     RawChannelSelection raw_channels;
     std::string generated_command;
     std::map<std::string, std::string> plot_labels;
     double sensor_resolution_mpx = 0.0;
     std::string print_patch_filename;
+    
+    /**
+     * @brief If true, individual plot files will be generated for each input RAW file.
+     * @details Defaults to false. The GUI can override this based on a checkbox.
+     */
+    bool generate_individual_plots = false;
+
     // --- Internal Flags ---
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
-    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
-    }
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

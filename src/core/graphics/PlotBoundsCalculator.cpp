@@ -9,6 +9,7 @@
 
 namespace DynaRange::Graphics {
 
+
 std::map<std::string, double> CalculateGlobalBounds(const std::vector<CurveData>& curves) {
     double min_ev_global = 1e6, max_ev_global = -1e6;
     double min_db_global = 1e6, max_db_global = -1e6;
@@ -28,16 +29,17 @@ std::map<std::string, double> CalculateGlobalBounds(const std::vector<CurveData>
     std::map<std::string, double> bounds;
     if (min_ev_global > max_ev_global) { // Case where there's no data
         bounds["min_ev"] = -15.0;
-        bounds["max_ev"] = 1.0;
+        bounds["max_ev"] = 0.0; // Corrected: The maximum EV value cannot exceed 0.
         bounds["min_db"] = -20.0;
         bounds["max_db"] = 40.0;
     } else {
         bounds["min_ev"] = floor(min_ev_global) - 1.0;
-        bounds["max_ev"] = (max_ev_global < 0.0) ? 1.0 : ceil(max_ev_global) + 1.0;
+        bounds["max_ev"] = 0.0; // Corrected: The maximum EV value is always capped at 0.
         bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
         bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
     }
     return bounds;
 }
+
 
 } // namespace DynaRange::Graphics
