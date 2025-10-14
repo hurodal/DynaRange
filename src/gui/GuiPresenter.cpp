@@ -311,35 +311,12 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
     }
 }
 
-void GuiPresenter::HandleGridCellClick(const std::string& basename)
+void GuiPresenter::HandleGridCellClick()
 {
-    // If the basename is empty, it's a header click or invalid row, so show the summary plot.
-    if (basename.empty()) {
-        if (m_summaryImage.IsOk()) {
-            m_view->DisplayImage(m_summaryImage);
-        }
-        return;
+    // Always display the summary image, if it's valid.
+    if (m_summaryImage.IsOk()) {
+        m_view->DisplayImage(m_summaryImage);
     }
-
-    // Find the corresponding full path by searching through the last report results.
-    // The m_individualImages map uses the full path as its key.
-    for (const auto& result : m_lastReport.dr_results) {
-        if (fs::path(result.filename).filename().string() == basename) {
-            // Found the matching full path.
-            const std::string& full_path = result.filename;
-
-            if (m_individualImages.count(full_path)) {
-                const wxImage& individual_image = m_individualImages.at(full_path);
-                if (individual_image.IsOk()) {
-                    m_view->DisplayImage(individual_image);
-                    return; // Found and displayed, so we are done.
-                }
-            }
-        }
-    }
-
-    // If we get here, it means no matching image was found for the clicked filename.
-    // In this case, we simply do nothing and leave the current image displayed.
 }
 
 void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)

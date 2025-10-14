@@ -44,10 +44,9 @@ public:
   void UpdateCommandPreview();
 
   /**
-   * @brief Handles a click on the results grid, triggering a plot display.
-   * @param filename The filename (basename) corresponding to the clicked row.
+   * @brief Handles a click on the results grid, triggering the summary plot display.
    */
-  void HandleGridCellClick(const std::string& filename);
+  void HandleGridCellClick();
 
   /**
    * @brief Gets the options used for the most recent analysis run.
