@@ -112,6 +112,8 @@ private:
    */
   void UpdateManagerFromView();
 
+  void UpdateRawPreview();
+
   // Member variables
   DynaRangeFrame *m_view; // Pointer to the View
 

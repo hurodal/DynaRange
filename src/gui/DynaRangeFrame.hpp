@@ -24,13 +24,13 @@ class FileDropTarget;
 class InputController;
 class LogController;
 class ResultsController;
-class ManualCoordsController; 
 class wxSplitterEvent;
 class wxNotebookEvent;
 
 // Custom event declarations
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_COMMAND_PREVIEW_UPDATE_COMPLETE, wxCommandEvent);
 
 class DynaRangeFrame : public MyFrameBase {
 public:
@@ -39,13 +39,14 @@ public:
 
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files);
-    void UpdateCommandPreview(const std::string& command);
+    void UpdateCommandPreview(const std::string& command); // Corrected signature
     void DisplayResults(const std::string& csv_path);
     void ShowError(const wxString& title, const wxString& message);
     void SetUiState(bool is_processing, int num_threads = 0);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
     void DisplayImage(const wxImage& image);
+    void UpdateRawPreview(const std::string& path);
 
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
@@ -103,13 +104,11 @@ private:
     std::unique_ptr<LogController> m_logController;
     std::unique_ptr<ResultsController> m_resultsController;
     std::unique_ptr<ChartController> m_chartController;
-    std::unique_ptr<ManualCoordsController> m_manualCoordsController;
     
     // Grant controllers access to protected UI members.
     friend class InputController;
     friend class ResultsController;
     friend class ChartController;
-    friend class ManualCoordsController;
     friend class FileDropTarget;
 };
 
@@ -120,7 +119,6 @@ public:
     {
     }
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) override;
-
 private:
     DynaRangeFrame* m_owner;
 };

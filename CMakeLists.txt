@@ -151,7 +151,6 @@ add_executable(dynaRangeGui WIN32
     src/gui/controllers/ChartController.cpp
     src/gui/controllers/InputController.cpp
     src/gui/controllers/LogController.cpp
-    src/gui/controllers/ManualCoordsController.cpp
     src/gui/controllers/ResultsController.cpp
     src/gui/DynaRangeFrame.cpp
     src/gui/DynaRangeGuiApp.cpp

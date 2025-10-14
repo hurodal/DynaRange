@@ -10,15 +10,20 @@
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../graphics/Constants.hpp"
 #include "../helpers/RawExtensionHelper.hpp"
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
-#include <wx/filename.h>
+#include "../helpers/CvWxImageConverter.hpp"
+#include "wx/dcbuffer.h"
+#include "wx/graphics.h"
+#include "wx/log.h"
 #include <libraw/libraw.h>
 #include <libraw/libraw_version.h>
-#include <vector>
+#include <opencv2/imgproc.hpp>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
+#include <wx/filedlg.h>
+#include <wx/filename.h>
+#include <wx/msgdlg.h>
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     // Dynamically populate the polynomial order choice control.
@@ -55,6 +60,10 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->G2_checkBox->SetValue(false);
     m_frame->B_checkBox->SetValue(false);
     m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
+
+    // Bind events for the preview panel
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_PAINT, &InputController::OnPaintPreview, this);
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_SIZE, &InputController::OnSizePreview, this);
 }
 
 // --- Getters ---
@@ -316,5 +325,115 @@ void InputController::OnInputChartPatchChanged(wxCommandEvent& event) {
     OnInputChanged(event);
 
     m_frame->m_isUpdatingPatches = false;
+    event.Skip();
+}
+
+std::vector<double> InputController::GetChartCoords() const {
+    std::vector<double> coords;
+    coords.reserve(8);
+    // List of all coordinate text controls
+    std::vector<wxTextCtrl*> controls = {
+        m_frame->m_coordX1Value, m_frame->m_coordY1Value,
+        m_frame->m_coordX2Value, m_frame->m_coordY2Value,
+        m_frame->m_coordX3Value, m_frame->m_coordY3Value,
+        m_frame->m_coordX4Value, m_frame->m_coordY4Value
+    };
+    for (wxTextCtrl* control : controls) {
+        wxString value_str = control->GetValue();
+        // If any field is empty, we consider the whole set invalid.
+        if (value_str.IsEmpty()) {
+            return {}; // Return empty vector
+        }
+        double val;
+        if (!value_str.ToDouble(&val)) {
+            // If conversion fails for any field, also return empty.
+            return {};
+        }
+        coords.push_back(val);
+    }
+
+    return coords;
+}
+
+void InputController::DisplayPreviewImage(const std::string& path)
+{
+    if (path.empty()) {
+        m_rawPreviewImage = wxImage(); // Clear image
+        m_originalRawWidth = 0;
+        m_originalRawHeight = 0;
+    } else {
+        RawFile raw_file(path);
+        if (raw_file.Load()) {
+            cv::Mat full_res_mat = raw_file.GetProcessedImage();
+            if (full_res_mat.empty()) {
+                m_rawPreviewImage = wxImage();
+                wxLogError("Could not get processed image from RAW file: %s", path);
+            } else {
+                m_originalRawWidth = full_res_mat.cols;
+                m_originalRawHeight = full_res_mat.rows;
+                constexpr int MAX_PREVIEW_DIMENSION = 1920;
+                cv::Mat preview_mat;
+                if (m_originalRawWidth > MAX_PREVIEW_DIMENSION || m_originalRawHeight > MAX_PREVIEW_DIMENSION) {
+                    double scale = static_cast<double>(MAX_PREVIEW_DIMENSION) / std::max(m_originalRawWidth, m_originalRawHeight);
+                    cv::resize(full_res_mat, preview_mat, cv::Size(), scale, scale, cv::INTER_AREA);
+                } else {
+                    preview_mat = full_res_mat;
+                }
+                m_rawPreviewImage = GuiHelpers::CvMatToWxImage(preview_mat);
+            }
+        } else {
+            m_rawPreviewImage = wxImage(); // Clear on failure
+            m_originalRawWidth = 0;
+            m_originalRawHeight = 0;
+            wxLogError("Could not load RAW file for preview: %s", path);
+        }
+    }
+    m_frame->m_rawImagePreviewPanel->Refresh();
+}
+
+void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
+{
+    m_frame->m_coordX1Value->Clear();
+    m_frame->m_coordY1Value->Clear();
+    m_frame->m_coordX2Value->Clear();
+    m_frame->m_coordY2Value->Clear();
+    m_frame->m_coordX3Value->Clear();
+    m_frame->m_coordY3Value->Clear();
+    m_frame->m_coordX4Value->Clear();
+    m_frame->m_coordY4Value->Clear();
+    m_frame->m_presenter->UpdateCommandPreview();
+}
+
+void InputController::OnPaintPreview(wxPaintEvent& event)
+{
+    wxAutoBufferedPaintDC dc(m_frame->m_rawImagePreviewPanel);
+    dc.Clear(); 
+
+    if (m_rawPreviewImage.IsOk()) {
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if (gc) {
+            double img_w = m_rawPreviewImage.GetWidth();
+            double img_h = m_rawPreviewImage.GetHeight();
+            const wxSize panel_size = dc.GetSize();
+            
+            double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
+            double final_width = img_w * scale_factor;
+            double final_height = img_h * scale_factor;
+            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+            
+            wxImage displayImage = m_rawPreviewImage.Copy();
+            displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
+            wxBitmap bitmapToDraw(displayImage);
+
+            gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
+            delete gc;
+        }
+    }
+}
+
+void InputController::OnSizePreview(wxSizeEvent& event)
+{
+    m_frame->m_rawImagePreviewPanel->Refresh();
     event.Skip();
 }

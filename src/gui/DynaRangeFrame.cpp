@@ -9,7 +9,6 @@
 #include "controllers/LogController.hpp"
 #include "controllers/ResultsController.hpp"
 #include "controllers/ChartController.hpp"
-#include "controllers/ManualCoordsController.hpp"
 #include "../graphics/Constants.hpp"
 #include "../core/utils/PathManager.hpp"
 #include <wx/msgdlg.h>
@@ -22,6 +21,7 @@
 // --- EVENT DEFINITIONS ---
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDEFINE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_COMMAND_PREVIEW_UPDATE_COMPLETE, wxCommandEvent);
 
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
@@ -34,7 +34,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
     m_resultsController = std::make_unique<ResultsController>(this);
     m_chartController = std::make_unique<ChartController>(this);
-    m_manualCoordsController = std::make_unique<ManualCoordsController>(this); // Instantiate new controller
     m_rawImagePreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
     // --- Manual UI Component Creation ---
     m_resultsCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
@@ -242,7 +241,6 @@ int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrde
 int DynaRangeFrame::GetPlotMode() const { return m_inputController->GetPlotMode(); }
 std::vector<std::string> DynaRangeFrame::GetInputFiles() const { return m_inputController->GetInputFiles();
 }
-std::vector<double> DynaRangeFrame::GetChartCoords() const { return m_manualCoordsController->GetChartCoords(); }
 int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN();
 }
@@ -265,11 +263,12 @@ void DynaRangeFrame::OnGaugeTimer(wxTimerEvent& event) { m_processingGauge->Puls
 }
 
 void DynaRangeFrame::OnNotebookPageChanged(wxNotebookEvent& event) {
-    // Check if the newly selected page is the "Input Manual Coords." tab
-    if (event.GetSelection() == m_mainNotebook->FindPage(m_inputManualCoords)) {
-        m_manualCoordsController->LoadSourceImage();
-    }
+    // This event handler is currently not needed but is kept for future use.
     event.Skip();
+}
+
+std::vector<double> DynaRangeFrame::GetChartCoords() const { 
+    return m_inputController->GetChartCoords(); 
 }
 
 void DynaRangeFrame::OnSize(wxSizeEvent& event) { event.Skip();}
@@ -416,4 +415,10 @@ void DynaRangeFrame::OnChartPreviewPaint(wxPaintEvent& event)
 
 bool DynaRangeFrame::ValidateSnrThresholds() const {
     return m_inputController->ValidateSnrThresholds();
+}
+
+void DynaRangeFrame::UpdateRawPreview(const std::string& path) {
+    if (m_inputController) {
+        m_inputController->DisplayPreviewImage(path);
+    }
 }

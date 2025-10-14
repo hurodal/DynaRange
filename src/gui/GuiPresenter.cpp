@@ -17,6 +17,7 @@
 #include <streambuf>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
+#include <wx/busyinfo.h>
 #include <thread>
 
 namespace fs = std::filesystem;
@@ -273,6 +274,10 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
 
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
 {
+    // Show a busy indicator window that will be automatically destroyed on scope exit (RAII).
+    // This ensures the user sees a "loading" message during the slow file operations.
+    wxBusyInfo wait(_("Loading and pre-processing files..."), m_view);
+
     // Get the current calibration files to build an exclusion list.
     std::set<std::string> calibration_files;
     std::string dark_file = m_view->GetDarkFilePath();
@@ -288,7 +293,6 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
     std::vector<std::string> new_valid_files;
     // Use a set of existing files for efficient lookup.
     std::set<std::string> existing_files(m_inputFiles.begin(), m_inputFiles.end());
-
     for (const auto& file : files_to_add) {
         bool is_calibration_file = calibration_files.count(file) > 0;
         bool is_already_in_list = existing_files.count(file) > 0;
@@ -309,9 +313,9 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
         // Update the view from the single source of truth.
         m_view->UpdateInputFileList(m_inputFiles);
         UpdateCommandPreview();
+        UpdateRawPreview(); // This is the slow part that the busy info covers
     }
 }
-
 void GuiPresenter::HandleGridCellClick()
 {
     // Always display the summary image, if it's valid.
@@ -322,6 +326,8 @@ void GuiPresenter::HandleGridCellClick()
 
 void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
 {
+    wxBusyInfo wait(_("Updating file list and preview..."), m_view);
+
     // It is CRITICAL to delete items from the end to the beginning
     // to avoid invalidating the indices of the remaining items.
     std::vector<int> sorted_indices = indices;
@@ -336,14 +342,17 @@ void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
     // Update the view from the single source of truth.
     m_view->UpdateInputFileList(m_inputFiles);
     UpdateCommandPreview();
+    UpdateRawPreview(); // Update the preview based on the new list
 }
 
 void GuiPresenter::RemoveAllInputFiles()
 {
+    wxBusyInfo wait(_("Updating file list and preview..."), m_view);
     m_inputFiles.clear();
     // Update the view from the single source of truth.
     m_view->UpdateInputFileList(m_inputFiles);
     UpdateCommandPreview();
+    UpdateRawPreview(); // Clear the preview
 }
 
 const ProgramOptions& GuiPresenter::GetLastRunOptions() const { return m_lastRunOptions; }
@@ -370,7 +379,6 @@ void GuiPresenter::UpdateCalibrationFiles()
     }
 
     if (!calibration_files.empty()) {
-        // Perform the filtering on the internal state (the single source of truth).
         auto original_size = m_inputFiles.size();
         m_inputFiles.erase(
             std::remove_if(m_inputFiles.begin(), m_inputFiles.end(),
@@ -379,13 +387,71 @@ void GuiPresenter::UpdateCalibrationFiles()
                 }),
             m_inputFiles.end()
         );
-
-        // Only update the view if a change actually occurred.
+        
         if (m_inputFiles.size() != original_size) {
+            wxBusyInfo wait(_("Updating file list and preview..."), m_view);
             m_view->UpdateInputFileList(m_inputFiles);
+            UpdateRawPreview(); // Call to update the preview if files were removed
         }
     }
 
     // Always update the command preview to reflect the current state.
     UpdateCommandPreview();
+}
+
+void GuiPresenter::UpdateRawPreview()
+{
+    const auto& input_files = m_view->GetInputFiles();
+    if (input_files.empty()) {
+        m_view->UpdateRawPreview(""); // Clear preview
+        return;
+    }
+
+    // This is a simplified, non-blocking pre-analysis for preview purposes.
+    // It finds the best candidate file and displays it.
+    std::string best_file_path = "";
+    int source_image_index = 0; 
+    bool found_non_saturated = false;
+
+    std::vector<std::pair<double, int>> brightness_index_pairs;
+    for (int i = 0; i < input_files.size(); ++i) {
+        RawFile raw_file(input_files[i]);
+        if (raw_file.Load()) {
+            cv::Mat active_img = raw_file.GetActiveRawImage();
+            if(!active_img.empty()) {
+                brightness_index_pairs.push_back({cv::mean(active_img)[0], i});
+            }
+        }
+    }
+    
+    if (brightness_index_pairs.empty()) {
+        m_view->UpdateRawPreview(""); // Clear preview if no files could be read
+        return;
+    }
+    
+    std::sort(brightness_index_pairs.begin(), brightness_index_pairs.end());
+
+    double sat_value = m_view->GetSaturationValue();
+    for (auto it = brightness_index_pairs.rbegin(); it != brightness_index_pairs.rend(); ++it) {
+        int current_index = it->second;
+        RawFile raw_file(input_files[current_index]);
+        if (raw_file.Load()) {
+            cv::Mat active_img = raw_file.GetActiveRawImage();
+            if (!active_img.empty()) {
+                int saturated_pixels = cv::countNonZero(active_img >= (sat_value * 0.99));
+                if (saturated_pixels == 0) {
+                    source_image_index = current_index;
+                    found_non_saturated = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!found_non_saturated) {
+        source_image_index = brightness_index_pairs.front().second;
+    }
+
+    best_file_path = input_files[source_image_index];
+    m_view->UpdateRawPreview(best_file_path);
 }

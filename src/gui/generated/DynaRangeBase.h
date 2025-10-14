@@ -24,11 +24,11 @@
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
+#include <wx/listbox.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
 #include <wx/panel.h>
-#include <wx/listbox.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/splitter.h>
@@ -47,7 +47,6 @@ class MyFrameBase : public wxFrame
 	protected:
 		wxNotebook* m_mainNotebook;
 		wxPanel* m_inputPanel;
-		wxPanel* left_column_panel_Up;
 		wxStaticText* m_darkFileStaticText;
 		wxFilePickerCtrl* m_darkFilePicker;
 		wxButton* m_clearDarkFileButton;
@@ -58,6 +57,10 @@ class MyFrameBase : public wxFrame
 		wxButton* m_clearSaturationFileButton;
 		wxStaticText* m_saturationValueStaticText;
 		wxTextCtrl* m_saturationValueTextCtrl;
+		wxListBox* m_rawFileslistBox;
+		wxButton* m_addRawFilesButton;
+		wxButton* m_removeRawFilesButton;
+		wxButton* m_removeAllFiles;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
@@ -81,30 +84,6 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
 		wxChoice* AVG_ChoiceValue;
-		wxPanel* right_column_panel_Up;
-		wxStaticText* m_chartPatchRowStaticText1;
-		wxTextCtrl* m_chartPatchRowValue1;
-		wxStaticText* chartPatchColStaticText1;
-		wxTextCtrl* m_chartPatchColValue1;
-		wxCheckBox* m_debugPatchesCheckBox;
-		wxTextCtrl* m_debugPatchesFileNameValue;
-		wxCheckBox* m_plotParamScattersCheckBox;
-		wxCheckBox* m_plotParamCurveCheckBox;
-		wxCheckBox* m_plotParamLabelsCheckBox;
-		wxCheckBox* allIsosCheckBox;
-		wxStaticText* graphicFormatStaticText;
-		wxChoice* m_plotFormatChoice;
-		wxStaticText* m_plotingStaticText;
-		wxChoice* m_plotingChoice;
-		wxPanel* left_column_panel_Down;
-		wxListBox* m_rawFileslistBox;
-		wxButton* m_addRawFilesButton;
-		wxButton* m_removeRawFilesButton;
-		wxButton* m_removeAllFiles;
-		wxPanel* right_column_panel_Down;
-		wxTextCtrl* m_equivalentCliTextCtrl;
-		wxButton* m_executeButton;
-		wxPanel* m_inputManualCoords;
 		wxPanel* m_rawImagePreviewPanel;
 		wxStaticText* m_staticText38;
 		wxTextCtrl* m_coordX1Value;
@@ -123,7 +102,21 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_staticText47;
 		wxTextCtrl* m_coordY4Value;
 		wxButton* m_clearAllCoordinates;
-		wxFilePickerCtrl* m_RawCoordsFilePicker;
+		wxStaticText* chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
+		wxCheckBox* m_plotParamScattersCheckBox;
+		wxCheckBox* m_plotParamCurveCheckBox;
+		wxCheckBox* m_plotParamLabelsCheckBox;
+		wxCheckBox* allIsosCheckBox;
+		wxStaticText* graphicFormatStaticText;
+		wxChoice* m_plotFormatChoice;
+		wxStaticText* m_plotingStaticText;
+		wxChoice* m_plotingChoice;
+		wxButton* m_executeButton;
 		wxPanel* m_logPanel;
 		wxTextCtrl* m_logOutputTextCtrl;
 		wxPanel* m_resultsPanel;
@@ -163,6 +156,8 @@ class MyFrameBase : public wxFrame
 		wxButton* chartButtonPreview;
 		wxPanel* rightColChartPanel;
 		wxPanel* m_webView2PlaceholderPanel;
+		wxPanel* m_equCliPanel;
+		wxTextCtrl* m_equivalentCliTextCtrl;
 
 	public:
 
