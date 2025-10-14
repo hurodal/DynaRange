@@ -8,10 +8,12 @@
 #include "../io/raw/RawFile.hpp"
 #include <ostream>
 #include <map>
+#include <string>
+#include <vector>
 
 /**
  * @struct InitializationResult
- * @brief (New struct) Holds all the data produced by the initialization phase.
+ * @brief Holds all the data produced by the initialization phase.
  * @details This decouples the initialization logic from the main orchestrator by
  * providing a clear, explicit contract for its outputs.
  */
@@ -26,8 +28,8 @@ struct InitializationResult {
     double saturation_value = 0.0;
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
+    int source_image_index = 0; // Added missing member
 };
-
 
 /**
  * @brief Prepares the analysis environment.

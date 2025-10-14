@@ -14,7 +14,7 @@ class DynaRangeFrame;
 class wxPaintEvent;
 class wxSizeEvent;
 class wxCommandEvent;
-class wxFileDirPickerEvent; // Added forward declaration
+class wxFileDirPickerEvent;
 
 class ManualCoordsController {
 public:
@@ -25,7 +25,7 @@ public:
     std::vector<double> GetChartCoords() const;
 
     // --- Event Handling Logic ---
-    void OnRawFileChanged(wxFileDirPickerEvent& event); // Corrected signature
+    void OnRawFileChanged(wxFileDirPickerEvent& event);
     void OnClearAllClick(wxCommandEvent& event);
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);
@@ -45,4 +45,6 @@ private:
 
     DynaRangeFrame* m_frame;
     wxImage m_rawPreviewImage;
+    int m_originalRawWidth = 0;
+    int m_originalRawHeight = 0;
 };

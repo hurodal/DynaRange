@@ -10,12 +10,13 @@
 #include "../../core/io/raw/RawFile.hpp"
 #include "../helpers/CvWxImageConverter.hpp"
 #include "../helpers/RawExtensionHelper.hpp"
-#include <wx/dcclient.h>
-#include <wx/dcbuffer.h>
-#include <wx/graphics.h>
 #include <libraw/libraw.h> // For dynamic extension check
-#include <wx/log.h>
+#include <opencv2/imgproc.hpp>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 #include <wx/filedlg.h>
+#include <wx/graphics.h>
+#include <wx/log.h>
 
 // Helper function from InputController, needed here as well
 namespace {
@@ -126,13 +127,38 @@ void ManualCoordsController::DisplayRawFile(const std::string& path)
 {
     if (path.empty()) {
         m_rawPreviewImage = wxImage(); // Clear image
+        m_originalRawWidth = 0;
+        m_originalRawHeight = 0;
     } else {
         RawFile raw_file(path);
         if (raw_file.Load()) {
-            cv::Mat processed_img = raw_file.GetProcessedImage();
-            m_rawPreviewImage = GuiHelpers::CvMatToWxImage(processed_img);
+            cv::Mat full_res_mat = raw_file.GetProcessedImage();
+            if (full_res_mat.empty()) {
+                m_rawPreviewImage = wxImage();
+                wxLogError("Could not get processed image from RAW file: %s", path);
+            } else {
+                // Store original dimensions for future coordinate mapping
+                m_originalRawWidth = full_res_mat.cols;
+                m_originalRawHeight = full_res_mat.rows;
+
+                // Define a maximum dimension for the preview
+                constexpr int MAX_PREVIEW_DIMENSION = 1920;
+                cv::Mat preview_mat;
+
+                // Only resize if the image is larger than the max preview dimension
+                if (m_originalRawWidth > MAX_PREVIEW_DIMENSION || m_originalRawHeight > MAX_PREVIEW_DIMENSION) {
+                    double scale = static_cast<double>(MAX_PREVIEW_DIMENSION) / std::max(m_originalRawWidth, m_originalRawHeight);
+                    cv::resize(full_res_mat, preview_mat, cv::Size(), scale, scale, cv::INTER_AREA);
+                } else {
+                    preview_mat = full_res_mat;
+                }
+                
+                m_rawPreviewImage = GuiHelpers::CvMatToWxImage(preview_mat);
+            }
         } else {
             m_rawPreviewImage = wxImage(); // Clear on failure
+            m_originalRawWidth = 0;
+            m_originalRawHeight = 0;
             wxLogError("Could not load RAW file for preview: %s", path);
         }
     }

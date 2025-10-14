@@ -75,6 +75,7 @@ set(CORE_SOURCES
     src/core/engine/initialization/ConfigReporter.cpp
     src/core/engine/initialization/FileSorter.cpp
     src/core/engine/initialization/InputFileFilter.cpp
+    src/core/engine/initialization/PreAnalysisRawSelector.cpp
     src/core/engine/PatchAnalysisStrategy.cpp
     src/core/engine/processing/AnalysisLoopRunner.cpp
     src/core/engine/processing/CornerDetectionHandler.cpp
@@ -83,7 +84,6 @@ set(CORE_SOURCES
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
     src/core/graphics/ChartGenerator.cpp
-   
     src/core/graphics/detection/ChartCornerDetector.cpp
     src/core/graphics/drawing/AxisDrawer.cpp
     src/core/graphics/drawing/AxisLabelDrawer.cpp
