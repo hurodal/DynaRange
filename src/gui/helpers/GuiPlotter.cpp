@@ -6,6 +6,8 @@
 #include "GuiPlotter.hpp"
 #include "../../core/graphics/PlotOrchestrator.hpp"
 #include "../../core/graphics/RenderContext.hpp"
+#include "../../core/graphics/PlotDataGenerator.hpp"
+#include "../../core/graphics/PlotBoundsCalculator.hpp" // Changed include
 #include "../../gui/Constants.hpp" // For GUI_RENDER_SCALE_FACTOR
 #include <cairo/cairo.h>
 #include <libintl.h>
@@ -36,7 +38,6 @@ wxImage CairoSurfaceToWxImage(cairo_surface_t* surface)
 
     wxImage image(width, height);
     unsigned char* rgb_data = image.GetData();
-
     // Convert Cairo's BGRA format to wxImage's RGB format.
     for (int i = 0; i < width * height; ++i) {
         rgb_data[i * 3 + 0] = cairo_data[i * 4 + 2]; // R
@@ -65,19 +66,26 @@ wxImage GeneratePlotAsWxImage(
     const int gui_width = static_cast<int>(DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH * DynaRange::Gui::Constants::GUI_RENDER_SCALE_FACTOR);
     const int gui_height = static_cast<int>(DynaRange::Graphics::Constants::PlotDefs::BASE_HEIGHT * DynaRange::Gui::Constants::GUI_RENDER_SCALE_FACTOR);
     const auto render_ctx = DynaRange::Graphics::RenderContext{gui_width, gui_height};
-    
-    // 2. Prepare the in-memory Cairo surface.
+
+    // 2. Prepare data for plotting: generate curve points and calculate global bounds
+    std::vector<CurveData> curves_with_points = curves;
+    for (auto& curve : curves_with_points) {
+        curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
+    }
+    const auto bounds = DynaRange::Graphics::CalculateGlobalBounds(curves_with_points);
+
+    // 3. Prepare the in-memory Cairo surface.
     cairo_surface_t* surface = cairo_image_surface_create(
         CAIRO_FORMAT_ARGB32, render_ctx.base_width, render_ctx.base_height);
     cairo_t* cr = cairo_create(surface);
 
-    // 3. Call the central "skeleton" function to do all the drawing.
-    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves, results, title, reporting_params);
+    // 4. Call the central "skeleton" function to do all the drawing.
+    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_with_points, results, title, reporting_params, bounds);
     
-    // 4. Convert the result to a wxImage.
+    // 5. Convert the result to a wxImage.
     wxImage final_image = CairoSurfaceToWxImage(surface);
-    
-    // 5. Clean up.
+
+    // 6. Clean up.
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
 

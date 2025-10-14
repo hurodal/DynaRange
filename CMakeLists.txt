@@ -95,6 +95,7 @@ set(CORE_SOURCES
     src/core/graphics/geometry/KeystoneCorrection.cpp
     src/core/graphics/ImageProcessing.cpp
     src/core/graphics/PlotBase.cpp
+    src/core/graphics/PlotBoundsCalculator.cpp
     src/core/graphics/PlotData.cpp
     src/core/graphics/PlotDataGenerator.cpp
     src/core/graphics/PlotInfoBox.cpp

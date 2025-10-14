@@ -6,9 +6,7 @@
 #include "PlotOrchestrator.hpp"
 #include "PlotBase.hpp"
 #include "PlotData.hpp"
-#include "PlotDataGenerator.hpp"
 #include "PlotInfoBox.hpp"
-#include <algorithm>
 #include <iomanip>
 #include <libintl.h>
 #include <sstream>
@@ -18,39 +16,12 @@
 namespace DynaRange::Graphics {
 
 void DrawPlotToCairoContext(
-    cairo_t* cr, const RenderContext& ctx, const std::vector<CurveData>& curves, const std::vector<DynamicRangeResult>& results, const std::string& title, const ReportingParameters& reporting_params)
+    cairo_t* cr, const RenderContext& ctx, const std::vector<CurveData>& curves, const std::vector<DynamicRangeResult>& results, const std::string& title, const ReportingParameters& reporting_params, const std::map<std::string, double>& bounds)
 {
     if (curves.empty()) {
         return;
     }
 
-    // --- Common Logic: Prepare data for plotting ---
-    std::vector<CurveData> curves_with_points = curves;
-    for (auto& curve : curves_with_points) {
-        curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
-    }
-
-    // --- Common Logic: Calculate plot boundaries ---
-    double min_ev_global = 1e6, max_ev_global = -1e6;
-    double min_db_global = 1e6, max_db_global = -1e6;
-    for (const auto& curve : curves_with_points) {
-        if (!curve.points.empty()) {
-            auto minmax_ev_it = std::minmax_element(curve.points.begin(), curve.points.end(), [](const PointData& a, const PointData& b) { return a.ev < b.ev; });
-            min_ev_global = std::min(min_ev_global, minmax_ev_it.first->ev);
-            max_ev_global = std::max(max_ev_global, minmax_ev_it.second->ev);
-
-            auto minmax_db_it = std::minmax_element(curve.points.begin(), curve.points.end(), [](const PointData& a, const PointData& b) { return a.snr_db < b.snr_db; });
-            min_db_global = std::min(min_db_global, minmax_db_it.first->snr_db);
-            max_db_global = std::max(max_db_global, minmax_db_it.second->snr_db);
-        }
-    }
-
-    std::map<std::string, double> bounds;
-    bounds["min_ev"] = floor(min_ev_global) - 1.0;
-    bounds["max_ev"] = (max_ev_global < 0.0) ? 0.0 : ceil(max_ev_global) + 1.0;
-    bounds["min_db"] = floor(min_db_global / 5.0) * 5.0;
-    bounds["max_db"] = ceil(max_db_global / 5.0) * 5.0;
-    
     // --- Common Logic: Prepare Info Box ---
     PlotInfoBox info_box;
     std::stringstream black_ss, sat_ss;
@@ -60,7 +31,8 @@ void DrawPlotToCairoContext(
     info_box.AddItem(_("Saturation"), sat_ss.str(), reporting_params.saturation_level_is_default ? _(" (estimated)") : "");
 
     // --- Common Logic: Call low-level drawing functions in sequence ---
+    // The bounds are now passed directly instead of being calculated here.
     DrawPlotBase(cr, ctx, title, reporting_params.raw_channels, bounds, reporting_params.generated_command, reporting_params.snr_thresholds_db);
-    DrawCurvesAndData(cr, ctx, info_box, curves_with_points, results, bounds, reporting_params.plot_details);
+    DrawCurvesAndData(cr, ctx, info_box, curves, results, bounds, reporting_params.plot_details);
 }
 } // namespace DynaRange::Graphics

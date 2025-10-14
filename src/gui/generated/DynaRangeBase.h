@@ -107,6 +107,7 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* m_plotParamScattersCheckBox;
 		wxCheckBox* m_plotParamCurveCheckBox;
 		wxCheckBox* m_plotParamLabelsCheckBox;
+		wxCheckBox* allIsosCheckBox;
 		wxStaticText* graphicFormatStaticText;
 		wxChoice* m_plotFormatChoice;
 		wxStaticText* m_plotingStaticText;

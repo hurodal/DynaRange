@@ -420,6 +420,12 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, wxALL, 5 );
 
 
+	plotParamsSizer->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	allIsosCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("All ISOs"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( allIsosCheckBox, 0, wxALL, 5 );
+
+
 	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
 
 	wxBoxSizer* graphicsOthersSizer;
@@ -435,7 +441,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_plotFormatChoice->SetSelection( 0 );
 	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALL, 5 );
 
-	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphics"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_plotingStaticText->Wrap( -1 );
 	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
 

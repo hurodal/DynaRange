@@ -13,6 +13,7 @@
 #include <cairo/cairo.h>
 #include <vector>
 #include <string>
+#include <map>
 
 namespace DynaRange::Graphics {
 
@@ -24,6 +25,7 @@ namespace DynaRange::Graphics {
      * @param results The dynamic range results for labeling.
      * @param title The main title for the plot.
      * @param reporting_params The parameters required for rendering the plot.
+     * @param bounds A map containing the pre-calculated plot boundaries (min/max EV and dB).
      */
     void DrawPlotToCairoContext(
         cairo_t* cr,
@@ -31,6 +33,8 @@ namespace DynaRange::Graphics {
         const std::vector<CurveData>& curves,
         const std::vector<DynamicRangeResult>& results,
         const std::string& title,
-        const ReportingParameters& reporting_params
+        const ReportingParameters& reporting_params,
+        const std::map<std::string, double>& bounds
     );
+
 } // namespace DynaRange::Graphics

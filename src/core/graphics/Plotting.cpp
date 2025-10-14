@@ -8,8 +8,10 @@
  * canvas creation, coordinate bounds calculation, and file output.
  */
 #include "Plotting.hpp"
-#include "PlotOrchestrator.hpp"
 #include "Constants.hpp"
+#include "PlotDataGenerator.hpp"
+#include "PlotOrchestrator.hpp"
+#include "PlotBoundsCalculator.hpp"
 #include "../io/OutputWriter.hpp"
 #include <cairo/cairo.h>
 #include <cairo/cairo-svg.h>
@@ -35,7 +37,8 @@ std::optional<std::string> GeneratePlotInternal(
     const std::vector<DynamicRangeResult>& results_to_plot,
     const ReportingParameters& reporting_params,
     std::ostream& log_stream,
-    std::mutex& log_mutex)
+    std::mutex& log_mutex,
+    const std::map<std::string, double>& bounds)
 {
     const auto render_ctx = DynaRange::Graphics::RenderContext{
         DynaRange::Graphics::Constants::PlotDefs::BASE_WIDTH,
@@ -74,7 +77,7 @@ std::optional<std::string> GeneratePlotInternal(
         cairo_scale(cr, scale, scale);
     }
     
-    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_to_plot, results_to_plot, title, reporting_params);
+    DynaRange::Graphics::DrawPlotToCairoContext(cr, render_ctx, curves_to_plot, results_to_plot, title, reporting_params, bounds);
     
     bool success = false;
     switch (reporting_params.plot_format) {
@@ -90,7 +93,6 @@ std::optional<std::string> GeneratePlotInternal(
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default:
             {
-                // WritePng now needs a mutex for its log output
                 std::lock_guard<std::mutex> lock(log_mutex);
                 success = OutputWriter::WritePng(surface, output_filename, log_stream);
             }
@@ -105,7 +107,6 @@ std::optional<std::string> GeneratePlotInternal(
     }
     return std::nullopt;
 }
-
 } // end anonymous namespace
 
 std::optional<std::string> GenerateSummaryPlot(
@@ -126,11 +127,17 @@ std::optional<std::string> GenerateSummaryPlot(
         return std::nullopt;
     }
 
+    std::vector<CurveData> curves_with_points = all_curves;
+    for (auto& curve : curves_with_points) {
+        curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
+    }
+    // Call the new centralized function
+    const auto bounds = DynaRange::Graphics::CalculateGlobalBounds(curves_with_points);
+
     std::string title = _("SNR Curves - Summary (") + camera_name + ")";
     
     std::mutex log_mutex;
-    // Create a mutex for this single call
-    return GeneratePlotInternal(output_filename, title, all_curves, all_results, reporting_params, log_stream, log_mutex);
+    return GeneratePlotInternal(output_filename, title, curves_with_points, all_results, reporting_params, log_stream, log_mutex, bounds);
 }
 
 std::map<std::string, std::string> GenerateIndividualPlots(
@@ -145,11 +152,18 @@ std::map<std::string, std::string> GenerateIndividualPlots(
 
     log_stream << "\n" << _("Generating individual SNR plots...") << std::endl;
 
+    std::vector<CurveData> all_curves_with_points = all_curves_data;
+    for (auto& curve : all_curves_with_points) {
+        curve.curve_points = PlotDataGenerator::GenerateCurvePoints(curve);
+    }
+    // Call the new centralized function
+    const auto global_bounds = DynaRange::Graphics::CalculateGlobalBounds(all_curves_with_points);
+
     std::map<std::string, std::vector<CurveData>> curves_by_file;
-    std::map<std::string, std::vector<DynamicRangeResult>> results_by_file;
-    for (const auto& curve : all_curves_data) {
+    for (const auto& curve : all_curves_with_points) {
         curves_by_file[curve.filename].push_back(curve);
     }
+    std::map<std::string, std::vector<DynamicRangeResult>> results_by_file;
     for (const auto& result : all_dr_results) {
         results_by_file[result.filename].push_back(result);
     }
@@ -163,27 +177,23 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file.at(filename);
 
         if (curves_for_this_file.empty()) continue;
-        
         futures.push_back(std::async(std::launch::async, 
             [&, filename, curves_for_this_file, results_for_this_file]() -> std::pair<std::string, std::optional<std::string>> {
                 
                 const auto& first_curve = curves_for_this_file[0];
                 fs::path plot_path = paths.GetIndividualPlotPath(first_curve, reporting_params.raw_channels, reporting_params.plot_format);
                 
-        
                 std::stringstream title_ss;
                 title_ss << fs::path(filename).filename().string();
                 if (!first_curve.camera_model.empty()) {
                     title_ss << " (" << first_curve.camera_model;
                     if (first_curve.iso_speed > 0) {
-      
                         title_ss << ", " << _("ISO ") << static_cast<int>(first_curve.iso_speed);
                     }
                     title_ss << ")";
                 }
-                
  
-                auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, reporting_params, log_stream, log_mutex);
+                auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, reporting_params, log_stream, log_mutex, global_bounds);
                 return {filename, path_opt};
             }
         ));
