@@ -60,21 +60,22 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->G1_checkBox->SetValue(false);
     m_frame->G2_checkBox->SetValue(false);
     m_frame->B_checkBox->SetValue(false);
-    m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
+    m_frame->AVG_ChoiceValue->SetSelection(1);
+    // Default is "Full" (index 1)
 
     // Instanciar el interactor y el renderizador
     m_interactor = std::make_unique<ChartCornerInteractor>();
     m_renderer = std::make_unique<PreviewOverlayRenderer>();
-    
+
     // Bind events for the preview panel
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_PAINT, &InputController::OnPaintPreview, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_SIZE, &InputController::OnSizePreview, this);
+    
     // Bind new mouse events for interaction
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_DOWN, &InputController::OnPreviewMouseDown, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_UP, &InputController::OnPreviewMouseUp, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOTION, &InputController::OnPreviewMouseMove, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOUSE_CAPTURE_LOST, &InputController::OnPreviewMouseCaptureLost, this);
-
 }
 
 // --- Getters ---
@@ -583,4 +584,26 @@ void InputController::UpdateCoordTextCtrls()
     m_frame->m_coordY3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[2].m_y * scale))));
     m_frame->m_coordX4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[3].m_x * scale))));
     m_frame->m_coordY4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[3].m_y * scale))));
+}
+
+/**
+ * @brief Determina si el nivel de negro debe ser estimado.
+ * @details Devuelve true solo si tanto el selector de fichero como el campo de texto están vacíos.
+ */
+bool InputController::ShouldEstimateBlackLevel() const
+{
+    bool isFilePickerEmpty = m_frame->m_darkFilePicker->GetPath().IsEmpty();
+    bool isTextBoxEmpty = m_frame->m_darkValueTextCtrl->GetValue().IsEmpty();
+    return isFilePickerEmpty && isTextBoxEmpty;
+}
+
+/**
+ * @brief Determina si el nivel de saturación debe ser estimado.
+ * @details Devuelve true solo si tanto el selector de fichero como el campo de texto de saturación están vacíos.
+ */
+bool InputController::ShouldEstimateSaturationLevel() const
+{
+    bool isFilePickerEmpty = m_frame->m_saturationFilePicker->GetPath().IsEmpty();
+    bool isTextBoxEmpty = m_frame->m_saturationValueTextCtrl->GetValue().IsEmpty();
+    return isFilePickerEmpty && isTextBoxEmpty;
 }

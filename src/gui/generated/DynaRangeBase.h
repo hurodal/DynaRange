@@ -29,6 +29,8 @@
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
+#include <wx/statline.h>
+#include <wx/gbsizer.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/splitter.h>
@@ -93,6 +95,8 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_coordX2Value;
 		wxStaticText* m_staticText43;
 		wxTextCtrl* m_coordY2Value;
+		wxStaticLine* m_staticline1;
+		wxStaticLine* m_staticline3;
 		wxStaticText* m_staticText44;
 		wxTextCtrl* m_coordX3Value;
 		wxStaticText* m_staticText45;
