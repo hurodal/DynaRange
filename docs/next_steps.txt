@@ -4,7 +4,22 @@ PRIORITARIAS
 0: FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
    Y MÁS DE UN 1% DE PÍXELES A 0 (EXACTAMENTE A 0)
 
-1: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+1: VERIFICAR LA ORIENTACION DEL RAW EN LOS METADATOS EXIF (va relacionado con el fallo de la 5D MkII):
+PAra evitar problemas con el sensor de orientacion, habria que comprobar el metadato "CameraOrientation" de los EXIF.
+Vale, y según la documentación de LibRAW, parece que se puede hacer un:
+
+int LibRaw::open_bayer(unsigned otherflags)
+
+y devuelve:
+
+Bits 2-4 - the orientation of the image (0=do not rotate, 3=180, 5=90CCW, 6=90CW)
+
+Es lo que he podido encontrar aquí: 
+
+https://www.libraw.org/docs/API-CXX.html
+Otra opcion es añadir dos botones para girar la imagen 90º a izqda y dcha segun el gusto del usuario...
+
+1C: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
@@ -29,8 +44,8 @@ PRIORITARIAS
         * Si A=min(--snrthreshold_db) < B=min(S/N presente en los datos): "Overxposure, reduce exposure by" (B-A)/6 "EV"
         * Si C=max(--snrthreshold_db) > D=max(S/N presente en los datos): "Underexposure, increase exposure by" (C-D)/6 "EV"
 
-2: (HECHO) UTILIZAR EL ARCHIVO RAW MÁS EXPUESTO PERO SIN PÍXELES SATURADOS PARA REALIZAR LA DETECCIÓN DE LAS 4 ESQUINAS. SI TODOS TIENEN PÍXELES SATURADOS TOMAR EL MENOS EXPUESTO
-   TAMBIÉN SERÁ ÉSE EL RAW USADO COMO SALIDA PARA EL DEBUG DE PARCHES
+2: En los RAW de la D600 aparece una linea blanca fina vertical a la dcha y ahi se va a buscar las esquinas en automaticamente. No se si esa linea tiene que ver con los pixeles enmascarados
+y quizas lo que propone Guillermo de hacer un recorte por los 4 costados lo puede resolver...
 
 3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
 
@@ -57,6 +72,9 @@ NO PRIORITARIAS
 
 HECHOS
 ======
+
+(HECHO) UTILIZAR EL ARCHIVO RAW MÁS EXPUESTO PERO SIN PÍXELES SATURADOS PARA REALIZAR LA DETECCIÓN DE LAS 4 ESQUINAS. SI TODOS TIENEN PÍXELES SATURADOS TOMAR EL MENOS EXPUESTO
+   TAMBIÉN SERÁ ÉSE EL RAW USADO COMO SALIDA PARA EL DEBUG DE PARCHES
 
 (HECHO) RENOMBRADO DE ALGUNOS PARÁMETROS (-b -B -s -S -p -P): MINÚSCULA SIEMPRE OPCIÓN MÁS USADA, MAYÚSCULA OPCIÓN SECUNDARIA. RENOMBRAR PARÁMETRO --raw_channels (con s) 
 
