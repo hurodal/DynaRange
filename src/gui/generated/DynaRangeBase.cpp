@@ -369,6 +369,8 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	buttChartCoordSizer = new wxBoxSizer( wxHORIZONTAL );
 
 	m_clearAllCoordinates = new wxButton( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Clear All"), wxDefaultPosition, wxDefaultSize, 0 );
+
+	m_clearAllCoordinates->SetBitmap( Icono_BAD_Mark_Red_alpha_22x22_png_to_wx_bitmap() );
 	buttChartCoordSizer->Add( m_clearAllCoordinates, 0, wxALL, 5 );
 
 

@@ -6,10 +6,13 @@
 #pragma once
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../../core/graphics/Constants.hpp"
+#include "../preview_interaction/ChartCornerInteractor.hpp"
+#include "../preview_interaction/PreviewOverlayRenderer.hpp"
 #include "wx/image.h"
 #include <wx/event.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 // Forward declarations
 class DynaRangeFrame;
@@ -72,13 +75,26 @@ public:
     void OnPaintPreview(wxPaintEvent& event);
     void OnSizePreview(wxSizeEvent& event);
 
+    // MANEJADORES DE EVENTOS DEL RATÓN para el raw preview
+    void OnPreviewMouseDown(wxMouseEvent& event);
+    void OnPreviewMouseUp(wxMouseEvent& event);
+    void OnPreviewMouseMove(wxMouseEvent& event);
+    void OnPreviewMouseCaptureLost(wxMouseCaptureLostEvent& event);
+
 private:
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);
     
+    wxPoint2DDouble PanelToImageCoords(const wxPoint& panelPoint) const;
+    void UpdateCoordTextCtrls();
+
     DynaRangeFrame* m_frame; // Pointer to the parent frame to access its controls
     wxString m_lastDirectoryPath; ///< Stores the path of the last directory accessed by any file picker.
     wxImage m_rawPreviewImage;
     int m_originalRawWidth = 0;
     int m_originalRawHeight = 0;
+
+    // MIEMBROS PARA LA INTERACCIÓN con el ratón en el preview raw
+    std::unique_ptr<ChartCornerInteractor> m_interactor;
+    std::unique_ptr<PreviewOverlayRenderer> m_renderer;
 };

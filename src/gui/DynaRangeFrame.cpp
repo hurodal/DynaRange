@@ -70,6 +70,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     // --- Event bindings delegated directly to controllers ---
     
     // InputController bindings
+    m_clearAllCoordinates->Bind(wxEVT_BUTTON, &InputController::OnClearAllCoordsClick, m_inputController.get());
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &InputController::OnAddFilesClick, m_inputController.get());
     m_saveLog->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     m_darkFilePicker->Bind(wxEVT_FILEPICKER_CHANGED, &InputController::OnCalibrationFileChanged, m_inputController.get());

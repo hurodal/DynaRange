@@ -161,6 +161,8 @@ add_executable(dynaRangeGui WIN32
     src/gui/helpers/GuiPlotter.cpp 
     src/gui/helpers/RawExtensionHelper.cpp
     src/gui/helpers/ResultsGridManager.cpp
+    src/gui/preview_interaction/ChartCornerInteractor.cpp
+    src/gui/preview_interaction/PreviewOverlayRenderer.cpp
     ${CORE_SOURCES}
 )
 if(WIN32)

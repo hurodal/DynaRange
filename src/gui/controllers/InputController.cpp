@@ -23,6 +23,7 @@
 #include <vector>
 #include <wx/filedlg.h>
 #include <wx/filename.h>
+#include <wx/graphics.h>
 #include <wx/msgdlg.h>
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
@@ -61,9 +62,19 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->B_checkBox->SetValue(false);
     m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
 
+    // Instanciar el interactor y el renderizador
+    m_interactor = std::make_unique<ChartCornerInteractor>();
+    m_renderer = std::make_unique<PreviewOverlayRenderer>();
+    
     // Bind events for the preview panel
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_PAINT, &InputController::OnPaintPreview, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_SIZE, &InputController::OnSizePreview, this);
+    // Bind new mouse events for interaction
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_DOWN, &InputController::OnPreviewMouseDown, this);
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_UP, &InputController::OnPreviewMouseUp, this);
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOTION, &InputController::OnPreviewMouseMove, this);
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOUSE_CAPTURE_LOST, &InputController::OnPreviewMouseCaptureLost, this);
+
 }
 
 // --- Getters ---
@@ -392,11 +403,20 @@ void InputController::DisplayPreviewImage(const std::string& path)
             wxLogError("Could not load RAW file for preview: %s", path);
         }
     }
+    
+    // Informa al interactor del nuevo tamaño de la imagen (o 0,0 si se borró)
+    if (m_rawPreviewImage.IsOk()) {
+        m_interactor->SetImageSize(m_rawPreviewImage.GetSize());
+    } else {
+        m_interactor->SetImageSize(wxSize(0,0));
+    }
+
     m_frame->m_rawImagePreviewPanel->Refresh();
 }
 
 void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
 {
+    // Limpia los 8 campos de texto de las coordenadas
     m_frame->m_coordX1Value->Clear();
     m_frame->m_coordY1Value->Clear();
     m_frame->m_coordX2Value->Clear();
@@ -405,14 +425,21 @@ void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
     m_frame->m_coordY3Value->Clear();
     m_frame->m_coordX4Value->Clear();
     m_frame->m_coordY4Value->Clear();
+
+    // Resetea el estado interno del interactor a las esquinas de la imagen.
+    m_interactor->ResetCorners();
+
+    // Fuerza un redibujado del panel de previsualización para mostrar los manejadores en su nueva posición.
+    m_frame->m_rawImagePreviewPanel->Refresh();
+
+    // Actualiza el comando CLI equivalente para reflejar que ya no hay coordenadas manuales.
     m_frame->m_presenter->UpdateCommandPreview();
 }
 
 void InputController::OnPaintPreview(wxPaintEvent& event)
 {
     wxAutoBufferedPaintDC dc(m_frame->m_rawImagePreviewPanel);
-    dc.Clear(); 
-
+    dc.Clear();
     if (m_rawPreviewImage.IsOk()) {
         wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
         if (gc) {
@@ -429,8 +456,11 @@ void InputController::OnPaintPreview(wxPaintEvent& event)
             wxImage displayImage = m_rawPreviewImage.Copy();
             displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
             wxBitmap bitmapToDraw(displayImage);
-
             gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
+            
+            // Dibuja la superposición interactiva encima de la imagen
+            m_renderer->Draw(gc, *m_interactor, wxPoint2DDouble(offset_x, offset_y), scale_factor);
+            
             delete gc;
         }
     }
@@ -440,4 +470,117 @@ void InputController::OnSizePreview(wxSizeEvent& event)
 {
     m_frame->m_rawImagePreviewPanel->Refresh();
     event.Skip();
+}
+
+/**
+ * @brief Maneja el evento de pulsación del botón izquierdo del ratón en el panel de previsualización.
+ */
+void InputController::OnPreviewMouseDown(wxMouseEvent& event)
+{
+    if (!m_rawPreviewImage.IsOk()) return;
+
+    wxPoint2DDouble imageCoords = PanelToImageCoords(event.GetPosition());
+
+    // El radio para el hit-test debe estar en coordenadas de imagen, no de panel.
+    double img_w = m_rawPreviewImage.GetWidth();
+    double panel_w = m_frame->m_rawImagePreviewPanel->GetSize().GetWidth();
+    double scale_factor = img_w > 0 ? panel_w / img_w : 1.0;
+    double handleRadiusInImageCoords = 8.0 / scale_factor;
+
+    ChartCornerInteractor::Corner corner = m_interactor->HitTest(wxPoint(imageCoords.m_x, imageCoords.m_y), handleRadiusInImageCoords);
+
+    if (corner != ChartCornerInteractor::Corner::None)
+    {
+        m_interactor->BeginDrag(corner);
+        m_frame->m_rawImagePreviewPanel->CaptureMouse();
+        m_frame->m_rawImagePreviewPanel->SetCursor(wxCursor(wxCURSOR_HAND));
+    }
+
+    event.Skip();
+}
+
+/**
+ * @brief Maneja el evento de liberación del botón izquierdo del ratón.
+ */
+void InputController::OnPreviewMouseUp(wxMouseEvent& event)
+{
+    if (m_interactor->IsDragging())
+    {
+        m_interactor->EndDrag();
+        if (m_frame->m_rawImagePreviewPanel->HasCapture())
+        {
+            m_frame->m_rawImagePreviewPanel->ReleaseMouse();
+        }
+        m_frame->m_rawImagePreviewPanel->SetCursor(wxCursor(wxCURSOR_DEFAULT));
+
+        UpdateCoordTextCtrls();
+        m_frame->m_presenter->UpdateCommandPreview();
+    }
+    event.Skip();
+}
+
+/**
+ * @brief Maneja el evento de movimiento del ratón.
+ */
+void InputController::OnPreviewMouseMove(wxMouseEvent& event)
+{
+    if (m_interactor->IsDragging())
+    {
+        wxPoint2DDouble imageCoords = PanelToImageCoords(event.GetPosition());
+        m_interactor->UpdateDraggedCorner(wxPoint(imageCoords.m_x, imageCoords.m_y));
+        m_frame->m_rawImagePreviewPanel->Refresh(); // Fuerza el redibujado
+    }
+    event.Skip();
+}
+
+/**
+ * @brief Maneja el evento de pérdida de captura del ratón.
+ */
+void InputController::OnPreviewMouseCaptureLost(wxMouseCaptureLostEvent& event)
+{
+    m_interactor->EndDrag();
+    m_frame->m_rawImagePreviewPanel->SetCursor(wxCursor(wxCURSOR_DEFAULT));
+}
+
+/**
+ * @brief Convierte coordenadas del panel a coordenadas relativas a la imagen de previsualización.
+ */
+wxPoint2DDouble InputController::PanelToImageCoords(const wxPoint& panelPoint) const
+{
+    if (!m_rawPreviewImage.IsOk()) return wxPoint2DDouble(0,0);
+
+    const wxSize panel_size = m_frame->m_rawImagePreviewPanel->GetSize();
+    double img_w = m_rawPreviewImage.GetWidth();
+    double img_h = m_rawPreviewImage.GetHeight();
+
+    double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
+    double final_width = img_w * scale_factor;
+    double final_height = img_h * scale_factor;
+    double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+    double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+
+    double imageX = (panelPoint.x - offset_x) / scale_factor;
+    double imageY = (panelPoint.y - offset_y) / scale_factor;
+
+    return wxPoint2DDouble(imageX, imageY);
+}
+
+/**
+ * @brief Actualiza los cuadros de texto de coordenadas a partir del estado del interactor.
+ */
+void InputController::UpdateCoordTextCtrls()
+{
+    if (!m_rawPreviewImage.IsOk() || m_originalRawWidth == 0) return;
+
+    const auto& corners = m_interactor->GetCorners();
+    double scale = static_cast<double>(m_originalRawWidth) / m_rawPreviewImage.GetWidth();
+
+    m_frame->m_coordX1Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[0].m_x * scale))));
+    m_frame->m_coordY1Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[0].m_y * scale))));
+    m_frame->m_coordX2Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[1].m_x * scale))));
+    m_frame->m_coordY2Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[1].m_y * scale))));
+    m_frame->m_coordX3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[2].m_x * scale))));
+    m_frame->m_coordY3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[2].m_y * scale))));
+    m_frame->m_coordX4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[3].m_x * scale))));
+    m_frame->m_coordY4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[3].m_y * scale))));
 }
