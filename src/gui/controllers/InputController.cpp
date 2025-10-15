@@ -4,69 +4,26 @@
  * @brief Implements the InputController class.
  */
 #include "InputController.hpp"
+#include "../Constants.hpp"
 #include "../DynaRangeFrame.hpp" // To access frame members and their members
 #include "../GuiPresenter.hpp"   // To call presenter methods
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../graphics/Constants.hpp"
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
-#include <wx/filename.h>
+#include "../helpers/RawExtensionHelper.hpp"
+#include "../helpers/CvWxImageConverter.hpp"
+#include "wx/dcbuffer.h"
+#include "wx/graphics.h"
+#include "wx/log.h"
 #include <libraw/libraw.h>
 #include <libraw/libraw_version.h>
-#include <vector>
+#include <opencv2/imgproc.hpp>
 #include <set>
-#include <string>
 #include <sstream>
-
-namespace { // Anonymous namespace for internal helpers
-
-const std::vector<std::string>& GetSupportedRawExtensions() {
-    static std::vector<std::string> extensions;
-    if (extensions.empty()) {
-        // Verificamos si la versión de LibRaw es >= 0.22.0 usando macros oficiales
-        #if defined(LIBRAW_MAJOR_VERSION) && defined(LIBRAW_MINOR_VERSION)
-            #if LIBRAW_MAJOR_VERSION > 0 || (LIBRAW_MAJOR_VERSION == 0 && LIBRAW_MINOR_VERSION >= 22)
-                // LibRaw 0.22.0+ → usamos la API dinámica
-                LibRaw proc;
-                int count = 0;
-                const char** ext_list = proc.get_supported_extensions_list(&count);
-                if (ext_list) {
-                    std::set<std::string> unique;
-                    for (int i = 0; i < count; ++i) {
-                        if (!ext_list[i]) continue;
-                        std::string ext(ext_list[i]);
-                        if (!ext.empty() && ext[0] == '.') {
-                            ext = ext.substr(1);
-                        }
-                        std::transform(ext.begin(), ext.end(), ext.begin(),
-                            [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
-                        if (!ext.empty()) {
-                            unique.insert(ext);
-                        }
-                    }
-                    extensions.assign(unique.begin(), unique.end());
-                }
-            #endif
-        #endif
-
-        // Si no se pudo obtener dinámicamente (versión antigua o fallo), usar fallback
-        if (extensions.empty()) {
-            // Lista completa de extensiones soportadas por LibRaw (hasta 0.21.4)
-            static const std::vector<std::string> fallback = {
-                "3fr", "ari", "arw", "bay", "crw", "cr2", "cr3",
-                "cap", "data", "dcs", "dcr", "dng", "drf", "eip",
-                "erf", "fff", "gpr", "iiq", "k25", "kdc", "mdc",
-                "mef", "mos", "mrw", "nef", "nrw", "obm", "orf",
-                "pef", "ptx", "pxn", "r3d", "raf", "raw", "rwl",
-                "rw2", "rwz", "sr2", "srf", "srw", "x3f"
-            };
-            extensions = fallback;
-        }
-    }
-    return extensions;
-}
-
-} // end anonymous namespace
+#include <string>
+#include <vector>
+#include <wx/filedlg.h>
+#include <wx/filename.h>
+#include <wx/msgdlg.h>
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     // Dynamically populate the polynomial order choice control.
@@ -103,6 +60,10 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->G2_checkBox->SetValue(false);
     m_frame->B_checkBox->SetValue(false);
     m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
+
+    // Bind events for the preview panel
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_PAINT, &InputController::OnPaintPreview, this);
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_SIZE, &InputController::OnSizePreview, this);
 }
 
 // --- Getters ---
@@ -115,13 +76,6 @@ std::string InputController::GetOutputFilePath() const { return std::string(m_fr
 double InputController::GetDrNormalization() const { return static_cast<double>(m_frame->m_drNormalizationSlider->GetValue()); }
 int InputController::GetPolyOrder() const { return PolyOrderFromIndex(m_frame->m_PlotChoice->GetSelection()); }
 int InputController::GetPlotMode() const { return m_frame->m_plotingChoice->GetSelection(); }
-std::vector<std::string> InputController::GetInputFiles() const {
-    std::vector<std::string> files;
-    for (unsigned int i = 0; i < m_frame->m_rawFileslistBox->GetCount(); ++i) {
-        files.push_back(std::string(m_frame->m_rawFileslistBox->GetString(i).mb_str()));
-    }
-    return files;
-}
 std::vector<double> InputController::GetSnrThresholds() const {
     std::vector<double> thresholds;
     std::string text = std::string(m_frame->m_snrThresholdsValues->GetValue().mb_str());
@@ -133,13 +87,24 @@ std::vector<double> InputController::GetSnrThresholds() const {
     }
     return thresholds;
 }
-// --- View Updaters ---
-void InputController::UpdateInputFileList(const std::vector<std::string>& files) {
+
+void InputController::UpdateInputFileList(const std::vector<std::string>& files, int selected_index)
+{
     m_frame->m_rawFileslistBox->Clear();
-    for (const auto& file : files) {
-        m_frame->m_rawFileslistBox->Append(file);
+    for (size_t i = 0; i < files.size(); ++i) {
+        std::string display_name = files[i];
+        if (static_cast<int>(i) == selected_index) {
+            display_name = "▶ " + display_name;
+        }
+        m_frame->m_rawFileslistBox->Append(display_name);
+    }
+
+    // Si hay un elemento seleccionado, nos aseguramos de que sea visible.
+    if (selected_index != -1) {
+        m_frame->m_rawFileslistBox->EnsureVisible(selected_index);
     }
 }
+
 void InputController::UpdateCommandPreview(const std::string& command) { m_frame->m_equivalentCliTextCtrl->ChangeValue(command); }
 
 void InputController::PerformFileRemoval() {
@@ -177,35 +142,6 @@ void InputController::AddDroppedFiles(const wxArrayString& filenames) {
         for (const auto& rejected : rejected_files) { message += "- " + rejected + "\n"; }
         wxMessageBox(message, _("Unsupported Files Skipped"), wxOK | wxICON_INFORMATION, m_frame);
     }
-}
-
-std::vector<double> InputController::GetChartCoords() const {
-    std::vector<double> coords;
-    coords.reserve(8);
-
-    // List of all coordinate text controls
-    std::vector<wxTextCtrl*> controls = {
-        m_frame->m_coordX1Value, m_frame->m_coordY1Value,
-        m_frame->m_coordX2Value, m_frame->m_coordY2Value,
-        m_frame->m_coordX3Value, m_frame->m_coordY3Value,
-        m_frame->m_coordX4Value, m_frame->m_coordY4Value
-    };
-
-    for (wxTextCtrl* control : controls) {
-        wxString value_str = control->GetValue();
-        // If any field is empty, we consider the whole set invalid.
-        if (value_str.IsEmpty()) {
-            return {}; // Return empty vector
-        }
-        double val;
-        if (!value_str.ToDouble(&val)) {
-            // If conversion fails for any field, also return empty.
-            return {};
-        }
-        coords.push_back(val);
-    }
-
-    return coords;
 }
 
 int InputController::GetChartPatchesM() const {
@@ -290,38 +226,21 @@ bool InputController::ShouldGenerateIndividualPlots() const {
 }
 
 void InputController::OnAddFilesClick(wxCommandEvent& event) {
-    // 1. Obtener la lista de extensiones dinámicamente.
-    const auto& supported_extensions = GetSupportedRawExtensions();
+    // 1. Get the list of extensions using the helper.
+    const auto& supported_extensions = GuiHelpers::GetSupportedRawExtensions();
 
-    // 2. Construir la cadena de comodines (wildcard).
-    wxString wildcard;
-    for (size_t i = 0; i < supported_extensions.size(); ++i) {
-        wxString ext_lower = supported_extensions[i];
-        wxString ext_upper = ext_lower.Upper();
-        
-        wildcard += wxString::Format("*.%s;*.%s", ext_lower, ext_upper);
-        
-        if (i < supported_extensions.size() - 1) {
-            wildcard += ";";
-        }
-    }
-
-    // 3. Construir la cadena de filtro final para el diálogo.
-    wxString filter = wxString::Format(
-        _("RAW files (%s)|%s|All files (*.*)|*.*"),
-        wildcard, wildcard
-    );
-
-    // 4. Crear y mostrar el diálogo de selección de ficheros, usando la ruta recordada.
+    // 2. Build the wildcard string using the centralized function.
+    wxString filter = DynaRange::Gui::Constants::GetSupportedExtensionsWildcard(supported_extensions);
+    
+    // 3. Create and show the file dialog.
     wxFileDialog openFileDialog(m_frame, _("Select RAW files"), m_lastDirectoryPath, "", filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     
-    if (openFileDialog.ShowModal() == wxID_CANCEL) { return;
-    }
+    if (openFileDialog.ShowModal() == wxID_CANCEL) { return; }
     
     wxArrayString paths;
     openFileDialog.GetPaths(paths);
-
-    // 5. Recordar la nueva ruta y actualizar los directorios iniciales de los otros selectores.
+    
+    // 4. Remember the new path and update other pickers.
     if (paths.GetCount() > 0) {
         m_lastDirectoryPath = wxFileName(paths[0]).GetPath();
         m_frame->m_darkFilePicker->SetInitialDirectory(m_lastDirectoryPath);
@@ -410,5 +329,115 @@ void InputController::OnInputChartPatchChanged(wxCommandEvent& event) {
     OnInputChanged(event);
 
     m_frame->m_isUpdatingPatches = false;
+    event.Skip();
+}
+
+std::vector<double> InputController::GetChartCoords() const {
+    std::vector<double> coords;
+    coords.reserve(8);
+    // List of all coordinate text controls
+    std::vector<wxTextCtrl*> controls = {
+        m_frame->m_coordX1Value, m_frame->m_coordY1Value,
+        m_frame->m_coordX2Value, m_frame->m_coordY2Value,
+        m_frame->m_coordX3Value, m_frame->m_coordY3Value,
+        m_frame->m_coordX4Value, m_frame->m_coordY4Value
+    };
+    for (wxTextCtrl* control : controls) {
+        wxString value_str = control->GetValue();
+        // If any field is empty, we consider the whole set invalid.
+        if (value_str.IsEmpty()) {
+            return {}; // Return empty vector
+        }
+        double val;
+        if (!value_str.ToDouble(&val)) {
+            // If conversion fails for any field, also return empty.
+            return {};
+        }
+        coords.push_back(val);
+    }
+
+    return coords;
+}
+
+void InputController::DisplayPreviewImage(const std::string& path)
+{
+    if (path.empty()) {
+        m_rawPreviewImage = wxImage(); // Clear image
+        m_originalRawWidth = 0;
+        m_originalRawHeight = 0;
+    } else {
+        RawFile raw_file(path);
+        if (raw_file.Load()) {
+            cv::Mat full_res_mat = raw_file.GetProcessedImage();
+            if (full_res_mat.empty()) {
+                m_rawPreviewImage = wxImage();
+                wxLogError("Could not get processed image from RAW file: %s", path);
+            } else {
+                m_originalRawWidth = full_res_mat.cols;
+                m_originalRawHeight = full_res_mat.rows;
+                constexpr int MAX_PREVIEW_DIMENSION = 1920;
+                cv::Mat preview_mat;
+                if (m_originalRawWidth > MAX_PREVIEW_DIMENSION || m_originalRawHeight > MAX_PREVIEW_DIMENSION) {
+                    double scale = static_cast<double>(MAX_PREVIEW_DIMENSION) / std::max(m_originalRawWidth, m_originalRawHeight);
+                    cv::resize(full_res_mat, preview_mat, cv::Size(), scale, scale, cv::INTER_AREA);
+                } else {
+                    preview_mat = full_res_mat;
+                }
+                m_rawPreviewImage = GuiHelpers::CvMatToWxImage(preview_mat);
+            }
+        } else {
+            m_rawPreviewImage = wxImage(); // Clear on failure
+            m_originalRawWidth = 0;
+            m_originalRawHeight = 0;
+            wxLogError("Could not load RAW file for preview: %s", path);
+        }
+    }
+    m_frame->m_rawImagePreviewPanel->Refresh();
+}
+
+void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
+{
+    m_frame->m_coordX1Value->Clear();
+    m_frame->m_coordY1Value->Clear();
+    m_frame->m_coordX2Value->Clear();
+    m_frame->m_coordY2Value->Clear();
+    m_frame->m_coordX3Value->Clear();
+    m_frame->m_coordY3Value->Clear();
+    m_frame->m_coordX4Value->Clear();
+    m_frame->m_coordY4Value->Clear();
+    m_frame->m_presenter->UpdateCommandPreview();
+}
+
+void InputController::OnPaintPreview(wxPaintEvent& event)
+{
+    wxAutoBufferedPaintDC dc(m_frame->m_rawImagePreviewPanel);
+    dc.Clear(); 
+
+    if (m_rawPreviewImage.IsOk()) {
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if (gc) {
+            double img_w = m_rawPreviewImage.GetWidth();
+            double img_h = m_rawPreviewImage.GetHeight();
+            const wxSize panel_size = dc.GetSize();
+            
+            double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
+            double final_width = img_w * scale_factor;
+            double final_height = img_h * scale_factor;
+            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+            
+            wxImage displayImage = m_rawPreviewImage.Copy();
+            displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
+            wxBitmap bitmapToDraw(displayImage);
+
+            gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
+            delete gc;
+        }
+    }
+}
+
+void InputController::OnSizePreview(wxSizeEvent& event)
+{
+    m_frame->m_rawImagePreviewPanel->Refresh();
     event.Skip();
 }

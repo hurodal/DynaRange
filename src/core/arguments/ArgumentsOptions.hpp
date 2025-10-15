@@ -104,6 +104,12 @@ struct ProgramOptions {
      */
     bool generate_individual_plots = false;
 
+    /**
+     * @brief (New) The index of the file to use for corner/patch detection.
+     * @details This is not set via CLI but is used internally, especially by the GUI.
+     */
+    int source_image_index = 0;
+
     // --- Internal Flags ---
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;

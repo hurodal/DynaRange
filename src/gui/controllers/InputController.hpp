@@ -6,6 +6,7 @@
 #pragma once
 #include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../../core/graphics/Constants.hpp"
+#include "wx/image.h"
 #include <wx/event.h>
 #include <string>
 #include <vector>
@@ -17,6 +18,7 @@ class wxScrollEvent;
 class wxKeyEvent;
 class wxArrayString;
 class wxFileDirPickerEvent;
+class wxPaintEvent;
 
 class InputController {
 public:
@@ -34,13 +36,12 @@ public:
     int GetPolyOrder() const;
     int GetPlotMode() const;
     DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
-    std::vector<std::string> GetInputFiles() const;
-    std::vector<double> GetChartCoords() const;
     std::string GetPrintPatchesFilename() const;
     int GetChartPatchesM() const; // Rows
     int GetChartPatchesN() const; // Cols
     RawChannelSelection GetRawChannelSelection() const;
     PlottingDetails GetPlottingDetails() const;
+    std::vector<double> GetChartCoords() const;
     bool ShouldSaveLog() const;
     bool ValidateSnrThresholds() const;
     /**
@@ -49,9 +50,10 @@ public:
      */
     bool ShouldGenerateIndividualPlots() const;
     // Methods to update the view
-    void UpdateInputFileList(const std::vector<std::string>& files);
+    void UpdateInputFileList(const std::vector<std::string>& files, int selected_index = -1);
     void UpdateCommandPreview(const std::string& command);
     void AddDroppedFiles(const wxArrayString& filenames);
+    void DisplayPreviewImage(const std::string& path);
 
     // --- Event Handling Logic ---
     void OnAddFilesClick(wxCommandEvent& event);
@@ -66,6 +68,9 @@ public:
     void OnClearDarkFile(wxCommandEvent& event);
     void OnClearSaturationFile(wxCommandEvent& event);
     void OnInputChartPatchChanged(wxCommandEvent& event);
+    void OnClearAllCoordsClick(wxCommandEvent& event);
+    void OnPaintPreview(wxPaintEvent& event);
+    void OnSizePreview(wxSizeEvent& event);
 
 private:
     void PerformFileRemoval();
@@ -73,4 +78,7 @@ private:
     
     DynaRangeFrame* m_frame; // Pointer to the parent frame to access its controls
     wxString m_lastDirectoryPath; ///< Stores the path of the last directory accessed by any file picker.
+    wxImage m_rawPreviewImage;
+    int m_originalRawWidth = 0;
+    int m_originalRawHeight = 0;
 };

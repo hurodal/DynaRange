@@ -25,10 +25,12 @@ class InputController;
 class LogController;
 class ResultsController;
 class wxSplitterEvent;
+class wxNotebookEvent;
 
 // Custom event declarations
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_COMPLETED, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_COMMAND_PREVIEW_UPDATE_COMPLETE, wxCommandEvent);
 
 class DynaRangeFrame : public MyFrameBase {
 public:
@@ -36,14 +38,16 @@ public:
     ~DynaRangeFrame();
 
     // --- Methods called by the Presenter to update the View ---
-    void UpdateInputFileList(const std::vector<std::string>& files);
-    void UpdateCommandPreview(const std::string& command);
+    void UpdateInputFileList(const std::vector<std::string>& files, int selected_index = -1);
+    void UpdateCommandPreview(const std::string& command); // Corrected signature
     void DisplayResults(const std::string& csv_path);
     void ShowError(const wxString& title, const wxString& message);
     void SetUiState(bool is_processing, int num_threads = 0);
     void PostLogUpdate(const std::string& text);
     void PostAnalysisComplete();
     void DisplayImage(const wxImage& image);
+    void UpdateRawPreview(const std::string& path);
+    void SetExecuteButtonToStoppingState();
 
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
@@ -58,7 +62,6 @@ public:
     int GetPlotMode() const;
     DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
     std::vector<double> GetChartCoords() const;
-    std::vector<std::string> GetInputFiles() const;
     int GetChartPatchesM() const;
     int GetChartPatchesN() const;
     std::string GetPrintPatchesFilename() const;
@@ -66,7 +69,7 @@ public:
     PlottingDetails GetPlottingDetails() const;
     bool ValidateSnrThresholds() const;
     bool ShouldSaveLog() const;
-    bool ShouldGenerateIndividualPlots() const;
+    bool ShouldGenerateIndividualPlots() const;    
 
 protected:
     // --- Event Handlers that remain in the Frame ---
@@ -101,7 +104,7 @@ private:
     std::unique_ptr<LogController> m_logController;
     std::unique_ptr<ResultsController> m_resultsController;
     std::unique_ptr<ChartController> m_chartController;
-
+    
     // Grant controllers access to protected UI members.
     friend class InputController;
     friend class ResultsController;
@@ -116,7 +119,6 @@ public:
     {
     }
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) override;
-
 private:
     DynaRangeFrame* m_owner;
 };

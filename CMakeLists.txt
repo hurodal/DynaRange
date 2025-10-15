@@ -75,6 +75,7 @@ set(CORE_SOURCES
     src/core/engine/initialization/ConfigReporter.cpp
     src/core/engine/initialization/FileSorter.cpp
     src/core/engine/initialization/InputFileFilter.cpp
+    src/core/engine/initialization/PreAnalysisRawSelector.cpp
     src/core/engine/PatchAnalysisStrategy.cpp
     src/core/engine/processing/AnalysisLoopRunner.cpp
     src/core/engine/processing/CornerDetectionHandler.cpp
@@ -106,7 +107,7 @@ set(CORE_SOURCES
     src/core/io/raw/RawImageAccessor.cpp
     src/core/io/raw/RawLoader.cpp
     src/core/io/raw/RawMetadataExtractor.cpp
-    src/core/math/Math.cpp
+    src/core/math/Math.cpp   
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
     src/core/setup/MetadataExtractor.cpp
@@ -118,6 +119,8 @@ set(CORE_SOURCES
     src/core/utils/LocaleManager.cpp
     src/core/utils/PathManager.cpp
     src/core/utils/PlatformUtils.cpp 
+    src/core/setup/PreAnalysis.cpp 
+    src/core/setup/PreAnalysisManager.cpp 
 )
 
 # =============================================================================
@@ -141,6 +144,7 @@ target_include_directories(rango PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+   
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
 )
 
@@ -153,7 +157,9 @@ add_executable(dynaRangeGui WIN32
     src/gui/DynaRangeGuiApp.cpp
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
+    src/gui/helpers/CvWxImageConverter.cpp
     src/gui/helpers/GuiPlotter.cpp 
+    src/gui/helpers/RawExtensionHelper.cpp
     src/gui/helpers/ResultsGridManager.cpp
     ${CORE_SOURCES}
 )
@@ -230,6 +236,6 @@ target_link_libraries(dynaRangeGui PRIVATE
 # =============================================================================
 # 6. ASSET MANAGEMENT
 # =============================================================================
-# Esta sección es nueva. Se encarga de copiar los recursos necesarios (imágenes,
+# Se encarga de copiar los recursos necesarios (imágenes,
 # etc.) al directorio de salida para que los ejecutables puedan encontrarlos.
 file(COPY assets/images DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)

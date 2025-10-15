@@ -12,8 +12,6 @@
 #include <cairo/cairo.h>
 #include <libintl.h>
 
-#define _(string) gettext(string)
-
 namespace { // Anonymous namespace for internal helpers
 
 /**

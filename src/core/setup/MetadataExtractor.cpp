@@ -1,91 +1,46 @@
 // File: src/core/setup/MetadataExtractor.cpp
 /**
- * @file MetadataExtractor.cpp
- * @brief Implements the metadata extraction logic from RAW files.
+ * @file src/core/setup/MetadataExtractor.cpp
+ * @brief Implements the metadata extraction logic for RAW files.
  */
 #include "MetadataExtractor.hpp"
 #include "../io/raw/RawFile.hpp"
-#include <filesystem>
-#include <future>
+#include "PreAnalysis.hpp"
+#include <iostream>
 #include <libintl.h>
-#include <mutex>
-#include <opencv2/imgproc.hpp>
-#include <thread>
-#include <utility>
 
-namespace fs = std::filesystem;
 #define _(string) gettext(string)
 
-// The function now returns a pair: the FileInfo vector for sorting, and the vector of loaded RawFile objects.
 std::pair<std::vector<FileInfo>, std::vector<RawFile>> ExtractFileInfo(const std::vector<std::string>& input_files, std::ostream& log_stream)
 {
-    std::mutex log_mutex;
-    // This lambda function contains the work to be done for a single file.
-    auto process_single_file = [&log_stream, &log_mutex](const std::string& name) -> std::pair<std::optional<FileInfo>, RawFile> {
-        RawFile raw_file(name);
-        if (!raw_file.Load()) {
-            std::lock_guard<std::mutex> lock(log_mutex);
-            log_stream << _("Warning: Could not pre-load RAW file for metadata extraction: ") << name << std::endl;
-            return { std::nullopt, std::move(raw_file) };
-        }
-
-        FileInfo info;
-        info.filename = name;
-
-        cv::Mat active_img = raw_file.GetActiveRawImage();
-        if (active_img.empty()) {
-            std::lock_guard<std::mutex> lock(log_mutex);
-            log_stream << _("[FATAL ERROR] Could not read direct raw sensor data from input file: ") << name << std::endl;
-            log_stream << _("  This is likely because the file is in a compressed RAW format that is not supported for analysis.") << std::endl;
-            // By returning nullopt, we mark this file as invalid, and it won't be processed.
-            return { std::nullopt, std::move(raw_file) };
-        }
-
-        info.mean_brightness = cv::mean(active_img)[0];
-        info.iso_speed = raw_file.GetIsoSpeed();
-        {
-            std::lock_guard<std::mutex> lock(log_mutex);
-            log_stream << _("Pre-analyzed file: ") << fs::path(name).filename().string() << std::endl;
-        }
-
-        return { info, std::move(raw_file) };
-    };
-
-    unsigned int num_threads = std::thread::hardware_concurrency();
-    if (num_threads == 0) {
-        num_threads = 1;
+    // For the CLI, we need a saturation value to check for saturated pixels.
+    // We use a very high default value to effectively disable the check at this stage,
+    // as the real saturation value is not known until later in the initialization phase.
+    // The GUI will call PreAnalyzeRawFiles directly with the correct saturation value.
+    const double CLI_DEFAULT_SATURATION = 1e9;
+    auto pre_analysis_results = PreAnalyzeRawFiles(input_files, CLI_DEFAULT_SATURATION, &log_stream);
+    if (pre_analysis_results.empty()) {
+        // Return empty vectors using move semantics to avoid copy.
+        return std::make_pair(std::vector<FileInfo>(), std::vector<RawFile>());
     }
-    log_stream << _("Starting parallel pre-analysis with ") << num_threads << _(" threads...") << std::endl;
-
     std::vector<FileInfo> file_info_list;
     std::vector<RawFile> loaded_raw_files;
-
-    // Process files in batches based on the number of available threads.
-    for (size_t i = 0; i < input_files.size(); i += num_threads) {
-        std::vector<std::future<std::pair<std::optional<FileInfo>, RawFile>>> batch_futures;
-        // Launch a batch of asynchronous tasks.
-        for (size_t j = i; j < std::min(i + num_threads, input_files.size()); ++j) {
-            batch_futures.push_back(std::async(std::launch::async, process_single_file, input_files[j]));
-        }
-
-        // Wait for the current batch to complete and collect the results.
-        for (auto& fut : batch_futures) {
-            auto [info_opt, raw_file] = fut.get();
-            if (info_opt.has_value()) {
-                file_info_list.push_back(*info_opt);
-                loaded_raw_files.push_back(std::move(raw_file));
-            } else {
-                // If a file failed (e.g., compressed format), we stop everything.
-                // To do this, we clear the lists of valid files, ensuring the program exits.
-                file_info_list.clear();
-                loaded_raw_files.clear();
-                // We must break the inner loop and the outer loop.
-                goto end_loops;
-            }
-        }
+    file_info_list.reserve(pre_analysis_results.size());
+    loaded_raw_files.reserve(pre_analysis_results.size());
+    for (const auto& result : pre_analysis_results) {
+        FileInfo info;
+        info.filename = result.filename;
+        info.mean_brightness = result.mean_brightness;
+        info.iso_speed = result.iso_speed;
+        file_info_list.push_back(info);
+        // We need to reload the file because the RawFile in PreAnalyzeRawFiles is destroyed.
+        // This is a small inefficiency for the CLI, but it keeps the core logic clean.
+        // The GUI can optimize this by caching the loaded RawFile objects.
+        RawFile raw_file(result.filename);
+        raw_file.Load(); // We assume it will load successfully as it did in pre-analysis.
+        // Use move semantics to add to the vector, as RawFile is non-copyable.
+        loaded_raw_files.push_back(std::move(raw_file));
     }
-
-end_loops:;
-
-    return { file_info_list, std::move(loaded_raw_files) };
+    // Return the pair using move semantics.
+    return std::make_pair(std::move(file_info_list), std::move(loaded_raw_files));
 }

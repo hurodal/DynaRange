@@ -4,19 +4,22 @@
  * @brief Implements the application logic presenter for the GUI.
  */
 #include "GuiPresenter.hpp"
+#include "DynaRangeFrame.hpp" // Include the full View definition
+#include "helpers/GuiPlotter.hpp"
 #include "../core/arguments/ArgumentManager.hpp"
 #include "../core/engine/Engine.hpp"
 #include "../core/utils/CommandGenerator.hpp"
 #include "../core/arguments/Constants.hpp"
-#include "DynaRangeFrame.hpp" // Include the full View definition
-#include "helpers/GuiPlotter.hpp" // Include the new GUI plotter
+#include "../core/setup/PreAnalysis.hpp"
 #include <algorithm>
-#include <filesystem>
+#include <future>
 #include <ostream>
 #include <set>
 #include <streambuf>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
+#include <wx/busyinfo.h>
+#include <wx/app.h>
 #include <thread>
 
 namespace fs = std::filesystem;
@@ -60,6 +63,7 @@ GuiPresenter::GuiPresenter(DynaRangeFrame* view)
     : m_view(view)
 {
     m_cancelWorker = false;
+    m_currentPreviewFile = "";
 }
 
 GuiPresenter::~GuiPresenter()
@@ -74,12 +78,14 @@ void GuiPresenter::UpdateManagerFromView()
     using namespace DynaRange::Arguments::Constants;
     auto& mgr = ArgumentManager::Instance();
     
+    // Sincroniza la lista de ficheros desde el gestor de pre-análisis al gestor de argumentos.
+    mgr.Set(InputFiles, m_preAnalysisManager.GetSortedFileList());
+
     mgr.Set(BlackFile, m_view->GetDarkFilePath());
     mgr.Set(SaturationFile, m_view->GetSaturationFilePath());
     mgr.Set(BlackLevel, m_view->GetDarkValue());
     mgr.Set(SaturationLevel, m_view->GetSaturationValue());
     mgr.Set(PatchRatio, m_view->GetPatchRatio());
-    mgr.Set(InputFiles, m_view->GetInputFiles());
     mgr.Set(OutputFile, m_view->GetOutputFilePath());
     mgr.Set(SnrThresholdDb, m_view->GetSnrThresholds());
     mgr.Set(DrNormalizationMpx, m_view->GetDrNormalization());
@@ -100,7 +106,8 @@ void GuiPresenter::UpdateManagerFromView()
         mgr.Set(PlotFormat, format_str);
 
         PlottingDetails details = m_view->GetPlottingDetails();
-        int commandMode = plotModeChoice; // 1: No cmd, 2: Short, 3: Long
+        int commandMode = plotModeChoice;
+        // 1: No cmd, 2: Short, 3: Long
         std::vector<int> params = { static_cast<int>(details.show_scatters), static_cast<int>(details.show_curve), static_cast<int>(details.show_labels), commandMode };
         mgr.Set(PlotParams, params);
     }
@@ -109,7 +116,7 @@ void GuiPresenter::UpdateManagerFromView()
     
     std::vector<int> patches = { m_view->GetChartPatchesM(), m_view->GetChartPatchesN() };
     mgr.Set(ChartPatches, patches);
-    
+
     RawChannelSelection channels = m_view->GetRawChannelSelection();
     std::vector<int> channels_vec = { 
         static_cast<int>(channels.R), 
@@ -156,13 +163,15 @@ void GuiPresenter::StartAnalysis()
 
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
     
-    // Set the GUI-specific flag after creating the options from the manager
     m_lastRunOptions.generate_individual_plots = m_view->ShouldGenerateIndividualPlots();
 
     if (m_lastRunOptions.input_files.empty()) {
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
+    
+    // The source image selection logic is now handled inside RunDynamicRangeAnalysis,
+    // so it is no longer needed here. We just pass the options.
 
     if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
         std::set<std::string> calibration_files;
@@ -185,10 +194,9 @@ void GuiPresenter::StartAnalysis()
         UpdateCommandPreview();
     }
 
-    // Determine number of threads and pass it to the view.
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) {
-        num_threads = 1; // Fallback for safety.
+        num_threads = 1; 
     }
     m_view->SetUiState(true, num_threads);
     if (m_workerThread.joinable()) {
@@ -272,7 +280,13 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
 
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
 {
-    // Get the current calibration files to build an exclusion list.
+    if (files_to_add.empty()) return;
+
+    // Show a busy indicator window that will be automatically destroyed on scope exit (RAII).
+    wxBusyInfo wait(_("Loading and pre-processing files..."), m_view);
+    // Force the UI to update and show the busy info immediately.
+    wxTheApp->Yield();
+
     std::set<std::string> calibration_files;
     std::string dark_file = m_view->GetDarkFilePath();
     if (!dark_file.empty()) {
@@ -283,32 +297,58 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
         calibration_files.insert(sat_file);
     }
 
-    // Create a temporary list for files that are valid to add.
     std::vector<std::string> new_valid_files;
-    // Use a set of existing files for efficient lookup.
     std::set<std::string> existing_files(m_inputFiles.begin(), m_inputFiles.end());
-
     for (const auto& file : files_to_add) {
         bool is_calibration_file = calibration_files.count(file) > 0;
         bool is_already_in_list = existing_files.count(file) > 0;
-
-        // A file is valid to be added only if it's not a calibration file
-        // AND it's not already in the input list.
         if (!is_calibration_file && !is_already_in_list) {
             new_valid_files.push_back(file);
         }
     }
 
-    // If there are any new valid files, update the state and the view.
-    if (!new_valid_files.empty()) {
-        // Update the internal state first by appending the new files.
-        m_inputFiles.insert(m_inputFiles.end(), new_valid_files.begin(), new_valid_files.end());
-        std::sort(m_inputFiles.begin(), m_inputFiles.end());
+    if (new_valid_files.empty()) return;
 
-        // Update the view from the single source of truth.
-        m_view->UpdateInputFileList(m_inputFiles);
-        UpdateCommandPreview();
+    // --- ASYNCHRONOUS LOADING PHASE ---
+    // Launch a future for each file to load it in a background thread.
+    std::vector<std::future<PreAnalysisResult>> futures;
+    double sat_value = m_view->GetSaturationValue();
+    for (const auto& file : new_valid_files) {
+        futures.push_back(std::async(std::launch::async, [file, sat_value]() -> PreAnalysisResult {
+            RawFile raw_file(file);
+            if (!raw_file.Load()) {
+                return {file, -1.0, 0.0f, true, sat_value}; // Signal load failure
+            }
+            cv::Mat active_img = raw_file.GetActiveRawImage();
+            if (active_img.empty()) {
+                return {file, -1.0, 0.0f, true, sat_value}; // Signal invalid image
+            }
+            double mean_brightness = cv::mean(active_img)[0];
+            int saturated_pixels = cv::countNonZero(active_img >= (sat_value * 0.99));
+            return {file, mean_brightness, raw_file.GetIsoSpeed(), saturated_pixels > 0, sat_value};
+        }));
     }
+
+    // Wait for all futures to complete, periodically yielding to keep the UI responsive.
+    std::vector<PreAnalysisResult> loaded_files;
+    for (auto& fut : futures) {
+        wxTheApp->Yield();
+        auto result = fut.get();
+        if (result.mean_brightness >= 0.0) { // Only keep successfully loaded files
+            loaded_files.push_back(result);
+        }
+    }
+
+    // If no files were successfully loaded, abort.
+    if (loaded_files.empty()) return;
+
+    // Add the new entries to the manager.
+    for (const auto& entry : loaded_files) {
+        m_preAnalysisManager.AddFile(entry.filename, sat_value);
+    }
+
+    UpdateRawPreviewFromCache();
+    UpdateCommandPreview();
 }
 
 void GuiPresenter::HandleGridCellClick()
@@ -321,27 +361,29 @@ void GuiPresenter::HandleGridCellClick()
 
 void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
 {
-    // It is CRITICAL to delete items from the end to the beginning
-    // to avoid invalidating the indices of the remaining items.
-    std::vector<int> sorted_indices = indices;
-    std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+    wxBusyInfo wait(_("Updating file list and preview..."), m_view);
 
-    for (int index : sorted_indices) {
-        if (index < m_inputFiles.size()) {
-            m_inputFiles.erase(m_inputFiles.begin() + index);
+    auto sorted_files = m_preAnalysisManager.GetSortedFileList();
+    std::vector<std::string> files_to_remove;
+    for (int index : indices) {
+        if (index >= 0 && index < static_cast<int>(sorted_files.size())) {
+            files_to_remove.push_back(sorted_files[index]);
         }
     }
 
-    // Update the view from the single source of truth.
-    m_view->UpdateInputFileList(m_inputFiles);
+    for (const auto& file : files_to_remove) {
+        m_preAnalysisManager.RemoveFile(file);
+    }
+
+    UpdateRawPreviewFromCache();
     UpdateCommandPreview();
 }
 
 void GuiPresenter::RemoveAllInputFiles()
 {
-    m_inputFiles.clear();
-    // Update the view from the single source of truth.
-    m_view->UpdateInputFileList(m_inputFiles);
+    wxBusyInfo wait(_("Updating file list and preview..."), m_view);
+    m_preAnalysisManager.Clear();
+    UpdateRawPreviewFromCache();
     UpdateCommandPreview();
 }
 
@@ -359,7 +401,6 @@ void GuiPresenter::UpdateCalibrationFiles()
 {
     std::string dark_file = m_view->GetDarkFilePath();
     std::string sat_file = m_view->GetSaturationFilePath();
-
     std::set<std::string> calibration_files;
     if (!dark_file.empty()) {
         calibration_files.insert(dark_file);
@@ -367,24 +408,102 @@ void GuiPresenter::UpdateCalibrationFiles()
     if (!sat_file.empty()) {
         calibration_files.insert(sat_file);
     }
-
     if (!calibration_files.empty()) {
-        // Perform the filtering on the internal state (the single source of truth).
-        auto original_size = m_inputFiles.size();
-        m_inputFiles.erase(
-            std::remove_if(m_inputFiles.begin(), m_inputFiles.end(),
-                [&](const std::string& input_file) {
-                    return calibration_files.count(input_file) > 0;
-                }),
-            m_inputFiles.end()
-        );
-
-        // Only update the view if a change actually occurred.
-        if (m_inputFiles.size() != original_size) {
-            m_view->UpdateInputFileList(m_inputFiles);
+        auto original_size = m_preAnalysisManager.GetSortedFileList().size();
+        for (const auto& file : calibration_files) {
+            m_preAnalysisManager.RemoveFile(file);
+        }
+        if (m_preAnalysisManager.GetSortedFileList().size() != original_size) {
+            wxBusyInfo wait(_("Updating file list and preview..."), m_view);
+            UpdateRawPreviewFromCache();
         }
     }
-
-    // Always update the command preview to reflect the current state.
     UpdateCommandPreview();
+}
+
+void GuiPresenter::UpdateRawPreview()
+{
+    if (m_inputFiles.empty()) {
+        m_view->UpdateRawPreview(""); // Clear preview
+        m_view->UpdateInputFileList(m_inputFiles, -1);
+        return;
+    }
+    // Use the new core pre-analysis function.
+    // We need a saturation value. We'll get it from the view for now.
+    // In the future, this could be part of a more robust state management.
+    double sat_value = m_view->GetSaturationValue();
+    auto pre_analysis_results = PreAnalyzeRawFiles(m_inputFiles, sat_value, nullptr);
+    if (pre_analysis_results.empty()) {
+        m_view->UpdateRawPreview(""); // Clear preview if no files could be read
+        m_view->UpdateInputFileList(m_inputFiles, -1);
+        return;
+    }
+    // Find the best file index in the pre_analysis_results vector.
+    int best_index = 0;
+    bool found_non_saturated = false;
+    // Iterate from the end (brightest) to find the first non-saturated file.
+    for (int i = static_cast<int>(pre_analysis_results.size()) - 1; i >= 0; --i) {
+        if (!pre_analysis_results[i].has_saturated_pixels) {
+            best_index = i;
+            found_non_saturated = true;
+            break;
+        }
+    }
+    if (!found_non_saturated) {
+        best_index = 0; // Use the darkest file.
+    }
+    std::string best_file_path = pre_analysis_results[best_index].filename;
+    m_view->UpdateRawPreview(best_file_path);
+    // Find the index in the original m_inputFiles list.
+    int display_index = -1;
+    for (size_t i = 0; i < m_inputFiles.size(); ++i) {
+        if (m_inputFiles[i] == best_file_path) {
+            display_index = static_cast<int>(i);
+            break;
+        }
+    }
+    m_view->UpdateInputFileList(m_inputFiles, display_index);
+}
+
+void GuiPresenter::UpdateRawPreviewFromCache()
+{
+    auto sorted_files = m_preAnalysisManager.GetSortedFileList();
+    auto best_file_opt = m_preAnalysisManager.GetBestPreviewFile();
+
+    // Determina la ruta del nuevo fichero a mostrar (o una cadena vacía si no hay ninguno)
+    std::string new_best_file = best_file_opt.has_value() ? best_file_opt.value() : "";
+
+    // --- LÓGICA INTELIGENTE AÑADIDA ---
+    // Solo actualiza la imagen de previsualización si el fichero a mostrar ha cambiado.
+    if (new_best_file != m_currentPreviewFile) {
+        m_view->UpdateRawPreview(new_best_file);
+        m_currentPreviewFile = new_best_file;
+    }
+
+    // La lista de ficheros siempre se actualiza para reflejar borrados y la marca '▶'
+    int display_index = -1;
+    if (!new_best_file.empty()) {
+        for (size_t i = 0; i < sorted_files.size(); ++i) {
+            if (sorted_files[i] == new_best_file) {
+                display_index = static_cast<int>(i);
+                break;
+            }
+        }
+    }
+    
+    m_view->UpdateInputFileList(sorted_files, display_index);
+}
+
+void GuiPresenter::OnExecuteButtonClicked()
+{
+    if (IsWorkerRunning()) {
+        // If the worker is running, the button acts as a "Stop" button.
+        RequestWorkerCancellation();
+        
+        // Change the UI to a "waiting to stop" state immediately.
+        m_view->SetExecuteButtonToStoppingState();
+    } else {
+        // If the worker is not running, the button acts as an "Execute" button.
+        StartAnalysis();
+    }
 }
