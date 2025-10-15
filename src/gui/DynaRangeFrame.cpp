@@ -147,8 +147,9 @@ DynaRangeFrame::~DynaRangeFrame() {
 
 // --- View Update Methods ---
 
-void DynaRangeFrame::UpdateInputFileList(const std::vector<std::string>& files) { 
-    m_inputController->UpdateInputFileList(files);
+void DynaRangeFrame::UpdateInputFileList(const std::vector<std::string>& files, int selected_index)
+{
+    m_inputController->UpdateInputFileList(files, selected_index);
 }
 
 void DynaRangeFrame::UpdateCommandPreview(const std::string& command) { 
@@ -196,18 +197,8 @@ void DynaRangeFrame::SetUiState(bool is_processing, int num_threads) {
     m_resultsController->SetUiState(is_processing);
 }
 void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) {
-    if (m_presenter->IsWorkerRunning()) {
-        // If the worker is running, the button acts as a "Stop" button.
-        m_presenter->RequestWorkerCancellation();
-        
-        // Change the UI to a "waiting to stop" state immediately.
-        m_executeButton->SetLabel(_("Waiting stop..."));
-        m_executeButton->Enable(false); // Disable the button to prevent multiple clicks.
-        m_inputPanel->Layout(); // Adjust layout for the new text
-    } else {
-        // If the worker is not running, the button acts as an "Execute" button.
-        m_presenter->StartAnalysis();
-    }
+    // Delegate all logic to the Presenter.
+    m_presenter->OnExecuteButtonClicked();
 }
 
 void DynaRangeFrame::PostLogUpdate(const std::string& text) {
@@ -239,8 +230,6 @@ double DynaRangeFrame::GetDrNormalization() const { return m_inputController->Ge
 }
 int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrder(); }
 int DynaRangeFrame::GetPlotMode() const { return m_inputController->GetPlotMode(); }
-std::vector<std::string> DynaRangeFrame::GetInputFiles() const { return m_inputController->GetInputFiles();
-}
 int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN();
 }
@@ -421,4 +410,11 @@ void DynaRangeFrame::UpdateRawPreview(const std::string& path) {
     if (m_inputController) {
         m_inputController->DisplayPreviewImage(path);
     }
+}
+
+void DynaRangeFrame::SetExecuteButtonToStoppingState()
+{
+    m_executeButton->SetLabel(_("Waiting stop..."));
+    m_executeButton->Enable(false);
+    m_inputPanel->Layout();
 }

@@ -38,7 +38,7 @@ public:
     ~DynaRangeFrame();
 
     // --- Methods called by the Presenter to update the View ---
-    void UpdateInputFileList(const std::vector<std::string>& files);
+    void UpdateInputFileList(const std::vector<std::string>& files, int selected_index = -1);
     void UpdateCommandPreview(const std::string& command); // Corrected signature
     void DisplayResults(const std::string& csv_path);
     void ShowError(const wxString& title, const wxString& message);
@@ -47,6 +47,7 @@ public:
     void PostAnalysisComplete();
     void DisplayImage(const wxImage& image);
     void UpdateRawPreview(const std::string& path);
+    void SetExecuteButtonToStoppingState();
 
     // --- Getters that delegate to InputController ---
     std::string GetDarkFilePath() const;
@@ -61,7 +62,6 @@ public:
     int GetPlotMode() const;
     DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
     std::vector<double> GetChartCoords() const;
-    std::vector<std::string> GetInputFiles() const;
     int GetChartPatchesM() const;
     int GetChartPatchesN() const;
     std::string GetPrintPatchesFilename() const;
@@ -69,7 +69,7 @@ public:
     PlottingDetails GetPlottingDetails() const;
     bool ValidateSnrThresholds() const;
     bool ShouldSaveLog() const;
-    bool ShouldGenerateIndividualPlots() const;
+    bool ShouldGenerateIndividualPlots() const;    
 
 protected:
     // --- Event Handlers that remain in the Frame ---

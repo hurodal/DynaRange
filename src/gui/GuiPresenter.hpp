@@ -8,6 +8,7 @@
 #pragma once
 #include "../core/arguments/ArgumentsOptions.hpp"
 #include "../core/engine/Reporting.hpp" // For ReportOutput
+#include "../core/setup/PreAnalysisManager.hpp"
 #include <atomic>
 #include <string>
 #include <thread>
@@ -96,6 +97,9 @@ public:
    */
   void UpdateCalibrationFiles();
 
+
+  void OnExecuteButtonClicked();
+
 private:
   /**
    * @brief The main function for the worker thread.
@@ -113,19 +117,25 @@ private:
   void UpdateManagerFromView();
 
   void UpdateRawPreview();
+  void UpdateRawPreviewFromCache();
 
   // Member variables
   DynaRangeFrame *m_view; // Pointer to the View
 
   // Application State
   std::vector<std::string> m_inputFiles;
+  PreAnalysisManager m_preAnalysisManager;
   ReportOutput m_lastReport;
   ProgramOptions m_lastRunOptions;
   
   // In-memory images for the GUI
   wxImage m_summaryImage;
   std::map<std::string, wxImage> m_individualImages;
-
+  /**
+   * @brief (NUEVO) Almacena la ruta del fichero que se está mostrando actualmente en la vista previa.
+   */
+  std::string m_currentPreviewFile;
+  
   std::thread m_workerThread;
   std::atomic<bool> m_isWorkerRunning{false};
   std::atomic<bool> m_cancelWorker{false};

@@ -76,13 +76,6 @@ std::string InputController::GetOutputFilePath() const { return std::string(m_fr
 double InputController::GetDrNormalization() const { return static_cast<double>(m_frame->m_drNormalizationSlider->GetValue()); }
 int InputController::GetPolyOrder() const { return PolyOrderFromIndex(m_frame->m_PlotChoice->GetSelection()); }
 int InputController::GetPlotMode() const { return m_frame->m_plotingChoice->GetSelection(); }
-std::vector<std::string> InputController::GetInputFiles() const {
-    std::vector<std::string> files;
-    for (unsigned int i = 0; i < m_frame->m_rawFileslistBox->GetCount(); ++i) {
-        files.push_back(std::string(m_frame->m_rawFileslistBox->GetString(i).mb_str()));
-    }
-    return files;
-}
 std::vector<double> InputController::GetSnrThresholds() const {
     std::vector<double> thresholds;
     std::string text = std::string(m_frame->m_snrThresholdsValues->GetValue().mb_str());
@@ -94,13 +87,24 @@ std::vector<double> InputController::GetSnrThresholds() const {
     }
     return thresholds;
 }
-// --- View Updaters ---
-void InputController::UpdateInputFileList(const std::vector<std::string>& files) {
+
+void InputController::UpdateInputFileList(const std::vector<std::string>& files, int selected_index)
+{
     m_frame->m_rawFileslistBox->Clear();
-    for (const auto& file : files) {
-        m_frame->m_rawFileslistBox->Append(file);
+    for (size_t i = 0; i < files.size(); ++i) {
+        std::string display_name = files[i];
+        if (static_cast<int>(i) == selected_index) {
+            display_name = "▶ " + display_name;
+        }
+        m_frame->m_rawFileslistBox->Append(display_name);
+    }
+
+    // Si hay un elemento seleccionado, nos aseguramos de que sea visible.
+    if (selected_index != -1) {
+        m_frame->m_rawFileslistBox->EnsureVisible(selected_index);
     }
 }
+
 void InputController::UpdateCommandPreview(const std::string& command) { m_frame->m_equivalentCliTextCtrl->ChangeValue(command); }
 
 void InputController::PerformFileRemoval() {

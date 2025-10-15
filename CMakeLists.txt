@@ -107,8 +107,7 @@ set(CORE_SOURCES
     src/core/io/raw/RawImageAccessor.cpp
     src/core/io/raw/RawLoader.cpp
     src/core/io/raw/RawMetadataExtractor.cpp
-    src/core/math/Math.cpp
-   
+    src/core/math/Math.cpp   
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
     src/core/setup/MetadataExtractor.cpp
@@ -120,6 +119,8 @@ set(CORE_SOURCES
     src/core/utils/LocaleManager.cpp
     src/core/utils/PathManager.cpp
     src/core/utils/PlatformUtils.cpp 
+    src/core/setup/PreAnalysis.cpp 
+    src/core/setup/PreAnalysisManager.cpp 
 )
 
 # =============================================================================

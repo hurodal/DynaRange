@@ -36,7 +36,6 @@ public:
     int GetPolyOrder() const;
     int GetPlotMode() const;
     DynaRange::Graphics::Constants::PlotOutputFormat GetPlotFormat() const;
-    std::vector<std::string> GetInputFiles() const;
     std::string GetPrintPatchesFilename() const;
     int GetChartPatchesM() const; // Rows
     int GetChartPatchesN() const; // Cols
@@ -51,7 +50,7 @@ public:
      */
     bool ShouldGenerateIndividualPlots() const;
     // Methods to update the view
-    void UpdateInputFileList(const std::vector<std::string>& files);
+    void UpdateInputFileList(const std::vector<std::string>& files, int selected_index = -1);
     void UpdateCommandPreview(const std::string& command);
     void AddDroppedFiles(const wxArrayString& filenames);
     void DisplayPreviewImage(const std::string& path);
