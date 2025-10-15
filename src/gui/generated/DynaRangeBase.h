@@ -96,6 +96,7 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_staticText43;
 		wxTextCtrl* m_coordY2Value;
 		wxStaticLine* m_staticline1;
+		wxStaticLine* m_staticline3;
 		wxStaticText* m_staticText44;
 		wxTextCtrl* m_coordX3Value;
 		wxStaticText* m_staticText45;
@@ -104,7 +105,6 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_coordX4Value;
 		wxStaticText* m_staticText47;
 		wxTextCtrl* m_coordY4Value;
-		wxStaticLine* m_staticline2;
 		wxButton* m_clearAllCoordinates;
 		wxStaticText* chartPatchRowStaticText1;
 		wxTextCtrl* m_chartPatchRowValue1;

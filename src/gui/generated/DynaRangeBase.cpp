@@ -315,58 +315,58 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_staticText381 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y1"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText381->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText381, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText381, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY1Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordY1Value, wxGBPosition( 0, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordY1Value, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText42 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X2"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText42->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText42, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText42, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX2Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordX2Value, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordX2Value, wxGBPosition( 3, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText43 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y2"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText43->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText43, wxGBPosition( 1, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText43, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY2Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordY2Value, wxGBPosition( 1, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordY2Value, wxGBPosition( 4, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticline1 = new wxStaticLine( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
 	coordsChartgbSizer->Add( m_staticline1, wxGBPosition( 2, 0 ), wxGBSpan( 1, 5 ), wxEXPAND | wxALL, 5 );
 
+	m_staticline3 = new wxStaticLine( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL );
+	coordsChartgbSizer->Add( m_staticline3, wxGBPosition( 0, 2 ), wxGBSpan( 5, 1 ), wxEXPAND | wxALL, 5 );
+
 	m_staticText44 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X3"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText44->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText44, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText44, wxGBPosition( 3, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX3Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordX3Value, wxGBPosition( 3, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordX3Value, wxGBPosition( 3, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText45 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y3"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText45->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText45, wxGBPosition( 3, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText45, wxGBPosition( 4, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY3Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordY3Value, wxGBPosition( 3, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordY3Value, wxGBPosition( 4, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText46 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X4"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText46->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText46, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText46, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX4Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordX4Value, wxGBPosition( 4, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordX4Value, wxGBPosition( 0, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText47 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y4"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText47->Wrap( -1 );
-	coordsChartgbSizer->Add( m_staticText47, wxGBPosition( 4, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	coordsChartgbSizer->Add( m_staticText47, wxGBPosition( 1, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY4Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordsChartgbSizer->Add( m_coordY4Value, wxGBPosition( 4, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-
-	m_staticline2 = new wxStaticLine( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-	coordsChartgbSizer->Add( m_staticline2, wxGBPosition( 0, 2 ), wxGBSpan( 5, 1 ), wxEXPAND | wxALL, 5 );
+	coordsChartgbSizer->Add( m_coordY4Value, wxGBPosition( 1, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_clearAllCoordinates = new wxButton( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Clear All"), wxDefaultPosition, wxDefaultSize, 0 );
 
