@@ -4,7 +4,7 @@ PRIORITARIAS
 0: FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
    Y MÁS DE UN 1% DE PÍXELES A 0 (EXACTAMENTE A 0)
 
-1: VERIFICAR LA ORIENTACION DEL RAW EN LOS METADATOS EXIF (va relacionado con el fallo de la 5D MkII):
+1: DESACTIVAR LA ROTACION DEL RAW (va relacionado con el fallo de la 5D MkII):
 PAra evitar problemas con el sensor de orientacion, habria que comprobar el metadato "CameraOrientation" de los EXIF.
 Vale, y según la documentación de LibRAW, parece que se puede hacer un:
 
@@ -17,7 +17,7 @@ Bits 2-4 - the orientation of the image (0=do not rotate, 3=180, 5=90CCW, 6=90CW
 Es lo que he podido encontrar aquí: 
 
 https://www.libraw.org/docs/API-CXX.html
-Otra opcion es añadir dos botones para girar la imagen 90º a izqda y dcha segun el gusto del usuario...
+No tengo idea de como resolver esto, pero supongo que debe haber un comando para simplemente ignorar ese metadato y NO rotar el RAW, tal como sugiere Guillermo.
 
 1C: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
@@ -52,13 +52,13 @@ y quizas lo que propone Guillermo de hacer un recorte por los 4 costados lo pued
 4: FALLO PARCHES MONITOR OLED: Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
    y que os compartí el 10/10 en el chat a las 13:14
 
-5: FALLO CANON 5D II: Corregir el fallo con las fotos de la Canon 5DMkII, que estan giradas 90º debido al sensor de orientación de la cámara.
-   Estan en la carpeta "2025-09-12 Carta DynaRange Canon 5dMkII". Introduciendo manualmente las coordenadas que muestro en la captura "target Coords 5DMkII.jpg" no lo pilla bien
-
+5: 
 
 
 NO PRIORITARIAS
 ===============
+
+6a: Mirar porque con ISO 102400 la SONY da valores extrañamente amuy altos.
 
 6: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
 
