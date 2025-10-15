@@ -363,7 +363,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	coordFlexSizer->Add( m_coordY4Value, 0, wxALL, 3 );
 
 
-	chartCoordStaticSizer->Add( coordFlexSizer, 0, wxALL|wxEXPAND, 5 );
+	chartCoordStaticSizer->Add( coordFlexSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* buttChartCoordSizer;
 	buttChartCoordSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -374,10 +374,10 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	buttChartCoordSizer->Add( m_clearAllCoordinates, 0, wxALL, 5 );
 
 
-	chartCoordStaticSizer->Add( buttChartCoordSizer, 1, wxALL|wxEXPAND, 5 );
+	chartCoordStaticSizer->Add( buttChartCoordSizer, 1, wxEXPAND, 5 );
 
 
-	bSizer491->Add( chartCoordStaticSizer, 0, wxALL|wxEXPAND, 5 );
+	bSizer491->Add( chartCoordStaticSizer, 0, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* patchesStaticSizer;
 	patchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Pacthes") ), wxVERTICAL );
@@ -414,7 +414,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	chatPatchStaticSizer->Add( chartPatchFgSizer, 1, wxEXPAND, 5 );
 
 
-	patchesStaticSizer->Add( chatPatchStaticSizer, 0, wxALL, 5 );
+	patchesStaticSizer->Add( chatPatchStaticSizer, 0, wxLEFT|wxRIGHT, 5 );
 
 	wxStaticBoxSizer* debugPatchesStaticSizer;
 	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
@@ -434,13 +434,13 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
 
 
-	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxALL|wxEXPAND, 5 );
+	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 
-	bSizer491->Add( patchesStaticSizer, 1, wxALL|wxEXPAND, 5 );
+	bSizer491->Add( patchesStaticSizer, 1, wxEXPAND|wxLEFT, 5 );
 
 
-	bSizer50->Add( bSizer491, 0, wxALL|wxEXPAND, 5 );
+	bSizer50->Add( bSizer491, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	wxBoxSizer* bSizer44;
 	bSizer44 = new wxBoxSizer( wxVERTICAL );
@@ -452,39 +452,39 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
 
 	m_plotParamScattersCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Scatters"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, wxALL, 5 );
+	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, 0, 5 );
 
 	m_plotParamCurveCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Curves"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, wxALL, 5 );
+	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, 0, 5 );
 
 	m_plotParamLabelsCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Labels"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, wxALL, 5 );
+	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, 0, 5 );
 
 
 	plotParamsSizer->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	allIsosCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("All ISOs"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( allIsosCheckBox, 0, wxALL, 5 );
+	plotParamsSizer->Add( allIsosCheckBox, 0, 0, 5 );
 
 
-	graphicSizer->Add( plotParamsSizer, 1, wxALL|wxEXPAND, 5 );
+	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
 
 	wxBoxSizer* graphicsOthersSizer;
 	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
 
 	graphicFormatStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
 	graphicFormatStaticText->Wrap( -1 );
-	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
 	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
 	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
 	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
 	m_plotFormatChoice->SetSelection( 0 );
-	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALL, 5 );
+	graphicsOthersSizer->Add( m_plotFormatChoice, 0, 0, 5 );
 
 	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_plotingStaticText->Wrap( -1 );
-	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
 	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
 	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
@@ -493,13 +493,13 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	graphicsOthersSizer->Add( m_plotingChoice, 0, wxALL, 5 );
 
 
-	graphicSizer->Add( graphicsOthersSizer, 1, wxALL|wxEXPAND, 5 );
+	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
 
 
-	bSizer44->Add( graphicSizer, 0, wxALL|wxEXPAND, 5 );
+	bSizer44->Add( graphicSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 
-	bSizer50->Add( bSizer44, 0, wxALL|wxEXPAND, 5 );
+	bSizer50->Add( bSizer44, 0, wxEXPAND, 5 );
 
 
 	inputColRightSizer->Add( bSizer50, 0, 0, 5 );
