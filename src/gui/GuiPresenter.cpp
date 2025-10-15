@@ -12,12 +12,14 @@
 #include "helpers/GuiPlotter.hpp" // Include the new GUI plotter
 #include <algorithm>
 #include <filesystem>
+#include <future>
 #include <ostream>
 #include <set>
 #include <streambuf>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
 #include <wx/busyinfo.h>
+#include <wx/app.h>
 #include <thread>
 
 namespace fs = std::filesystem;
@@ -274,8 +276,11 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
 
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
 {
+    if (files_to_add.empty()) {
+        return;
+    }
+
     // Show a busy indicator window that will be automatically destroyed on scope exit (RAII).
-    // This ensures the user sees a "loading" message during the slow file operations.
     wxBusyInfo wait(_("Loading and pre-processing files..."), m_view);
 
     // Get the current calibration files to build an exclusion list.
@@ -288,7 +293,6 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
     if (!sat_file.empty()) {
         calibration_files.insert(sat_file);
     }
-
     // Create a temporary list for files that are valid to add.
     std::vector<std::string> new_valid_files;
     // Use a set of existing files for efficient lookup.
@@ -296,7 +300,6 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
     for (const auto& file : files_to_add) {
         bool is_calibration_file = calibration_files.count(file) > 0;
         bool is_already_in_list = existing_files.count(file) > 0;
-
         // A file is valid to be added only if it's not a calibration file
         // AND it's not already in the input list.
         if (!is_calibration_file && !is_already_in_list) {
@@ -304,18 +307,65 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
         }
     }
 
-    // If there are any new valid files, update the state and the view.
-    if (!new_valid_files.empty()) {
-        // Update the internal state first by appending the new files.
-        m_inputFiles.insert(m_inputFiles.end(), new_valid_files.begin(), new_valid_files.end());
-        std::sort(m_inputFiles.begin(), m_inputFiles.end());
-
-        // Update the view from the single source of truth.
-        m_view->UpdateInputFileList(m_inputFiles);
-        UpdateCommandPreview();
-        UpdateRawPreview(); // This is the slow part that the busy info covers
+    if (new_valid_files.empty()) {
+        return;
     }
+
+    // --- ASYNCHRONOUS LOADING PHASE ---
+    // Launch a future for each file to load it in a background thread.
+    std::vector<std::future<std::pair<std::string, double>>> futures;
+    for (const auto& file : new_valid_files) {
+        futures.push_back(std::async(std::launch::async, [file]() -> std::pair<std::string, double> {
+            RawFile raw_file(file);
+            if (!raw_file.Load()) {
+                return {file, -1.0}; // Signal load failure
+            }
+            cv::Mat active_img = raw_file.GetActiveRawImage();
+            if (active_img.empty()) {
+                return {file, -1.0}; // Signal invalid image
+            }
+            double mean_brightness = cv::mean(active_img)[0];
+            return {file, mean_brightness};
+        }));
+    }
+
+    // Wait for all futures to complete, periodically yielding to keep the UI responsive.
+    std::vector<std::pair<std::string, double>> loaded_files;
+    for (auto& fut : futures) {
+        // Periodically yield to allow the busy info to repaint.
+        wxTheApp->Yield();
+        auto result = fut.get();
+        if (result.second >= 0.0) { // Only keep successfully loaded files
+            loaded_files.push_back(result);
+        }
+    }
+
+    // If no files were successfully loaded, abort.
+    if (loaded_files.empty()) {
+        return;
+    }
+
+    // Sort the successfully loaded files by brightness (as the original logic did).
+    std::sort(loaded_files.begin(), loaded_files.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
+
+    // Extract just the filenames in the new sorted order.
+    std::vector<std::string> sorted_filenames;
+    for (const auto& item : loaded_files) {
+        sorted_filenames.push_back(item.first);
+    }
+
+    // Update the internal state.
+    m_inputFiles.insert(m_inputFiles.end(), sorted_filenames.begin(), sorted_filenames.end());
+    std::sort(m_inputFiles.begin(), m_inputFiles.end());
+
+    // Update the view from the single source of truth.
+    m_view->UpdateInputFileList(m_inputFiles);
+    UpdateCommandPreview();
+    UpdateRawPreview(); // This is now fast, as files are already loaded in the background during analysis.
 }
+
 void GuiPresenter::HandleGridCellClick()
 {
     // Always display the summary image, if it's valid.
