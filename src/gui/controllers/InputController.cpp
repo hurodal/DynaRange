@@ -105,7 +105,7 @@ void InputController::UpdateInputFileList(const std::vector<std::string>& files,
     for (size_t i = 0; i < files.size(); ++i) {
         std::string display_name = files[i];
         if (static_cast<int>(i) == selected_index) {
-            display_name = "▶ " + display_name;
+            display_name = "->" + display_name;
         }
         m_frame->m_rawFileslistBox->Append(display_name);
     }
