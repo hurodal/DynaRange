@@ -52,7 +52,7 @@ y quizas lo que propone Guillermo de hacer un recorte por los 4 costados lo pued
 4: FALLO PARCHES MONITOR OLED: Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
    y que os compartí el 10/10 en el chat a las 13:14
 
-5: 
+5: Añadir en el Results.csv columnas con los valores de señal y de ruido (los que se usan para calcular el SNR). Necesarios para la futura BBDD.
 
 
 NO PRIORITARIAS
@@ -60,7 +60,10 @@ NO PRIORITARIAS
 
 6a: Mirar porque con ISO 102400 la SONY da valores extrañamente amuy altos.
 
-6: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
+6b: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
+
+6c: Añadir una checkbox en el GUI para elegir si se quiere que los graficos tengan añadido el nombre de la camara y el ISO en el nombre de archivo.
+(a mi me complica la  vida porque ya los tengo renombrados).
 
 7: IMPLEMENTAR EN EL UI UNA HOMOGRAFÍA (CORRECCIÓN DE PERSPECTIVA) INTERACTIVA CON ASISTENCIA DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
    DUDA: LA USAMOS SOLO PARA ESTABLACER VISUALMENTE LAS ESQUINAS DE LA CARTA Y APLICAR LA CORRECCIÓN ACTUAL, O ADEMÁS PARA LEER LOS DATOS SOBRE LA HOMOGRAFÍA SIN NECESIDAD DE APLICAR
