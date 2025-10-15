@@ -419,3 +419,11 @@ void DynaRangeFrame::SetExecuteButtonToStoppingState()
     m_executeButton->Enable(false);
     m_inputPanel->Layout();
 }
+
+bool DynaRangeFrame::ShouldEstimateBlackLevel() const {
+    return m_inputController->ShouldEstimateBlackLevel();
+}
+
+bool DynaRangeFrame::ShouldEstimateSaturationLevel() const {
+    return m_inputController->ShouldEstimateSaturationLevel();
+}

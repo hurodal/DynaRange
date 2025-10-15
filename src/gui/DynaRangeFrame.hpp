@@ -70,6 +70,8 @@ public:
     bool ValidateSnrThresholds() const;
     bool ShouldSaveLog() const;
     bool ShouldGenerateIndividualPlots() const;    
+    bool ShouldEstimateBlackLevel() const;
+    bool ShouldEstimateSaturationLevel() const;
 
 protected:
     // --- Event Handlers that remain in the Frame ---

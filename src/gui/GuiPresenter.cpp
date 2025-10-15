@@ -78,9 +78,7 @@ void GuiPresenter::UpdateManagerFromView()
     using namespace DynaRange::Arguments::Constants;
     auto& mgr = ArgumentManager::Instance();
     
-    // Sincroniza la lista de ficheros desde el gestor de pre-análisis al gestor de argumentos.
     mgr.Set(InputFiles, m_preAnalysisManager.GetSortedFileList());
-
     mgr.Set(BlackFile, m_view->GetDarkFilePath());
     mgr.Set(SaturationFile, m_view->GetSaturationFilePath());
     mgr.Set(BlackLevel, m_view->GetDarkValue());
@@ -127,9 +125,12 @@ void GuiPresenter::UpdateManagerFromView()
     };
     mgr.Set(RawChannels, channels_vec);
 
-    bool black_is_default = m_view->GetDarkFilePath().empty();
+    // La estimación del nivel de negro se activa si, y solo si, ambos campos (fichero y valor) están vacíos.
+    bool black_is_default = m_view->ShouldEstimateBlackLevel();
     mgr.Set(BlackLevelIsDefault, black_is_default);
-    bool sat_is_default = m_view->GetSaturationFilePath().empty();
+    
+    // La estimación del nivel de saturación se activa si, y solo si, ambos campos (fichero y valor) están vacíos.
+    bool sat_is_default = m_view->ShouldEstimateSaturationLevel();
     mgr.Set(SaturationLevelIsDefault, sat_is_default);
     
     std::vector<double> current_thresholds = m_view->GetSnrThresholds();

@@ -280,7 +280,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxString AVG_ChoiceValueChoices[] = { _("No"), _("Full"), _("Only Selected") };
 	int AVG_ChoiceValueNChoices = sizeof( AVG_ChoiceValueChoices ) / sizeof( wxString );
 	AVG_ChoiceValue = new wxChoice( channelsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, AVG_ChoiceValueNChoices, AVG_ChoiceValueChoices, 0 );
-	AVG_ChoiceValue->SetSelection( 0 );
+	AVG_ChoiceValue->SetSelection( 2 );
 	channelsSizer->Add( AVG_ChoiceValue, 0, 0, 5 );
 
 
@@ -301,80 +301,80 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxStaticBoxSizer* chartCoordStaticSizer;
 	chartCoordStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Chart Coordinates") ), wxVERTICAL );
 
-	wxFlexGridSizer* coordFlexSizer;
-	coordFlexSizer = new wxFlexGridSizer( 0, 4, 0, 0 );
-	coordFlexSizer->SetFlexibleDirection( wxBOTH );
-	coordFlexSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	wxGridBagSizer* coordsChartgbSizer;
+	coordsChartgbSizer = new wxGridBagSizer( 0, 0 );
+	coordsChartgbSizer->SetFlexibleDirection( wxBOTH );
+	coordsChartgbSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
 	m_staticText38 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X1"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText38->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText38, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText38, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX1Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordX1Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordX1Value, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText381 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y1"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText381->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText381, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText381, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY1Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordY1Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordY1Value, wxGBPosition( 0, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText42 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X2"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText42->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText42, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText42, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX2Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordX2Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordX2Value, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText43 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y2"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText43->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText43, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText43, wxGBPosition( 1, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY2Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordY2Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordY2Value, wxGBPosition( 1, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+
+	m_staticline1 = new wxStaticLine( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	coordsChartgbSizer->Add( m_staticline1, wxGBPosition( 2, 0 ), wxGBSpan( 1, 5 ), wxEXPAND | wxALL, 5 );
 
 	m_staticText44 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X3"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText44->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText44, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText44, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX3Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordX3Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordX3Value, wxGBPosition( 3, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText45 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y3"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText45->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText45, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText45, wxGBPosition( 3, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY3Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordY3Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordY3Value, wxGBPosition( 3, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText46 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("X4"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText46->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText46, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText46, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordX4Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordX4Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordX4Value, wxGBPosition( 4, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_staticText47 = new wxStaticText( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Y4"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText47->Wrap( -1 );
-	coordFlexSizer->Add( m_staticText47, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_staticText47, wxGBPosition( 4, 3 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
 	m_coordY4Value = new wxTextCtrl( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	coordFlexSizer->Add( m_coordY4Value, 0, wxALL, 3 );
+	coordsChartgbSizer->Add( m_coordY4Value, wxGBPosition( 4, 4 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
-
-	chartCoordStaticSizer->Add( coordFlexSizer, 0, wxEXPAND, 5 );
-
-	wxBoxSizer* buttChartCoordSizer;
-	buttChartCoordSizer = new wxBoxSizer( wxHORIZONTAL );
+	m_staticline2 = new wxStaticLine( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	coordsChartgbSizer->Add( m_staticline2, wxGBPosition( 0, 2 ), wxGBSpan( 5, 1 ), wxEXPAND | wxALL, 5 );
 
 	m_clearAllCoordinates = new wxButton( chartCoordStaticSizer->GetStaticBox(), wxID_ANY, _("Clear All"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	m_clearAllCoordinates->SetBitmap( Icono_BAD_Mark_Red_alpha_22x22_png_to_wx_bitmap() );
-	buttChartCoordSizer->Add( m_clearAllCoordinates, 0, wxALL, 5 );
+	coordsChartgbSizer->Add( m_clearAllCoordinates, wxGBPosition( 5, 0 ), wxGBSpan( 1, 5 ), wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
-	chartCoordStaticSizer->Add( buttChartCoordSizer, 1, wxEXPAND, 5 );
+	chartCoordStaticSizer->Add( coordsChartgbSizer, 1, wxEXPAND, 5 );
 
 
 	bSizer491->Add( chartCoordStaticSizer, 0, wxEXPAND, 5 );
@@ -480,7 +480,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
 	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
 	m_plotFormatChoice->SetSelection( 0 );
-	graphicsOthersSizer->Add( m_plotFormatChoice, 0, 0, 5 );
+	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
 	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_plotingStaticText->Wrap( -1 );
