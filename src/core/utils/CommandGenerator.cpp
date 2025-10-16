@@ -7,6 +7,7 @@
 #include "../arguments/ArgumentManager.hpp"
 #include "../arguments/Constants.hpp"
 #include "Constants.hpp"
+#include <cmath>
 #include <filesystem>
 #include <iomanip>
 #include <libintl.h>
@@ -24,7 +25,6 @@ std::string GenerateCommand(CommandFormat format)
     std::stringstream command_ss;
     command_ss << DynaRange::Utils::Constants::CLI_EXECUTABLE_NAME;
     auto& mgr = ArgumentManager::Instance();
-
     auto add_arg = [&](const std::string& name) {
         bool use_short = (format == CommandFormat::PlotShort);
         if (!use_short) {
@@ -40,7 +40,7 @@ std::string GenerateCommand(CommandFormat format)
         if (it != short_map.end()) {
             command_ss << it->second;
         } else {
-            command_ss << " --" << name; 
+            command_ss << " --" << name;
         }
     };
 
@@ -89,7 +89,6 @@ std::string GenerateCommand(CommandFormat format)
     command_ss << " " << mgr.Get<int>(PolyFit);
     add_arg(PatchRatio);
     command_ss << " " << mgr.Get<double>(PatchRatio);
-
     if (mgr.Get<bool>(GeneratePlot)) {
         add_arg(PlotFormat);
         command_ss << " " << mgr.Get<std::string>(PlotFormat);
@@ -105,7 +104,7 @@ std::string GenerateCommand(CommandFormat format)
     if (!chart_coords.empty()) {
         add_arg(ChartCoords);
         for (const auto& coord : chart_coords)
-            command_ss << " " << coord;
+            command_ss << " " << static_cast<int>(round(coord));
     }
 
     const auto& chart_patches = mgr.Get<std::vector<int>>(ChartPatches);

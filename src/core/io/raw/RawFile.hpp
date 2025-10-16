@@ -37,7 +37,7 @@ public:
     RawFile& operator=(RawFile&&) noexcept;
     
     bool Load();
-    
+
     // --- Image Data Accessors (delegated) ---
     cv::Mat GetRawImage() const;
     cv::Mat GetActiveRawImage() const;
@@ -57,6 +57,12 @@ public:
     int GetTopMargin() const;
     int GetLeftMargin() const;
     std::optional<int> GetBitDepth() const;
+    
+    /**
+     * @brief Gets the orientation code from the RAW file.
+     * @return The integer orientation code from metadata.
+     */
+    int GetOrientation() const;
 
 private:
     std::string m_filename;

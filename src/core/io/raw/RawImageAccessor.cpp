@@ -15,9 +15,6 @@ cv::Mat RawImageAccessor::GetRawImage() const {
     if (!m_raw_processor) return {};
     if (!m_raw_image_cache.empty()) return m_raw_image_cache;
 
-    // Check to ensure the raw image pointer is valid before creating the Mat.
-    // If this pointer is null (e.g., for compressed RAWs), we return an empty Mat
-    // to signal the failure to the calling function.
     if (!m_raw_processor->imgdata.rawdata.raw_image) {
         return {};
     }
@@ -58,6 +55,9 @@ cv::Mat RawImageAccessor::GetActiveRawImage() const {
 
 cv::Mat RawImageAccessor::GetProcessedImage() {
     if (!m_raw_processor) return {};
+
+    // FORCED: Disable LibRaw's automatic rotation based on EXIF data.
+    m_raw_processor->imgdata.params.user_flip = 0;
 
     if (m_raw_processor->dcraw_process() != LIBRAW_SUCCESS) {
         return {};

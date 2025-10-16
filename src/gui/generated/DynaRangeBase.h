@@ -25,12 +25,12 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/listbox.h>
-#include <wx/panel.h>
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
 #include <wx/statline.h>
 #include <wx/gbsizer.h>
+#include <wx/panel.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
 #include <wx/splitter.h>
@@ -63,7 +63,6 @@ class MyFrameBase : public wxFrame
 		wxButton* m_addRawFilesButton;
 		wxButton* m_removeRawFilesButton;
 		wxButton* m_removeAllFiles;
-		wxPanel* m_rawImagePreviewPanel;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
@@ -162,6 +161,9 @@ class MyFrameBase : public wxFrame
 		wxPanel* m_webView2PlaceholderPanel;
 		wxPanel* m_equCliPanel;
 		wxTextCtrl* m_equivalentCliTextCtrl;
+		wxPanel* m_ChartsManualCorners;
+		wxSlider* m_gammaThumbSlider;
+		wxPanel* m_rawImagePreviewPanel;
 
 	public:
 

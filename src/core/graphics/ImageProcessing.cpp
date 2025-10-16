@@ -10,6 +10,7 @@
 #include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #define _(string) gettext(string)
 
@@ -33,9 +34,11 @@ cv::Mat PrepareChartImage(
     const cv::Mat& keystone_params,
     const ChartProfile& chart, 
     std::ostream& log_stream,
-    DataSource channel_to_extract) 
+    DataSource channel_to_extract,
+    const PathManager& paths)
 {
-    cv::Mat raw_img = raw_file.GetRawImage();
+    // Use the active raw image area, which excludes masked pixels.
+    cv::Mat raw_img = raw_file.GetActiveRawImage();
     if(raw_img.empty()){
         return {};
     }
@@ -76,6 +79,45 @@ cv::Mat PrepareChartImage(
     }
 
     cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
+    
+    // --- VISUAL DEBUG BLOCK ---
+    if (channel_to_extract == DataSource::G1) {
+        // 1. Save the UNCORRECTED image with the original corner selection (blue trapezoid)
+        cv::Mat bayer_view;
+        cv::normalize(imgBayer, bayer_view, 0.0, 1.0, cv::NORM_MINMAX);
+        cv::Mat source_debug_image;
+        cv::cvtColor(bayer_view, source_debug_image, cv::COLOR_GRAY2BGR);
+        const auto& src_pts = chart.GetCornerPoints();
+        if (src_pts.size() == 4) {
+            cv::line(source_debug_image, src_pts[0], src_pts[1], cv::Scalar(1.0, 0.0, 0.0), 2); // Blue
+            cv::line(source_debug_image, src_pts[1], src_pts[2], cv::Scalar(1.0, 0.0, 0.0), 2);
+            cv::line(source_debug_image, src_pts[2], src_pts[3], cv::Scalar(1.0, 0.0, 0.0), 2);
+            cv::line(source_debug_image, src_pts[3], src_pts[0], cv::Scalar(1.0, 0.0, 0.0), 2);
+        }
+        cv::Mat source_debug_8u;
+        source_debug_image.convertTo(source_debug_8u, CV_8U, 255.0);
+        fs::path source_path = paths.GetCsvOutputPath().parent_path() / "debug_keystone_source.png";
+        if (cv::imwrite(source_path.string(), source_debug_8u)) {
+            log_stream << "[DEBUG] Saved source selection trapezoid to: " << source_path.string() << std::endl;
+        }
+
+        // 2. Save the CORRECTED image with the crop rectangle (red)
+        log_stream << "[DEBUG] Attempting to crop with rect: x=" << crop_area.x << ", y=" << crop_area.y << ", w=" << crop_area.width << ", h=" << crop_area.height << std::endl;
+        cv::Mat corrected_view;
+        cv::normalize(img_corrected, corrected_view, 0.0, 1.0, cv::NORM_MINMAX);
+        cv::Mat result_debug_image;
+        cv::cvtColor(corrected_view, result_debug_image, cv::COLOR_GRAY2BGR);
+        cv::rectangle(result_debug_image, crop_area, cv::Scalar(0, 0, 1.0), 5); // Red
+        
+        cv::Mat result_debug_8u;
+        result_debug_image.convertTo(result_debug_8u, CV_8U, 255.0);
+        fs::path result_path = paths.GetCsvOutputPath().parent_path() / "debug_keystone_result.png";
+        if (cv::imwrite(result_path.string(), result_debug_8u)) {
+            log_stream << "[DEBUG] Saved corrected image with crop rectangle to: " << result_path.string() << std::endl;
+        }
+    }
+    // --- END OF VISUAL DEBUG BLOCK ---
+
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {
@@ -136,7 +178,10 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     std::ostream& log_stream)
 {
     std::map<DataSource, cv::Mat> prepared_channels;
-    cv::Mat raw_img = raw_file.GetRawImage();
+    
+    // Use the active image area to be consistent with PrepareChartImage.
+    cv::Mat raw_img = raw_file.GetActiveRawImage();
+    
     if(raw_img.empty()){
         log_stream << _("Error: Could not get raw image for: ") << raw_file.GetFilename() << std::endl;
         return prepared_channels;
@@ -169,7 +214,7 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     double xbr = dst_pts[2].x;
     double ybr = dst_pts[2].y;
     cv::Rect crop_area(round(xtl), round(ytl), round(xbr - xtl), round(ybr - ytl));
-
+    
     for (auto const& [channel, bayer_mat] : bayer_channels) {
         cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(bayer_mat, keystone_params);
         if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||

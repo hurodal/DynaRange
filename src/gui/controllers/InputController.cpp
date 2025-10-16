@@ -60,17 +60,21 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->G1_checkBox->SetValue(false);
     m_frame->G2_checkBox->SetValue(false);
     m_frame->B_checkBox->SetValue(false);
-    m_frame->AVG_ChoiceValue->SetSelection(1);
-    // Default is "Full" (index 1)
+    m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
+
+    // Ensure the gamma slider is disabled by default.
+    m_frame->m_gammaThumbSlider->Enable(false);
 
     // Instanciar el interactor y el renderizador
     m_interactor = std::make_unique<ChartCornerInteractor>();
     m_renderer = std::make_unique<PreviewOverlayRenderer>();
 
+    // Bind the new gamma slider event.
+    m_frame->m_gammaThumbSlider->Bind(wxEVT_SCROLL_CHANGED, &InputController::OnGammaSliderChanged, this);
+
     // Bind events for the preview panel
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_PAINT, &InputController::OnPaintPreview, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_SIZE, &InputController::OnSizePreview, this);
-    
     // Bind new mouse events for interaction
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_DOWN, &InputController::OnPreviewMouseDown, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_UP, &InputController::OnPreviewMouseUp, this);
@@ -346,72 +350,91 @@ void InputController::OnInputChartPatchChanged(wxCommandEvent& event) {
 
 std::vector<double> InputController::GetChartCoords() const {
     std::vector<double> coords;
-    coords.reserve(8);
-    // List of all coordinate text controls
     std::vector<wxTextCtrl*> controls = {
         m_frame->m_coordX1Value, m_frame->m_coordY1Value,
         m_frame->m_coordX2Value, m_frame->m_coordY2Value,
         m_frame->m_coordX3Value, m_frame->m_coordY3Value,
         m_frame->m_coordX4Value, m_frame->m_coordY4Value
     };
+
     for (wxTextCtrl* control : controls) {
-        wxString value_str = control->GetValue();
-        // If any field is empty, we consider the whole set invalid.
-        if (value_str.IsEmpty()) {
-            return {}; // Return empty vector
+        if (control->GetValue().IsEmpty()) {
+            return {}; // Return empty if any coordinate is not set
         }
         double val;
-        if (!value_str.ToDouble(&val)) {
-            // If conversion fails for any field, also return empty.
-            return {};
+        if (!control->GetValue().ToDouble(&val)) {
+            return {}; // Return empty on parsing error
         }
         coords.push_back(val);
     }
-
     return coords;
 }
 
 void InputController::DisplayPreviewImage(const std::string& path)
 {
     if (path.empty()) {
-        m_rawPreviewImage = wxImage(); // Clear image
-        m_originalRawWidth = 0;
-        m_originalRawHeight = 0;
+        m_originalPreviewImage = wxImage(); // Clear original
+        m_displayPreviewImage = wxImage();  // Clear display
+        m_originalActiveWidth = 0;
+        m_originalActiveHeight = 0;
+        m_rawOrientation = 0;
     } else {
         RawFile raw_file(path);
         if (raw_file.Load()) {
-            cv::Mat full_res_mat = raw_file.GetProcessedImage();
-            if (full_res_mat.empty()) {
-                m_rawPreviewImage = wxImage();
+            m_rawOrientation = raw_file.GetOrientation();
+            m_originalActiveWidth = raw_file.GetActiveWidth();
+            m_originalActiveHeight = raw_file.GetActiveHeight();
+            
+            cv::Mat unrotated_mat = raw_file.GetProcessedImage();
+            if (unrotated_mat.empty()) {
+                m_originalPreviewImage = wxImage();
                 wxLogError("Could not get processed image from RAW file: %s", path);
             } else {
-                m_originalRawWidth = full_res_mat.cols;
-                m_originalRawHeight = full_res_mat.rows;
+                cv::Mat rotated_mat;
+                switch (m_rawOrientation) {
+                    case 5:
+                        cv::rotate(unrotated_mat, rotated_mat, cv::ROTATE_90_COUNTERCLOCKWISE);
+                        break;
+                    case 6:
+                        cv::rotate(unrotated_mat, rotated_mat, cv::ROTATE_90_CLOCKWISE);
+                        break;
+                    case 3:
+                        cv::rotate(unrotated_mat, rotated_mat, cv::ROTATE_180);
+                        break;
+                    default:
+                        rotated_mat = unrotated_mat;
+                        break;
+                }
+
                 constexpr int MAX_PREVIEW_DIMENSION = 1920;
                 cv::Mat preview_mat;
-                if (m_originalRawWidth > MAX_PREVIEW_DIMENSION || m_originalRawHeight > MAX_PREVIEW_DIMENSION) {
-                    double scale = static_cast<double>(MAX_PREVIEW_DIMENSION) / std::max(m_originalRawWidth, m_originalRawHeight);
-                    cv::resize(full_res_mat, preview_mat, cv::Size(), scale, scale, cv::INTER_AREA);
+                if (rotated_mat.cols > MAX_PREVIEW_DIMENSION || rotated_mat.rows > MAX_PREVIEW_DIMENSION) {
+                    double scale = static_cast<double>(MAX_PREVIEW_DIMENSION) / std::max(rotated_mat.cols, rotated_mat.rows);
+                    cv::resize(rotated_mat, preview_mat, cv::Size(), scale, scale, cv::INTER_AREA);
                 } else {
-                    preview_mat = full_res_mat;
+                    preview_mat = rotated_mat;
                 }
-                m_rawPreviewImage = GuiHelpers::CvMatToWxImage(preview_mat);
+                m_originalPreviewImage = GuiHelpers::CvMatToWxImage(preview_mat);
             }
         } else {
-            m_rawPreviewImage = wxImage(); // Clear on failure
-            m_originalRawWidth = 0;
-            m_originalRawHeight = 0;
+            m_originalPreviewImage = wxImage();
+            m_originalActiveWidth = 0;
+            m_originalActiveHeight = 0;
+            m_rawOrientation = 0;
             wxLogError("Could not load RAW file for preview: %s", path);
         }
     }
     
-    // Informa al interactor del nuevo tamaño de la imagen (o 0,0 si se borró)
-    if (m_rawPreviewImage.IsOk()) {
-        m_interactor->SetImageSize(m_rawPreviewImage.GetSize());
+    m_frame->m_gammaThumbSlider->Enable(m_originalPreviewImage.IsOk());
+
+    if (m_originalPreviewImage.IsOk()) {
+        m_interactor->SetImageSize(m_originalPreviewImage.GetSize());
     } else {
         m_interactor->SetImageSize(wxSize(0,0));
     }
 
+    UpdatePreviewTransform();
+    ApplyGammaCorrection();
     m_frame->m_rawImagePreviewPanel->Refresh();
 }
 
@@ -441,26 +464,21 @@ void InputController::OnPaintPreview(wxPaintEvent& event)
 {
     wxAutoBufferedPaintDC dc(m_frame->m_rawImagePreviewPanel);
     dc.Clear();
-    if (m_rawPreviewImage.IsOk()) {
+    if (m_displayPreviewImage.IsOk()) {
         wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
         if (gc) {
-            double img_w = m_rawPreviewImage.GetWidth();
-            double img_h = m_rawPreviewImage.GetHeight();
-            const wxSize panel_size = dc.GetSize();
+            double final_width = m_originalPreviewImage.GetWidth() * m_previewScale;
+            double final_height = m_originalPreviewImage.GetHeight() * m_previewScale;
+
+            // Create a temporary, scaled copy for drawing in this paint event.
+            // This is efficient and ensures the original is untouched.
+            wxImage tempDisplayImage = m_displayPreviewImage.Copy();
+            tempDisplayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
+            wxBitmap bitmapToDraw(tempDisplayImage);
             
-            double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
-            double final_width = img_w * scale_factor;
-            double final_height = img_h * scale_factor;
-            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
-            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+            gc->DrawBitmap(bitmapToDraw, m_previewOffset.m_x, m_previewOffset.m_y, final_width, final_height);
             
-            wxImage displayImage = m_rawPreviewImage.Copy();
-            displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
-            wxBitmap bitmapToDraw(displayImage);
-            gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
-            
-            // Dibuja la superposición interactiva encima de la imagen
-            m_renderer->Draw(gc, *m_interactor, wxPoint2DDouble(offset_x, offset_y), scale_factor);
+            m_renderer->Draw(gc, *m_interactor, m_previewOffset, m_previewScale);
             
             delete gc;
         }
@@ -469,6 +487,8 @@ void InputController::OnPaintPreview(wxPaintEvent& event)
 
 void InputController::OnSizePreview(wxSizeEvent& event)
 {
+    // Recalculate transform and refresh.
+    UpdatePreviewTransform();
     m_frame->m_rawImagePreviewPanel->Refresh();
     event.Skip();
 }
@@ -478,18 +498,13 @@ void InputController::OnSizePreview(wxSizeEvent& event)
  */
 void InputController::OnPreviewMouseDown(wxMouseEvent& event)
 {
-    if (!m_rawPreviewImage.IsOk()) return;
+    if (!m_originalPreviewImage.IsOk()) return;
 
     wxPoint2DDouble imageCoords = PanelToImageCoords(event.GetPosition());
-
-    // El radio para el hit-test debe estar en coordenadas de imagen, no de panel.
-    double img_w = m_rawPreviewImage.GetWidth();
-    double panel_w = m_frame->m_rawImagePreviewPanel->GetSize().GetWidth();
-    double scale_factor = img_w > 0 ? panel_w / img_w : 1.0;
-    double handleRadiusInImageCoords = 8.0 / scale_factor;
+    
+    double handleRadiusInImageCoords = 8.0 / m_previewScale;
 
     ChartCornerInteractor::Corner corner = m_interactor->HitTest(wxPoint(imageCoords.m_x, imageCoords.m_y), handleRadiusInImageCoords);
-
     if (corner != ChartCornerInteractor::Corner::None)
     {
         m_interactor->BeginDrag(corner);
@@ -548,20 +563,10 @@ void InputController::OnPreviewMouseCaptureLost(wxMouseCaptureLostEvent& event)
  */
 wxPoint2DDouble InputController::PanelToImageCoords(const wxPoint& panelPoint) const
 {
-    if (!m_rawPreviewImage.IsOk()) return wxPoint2DDouble(0,0);
+    if (!m_originalPreviewImage.IsOk() || m_previewScale == 0) return wxPoint2DDouble(0,0);
 
-    const wxSize panel_size = m_frame->m_rawImagePreviewPanel->GetSize();
-    double img_w = m_rawPreviewImage.GetWidth();
-    double img_h = m_rawPreviewImage.GetHeight();
-
-    double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
-    double final_width = img_w * scale_factor;
-    double final_height = img_h * scale_factor;
-    double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
-    double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
-
-    double imageX = (panelPoint.x - offset_x) / scale_factor;
-    double imageY = (panelPoint.y - offset_y) / scale_factor;
+    double imageX = (panelPoint.x - m_previewOffset.m_x) / m_previewScale;
+    double imageY = (panelPoint.y - m_previewOffset.m_y) / m_previewScale;
 
     return wxPoint2DDouble(imageX, imageY);
 }
@@ -571,19 +576,37 @@ wxPoint2DDouble InputController::PanelToImageCoords(const wxPoint& panelPoint) c
  */
 void InputController::UpdateCoordTextCtrls()
 {
-    if (!m_rawPreviewImage.IsOk() || m_originalRawWidth == 0) return;
+    if (!m_originalPreviewImage.IsOk() || m_originalActiveWidth == 0) return;
+
+    // --- SCALING LOGIC ---
+    // Get dimensions of the preview and the original image.
+    double preview_w = m_originalPreviewImage.GetWidth();
+    double preview_h = m_originalPreviewImage.GetHeight();
+    double original_w = m_originalActiveWidth;
+    double original_h = m_originalActiveHeight;
+
+    // Calculate the scaling factor.
+    double scale_x = (preview_w > 0) ? original_w / preview_w : 1.0;
+    double scale_y = (preview_h > 0) ? original_h / preview_h : 1.0;
 
     const auto& corners = m_interactor->GetCorners();
-    double scale = static_cast<double>(m_originalRawWidth) / m_rawPreviewImage.GetWidth();
+    std::vector<wxPoint2DDouble> gui_coords_for_transform;
+    for(const auto& p : corners) {
+        gui_coords_for_transform.emplace_back(p.m_x * scale_x, p.m_y * scale_y);
+    }
+    
+    // Transform the full-resolution GUI coordinates to the original RAW coordinate system.
+    auto raw_coords_points = TransformGuiToRawCoords(gui_coords_for_transform);
 
-    m_frame->m_coordX1Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[0].m_x * scale))));
-    m_frame->m_coordY1Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[0].m_y * scale))));
-    m_frame->m_coordX2Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[1].m_x * scale))));
-    m_frame->m_coordY2Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[1].m_y * scale))));
-    m_frame->m_coordX3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[2].m_x * scale))));
-    m_frame->m_coordY3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[2].m_y * scale))));
-    m_frame->m_coordX4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[3].m_x * scale))));
-    m_frame->m_coordY4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(corners[3].m_y * scale))));
+    // Update the text controls with the final, integer-based RAW coordinates.
+    m_frame->m_coordX1Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[0].m_x))));
+    m_frame->m_coordY1Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[0].m_y))));
+    m_frame->m_coordX2Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[1].m_x))));
+    m_frame->m_coordY2Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[1].m_y))));
+    m_frame->m_coordX3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[2].m_x))));
+    m_frame->m_coordY3Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[2].m_y))));
+    m_frame->m_coordX4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[3].m_x))));
+    m_frame->m_coordY4Value->ChangeValue(wxString::Format("%d", static_cast<int>(round(raw_coords_points[3].m_y))));
 }
 
 /**
@@ -606,4 +629,121 @@ bool InputController::ShouldEstimateSaturationLevel() const
     bool isFilePickerEmpty = m_frame->m_saturationFilePicker->GetPath().IsEmpty();
     bool isTextBoxEmpty = m_frame->m_saturationValueTextCtrl->GetValue().IsEmpty();
     return isFilePickerEmpty && isTextBoxEmpty;
+}
+
+/**
+ * @brief (Función nueva) Transforma las coordenadas de la GUI (posiblemente rotadas) a las coordenadas del sensor RAW original.
+ * @param guiCoords Vector de 4 puntos en el sistema de coordenadas de la imagen de previsualización.
+ * @return Vector de 4 puntos en el sistema de coordenadas del RAW sin rotar.
+ */
+std::vector<wxPoint2DDouble> InputController::TransformGuiToRawCoords(const std::vector<wxPoint2DDouble>& guiCoords) const
+{
+    if (m_rawOrientation == 0) {
+        return guiCoords; // No rotation, return the same coordinates.
+    }
+
+    // Use the dimensions of the ORIGINAL UNROTATED ACTIVE AREA for transformation.
+    double W_raw = static_cast<double>(m_originalActiveWidth);
+    double H_raw = static_cast<double>(m_originalActiveHeight);
+    
+    std::vector<wxPoint2DDouble> rawCoords;
+    rawCoords.reserve(guiCoords.size());
+
+    for (const auto& p : guiCoords) {
+        double x_gui = p.m_x;
+        double y_gui = p.m_y;
+
+        double x_raw = x_gui;
+        double y_raw = y_gui;
+
+        // These are the inverse formulas to map from the rotated preview back to the original unrotated raw space.
+        switch (m_rawOrientation) {
+            case 5: // Preview was rotated 90 CCW. Its size is H_raw x W_raw.
+                x_raw = y_gui;
+                y_raw = W_raw - 1.0 - x_gui;
+                break;
+            case 6: // Preview was rotated 90 CW. Its size is H_raw x W_raw.
+                x_raw = H_raw - 1.0 - y_gui;
+                y_raw = x_gui;
+                break;
+            case 3: // Preview was rotated 180. Its size is W_raw x H_raw.
+                x_raw = W_raw - 1.0 - x_gui;
+                y_raw = H_raw - 1.0 - y_gui;
+                break;
+        }
+        rawCoords.emplace_back(x_raw, y_raw);
+    }
+    return rawCoords;
+}
+void InputController::UpdatePreviewTransform()
+{
+    if (!m_originalPreviewImage.IsOk()) {
+        m_previewScale = 1.0;
+        m_previewOffset = {0.0, 0.0};
+        return;
+    }
+
+    const wxSize panel_size = m_frame->m_rawImagePreviewPanel->GetSize();
+    double img_w = m_originalPreviewImage.GetWidth();
+    double img_h = m_originalPreviewImage.GetHeight();
+
+    constexpr double margin_factor = 0.95;
+    double available_width = panel_size.GetWidth() * margin_factor;
+    double available_height = panel_size.GetHeight() * margin_factor;
+
+    m_previewScale = std::min(available_width / img_w, available_height / img_h);
+    
+    double final_width = img_w * m_previewScale;
+    double final_height = img_h * m_previewScale;
+
+    m_previewOffset.m_x = (panel_size.GetWidth() - final_width) / 2.0;
+    m_previewOffset.m_y = (panel_size.GetHeight() - final_height) / 2.0;
+}
+
+void InputController::OnGammaSliderChanged(wxScrollEvent& event)
+{
+    ApplyGammaCorrection();
+    // Trigger a redraw of the panel
+    m_frame->m_rawImagePreviewPanel->Refresh();
+}
+
+void InputController::ApplyGammaCorrection()
+{
+    if (!m_originalPreviewImage.IsOk()) return;
+
+    // Map slider value (0-100) to a gamma range (e.g., 3.0 down to 0.2)
+    // A slider value of 50 corresponds to a gamma of 1.0 (no change).
+    double sliderValue = m_frame->m_gammaThumbSlider->GetValue();
+    double gamma = 0.0;
+    if (sliderValue < 50) {
+        // Range from 3.0 (darker shadows) down to 1.0
+        gamma = 3.0 - (sliderValue / 50.0) * 2.0;
+    } else {
+        // Range from 1.0 down to 0.2 (brighter shadows)
+        gamma = 1.0 - ((sliderValue - 50.0) / 50.0) * 0.8;
+    }
+
+    // Calculate a contrast factor.
+    // Contrast is neutral (1.0) at the center and increases towards the ends (e.g., up to 2.0).
+    double contrast = 1.0 + (std::abs(sliderValue - 50.0) / 50.0);
+
+    // Create the Look-Up Table (LUT) combining both effects.
+    cv::Mat lut(1, 256, CV_8U);
+    unsigned char* p = lut.ptr();
+    for (int i = 0; i < 256; ++i) {
+        double value = pow(i / 255.0, gamma);
+        value = (value - 0.5) * contrast + 0.5;
+        p[i] = cv::saturate_cast<uchar>(value * 255.0);
+    }
+
+    // Apply the combined LUT to the original preview image.
+    cv::Mat src_mat = GuiHelpers::WxImageToCvMat(m_originalPreviewImage);
+    if (src_mat.empty()) return;
+
+    cv::Mat dst_mat;
+    cv::LUT(src_mat, lut, dst_mat);
+
+    // Convert the result back to wxImage for display.
+    // The image is NOT scaled here. It remains at its full preview resolution.
+    m_displayPreviewImage = GuiHelpers::CvMatToWxImage(dst_mat);
 }

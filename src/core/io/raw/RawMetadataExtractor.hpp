@@ -34,6 +34,13 @@ public:
     int GetLeftMargin() const;
     std::optional<int> GetBitDepth() const;
 
+    /**
+     * @brief Gets the orientation code from the RAW file's metadata.
+     * @details The code follows the LibRaw standard (e.g., 0=none, 3=180, 5=90CCW, 6=90CW).
+     * @return The integer orientation code.
+     */
+    int GetOrientation() const;
+
 private:
     std::shared_ptr<LibRaw> m_raw_processor;
     mutable std::string m_camera_model_cache;

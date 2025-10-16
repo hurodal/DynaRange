@@ -14,7 +14,6 @@ RawFile::RawFile(std::string filename) : m_filename(std::move(filename)) {}
 RawFile::~RawFile() = default;
 
 RawFile::RawFile(RawFile&& other) noexcept = default;
-
 RawFile& RawFile::operator=(RawFile&& other) noexcept = default;
 
 bool RawFile::Load() {
@@ -94,4 +93,11 @@ int RawFile::GetLeftMargin() const {
 
 std::optional<int> RawFile::GetBitDepth() const {
     return m_is_loaded ? m_metadata_extractor->GetBitDepth() : std::nullopt;
+}
+
+/**
+ * @brief Implementación de GetOrientation.
+ */
+int RawFile::GetOrientation() const {
+    return m_is_loaded ? m_metadata_extractor->GetOrientation() : 0;
 }

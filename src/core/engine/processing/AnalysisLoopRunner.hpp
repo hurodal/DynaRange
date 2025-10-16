@@ -1,6 +1,6 @@
 // File: src/core/engine/processing/AnalysisLoopRunner.hpp
 /**
- * @file AnalysisLoopRunner.hpp
+ * @file src/core/engine/processing/AnalysisLoopRunner.hpp
  * @brief Declares a component for running the main analysis loop over a set of files.
  * @details This module adheres to SRP by encapsulating the entire loop execution,
  * including keystone optimization strategy and result aggregation, separating it
@@ -12,6 +12,7 @@
 #include "Processing.hpp"
 #include "../../io/raw/RawFile.hpp"
 #include "../../setup/ChartProfile.hpp"
+#include "../../utils/PathManager.hpp"
 #include <vector>
 #include <string>
 #include <ostream>
@@ -34,6 +35,7 @@ public:
      * @param log_stream The output stream for logging.
      * @param cancel_flag The atomic flag for cancellation.
      * @param source_image_index The index of the file to use for debug image generation.
+     * @param paths The PathManager for resolving output paths.
      */
     AnalysisLoopRunner(
         const std::vector<RawFile>& raw_files,
@@ -42,7 +44,8 @@ public:
         const std::string& camera_model_name,
         std::ostream& log_stream,
         const std::atomic<bool>& cancel_flag,
-        int source_image_index
+        int source_image_index,
+        const PathManager& paths
     );
 
     /**
@@ -59,6 +62,7 @@ private:
     std::ostream& m_log_stream;
     const std::atomic<bool>& m_cancel_flag;
     int m_source_image_index;
+    const PathManager& m_paths;
 };
 
 } // namespace DynaRange::Engine::Processing

@@ -28,7 +28,10 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
 {
     if (chart_coords.empty() && source_raw_file.IsLoaded()) {
         log_stream << _("Manual coordinates not provided, attempting automatic corner detection...") << std::endl;
-        cv::Mat raw_img = source_raw_file.GetRawImage();
+        
+        // Use the active image area to exclude masked pixels.
+        cv::Mat raw_img = source_raw_file.GetActiveRawImage();
+        
         cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
 
         int bayer_rows = img_float.rows / 2;

@@ -54,8 +54,11 @@ ProcessingResult ProcessFiles(
         );
     }
     
-    // 3. Define the analysis context
-    ChartProfile chart(params.chart_coords, params.chart_patches_m, params.chart_patches_n, detected_corners_opt, log_stream);
+    AnalysisParameters local_params = params;
+    
+    // 3. Define the analysis context.
+    ChartProfile chart(local_params.chart_coords, local_params.chart_patches_m, local_params.chart_patches_n, detected_corners_opt, log_stream);
+    
     std::string camera_model_name;
     if(!raw_files.empty() && raw_files[0].IsLoaded()){
         camera_model_name = raw_files[0].GetCameraModel();
@@ -67,14 +70,11 @@ ProcessingResult ProcessFiles(
         log_stream << _("Debug patch image will be saved to: ") << debug_path.string() << std::endl;
     }
     log_stream << _("Starting Dynamic Range calculation process...") << std::endl;
-    // Add a log message indicating parallel processing will be used.
+    
     unsigned int num_threads = std::thread::hardware_concurrency();
     if (num_threads == 0) num_threads = 1; // Fallback for safety
     log_stream << _("Starting parallel processing with ") << num_threads << _(" threads...") << std::endl;
-    
     // 4. Delegate the entire analysis loop to the specialized runner.
-    // The missing 7th argument, params.source_image_index, is now provided.
-    DynaRange::Engine::Processing::AnalysisLoopRunner runner(raw_files, params, chart, camera_model_name, log_stream, cancel_flag, params.source_image_index);
-    
+    DynaRange::Engine::Processing::AnalysisLoopRunner runner(raw_files, local_params, chart, camera_model_name, log_stream, cancel_flag, local_params.source_image_index, paths);
     return runner.Run();
 }
