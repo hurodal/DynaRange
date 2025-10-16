@@ -33,7 +33,7 @@ PRIORITARIAS
         * Si A=min(--snrthreshold_db) < B=min(S/N presente en los datos): "Overxposure, reduce exposure by" (B-A)/6 "EV"
         * Si C=max(--snrthreshold_db) > D=max(S/N presente en los datos): "Underexposure, increase exposure by" (C-D)/6 "EV"
 
-2: En los RAW de la D600 aparece una linea blanca fina vertical a la dcha y ahi se va a buscar las esquinas en automaticamente. No se si esa linea tiene que ver con los pixeles enmascarados
+2: EN LOS RAW de la NIKON D600 aparece una LINEA BLANCA FINA VERTICAL a la DCHA y ahi se va a buscar las esquinas en automaticamente. No se si esa linea tiene que ver con los pixeles enmascarados
 y quizas lo que propone Guillermo de hacer un recorte por los 4 costados lo puede resolver...
 
 3: GRÁFICA DE RD VS ISO + RECTA DE ISO INVARIANZA
