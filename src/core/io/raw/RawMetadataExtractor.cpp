@@ -4,6 +4,7 @@
  * @brief Implements the metadata extraction component for RAW files.
  */
 #include "RawMetadataExtractor.hpp"
+#include <algorithm>
 #include <cmath>
 
 namespace DynaRange::IO::Raw {
@@ -106,6 +107,21 @@ int RawMetadataExtractor::GetOrientation() const {
     // The 'flip' member of the imgdata.sizes struct holds the orientation info.
     // FORCED: Return 0 to ignore EXIF orientation and always treat images as horizontal.
     return 0;
+}
+
+std::string RawMetadataExtractor::GetFilterPattern() const {
+    if (!m_raw_processor) return "";
+    if (!m_filter_pattern_cache.empty()) return m_filter_pattern_cache;
+
+    // The cdesc field contains the pattern description (e.g., "RGGB").
+    // We convert it to a string and cache it.
+    m_filter_pattern_cache = std::string(m_raw_processor->imgdata.idata.cdesc);
+    
+    // Convert to uppercase for consistent, case-insensitive comparisons later.
+    std::transform(m_filter_pattern_cache.begin(), m_filter_pattern_cache.end(), m_filter_pattern_cache.begin(),
+                   [](unsigned char c){ return std::toupper(c); });
+
+    return m_filter_pattern_cache;
 }
 
 } // namespace DynaRange::IO::Raw

@@ -1,6 +1,6 @@
 // File: src/core/io/raw/RawMetadataExtractor.hpp
 /**
- * @file RawMetadataExtractor.hpp
+ * @file src/core/io/raw/RawMetadataExtractor.hpp
  * @brief Declares a component for extracting metadata from a loaded RAW file.
  * @details This module adheres to SRP by handling the extraction of all metadata
  * fields (camera model, ISO, dimensions, etc.) from a LibRaw object.
@@ -41,10 +41,17 @@ public:
      */
     int GetOrientation() const;
 
+    /**
+     * @brief Gets the Bayer filter pattern description from the RAW file's metadata.
+     * @return A string describing the pattern (e.g., "RGGB", "GBRG").
+     */
+    std::string GetFilterPattern() const;
+
 private:
     std::shared_ptr<LibRaw> m_raw_processor;
     mutable std::string m_camera_model_cache;
     mutable float m_iso_speed_cache = 0.0f;
+    mutable std::string m_filter_pattern_cache;
 };
 
 } // namespace DynaRange::IO::Raw

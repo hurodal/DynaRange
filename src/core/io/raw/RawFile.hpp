@@ -57,17 +57,22 @@ public:
     int GetTopMargin() const;
     int GetLeftMargin() const;
     std::optional<int> GetBitDepth() const;
-    
+
     /**
      * @brief Gets the orientation code from the RAW file.
      * @return The integer orientation code from metadata.
      */
     int GetOrientation() const;
+    
+    /**
+     * @brief Gets the Bayer filter pattern description from the RAW file.
+     * @return A string describing the pattern (e.g., "RGGB").
+     */
+    std::string GetFilterPattern() const;
 
 private:
     std::string m_filename;
     bool m_is_loaded = false;
-    
     // LibRaw instance shared between helpers
     std::shared_ptr<LibRaw> m_raw_processor;
 

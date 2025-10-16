@@ -62,7 +62,7 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
     if (opts.raw_channels.G1) channels_to_print.push_back("G1");
     if (opts.raw_channels.G2) channels_to_print.push_back("G2");
     if (opts.raw_channels.B) channels_to_print.push_back("B");
-
+    
     if (opts.raw_channels.avg_mode != AvgMode::None) {
         std::string avg_str = "AVG";
         if (opts.raw_channels.avg_mode == AvgMode::Full) {
@@ -91,20 +91,32 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
         channels_ss << channels_to_print[i] << (i < channels_to_print.size() - 1 ? ", " : "");
     }
     
-    std::string channel_label = (channels_to_print.size() > 1) ? _("Analysis channels: ") : _("Analysis channel: ");
+    std::string channel_label = (channels_to_print.size() > 1) ?
+        _("Analysis channels: ") : _("Analysis channel: ");
     log_stream << channel_label << channels_ss.str() << std::endl;
     
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }
+
+    if (opts.raw_width > 0 && opts.raw_height > 0) {
+        log_stream << _("Detected active area: ") << opts.raw_width << "x" << opts.raw_height << " pixels";
+        if (opts.raw_width != opts.full_raw_width || opts.raw_height != opts.full_raw_height) {
+            log_stream << " (from " << opts.full_raw_width << "x" << opts.full_raw_height << " full with masked pixels)";
+        }
+        log_stream << std::endl;
+    }
+
     log_stream << _("SNR threshold(s): ");
     for(size_t i = 0; i < opts.snr_thresholds_db.size(); ++i) {
         log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
     }
     log_stream << _(" dB") << std::endl;
+    
     log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
     log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
     log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
+    
     log_stream << _("Plotting: ");
     if (!opts.generate_plot) {
         log_stream << _("No graphics") << std::endl;
@@ -119,5 +131,4 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
     
     log_stream << _("Output file: ") << opts.output_filename << "\n" << std::endl;
 }
-
 } // namespace DynaRange::Engine::Initialization

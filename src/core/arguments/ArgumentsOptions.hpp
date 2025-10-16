@@ -85,7 +85,8 @@ struct ProgramOptions {
     double patch_ratio = DEFAULT_PATCH_RATIO;
     bool generate_plot = false;
     DynaRange::Graphics::Constants::PlotOutputFormat plot_format = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
-    int plot_command_mode = 0; // 0: No plot, 1: No command, 2: Short, 3: Long
+    int plot_command_mode = 0;
+    // 0: No plot, 1: No command, 2: Short, 3: Long
     PlottingDetails plot_details;
     bool create_chart_mode = false;
     std::vector<std::string> chart_colour_params;
@@ -98,6 +99,12 @@ struct ProgramOptions {
     double sensor_resolution_mpx = 0.0;
     std::string print_patch_filename;
     
+    // Detected RAW dimensions.
+    int raw_width = 0;
+    int raw_height = 0;
+    int full_raw_width = 0;
+    int full_raw_height = 0;
+
     /**
      * @brief If true, individual plot files will be generated for each input RAW file.
      * @details Defaults to false. The GUI can override this based on a checkbox.
@@ -113,6 +120,7 @@ struct ProgramOptions {
     // --- Internal Flags ---
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
-    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
+    }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

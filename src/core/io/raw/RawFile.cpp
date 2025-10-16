@@ -101,3 +101,7 @@ std::optional<int> RawFile::GetBitDepth() const {
 int RawFile::GetOrientation() const {
     return m_is_loaded ? m_metadata_extractor->GetOrientation() : 0;
 }
+
+std::string RawFile::GetFilterPattern() const {
+    return m_is_loaded ? m_metadata_extractor->GetFilterPattern() : "";
+}
