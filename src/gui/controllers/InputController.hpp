@@ -80,6 +80,7 @@ public:
     void OnPreviewMouseMove(wxMouseEvent& event);
     void OnPreviewMouseCaptureLost(wxMouseCaptureLostEvent& event);
     void OnGammaSliderChanged(wxScrollEvent& event);
+    void OnPreviewKeyDown(wxKeyEvent& event);
 
 private:
     void PerformFileRemoval();

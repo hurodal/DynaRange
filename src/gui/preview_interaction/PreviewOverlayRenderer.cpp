@@ -72,13 +72,22 @@ void PreviewOverlayRenderer::DrawHandles(
         return;
     }
 
-    // Set handle border style. Red is used for high visibility.
-    gc->SetPen(wxPen(wxColour(PlotColors::RED[0] * 255, PlotColors::RED[1] * 255, PlotColors::RED[2] * 255), HANDLE_BORDER_THICKNESS));
-    // Set handle fill style. A semi-transparent white is used.
-    gc->SetBrush(wxBrush(wxColour(255, 255, 255, 128)));
+    ChartCornerInteractor::Corner selectedCorner = interactor.GetSelectedCorner();
 
-    for (const auto& corner : corners)
+    for (size_t i = 0; i < corners.size(); ++i)
     {
+        const auto& corner = corners[i];
+        
+        if (static_cast<ChartCornerInteractor::Corner>(i) == selectedCorner) {
+            // Use yellow for the selected handle
+            gc->SetPen(wxPen(wxColour(PlotColors::YELLOW[0] * 255, PlotColors::YELLOW[1] * 255, PlotColors::YELLOW[2] * 255), HANDLE_BORDER_THICKNESS));
+        } else {
+            // Use red for unselected handles
+            gc->SetPen(wxPen(wxColour(PlotColors::RED[0] * 255, PlotColors::RED[1] * 255, PlotColors::RED[2] * 255), HANDLE_BORDER_THICKNESS));
+        }
+        
+        gc->SetBrush(wxBrush(wxColour(255, 255, 255, 128)));
+
         // Calculate the center of the handle in panel coordinates.
         double centerX = imageOffset.m_x + corner.m_x * imageToPanelScale;
         double centerY = imageOffset.m_y + corner.m_y * imageToPanelScale;

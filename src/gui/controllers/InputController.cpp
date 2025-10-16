@@ -80,6 +80,8 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_UP, &InputController::OnPreviewMouseUp, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOTION, &InputController::OnPreviewMouseMove, this);
     m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOUSE_CAPTURE_LOST, &InputController::OnPreviewMouseCaptureLost, this);
+    // Bind the new keyboard event.
+    m_frame->m_rawImagePreviewPanel->Bind(wxEVT_KEY_DOWN, &InputController::OnPreviewKeyDown, this);
 }
 
 // --- Getters ---
@@ -452,10 +454,10 @@ void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
 
     // Resetea el estado interno del interactor a las esquinas de la imagen.
     m_interactor->ResetCorners();
+    m_interactor->SetSelectedCorner(ChartCornerInteractor::Corner::None); // Deselect corner
 
     // Fuerza un redibujado del panel de previsualización para mostrar los manejadores en su nueva posición.
     m_frame->m_rawImagePreviewPanel->Refresh();
-
     // Actualiza el comando CLI equivalente para reflejar que ya no hay coordenadas manuales.
     m_frame->m_presenter->UpdateCommandPreview();
 }
@@ -500,11 +502,17 @@ void InputController::OnPreviewMouseDown(wxMouseEvent& event)
 {
     if (!m_originalPreviewImage.IsOk()) return;
 
+    // Set focus to the panel to receive keyboard events.
+    m_frame->m_rawImagePreviewPanel->SetFocus();
+
     wxPoint2DDouble imageCoords = PanelToImageCoords(event.GetPosition());
     
     double handleRadiusInImageCoords = 8.0 / m_previewScale;
 
     ChartCornerInteractor::Corner corner = m_interactor->HitTest(wxPoint(imageCoords.m_x, imageCoords.m_y), handleRadiusInImageCoords);
+    
+    m_interactor->SetSelectedCorner(corner);
+
     if (corner != ChartCornerInteractor::Corner::None)
     {
         m_interactor->BeginDrag(corner);
@@ -512,6 +520,7 @@ void InputController::OnPreviewMouseDown(wxMouseEvent& event)
         m_frame->m_rawImagePreviewPanel->SetCursor(wxCursor(wxCURSOR_HAND));
     }
 
+    m_frame->m_rawImagePreviewPanel->Refresh();
     event.Skip();
 }
 
@@ -746,4 +755,30 @@ void InputController::ApplyGammaCorrection()
     // Convert the result back to wxImage for display.
     // The image is NOT scaled here. It remains at its full preview resolution.
     m_displayPreviewImage = GuiHelpers::CvMatToWxImage(dst_mat);
+}
+
+void InputController::OnPreviewKeyDown(wxKeyEvent& event)
+{
+    if (m_interactor->GetSelectedCorner() == ChartCornerInteractor::Corner::None) {
+        event.Skip();
+        return;
+    }
+
+    int dx = 0;
+    int dy = 0;
+
+    switch (event.GetKeyCode()) {
+        case WXK_UP:    dy = -1; break;
+        case WXK_DOWN:  dy = 1;  break;
+        case WXK_LEFT:  dx = -1; break;
+        case WXK_RIGHT: dx = 1;  break;
+        default:
+            event.Skip();
+            return;
+    }
+
+    m_interactor->MoveSelectedCorner(dx, dy);
+    UpdateCoordTextCtrls();
+    m_frame->m_presenter->UpdateCommandPreview();
+    m_frame->m_rawImagePreviewPanel->Refresh();
 }

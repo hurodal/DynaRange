@@ -1,6 +1,6 @@
 // File: src/gui/preview_interaction/ChartCornerInteractor.hpp
 /**
- * @file ChartCornerInteractor.hpp
+ * @file src/gui/preview_interaction/ChartCornerInteractor.hpp
  * @brief Declares a class to manage the state and logic of interactive corner handles on a preview image.
  * @details This class adheres to SRP by encapsulating all state (corner positions, drag status)
  * and business logic (hit testing, movement constraints) for the interactive overlay,
@@ -74,6 +74,25 @@ public:
      */
     const std::vector<wxPoint2DDouble>& GetCorners() const;
 
+    /**
+     * @brief Sets the currently selected corner for keyboard interaction.
+     * @param corner The corner to select, or Corner::None to deselect.
+     */
+    void SetSelectedCorner(Corner corner);
+
+    /**
+     * @brief Gets the currently selected corner.
+     * @return The identifier of the selected corner, or Corner::None.
+     */
+    Corner GetSelectedCorner() const;
+
+    /**
+     * @brief Moves the currently selected corner by a given delta.
+     * @param dx The change in the x-coordinate.
+     * @param dy The change in the y-coordinate.
+     */
+    void MoveSelectedCorner(int dx, int dy);
+
 private:
     /**
      * @brief Calculates the bounding rectangle for a specific corner's quadrant.
@@ -84,13 +103,12 @@ private:
 
     /// The dimensions of the source image, used for constraints.
     wxSize m_imageSize;
-    
     /// The current coordinates of the four corners: TL, BL, BR, TR.
     std::vector<wxPoint2DDouble> m_corners;
-
     /// Flag indicating if a drag operation is active.
     bool m_isDragging;
-
     /// The identifier of the corner currently being dragged.
     Corner m_draggedCorner;
+    /// The identifier of the corner selected for keyboard interaction.
+    Corner m_selectedCorner;
 };
