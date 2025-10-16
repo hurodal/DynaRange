@@ -9,7 +9,8 @@
 ChartCornerInteractor::ChartCornerInteractor()
     : m_imageSize(0, 0),
       m_isDragging(false),
-      m_draggedCorner(Corner::None)
+      m_draggedCorner(Corner::None),
+      m_selectedCorner(Corner::None)
 {
     // Initialize with 4 points, which will be properly set by SetImageSize/ResetCorners.
     m_corners.resize(4);
@@ -103,4 +104,28 @@ wxRect2DDouble ChartCornerInteractor::GetQuadrant(Corner corner) const
         default:
             return wxRect2DDouble(0, 0, 0, 0); // Should not happen
     }
+}
+
+void ChartCornerInteractor::SetSelectedCorner(Corner corner)
+{
+    m_selectedCorner = corner;
+}
+
+ChartCornerInteractor::Corner ChartCornerInteractor::GetSelectedCorner() const
+{
+    return m_selectedCorner;
+}
+
+void ChartCornerInteractor::MoveSelectedCorner(int dx, int dy)
+{
+    if (m_selectedCorner == Corner::None) return;
+
+    wxPoint2DDouble& corner_point = m_corners[static_cast<int>(m_selectedCorner)];
+    wxRect2DDouble quadrant = GetQuadrant(m_selectedCorner);
+
+    double newX = std::max(quadrant.m_x, std::min(corner_point.m_x + dx, quadrant.m_x + quadrant.m_width));
+    double newY = std::max(quadrant.m_y, std::min(corner_point.m_y + dy, quadrant.m_y + quadrant.m_height));
+
+    corner_point.m_x = newX;
+    corner_point.m_y = newY;
 }
