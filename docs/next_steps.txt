@@ -1,16 +1,26 @@
+BUGS
+====
+
+- Al MARCAR LA OPCION "ALL ISOs" SISTEMATICAMENTE CUELGA EL PROGRAMA.
+
+- Al desmarcar la opcion SCATTERS, dejan de plotearse los puntos... y desaparecen las etiquetas de ISO de cada curva.
+
+- La opcion Debug patches a menudo no exporta nada, pese a que en el Log hace una referencia a él: "Debug patch image will be saved to: D:\Mis documentos\printpatches_EOS_5D_Mark_II.png".
+  En la ultima version, al activarla no pone automaticamente el nombre del fichero como antes. Pregunta: hay que poner al final ".png" o lo hace él solito?
+
 PRIORITARIAS
 ============
 
-0: MARCAR LA OPCION "ALL ISOs" SISTEMATICAMENTE CUELGA EL PROGRAMA.
-
-0A: FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
+0: FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
    Y MÁS DE UN 1% DE PÍXELES A 0 (EXACTAMENTE A 0)
 
 1A: AÑADIR al GUI un CHECKBOX para elegir si se quiere que genere los graficos añadiendo al final el nombre de camara e ISO o no.
 
 1B: AÑADIR UN CAMPO para indicar qué nombre de cámara le quieres dar como titulo a las graficas (en vez de sacarlo de los EXIF)
 
-1C: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+1C: MOVER LA COLUMNA 'DR_EV' EN LA PESTAÑA RESULTS JUSTO DESPUES DE LA COLUMNA ISO (SINO QUEDA AL FINAL Y OBLIGA A HACER SCROLL PARA VERLA)
+
+1D: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
