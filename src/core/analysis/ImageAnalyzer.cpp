@@ -42,13 +42,25 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
             double S = mean_val[0];
             double N = stddev_val[0];
 
-            // --- NEW ROBUST FILTER FOR ZERO BLACK LEVEL SENSORS ---
+            // --- FILTRO PARA SENSORES CON NIVEL DE NEGRO CERO ---
+            
+            // --- Filtro actual (robusto) basado en desviación estándar ---
             // A patch is discarded only if the sensor has zero black level AND
             // the patch itself has zero standard deviation (i.e., it's a solid color block).
-            if (dark_value == 0.0 && N == 0.0) {
-                continue;
+            // if (dark_value == 0.0 && N == 0.0) {
+            //     continue;
+            // }
+
+            // --- Filtro antiguo ("agresivo") basado en conteo de píxeles negros ---
+            // Descomenta este bloque para probar el comportamiento anterior.
+            if (dark_value == 0.0) {
+                int zero_pixel_count = cv::countNonZero(roi == 0.0);
+                double zero_pixel_ratio = static_cast<double>(zero_pixel_count) / (roi.rows * roi.cols);
+                if (zero_pixel_ratio > 0.01) {
+                    continue; // Discard patch if more than 1% of pixels are pure black.
+                }
             }
-            // --- END OF NEW FILTER ---
+            // --- FIN DE FILTROS ---
 
             int sat_count = cv::countNonZero(roi > 0.9);
             double sat_ratio = static_cast<double>(sat_count) / (roi.rows * roi.cols);
