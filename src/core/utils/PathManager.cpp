@@ -133,7 +133,7 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const R
         case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
         default: extension = ".png"; break;
     }
-    std::string filename = "DR_summary_plot_" + safe_camera_name + Formatters::GenerateChannelSuffix(channels) + extension;
+    std::string filename = "snr_curves_" + safe_camera_name + Formatters::GenerateChannelSuffix(channels) + extension;
     return m_output_directory / filename;
 }
 
