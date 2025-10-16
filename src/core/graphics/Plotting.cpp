@@ -134,7 +134,7 @@ std::optional<std::string> GenerateSummaryPlot(
     // Call the new centralized function
     const auto bounds = DynaRange::Graphics::CalculateGlobalBounds(curves_with_points);
 
-    std::string title = _("SNR Curves - (") + camera_name + ")";
+    std::string title = _("SNR Curves - ") + camera_name;
     
     std::mutex log_mutex;
     return GeneratePlotInternal(output_filename, title, curves_with_points, all_results, reporting_params, log_stream, log_mutex, bounds);

@@ -4,7 +4,7 @@ PRIORITARIAS
 0: FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
    Y MÁS DE UN 1% DE PÍXELES A 0 (EXACTAMENTE A 0)
 
-1: DESACTIVAR LA ROTACION DEL RAW (va relacionado con el fallo de la 5D MkII):
+1:(HECHO) DESACTIVAR LA ROTACION DEL RAW (va relacionado con el fallo de la 5D MkII):
 Para evitar problemas con el sensor de orientacion, habria que comprobar el metadato "CameraOrientation" de los EXIF. Según la documentación de LibRAW, parece que se puede hacer un:
 
 int LibRaw::open_bayer(unsigned otherflags)
