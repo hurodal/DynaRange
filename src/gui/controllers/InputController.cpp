@@ -480,7 +480,8 @@ void InputController::OnPaintPreview(wxPaintEvent& event)
             
             gc->DrawBitmap(bitmapToDraw, m_previewOffset.m_x, m_previewOffset.m_y, final_width, final_height);
             
-            m_renderer->Draw(gc, *m_interactor, m_previewOffset, m_previewScale);
+            // Pass the gamma-corrected (but unscaled) display image to the renderer for the loupe.
+            m_renderer->Draw(gc, *m_interactor, m_displayPreviewImage, m_previewOffset, m_previewScale);
             
             delete gc;
         }

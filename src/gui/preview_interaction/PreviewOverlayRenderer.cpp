@@ -20,6 +20,7 @@ PreviewOverlayRenderer::PreviewOverlayRenderer() {}
 void PreviewOverlayRenderer::Draw(
     wxGraphicsContext* gc,
     const ChartCornerInteractor& interactor,
+    const wxImage& displayImage,
     const wxPoint2DDouble& imageOffset,
     double imageToPanelScale)
 {
@@ -27,9 +28,14 @@ void PreviewOverlayRenderer::Draw(
         return;
     }
 
-    // The drawing is done in two passes to ensure lines are behind handles.
+    // The drawing is done in passes to ensure correct layering.
     DrawConnectingLines(gc, interactor, imageOffset, imageToPanelScale);
     DrawHandles(gc, interactor, imageOffset, imageToPanelScale);
+
+    // If a corner is selected (for keyboard) or being dragged (for mouse), draw the loupe.
+    if (interactor.GetSelectedCorner() != ChartCornerInteractor::Corner::None) {
+        DrawLoupe(gc, interactor, displayImage);
+    }
 }
 
 void PreviewOverlayRenderer::DrawConnectingLines(
@@ -95,4 +101,57 @@ void PreviewOverlayRenderer::DrawHandles(
         // Draw the circle for the handle.
         gc->DrawEllipse(centerX - HANDLE_RADIUS, centerY - HANDLE_RADIUS, HANDLE_RADIUS * 2, HANDLE_RADIUS * 2);
     }
+}
+
+void PreviewOverlayRenderer::DrawLoupe(
+    wxGraphicsContext* gc,
+    const ChartCornerInteractor& interactor,
+    const wxImage& sourceImage)
+{
+    if (!sourceImage.IsOk()) return;
+
+    // Determine which corner to magnify.
+    ChartCornerInteractor::Corner cornerToMagnify = interactor.GetSelectedCorner();
+    if (cornerToMagnify == ChartCornerInteractor::Corner::None) return;
+
+    // Get the position of the active corner.
+    wxPoint2DDouble activeCornerPos = interactor.GetCorners()[static_cast<int>(cornerToMagnify)];
+
+    // --- Loupe Configuration ---
+    const int loupeSize = 150; // Pixel dimensions of the loupe on screen
+    const int magnification = 4;
+    const int crosshairSize = 10;
+    const wxPoint loupePosition(10, 10); // Top-left corner with a small margin
+
+    // --- Source Area Calculation ---
+    const int sourceWidth = loupeSize / magnification;
+    const int sourceHeight = loupeSize / magnification;
+
+    // Calculate the top-left corner of the source rectangle in the image
+    int sourceX = static_cast<int>(activeCornerPos.m_x - sourceWidth / 2);
+    int sourceY = static_cast<int>(activeCornerPos.m_y - sourceHeight / 2);
+
+    // Clamp the source rectangle to stay within the image boundaries
+    sourceX = std::max(0, std::min(sourceX, sourceImage.GetWidth() - sourceWidth));
+    sourceY = std::max(0, std::min(sourceY, sourceImage.GetHeight() - sourceHeight));
+    
+    wxRect sourceRect(sourceX, sourceY, sourceWidth, sourceHeight);
+    
+    // --- Image Extraction and Drawing ---
+    wxImage subImage = sourceImage.GetSubImage(sourceRect);
+    subImage.Rescale(loupeSize, loupeSize, wxIMAGE_QUALITY_NEAREST); // Use NEAREST for a pixelated look
+    wxBitmap loupeBitmap(subImage);
+
+    // Draw the magnified image and its border
+    gc->DrawBitmap(loupeBitmap, loupePosition.x, loupePosition.y, loupeSize, loupeSize);
+    gc->SetPen(wxPen(*wxBLACK, 2));
+    gc->SetBrush(*wxTRANSPARENT_BRUSH);
+    gc->DrawRectangle(loupePosition.x, loupePosition.y, loupeSize, loupeSize);
+
+    // --- Crosshair Drawing ---
+    gc->SetPen(wxPen(*wxRED, 1));
+    const int centerX = loupePosition.x + loupeSize / 2;
+    const int centerY = loupePosition.y + loupeSize / 2;
+    gc->StrokeLine(centerX, centerY - crosshairSize, centerX, centerY + crosshairSize);
+    gc->StrokeLine(centerX - crosshairSize, centerY, centerX + crosshairSize, centerY);
 }
