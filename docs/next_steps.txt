@@ -4,21 +4,6 @@ PRIORITARIAS
 0: FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
    Y MÁS DE UN 1% DE PÍXELES A 0 (EXACTAMENTE A 0)
 
-1:(HECHO) DESACTIVAR LA ROTACION DEL RAW (va relacionado con el fallo de la 5D MkII):
-Para evitar problemas con el sensor de orientacion, habria que comprobar el metadato "CameraOrientation" de los EXIF. Según la documentación de LibRAW, parece que se puede hacer un:
-
-int LibRaw::open_bayer(unsigned otherflags)
-
-y devuelve:
-
-Bits 2-4 - the orientation of the image (0=do not rotate, 3=180, 5=90CCW, 6=90CW)
-
-Es lo que he podido encontrar aquí: https://www.libraw.org/docs/API-CXX.html
-Supongo que debe haber un comando para simplemente ignorar ese metadato y NO rotar el RAW, tal como sugiere Guillermo. Buscando en la documentacion de LibRAW veo que hay uno:
-int flip;
-Y explica que: Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
-Asi que igual es cuestion de simplemente meterle ese comando con el valor 0 para que no rote nada...
-
 1C: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
@@ -52,7 +37,8 @@ y quizas lo que propone Guillermo de hacer un recorte por los 4 costados lo pued
 4: FALLO PARCHES MONITOR OLED: Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
    y que os compartí el 10/10 en el chat a las 13:14
 
-5: AÑADIR en el RESULTS.CSV columnas con los valores extraidos de los parches, de promedio, desviacion estandar y ruido (los que se usan para calcular el SNR). Necesarios para la futura BBDD.
+5: AÑADIR en el RESULTS.CSV columnas con los valores extraidos de todos los parches, de promedio, desviacion estandar y SNR.
+Tambien añadir la posicion en la cuadricula de cada parche. Necesarios para la futura BBDD.
 
 
 NO PRIORITARIAS
@@ -75,6 +61,8 @@ NO PRIORITARIAS
 
 HECHOS
 ======
+
+(HECHO) DESACTIVAR LA ROTACION DEL RAW (va relacionado con el fallo de la 5D MkII)
 
 (HECHO) UTILIZAR EL ARCHIVO RAW MÁS EXPUESTO PERO SIN PÍXELES SATURADOS PARA REALIZAR LA DETECCIÓN DE LAS 4 ESQUINAS. SI TODOS TIENEN PÍXELES SATURADOS TOMAR EL MENOS EXPUESTO
    TAMBIÉN SERÁ ÉSE EL RAW USADO COMO SALIDA PARA EL DEBUG DE PARCHES
