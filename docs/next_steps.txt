@@ -52,7 +52,7 @@ y quizas lo que propone Guillermo de hacer un recorte por los 4 costados lo pued
 4: FALLO PARCHES MONITOR OLED: Mirar qué fallo tan extraño ocurre al leer los parches en las fotos que hice en mi OLED (carpeta "2025-09-13 DynaRange New chart OLED")
    y que os compartí el 10/10 en el chat a las 13:14
 
-5: Añadir en el Results.csv columnas con los valores de señal y de ruido (los que se usan para calcular el SNR). Necesarios para la futura BBDD.
+5: AÑADIR en el RESULTS.CSV columnas con los valores extraidos de los parches, de promedio, desviacion estandar y ruido (los que se usan para calcular el SNR). Necesarios para la futura BBDD.
 
 
 NO PRIORITARIAS
@@ -153,6 +153,7 @@ HECHOS
               std::cout << "Saturation level = " << satLevel << std::endl;  // Output: 16383
               return 0;
           }
+
 
 
 
