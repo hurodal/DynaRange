@@ -43,6 +43,14 @@ std::optional<double> ProcessDarkFrame(const std::string &filename,
     return std::nullopt;
   }
   
+  // Check if the dark frame is already black-subtracted (all pixels are zero).
+  if (cv::countNonZero(active_img) == 0) {
+    log_stream << _("[INFO] Zero black level detected. The dark frame is already black-subtracted.") << std::endl;
+    log_stream << _("Black level obtained (active area mean): ") << std::fixed
+               << std::setprecision(2) << 0.0 << std::endl;
+    return 0.0;
+  }
+
   // Calculate the mean on the active area only.
   double mean_value = cv::mean(active_img)[0];
   log_stream << _("Black level obtained (active area mean): ") << std::fixed
