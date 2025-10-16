@@ -148,9 +148,6 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	inputColLeftSizer->Add( darkSatInputRawSizer, 0, wxEXPAND, 5 );
 
-	m_rawImagePreviewPanel = new wxPanel( m_inputPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	inputColLeftSizer->Add( m_rawImagePreviewPanel, 1, wxEXPAND | wxALL, 5 );
-
 
 	twoColMainPanelSizer->Add( inputColLeftSizer, 1, wxEXPAND, 5 );
 
@@ -839,6 +836,23 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_equCliPanel->Layout();
 	equivalentSbSizer->Fit( m_equCliPanel );
 	m_mainNotebook->AddPage( m_equCliPanel, _("Equ.CLI Command"), false );
+	m_ChartsManualCorners = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* thumbSliderSizer;
+	thumbSliderSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_gammaThumbSlider = new wxSlider( m_ChartsManualCorners, wxID_ANY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL );
+	m_gammaThumbSlider->Enable( false );
+
+	thumbSliderSizer->Add( m_gammaThumbSlider, 0, wxALL|wxEXPAND, 5 );
+
+	m_rawImagePreviewPanel = new wxPanel( m_ChartsManualCorners, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	thumbSliderSizer->Add( m_rawImagePreviewPanel, 1, wxEXPAND | wxALL, 5 );
+
+
+	m_ChartsManualCorners->SetSizer( thumbSliderSizer );
+	m_ChartsManualCorners->Layout();
+	thumbSliderSizer->Fit( m_ChartsManualCorners );
+	m_mainNotebook->AddPage( m_ChartsManualCorners, _("Chart Manual Corners"), false );
 
 	mainSizer->Add( m_mainNotebook, 1, wxEXPAND | wxALL, 5 );
 

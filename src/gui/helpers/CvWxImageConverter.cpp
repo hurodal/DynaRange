@@ -28,4 +28,20 @@ wxImage CvMatToWxImage(const cv::Mat& mat)
     return image;
 }
 
+cv::Mat WxImageToCvMat(const wxImage& image)
+{
+    if (!image.IsOk()) {
+        return cv::Mat(); // Return empty matrix
+    }
+
+    // Create a temporary cv::Mat that points to the wxImage's RGB data buffer.
+    cv::Mat mat_rgb(image.GetHeight(), image.GetWidth(), CV_8UC3, image.GetData());
+
+    // Create a new cv::Mat for the BGR data and perform the conversion.
+    cv::Mat mat_bgr;
+    cv::cvtColor(mat_rgb, mat_bgr, cv::COLOR_RGB2BGR);
+
+    return mat_bgr;
+}
+
 } // namespace GuiHelpers

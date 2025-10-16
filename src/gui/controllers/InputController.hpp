@@ -1,6 +1,6 @@
-// File: gui/controllers/InputController.hpp
+// File: src/gui/controllers/InputController.hpp
 /**
- * @file gui/controllers/InputController.hpp
+ * @file src/gui/controllers/InputController.hpp
  * @brief Declares a controller class for the InputPanel's logic.
  */
 #pragma once
@@ -29,7 +29,6 @@ class wxMouseCaptureLostEvent;
 class InputController {
 public:
     explicit InputController(DynaRangeFrame* frame);
-
     // Getters that read directly from the controls
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
@@ -50,13 +49,7 @@ public:
     std::vector<double> GetChartCoords() const;
     bool ShouldSaveLog() const;
     bool ValidateSnrThresholds() const;
-    /**
-     * @brief (New Function) Checks if the user wants to generate individual plot files.
-     * @return True if the "All ISOs" checkbox is checked, false otherwise.
-     */
     bool ShouldGenerateIndividualPlots() const;
-
-    // --- NUEVOS MÉTODOS PÚBLICOS ---
     bool ShouldEstimateBlackLevel() const;
     bool ShouldEstimateSaturationLevel() const;
 
@@ -86,22 +79,36 @@ public:
     void OnPreviewMouseUp(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
     void OnPreviewMouseCaptureLost(wxMouseCaptureLostEvent& event);
+    void OnGammaSliderChanged(wxScrollEvent& event);
 
 private:
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);
     wxPoint2DDouble PanelToImageCoords(const wxPoint& panelPoint) const;
     void UpdateCoordTextCtrls();
-    
+    void ApplyGammaCorrection();
+    void UpdatePreviewTransform();
+
+    std::vector<wxPoint2DDouble> TransformGuiToRawCoords(const std::vector<wxPoint2DDouble>& guiCoords) const;
+
     DynaRangeFrame* m_frame;
-    // Pointer to the parent frame to access its controls
     wxString m_lastDirectoryPath;
-    ///< Stores the path of the last directory accessed by any file picker.
     
-    wxImage m_rawPreviewImage;
-    int m_originalRawWidth = 0;
-    int m_originalRawHeight = 0;
+    // The original, unmodified preview image loaded from the RAW file.
+    wxImage m_originalPreviewImage;
+    // The gamma-corrected image that is actually shown on screen.
+    wxImage m_displayPreviewImage;
+
+    int m_originalActiveWidth = 0;
+    int m_originalActiveHeight = 0;
+    
+    int m_rawOrientation = 0;
 
     std::unique_ptr<ChartCornerInteractor> m_interactor;
     std::unique_ptr<PreviewOverlayRenderer> m_renderer;
+
+    // Stores the calculated scale factor for the preview image.
+    double m_previewScale = 1.0;
+    // Stores the top-left offset for the centered preview image.
+    wxPoint2DDouble m_previewOffset = {0.0, 0.0};
 };

@@ -18,4 +18,11 @@ namespace GuiHelpers {
  */
 wxImage CvMatToWxImage(const cv::Mat& mat);
 
+/**
+ * @brief Converts a wxImage (RGB format) to an OpenCV cv::Mat (BGR format).
+ * @param image The source wxImage.
+ * @return A cv::Mat containing the converted image data.
+ */
+cv::Mat WxImageToCvMat(const wxImage& image);
+
 } // namespace GuiHelpers

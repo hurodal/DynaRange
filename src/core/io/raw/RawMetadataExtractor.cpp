@@ -89,4 +89,23 @@ std::optional<int> RawMetadataExtractor::GetBitDepth() const {
     return std::nullopt;
 }
 
+/**
+ * @brief Implementación de GetOrientation.
+ */
+//int RawMetadataExtractor::GetOrientation() const {
+//    if (!m_raw_processor) return 0;
+//    // The 'flip' member of the imgdata.sizes struct holds the orientation info.
+//    return m_raw_processor->imgdata.sizes.flip;
+//}
+
+/**
+ * @brief Implementación de GetOrientation.
+ */
+int RawMetadataExtractor::GetOrientation() const {
+    if (!m_raw_processor) return 0;
+    // The 'flip' member of the imgdata.sizes struct holds the orientation info.
+    // FORCED: Return 0 to ignore EXIF orientation and always treat images as horizontal.
+    return 0;
+}
+
 } // namespace DynaRange::IO::Raw

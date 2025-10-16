@@ -4,7 +4,6 @@
  * @brief Implements the ChartProfile class.
  */
 #include "ChartProfile.hpp"
-#include <algorithm> // For std::min_element and std::max_element
 #include <iomanip>
 #include <sstream>
 #include <libintl.h>
@@ -23,27 +22,50 @@ ChartProfile::ChartProfile(
     // Priority 1: Use manually provided coordinates.
     if (!chart_coords.empty() && chart_coords.size() == 8) {
         m_has_manual_coords = true;
-        std::vector<cv::Point2d> points;
+
+        std::vector<cv::Point2d> full_res_points;
         for (size_t i = 0; i < 8; i += 2) {
-            points.emplace_back(chart_coords[i] / 2.0, chart_coords[i + 1] / 2.0);
+            full_res_points.emplace_back(chart_coords[i], chart_coords[i + 1]);
         }
         
-        auto tl_it = std::min_element(points.begin(), points.end(),
-            [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
-        auto br_it = std::max_element(points.begin(), points.end(),
-            [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
-        
-        constexpr double epsilon = 1e-6;
-        auto bl_it = std::min_element(points.begin(), points.end(),
-            [epsilon](const cv::Point2d& a, const cv::Point2d& b) {
-                return a.x / (a.y + epsilon) < b.x / (b.y + epsilon);
-            });
-        auto tr_it = std::max_element(points.begin(), points.end(),
-            [epsilon](const cv::Point2d& a, const cv::Point2d& b) {
-                return a.x / (a.y + epsilon) < b.x / (b.y + epsilon);
-            });
+        // --- ROBUST CORNER SORTING LOGIC (from R script) ---
+        cv::Point2d tl, bl, br, tr;
 
-        m_corner_points = {*tl_it, *bl_it, *br_it, *tr_it};
+        // Find Top-Left (min sum of coords)
+        auto tl_it = std::min_element(full_res_points.begin(), full_res_points.end(),
+            [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
+        tl = *tl_it;
+
+        // Find Bottom-Right (max sum of coords)
+        auto br_it = std::max_element(full_res_points.begin(), full_res_points.end(),
+            [](const cv::Point2d& a, const cv::Point2d& b) { return a.x + a.y < b.x + b.y; });
+        br = *br_it;
+
+        // Find Bottom-Left (min ratio x/y)
+        auto bl_it = std::min_element(full_res_points.begin(), full_res_points.end(),
+            [&](const cv::Point2d& a, const cv::Point2d& b) {
+                if (a == tl || a == br) return false;
+                if (b == tl || b == br) return true;
+                double ratio_a = (a.y == 0) ? a.x * 1e9 : a.x / a.y;
+                double ratio_b = (b.y == 0) ? b.x * 1e9 : b.x / b.y;
+                return ratio_a < ratio_b;
+            });
+        bl = *bl_it;
+
+        // The remaining point is Top-Right
+        for (const auto& p : full_res_points) {
+            if (p != tl && p != br && p != bl) {
+                tr = p;
+                break;
+            }
+        }
+        
+        m_corner_points = {
+            cv::Point2d(tl.x / 2.0, tl.y / 2.0),
+            cv::Point2d(bl.x / 2.0, bl.y / 2.0),
+            cv::Point2d(br.x / 2.0, br.y / 2.0),
+            cv::Point2d(tr.x / 2.0, tr.y / 2.0)
+        };
         LogCornerPoints(m_corner_points, _("Using manually specified coordinates:"), log_stream);
     } 
     // Priority 2: Use auto-detected coordinates.
@@ -60,13 +82,13 @@ ChartProfile::ChartProfile(
         LogCornerPoints(m_corner_points, _("Using hardcoded default coordinates:"), log_stream);
     }
 
-    // This logic is correct and matches the R script's intent.
-    double xtl = (m_corner_points[0].x + m_corner_points[1].x) / 2.0;
-    double ytl = (m_corner_points[0].y + m_corner_points[3].y) / 2.0;
-    double xbr = (m_corner_points[2].x + m_corner_points[3].x) / 2.0;
-    double ybr = (m_corner_points[1].y + m_corner_points[2].y) / 2.0;
-    
-    m_destination_points = {{xtl, ytl}, {xtl, ybr}, {xbr, ybr}, {xbr, ytl}};
+    // --- ROBUST DESTINATION RECTANGLE LOGIC: Bounding Box ---
+    double min_x = std::min({m_corner_points[0].x, m_corner_points[1].x, m_corner_points[2].x, m_corner_points[3].x});
+    double max_x = std::max({m_corner_points[0].x, m_corner_points[1].x, m_corner_points[2].x, m_corner_points[3].x});
+    double min_y = std::min({m_corner_points[0].y, m_corner_points[1].y, m_corner_points[2].y, m_corner_points[3].y});
+    double max_y = std::max({m_corner_points[0].y, m_corner_points[1].y, m_corner_points[2].y, m_corner_points[3].y});
+
+    m_destination_points = {{min_x, min_y}, {min_x, max_y}, {max_x, max_y}, {max_x, min_y}};
 }
 
 const std::vector<cv::Point2d>& ChartProfile::GetCornerPoints() const {

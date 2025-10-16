@@ -43,9 +43,9 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     std::ostream& log_stream,
     bool generate_debug_image,
     const std::atomic<bool>& cancel_flag,
-    std::mutex& log_mutex)
+    std::mutex& log_mutex,
+    const PathManager& paths)
 {
-    // Log the start of processing for this file.
     {
         std::lock_guard<std::mutex> lock(log_mutex);
         log_stream << _("Processing \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"..." << std::endl;
@@ -61,7 +61,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     }
     const double strict_min_snr_db = -10.0 - norm_adjustment;
     const double permissive_min_snr_db = DynaRange::Analysis::Constants::MIN_SNR_DB_THRESHOLD - norm_adjustment;
-    
     double max_requested_threshold = 0.0;
     if (!params.snr_thresholds_db.empty()) {
         max_requested_threshold = *std::max_element(params.snr_thresholds_db.begin(), params.snr_thresholds_db.end());
@@ -79,8 +78,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 
     for (const auto& channel : channels_to_analyze) {
         if (cancel_flag) return {};
-        
-        cv::Mat img_prepared = PrepareChartImage(raw_file, params.dark_value, params.saturation_value, keystone_params, chart, log_stream, channel);
+        cv::Mat img_prepared = PrepareChartImage(raw_file, params.dark_value, params.saturation_value, keystone_params, chart, log_stream, channel, paths);
         if (img_prepared.empty()) {
             std::lock_guard<std::mutex> lock(log_mutex);
             log_stream << _("Error: Failed to prepare image for channel: ") << Formatters::DataSourceToString(channel) << " for file " << raw_file.GetFilename() << std::endl;
@@ -88,7 +86,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         }
 
         bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
-        
         individual_channel_patches[channel] = DynaRange::Engine::PerformTwoPassPatchAnalysis(
             img_prepared, channel, chart, params.patch_ratio, log_stream,
             strict_min_snr_db, permissive_min_snr_db, max_requested_threshold, should_draw_overlay,
@@ -97,7 +94,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     }
 
     auto results = DynaRange::Engine::Processing::AggregateAndFinalizeResults(individual_channel_patches, raw_file, params, generate_debug_image, log_stream, log_mutex);
-    
     {
         std::lock_guard<std::mutex> lock(log_mutex);
         log_stream << _("Processed \"") << fs::path(raw_file.GetFilename()).filename().string() << "\"." << std::endl;
@@ -106,6 +102,7 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
 
     return results;
 }
+
 }
 namespace DynaRange::Engine::Processing {
 
@@ -116,14 +113,16 @@ AnalysisLoopRunner::AnalysisLoopRunner(
     const std::string& camera_model_name,
     std::ostream& log_stream,
     const std::atomic<bool>& cancel_flag,
-    int source_image_index) // New parameter
+    int source_image_index,
+    const PathManager& paths)
     : m_raw_files(raw_files),
       m_params(params),
       m_chart(chart),
       m_camera_model_name(camera_model_name),
       m_log_stream(log_stream),
       m_cancel_flag(cancel_flag),
-      m_source_image_index(source_image_index) // Initialize new member
+      m_source_image_index(source_image_index),
+      m_paths(paths)
 {}
 
 ProcessingResult AnalysisLoopRunner::Run()
@@ -152,7 +151,6 @@ ProcessingResult AnalysisLoopRunner::Run()
             const auto& raw_file = m_raw_files[j];
             if (!raw_file.IsLoaded()) continue;
 
-            // Use the selected source_image_index to decide which iteration generates the debug image.
             bool generate_debug_image = (j == m_source_image_index && !m_params.print_patch_filename.empty());
 
             batch_futures.push_back(std::async(std::launch::async, 
@@ -160,9 +158,8 @@ ProcessingResult AnalysisLoopRunner::Run()
                     cv::Mat local_keystone = keystone_params;
                     if (!optimized) {
                         local_keystone = DynaRange::Graphics::Geometry::CalculateKeystoneParams(m_chart.GetCornerPoints(), m_chart.GetDestinationPoints());
-     
                     }
-                    return AnalyzeSingleRawFile(raw_file, m_params, m_chart, local_keystone, m_log_stream, generate_debug_image, m_cancel_flag, log_mutex);
+                    return AnalyzeSingleRawFile(raw_file, m_params, m_chart, local_keystone, m_log_stream, generate_debug_image, m_cancel_flag, log_mutex, m_paths);
                 }
             ));
         }
@@ -193,5 +190,4 @@ ProcessingResult AnalysisLoopRunner::Run()
     
     return result;
 }
-
 } // namespace DynaRange::Engine::Processing
