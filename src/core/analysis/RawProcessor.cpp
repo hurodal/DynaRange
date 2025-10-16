@@ -13,20 +13,6 @@
 
 #define _(string) gettext(string)
 
-/**
- * @file src/core/analysis/RawProcessor.cpp
- * @brief Implements processing of dark and saturation frames for sensor
- * calibration.
- */
-#include "RawProcessor.hpp"
-#include "../io/raw/RawFile.hpp"
-#include "../math/Math.hpp"
-#include <iomanip>
-#include <iostream>
-#include <libintl.h>
-
-#define _(string) gettext(string)
-
 std::optional<double> ProcessDarkFrame(const std::string &filename,
                                        std::ostream &log_stream) {
   log_stream << _("Calculating black level from: ") << filename << "..."
@@ -43,19 +29,22 @@ std::optional<double> ProcessDarkFrame(const std::string &filename,
     return std::nullopt;
   }
   
-  // Check if the dark frame is already black-subtracted (all pixels are zero).
-  if (cv::countNonZero(active_img) == 0) {
-    log_stream << _("[INFO] Zero black level detected. The dark frame is already black-subtracted.") << std::endl;
-    log_stream << _("Black level obtained (active area mean): ") << std::fixed
-               << std::setprecision(2) << 0.0 << std::endl;
-    return 0.0;
+  // Convert the active area to a vector to calculate the median.
+  std::vector<double> pixels;
+  pixels.reserve(active_img.total());
+  active_img.reshape(1, 1).convertTo(pixels, CV_64F);
+
+  // Calculate the median (quantile 0.5) on the active pixels.
+  // This is robust against hot pixels and correctly identifies a true zero black level.
+  double median_value = CalculateQuantile(pixels, 0.5);
+
+  if (median_value == 0.0 && cv::countNonZero(active_img) > 0) {
+      log_stream << _("[INFO] Zero black level detected, ignoring hot pixels.") << std::endl;
   }
 
-  // Calculate the mean on the active area only.
-  double mean_value = cv::mean(active_img)[0];
-  log_stream << _("Black level obtained (active area mean): ") << std::fixed
-             << std::setprecision(2) << mean_value << std::endl;
-  return mean_value;
+  log_stream << _("Black level obtained (active area median): ") << std::fixed
+             << std::setprecision(2) << median_value << std::endl;
+  return median_value;
 }
 
 std::optional<double> ProcessSaturationFrame(const std::string &filename,
