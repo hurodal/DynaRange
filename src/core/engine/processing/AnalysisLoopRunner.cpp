@@ -89,7 +89,8 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         individual_channel_patches[channel] = DynaRange::Engine::PerformTwoPassPatchAnalysis(
             img_prepared, channel, chart, params.patch_ratio, log_stream,
             strict_min_snr_db, permissive_min_snr_db, max_requested_threshold, should_draw_overlay,
-            log_mutex
+            log_mutex,
+            params.dark_value
         );
     }
 

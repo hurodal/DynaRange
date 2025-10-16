@@ -30,39 +30,17 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         return {}; // Return an empty ReportOutput on failure
     }
 
-    // --- New Logic: Select the source image for corner/patch detection ---
-    // This logic is now centralized in the core engine to be used by both CLI and GUI.
-    int source_image_index = 0; // Default to the darkest file (index 0 of sorted list)
-    bool found_non_saturated = false;
-    
-    // The file list is already sorted by brightness in init_result.loaded_raw_files.
-    // Iterate backwards from the brightest file (end of the list) to find the first non-saturated one.
-    for (int i = init_result.loaded_raw_files.size() - 1; i >= 0; --i) {
-        const auto& raw_file = init_result.loaded_raw_files[i];
-        if (raw_file.IsLoaded()) {
-            cv::Mat active_img = raw_file.GetActiveRawImage();
-            if (!active_img.empty()) {
-                // A pixel is considered saturated if it's at 99% or more of the saturation level.
-                int saturated_pixels = cv::countNonZero(active_img >= (init_result.saturation_value * 0.99));
-                if (saturated_pixels == 0) {
-                    source_image_index = i; // Found the brightest non-saturated file
-                    found_non_saturated = true;
-                    break;
-                }
-            }
+    // --- New logic to construct default print-patches filename ---
+    if (opts.print_patch_filename == "_USE_DEFAULT_PRINT_PATCHES_") {
+        std::string camera_model = "UNKNOWN_CAMERA";
+        if (!init_result.loaded_raw_files.empty() && init_result.loaded_raw_files[0].IsLoaded()) {
+            camera_model = init_result.loaded_raw_files[0].GetCameraModel();
         }
+        std::replace(camera_model.begin(), camera_model.end(), ' ', '_');
+        opts.print_patch_filename = "printpatches_" + camera_model + ".png";
     }
-    opts.source_image_index = source_image_index; // Update options to make it available to the GUI
+    // --- End new logic ---
 
-    if (found_non_saturated) {
-        log_stream << _("[INFO] Selected '") << fs::path(init_result.loaded_raw_files[source_image_index].GetFilename()).filename().string()
-                   << _("' as the source image for detection (brightest non-saturated).") << std::endl;
-    } else {
-        log_stream << _("[INFO] All images contain saturated pixels. Selected '") << fs::path(init_result.loaded_raw_files[source_image_index].GetFilename()).filename().string()
-                   << _("' as the source image for detection (darkest).") << std::endl;
-    }
-    // --- End New Logic ---
-    
     PathManager paths(opts);
     AnalysisParameters analysis_params {
         .dark_value = init_result.dark_value,
@@ -79,7 +57,7 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .print_patch_filename = opts.print_patch_filename,
         .plot_labels = init_result.plot_labels,
         .generated_command = init_result.generated_command,
-        .source_image_index = opts.source_image_index
+        .source_image_index = init_result.source_image_index
     };
 
     ProcessingResult results = ProcessFiles(analysis_params, paths, log_stream, cancel_flag, init_result.loaded_raw_files);
@@ -104,7 +82,7 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .saturation_level_is_default = init_result.saturation_level_is_default,
         .snr_thresholds_db = opts.snr_thresholds_db
     };
-
+    
     ReportOutput report = FinalizeAndReport(results, reporting_params, paths, log_stream);
     report.dr_results = results.dr_results;
     report.curve_data = results.curve_data;

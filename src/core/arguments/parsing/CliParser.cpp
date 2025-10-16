@@ -28,7 +28,7 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     std::vector<int> temp_raw_channels;
     std::string temp_plot_format;
     std::vector<int> temp_plot_params;
-
+    
     // --- Define all options ---
     auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, descriptors.at(Chart).help_text)->expected(5);
     auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, descriptors.at(ChartColour).help_text)->expected(0, 4);
@@ -47,7 +47,7 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     auto patch_ratio_opt = app.add_option("-r,--patch-ratio", temp_opts.patch_ratio, descriptors.at(PatchRatio).help_text)->check(CLI::Range(0.0, 1.0));
     auto plot_format_opt = app.add_option("-p,--plot-format", temp_plot_format, descriptors.at(PlotFormat).help_text);
     auto plot_params_opt = app.add_option("-P,--plot-params", temp_plot_params, descriptors.at(PlotParams).help_text)->expected(4);
-    auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, descriptors.at(PrintPatches).help_text)->expected(0, 1)->default_str("chartpatches.png");
+    auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, descriptors.at(PrintPatches).help_text)->expected(0, 1)->default_str("_USE_DEFAULT_PRINT_PATCHES_");
     auto raw_channel_opt = app.add_option("-w,--raw-channels", temp_raw_channels, descriptors.at(RawChannels).help_text)->expected(5);
 
     // --- Single Parse Pass ---
@@ -57,8 +57,6 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
             throw CLI::RequiredError(_("--input-files is required unless creating a chart with --chart or --chart-colour."));
         }
     } catch (const CLI::ParseError& e) {
-        // In case of a parse error, we exit. We need to handle this. A simple exit is fine for a CLI tool.
-        // For a library, we might throw an exception.
         exit(app.exit(e));
     }
 

@@ -1,10 +1,6 @@
 // File: src/core/engine/PatchAnalysisStrategy.hpp
 /**
- * @file PatchAnalysisStrategy.hpp
- * @brief Implements the two-pass patch analysis strategy.
- */
-/**
- * @file PatchAnalysisStrategy.hpp
+ * @file src/core/engine/PatchAnalysisStrategy.hpp
  * @brief Declares the function for executing the two-pass patch analysis strategy.
  * @details This module encapsulates the complex logic of performing a strict
  * analysis pass, validating its results, and conditionally re-running a more
@@ -17,7 +13,6 @@
 #include "../setup/ChartProfile.hpp"
 #include <ostream>
 #include <mutex>
-
 
 namespace DynaRange::Engine {
 
@@ -33,6 +28,7 @@ namespace DynaRange::Engine {
  * @param max_requested_threshold The highest SNR threshold requested by the user, used for validation.
  * @param create_overlay_image Flag to indicate if an overlay image should be generated.
  * @param log_mutex A mutex to synchronize access to the log_stream.
+ * @param dark_value The calibrated black level of the sensor.
  * @return A PatchAnalysisResult struct containing the signal, noise, and optional overlay image from the chosen pass.
  */
 PatchAnalysisResult PerformTwoPassPatchAnalysis(
@@ -45,6 +41,8 @@ PatchAnalysisResult PerformTwoPassPatchAnalysis(
     double permissive_min_snr_db,
     double max_requested_threshold,
     bool create_overlay_image,
-    std::mutex& log_mutex
+    std::mutex& log_mutex,
+    double dark_value
 );
-} 
+
+}

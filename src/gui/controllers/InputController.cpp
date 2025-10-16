@@ -176,7 +176,12 @@ int InputController::GetChartPatchesN() const {
 
 std::string InputController::GetPrintPatchesFilename() const {
     if (m_frame->m_debugPatchesCheckBox->IsChecked()) {
-        return std::string(m_frame->m_debugPatchesFileNameValue->GetValue().mb_str());
+        wxString value = m_frame->m_debugPatchesFileNameValue->GetValue();
+        if (value.IsEmpty()) {
+            // Return sentinel value to trigger default name generation in the core engine.
+            return "_USE_DEFAULT_PRINT_PATCHES_";
+        }
+        return std::string(value.mb_str());
     }
     return "";
 }
@@ -302,9 +307,7 @@ void InputController::OnListBoxKeyDown(wxKeyEvent& event) {
 void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
     bool is_checked = m_frame->m_debugPatchesCheckBox->IsChecked();
     m_frame->m_debugPatchesFileNameValue->Enable(is_checked);
-    if (is_checked && m_frame->m_debugPatchesFileNameValue->GetValue().IsEmpty()) {
-        m_frame->m_debugPatchesFileNameValue->SetValue("printpatches.png");
-    }
+    // We no longer set a default text. The field is left empty to trigger default logic.
     OnInputChanged(event);
 }
 
