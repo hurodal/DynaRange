@@ -26,7 +26,7 @@ wxDEFINE_EVENT(wxEVT_COMMAND_PREVIEW_UPDATE_COMPLETE, wxCommandEvent);
 // =============================================================================
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
-DynaRangeFrame::DynaRangeFrame(wxWindow* parent) 
+DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     : MyFrameBase(parent), m_currentPreviewFile("")
 {
     // --- Create Controllers for each tab ---
@@ -34,9 +34,9 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_logController = std::make_unique<LogController>(m_logOutputTextCtrl);
     m_resultsController = std::make_unique<ResultsController>(this);
     m_chartController = std::make_unique<ChartController>(this);
-    m_rawImagePreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    // --- Manual UI Component Creation ---
+    // --- Set background styles for custom-drawn panels ---
+    m_rawImagePreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
     m_resultsCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
     m_resultsCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
@@ -44,6 +44,10 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
     m_chartPreviewPanel = new wxPanel(m_webView2PlaceholderPanel, wxID_ANY);
     m_chartPreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    
+    // The new loupe panel must also be configured for custom painting.
+    m_loupePanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
     wxBoxSizer* chartPlaceholderSizer = new wxBoxSizer(wxVERTICAL);
     chartPlaceholderSizer->Add(m_chartPreviewPanel, 1, wxEXPAND, 0);
     m_webView2PlaceholderPanel->SetSizer(chartPlaceholderSizer);
@@ -108,8 +112,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     chartButtonCreate->Bind(wxEVT_BUTTON, &ChartController::OnCreateClick, m_chartController.get());
     m_InvGammaValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartDimXValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
-    m_chartDimWValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
-    m_chartDimHValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
+    m_chartDimWValue->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_chartDimHValue->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
     m_chartPatchColValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &ResultsController::OnGridCellClick, m_resultsController.get());
@@ -166,7 +170,13 @@ void DynaRangeFrame::SetUiState(bool is_processing, int num_threads) {
     if (is_processing) {
         m_executeButton->SetLabel(_("Stop Processing"));
         m_executeButton->Enable(true);
-        m_mainNotebook->SetSelection(1);
+
+        // Se cambia la selección de la pestaña usando el puntero del panel en lugar de un índice fijo.
+        int page_index = m_mainNotebook->FindPage(m_logPanel);
+        if (page_index != wxNOT_FOUND) {
+            m_mainNotebook->SetSelection(page_index);
+        }
+
         m_logController->Clear();
         m_gaugeTimer->Start(100);
 
@@ -190,6 +200,7 @@ void DynaRangeFrame::SetUiState(bool is_processing, int num_threads) {
     m_inputPanel->Layout();
     m_resultsController->SetUiState(is_processing);
 }
+
 void DynaRangeFrame::OnExecuteClick(wxCommandEvent& event) {
     // Delegate all logic to the Presenter.
     m_presenter->OnExecuteButtonClicked();

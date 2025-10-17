@@ -20,7 +20,7 @@ public:
     PreviewOverlayRenderer();
 
     /**
-     * @brief Draws the complete overlay (handles, lines, and loupe) onto a graphics context.
+     * @brief Draws the overlay elements (handles, lines) onto a graphics context.
      * @param gc The wxGraphicsContext to draw on.
      * @param interactor The ChartCornerInteractor instance containing the state.
      * @param displayImage The gamma-corrected, unscaled preview image for the loupe.
@@ -33,6 +33,20 @@ public:
         const wxImage& displayImage,
         const wxPoint2DDouble& imageOffset,
         double imageToPanelScale
+    );
+
+    /**
+     * @brief Draws the magnified loupe view.
+     * @param gc The wxGraphicsContext to draw on.
+     * @param interactor The ChartCornerInteractor providing the dragged corner's position.
+     * @param sourceImage The unscaled preview image to source pixels from.
+     * @param loupePosition The top-left coordinate where the loupe should be drawn.
+     */
+    void DrawLoupe(
+        wxGraphicsContext* gc,
+        const ChartCornerInteractor& interactor,
+        const wxImage& sourceImage,
+        const wxPoint& loupePosition
     );
 
 private:
@@ -61,16 +75,5 @@ private:
         const ChartCornerInteractor& interactor,
         const wxPoint2DDouble& imageOffset,
         double imageToPanelScale
-    );
-    /**
-     * @brief Draws the magnified loupe view in the top-left corner during a drag.
-     * @param gc The wxGraphicsContext to draw on.
-     * @param interactor The ChartCornerInteractor providing the dragged corner's position.
-     * @param sourceImage The unscaled preview image to source pixels from.
-     */
-    void DrawLoupe(
-        wxGraphicsContext* gc,
-        const ChartCornerInteractor& interactor,
-        const wxImage& sourceImage
     );
 };

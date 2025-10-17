@@ -289,14 +289,172 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	inputColRightSizer->Add( analysisGraphSizer, 0, wxALL|wxEXPAND, 5 );
 
-	wxBoxSizer* bSizer50;
-	bSizer50 = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* patchesAndGraphicsSizer;
+	patchesAndGraphicsSizer = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* bSizer491;
-	bSizer491 = new wxBoxSizer( wxHORIZONTAL );
+	wxBoxSizer* patchesMainSizer;
+	patchesMainSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	wxStaticBoxSizer* patchesStaticSizer;
+	patchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Pacthes") ), wxVERTICAL );
+
+	wxStaticBoxSizer* chatPatchStaticSizer;
+	chatPatchStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Chart patches") ), wxVERTICAL );
+
+	wxBoxSizer* chartPatchSizer1;
+	chartPatchSizer1 = new wxBoxSizer( wxVERTICAL );
+
+
+	chatPatchStaticSizer->Add( chartPatchSizer1, 0, wxALL, 5 );
+
+	wxFlexGridSizer* chartPatchFgSizer;
+	chartPatchFgSizer = new wxFlexGridSizer( 0, 2, 0, 0 );
+	chartPatchFgSizer->SetFlexibleDirection( wxBOTH );
+	chartPatchFgSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	chartPatchRowStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Rows."), wxDefaultPosition, wxDefaultSize, 0 );
+	chartPatchRowStaticText1->Wrap( -1 );
+	chartPatchFgSizer->Add( chartPatchRowStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartPatchRowValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	chartPatchFgSizer->Add( m_chartPatchRowValue1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	chartPatchColStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Cols."), wxDefaultPosition, wxDefaultSize, 0 );
+	chartPatchColStaticText1->Wrap( -1 );
+	chartPatchFgSizer->Add( chartPatchColStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartPatchColValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	chartPatchFgSizer->Add( m_chartPatchColValue1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	chatPatchStaticSizer->Add( chartPatchFgSizer, 1, wxEXPAND, 5 );
+
+
+	patchesStaticSizer->Add( chatPatchStaticSizer, 0, wxLEFT|wxRIGHT, 5 );
+
+	wxStaticBoxSizer* debugPatchesStaticSizer;
+	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
+
+	wxBoxSizer* m_debugPatchesSizer;
+	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesFileNameValue->Enable( false );
+
+	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 1, wxALL|wxEXPAND, 5 );
+
+
+	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
+
+
+	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
+
+
+	patchesMainSizer->Add( patchesStaticSizer, 1, wxEXPAND|wxLEFT, 5 );
+
+
+	patchesAndGraphicsSizer->Add( patchesMainSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
+
+	wxBoxSizer* graphicsMainSizer;
+	graphicsMainSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxStaticBoxSizer* graphicSizer;
+	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Graphics") ), wxVERTICAL );
+
+	wxBoxSizer* plotParamsSizer;
+	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_plotParamScattersCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Scatters"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, 0, 5 );
+
+	m_plotParamCurveCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Curves"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, 0, 5 );
+
+	m_plotParamLabelsCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Labels"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, 0, 5 );
+
+
+	plotParamsSizer->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	allIsosCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("All ISOs"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( allIsosCheckBox, 0, 0, 5 );
+
+
+	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* graphicsOthersSizer;
+	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	graphicFormatStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
+	graphicFormatStaticText->Wrap( -1 );
+	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
+	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
+	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
+	m_plotFormatChoice->SetSelection( 0 );
+	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_plotingStaticText->Wrap( -1 );
+	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
+	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
+	m_plotingChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
+	m_plotingChoice->SetSelection( 3 );
+	graphicsOthersSizer->Add( m_plotingChoice, 0, wxALL, 5 );
+
+
+	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
+
+
+	graphicsMainSizer->Add( graphicSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
+
+
+	patchesAndGraphicsSizer->Add( graphicsMainSizer, 0, wxEXPAND, 5 );
+
+
+	inputColRightSizer->Add( patchesAndGraphicsSizer, 0, 0, 5 );
+
+
+	twoColMainPanelSizer->Add( inputColRightSizer, 0, wxEXPAND, 5 );
+
+
+	mainPanelSizer->Add( twoColMainPanelSizer, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* footSizer;
+	footSizer = new wxBoxSizer( wxVERTICAL );
+
+	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	footSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );
+
+
+	mainPanelSizer->Add( footSizer, 0, wxEXPAND, 5 );
+
+
+	m_inputPanel->SetSizer( mainPanelSizer );
+	m_inputPanel->Layout();
+	mainPanelSizer->Fit( m_inputPanel );
+	m_mainNotebook->AddPage( m_inputPanel, _("Input"), true );
+	m_ChartsManualCorners = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* thumbSliderSizer;
+	thumbSliderSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	wxBoxSizer* loupeChartCoordSizer;
+	loupeChartCoordSizer = new wxBoxSizer( wxVERTICAL );
+
+	m_loupePanel = new wxPanel( m_ChartsManualCorners, wxID_ANY, wxDefaultPosition, wxSize( 150,150 ), wxTAB_TRAVERSAL );
+	loupeChartCoordSizer->Add( m_loupePanel, 0, wxALIGN_RIGHT, 5 );
+
+
+	loupeChartCoordSizer->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	wxStaticBoxSizer* chartCoordStaticSizer;
-	chartCoordStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Chart Coordinates") ), wxVERTICAL );
+	chartCoordStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_ChartsManualCorners, wxID_ANY, _("Chart Coordinates") ), wxVERTICAL );
 
 	wxGridBagSizer* coordsChartgbSizer;
 	coordsChartgbSizer = new wxGridBagSizer( 0, 0 );
@@ -371,242 +529,27 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	coordsChartgbSizer->Add( m_clearAllCoordinates, wxGBPosition( 5, 0 ), wxGBSpan( 1, 5 ), wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
-	chartCoordStaticSizer->Add( coordsChartgbSizer, 1, wxEXPAND, 5 );
+	chartCoordStaticSizer->Add( coordsChartgbSizer, 0, 0, 5 );
 
 
-	bSizer491->Add( chartCoordStaticSizer, 0, wxEXPAND, 5 );
+	loupeChartCoordSizer->Add( chartCoordStaticSizer, 0, 0, 5 );
 
-	wxStaticBoxSizer* patchesStaticSizer;
-	patchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Pacthes") ), wxVERTICAL );
 
-	wxStaticBoxSizer* chatPatchStaticSizer;
-	chatPatchStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Chart patches") ), wxVERTICAL );
+	thumbSliderSizer->Add( loupeChartCoordSizer, 0, wxEXPAND, 5 );
 
-	wxBoxSizer* chartPatchSizer1;
-	chartPatchSizer1 = new wxBoxSizer( wxVERTICAL );
+	m_rawImagePreviewPanel = new wxPanel( m_ChartsManualCorners, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	thumbSliderSizer->Add( m_rawImagePreviewPanel, 1, wxEXPAND | wxALL, 5 );
 
+	m_gammaThumbSlider = new wxSlider( m_ChartsManualCorners, wxID_ANY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL );
+	m_gammaThumbSlider->Enable( false );
 
-	chatPatchStaticSizer->Add( chartPatchSizer1, 0, wxALL, 5 );
+	thumbSliderSizer->Add( m_gammaThumbSlider, 0, wxALL|wxEXPAND, 5 );
 
-	wxFlexGridSizer* chartPatchFgSizer;
-	chartPatchFgSizer = new wxFlexGridSizer( 0, 2, 0, 0 );
-	chartPatchFgSizer->SetFlexibleDirection( wxBOTH );
-	chartPatchFgSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
-	chartPatchRowStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Rows."), wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchRowStaticText1->Wrap( -1 );
-	chartPatchFgSizer->Add( chartPatchRowStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartPatchRowValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	chartPatchFgSizer->Add( m_chartPatchRowValue1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	chartPatchColStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Cols."), wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchColStaticText1->Wrap( -1 );
-	chartPatchFgSizer->Add( chartPatchColStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartPatchColValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	chartPatchFgSizer->Add( m_chartPatchColValue1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-
-	chatPatchStaticSizer->Add( chartPatchFgSizer, 1, wxEXPAND, 5 );
-
-
-	patchesStaticSizer->Add( chatPatchStaticSizer, 0, wxLEFT|wxRIGHT, 5 );
-
-	wxStaticBoxSizer* debugPatchesStaticSizer;
-	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
-
-	wxBoxSizer* m_debugPatchesSizer;
-	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesFileNameValue->Enable( false );
-
-	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 1, wxALL|wxEXPAND, 5 );
-
-
-	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
-
-
-	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
-
-	bSizer491->Add( patchesStaticSizer, 1, wxEXPAND|wxLEFT, 5 );
-
-
-	bSizer50->Add( bSizer491, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
-	wxBoxSizer* bSizer44;
-	bSizer44 = new wxBoxSizer( wxVERTICAL );
-
-	wxStaticBoxSizer* graphicSizer;
-	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Graphics") ), wxVERTICAL );
-
-	wxBoxSizer* plotParamsSizer;
-	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_plotParamScattersCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Scatters"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, 0, 5 );
-
-	m_plotParamCurveCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Curves"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, 0, 5 );
-
-	m_plotParamLabelsCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Labels"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, 0, 5 );
-
-
-	plotParamsSizer->Add( 0, 0, 1, wxEXPAND, 5 );
-
-	allIsosCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("All ISOs"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( allIsosCheckBox, 0, 0, 5 );
-
-
-	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
-
-	wxBoxSizer* graphicsOthersSizer;
-	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	graphicFormatStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
-	graphicFormatStaticText->Wrap( -1 );
-	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
-	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
-	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
-	m_plotFormatChoice->SetSelection( 0 );
-	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALIGN_CENTER_VERTICAL, 5 );
-
-	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_plotingStaticText->Wrap( -1 );
-	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
-	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
-	m_plotingChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
-	m_plotingChoice->SetSelection( 3 );
-	graphicsOthersSizer->Add( m_plotingChoice, 0, wxALL, 5 );
-
-
-	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
-
-
-	bSizer44->Add( graphicSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
-
-	bSizer50->Add( bSizer44, 0, wxEXPAND, 5 );
-
-
-	inputColRightSizer->Add( bSizer50, 0, 0, 5 );
-
-
-	twoColMainPanelSizer->Add( inputColRightSizer, 0, wxEXPAND, 5 );
-
-
-	mainPanelSizer->Add( twoColMainPanelSizer, 1, wxEXPAND, 5 );
-
-	wxBoxSizer* footSizer;
-	footSizer = new wxBoxSizer( wxVERTICAL );
-
-	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
-	footSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );
-
-
-	mainPanelSizer->Add( footSizer, 0, wxEXPAND, 5 );
-
-
-	m_inputPanel->SetSizer( mainPanelSizer );
-	m_inputPanel->Layout();
-	mainPanelSizer->Fit( m_inputPanel );
-	m_mainNotebook->AddPage( m_inputPanel, _("Input"), true );
-	m_logPanel = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* logSizer;
-	logSizer = new wxBoxSizer( wxVERTICAL );
-
-	m_logOutputTextCtrl = new wxTextCtrl( m_logPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
-	logSizer->Add( m_logOutputTextCtrl, 1, wxALL|wxEXPAND, 5 );
-
-
-	m_logPanel->SetSizer( logSizer );
-	m_logPanel->Layout();
-	logSizer->Fit( m_logPanel );
-	m_mainNotebook->AddPage( m_logPanel, _("Log"), false );
-	m_resultsPanel = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* resultsSizer;
-	resultsSizer = new wxBoxSizer( wxVERTICAL );
-
-	m_splitterResults = new wxSplitterWindow( m_resultsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
-	m_splitterResults->SetSashGravity( 0.3 );
-	m_splitterResults->Connect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterResultsOnIdle ), NULL, this );
-	m_splitterResults->SetMinimumPaneSize( 50 );
-
-	m_leftPanel = new wxPanel( m_splitterResults, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* bSizer16;
-	bSizer16 = new wxBoxSizer( wxVERTICAL );
-
-	m_csvOutputStaticText = new wxStaticText( m_leftPanel, wxID_ANY, _("CSV Output:"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_csvOutputStaticText->Wrap( -1 );
-	bSizer16->Add( m_csvOutputStaticText, 0, wxALL, 5 );
-
-	m_cvsGrid = new wxGrid( m_leftPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
-
-	// Grid
-	m_cvsGrid->CreateGrid( 5, 5 );
-	m_cvsGrid->EnableEditing( true );
-	m_cvsGrid->EnableGridLines( true );
-	m_cvsGrid->EnableDragGridSize( false );
-	m_cvsGrid->SetMargins( 0, 0 );
-
-	// Columns
-	m_cvsGrid->EnableDragColMove( false );
-	m_cvsGrid->EnableDragColSize( true );
-	m_cvsGrid->SetColLabelAlignment( wxALIGN_CENTER, wxALIGN_CENTER );
-
-	// Rows
-	m_cvsGrid->EnableDragRowSize( true );
-	m_cvsGrid->SetRowLabelAlignment( wxALIGN_CENTER, wxALIGN_CENTER );
-
-	// Label Appearance
-
-	// Cell Defaults
-	m_cvsGrid->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
-	bSizer16->Add( m_cvsGrid, 1, wxALL|wxEXPAND, 5 );
-
-
-	m_leftPanel->SetSizer( bSizer16 );
-	m_leftPanel->Layout();
-	bSizer16->Fit( m_leftPanel );
-	m_rightPanel = new wxPanel( m_splitterResults, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* bSizer18;
-	bSizer18 = new wxBoxSizer( wxVERTICAL );
-
-	m_generateGraphStaticText = new wxStaticText( m_rightPanel, wxID_ANY, _("Generated Graph (placeholder):"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_generateGraphStaticText->Wrap( -1 );
-	bSizer18->Add( m_generateGraphStaticText, 0, wxALL, 5 );
-
-	m_processingGauge = new wxGauge( m_rightPanel, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
-	m_processingGauge->SetValue( 0 );
-	m_processingGauge->Hide();
-
-	bSizer18->Add( m_processingGauge, 0, wxALL|wxEXPAND, 5 );
-
-	m_webViewPlaceholderPanel = new wxPanel( m_rightPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	bSizer18->Add( m_webViewPlaceholderPanel, 1, wxEXPAND | wxALL, 5 );
-
-
-	m_rightPanel->SetSizer( bSizer18 );
-	m_rightPanel->Layout();
-	bSizer18->Fit( m_rightPanel );
-	m_splitterResults->SplitVertically( m_leftPanel, m_rightPanel, 0 );
-	resultsSizer->Add( m_splitterResults, 1, wxEXPAND, 5 );
-
-
-	m_resultsPanel->SetSizer( resultsSizer );
-	m_resultsPanel->Layout();
-	resultsSizer->Fit( m_resultsPanel );
-	m_mainNotebook->AddPage( m_resultsPanel, _("Results"), false );
+	m_ChartsManualCorners->SetSizer( thumbSliderSizer );
+	m_ChartsManualCorners->Layout();
+	thumbSliderSizer->Fit( m_ChartsManualCorners );
+	m_mainNotebook->AddPage( m_ChartsManualCorners, _("Input Chart Manual Corners"), false );
 	m_chartPanel = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer21;
 	bSizer21 = new wxBoxSizer( wxVERTICAL );
@@ -821,6 +764,18 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_chartPanel->Layout();
 	bSizer21->Fit( m_chartPanel );
 	m_mainNotebook->AddPage( m_chartPanel, _("Chart"), false );
+	m_logPanel = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* logSizer;
+	logSizer = new wxBoxSizer( wxVERTICAL );
+
+	m_logOutputTextCtrl = new wxTextCtrl( m_logPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_DONTWRAP|wxTE_MULTILINE|wxTE_READONLY );
+	logSizer->Add( m_logOutputTextCtrl, 1, wxALL|wxEXPAND, 5 );
+
+
+	m_logPanel->SetSizer( logSizer );
+	m_logPanel->Layout();
+	logSizer->Fit( m_logPanel );
+	m_mainNotebook->AddPage( m_logPanel, _("Log"), false );
 	m_equCliPanel = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxStaticBoxSizer* equivalentSbSizer;
 	equivalentSbSizer = new wxStaticBoxSizer( new wxStaticBox( m_equCliPanel, wxID_ANY, _("Equivalent CLI command") ), wxVERTICAL );
@@ -836,23 +791,80 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_equCliPanel->Layout();
 	equivalentSbSizer->Fit( m_equCliPanel );
 	m_mainNotebook->AddPage( m_equCliPanel, _("Equ.CLI Command"), false );
-	m_ChartsManualCorners = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	wxBoxSizer* thumbSliderSizer;
-	thumbSliderSizer = new wxBoxSizer( wxHORIZONTAL );
+	m_resultsPanel = new wxPanel( m_mainNotebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* resultsSizer;
+	resultsSizer = new wxBoxSizer( wxVERTICAL );
 
-	m_gammaThumbSlider = new wxSlider( m_ChartsManualCorners, wxID_ANY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL );
-	m_gammaThumbSlider->Enable( false );
+	m_splitterResults = new wxSplitterWindow( m_resultsPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+	m_splitterResults->SetSashGravity( 0.3 );
+	m_splitterResults->Connect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterResultsOnIdle ), NULL, this );
+	m_splitterResults->SetMinimumPaneSize( 50 );
 
-	thumbSliderSizer->Add( m_gammaThumbSlider, 0, wxALL|wxEXPAND, 5 );
+	m_leftPanel = new wxPanel( m_splitterResults, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer16;
+	bSizer16 = new wxBoxSizer( wxVERTICAL );
 
-	m_rawImagePreviewPanel = new wxPanel( m_ChartsManualCorners, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	thumbSliderSizer->Add( m_rawImagePreviewPanel, 1, wxEXPAND | wxALL, 5 );
+	m_csvOutputStaticText = new wxStaticText( m_leftPanel, wxID_ANY, _("CSV Output:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_csvOutputStaticText->Wrap( -1 );
+	bSizer16->Add( m_csvOutputStaticText, 0, wxALL, 5 );
+
+	m_cvsGrid = new wxGrid( m_leftPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+
+	// Grid
+	m_cvsGrid->CreateGrid( 5, 5 );
+	m_cvsGrid->EnableEditing( true );
+	m_cvsGrid->EnableGridLines( true );
+	m_cvsGrid->EnableDragGridSize( false );
+	m_cvsGrid->SetMargins( 0, 0 );
+
+	// Columns
+	m_cvsGrid->EnableDragColMove( false );
+	m_cvsGrid->EnableDragColSize( true );
+	m_cvsGrid->SetColLabelAlignment( wxALIGN_CENTER, wxALIGN_CENTER );
+
+	// Rows
+	m_cvsGrid->EnableDragRowSize( true );
+	m_cvsGrid->SetRowLabelAlignment( wxALIGN_CENTER, wxALIGN_CENTER );
+
+	// Label Appearance
+
+	// Cell Defaults
+	m_cvsGrid->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
+	bSizer16->Add( m_cvsGrid, 1, wxALL|wxEXPAND, 5 );
 
 
-	m_ChartsManualCorners->SetSizer( thumbSliderSizer );
-	m_ChartsManualCorners->Layout();
-	thumbSliderSizer->Fit( m_ChartsManualCorners );
-	m_mainNotebook->AddPage( m_ChartsManualCorners, _("Chart Manual Corners"), false );
+	m_leftPanel->SetSizer( bSizer16 );
+	m_leftPanel->Layout();
+	bSizer16->Fit( m_leftPanel );
+	m_rightPanel = new wxPanel( m_splitterResults, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer18;
+	bSizer18 = new wxBoxSizer( wxVERTICAL );
+
+	m_generateGraphStaticText = new wxStaticText( m_rightPanel, wxID_ANY, _("Generated Graph (placeholder):"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_generateGraphStaticText->Wrap( -1 );
+	bSizer18->Add( m_generateGraphStaticText, 0, wxALL, 5 );
+
+	m_processingGauge = new wxGauge( m_rightPanel, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
+	m_processingGauge->SetValue( 0 );
+	m_processingGauge->Hide();
+
+	bSizer18->Add( m_processingGauge, 0, wxALL|wxEXPAND, 5 );
+
+	m_webViewPlaceholderPanel = new wxPanel( m_rightPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer18->Add( m_webViewPlaceholderPanel, 1, wxEXPAND | wxALL, 5 );
+
+
+	m_rightPanel->SetSizer( bSizer18 );
+	m_rightPanel->Layout();
+	bSizer18->Fit( m_rightPanel );
+	m_splitterResults->SplitVertically( m_leftPanel, m_rightPanel, 0 );
+	resultsSizer->Add( m_splitterResults, 1, wxEXPAND, 5 );
+
+
+	m_resultsPanel->SetSizer( resultsSizer );
+	m_resultsPanel->Layout();
+	resultsSizer->Fit( m_resultsPanel );
+	m_mainNotebook->AddPage( m_resultsPanel, _("Results"), false );
 
 	mainSizer->Add( m_mainNotebook, 1, wxEXPAND | wxALL, 5 );
 

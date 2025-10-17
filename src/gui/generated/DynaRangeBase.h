@@ -28,12 +28,12 @@
 #include <wx/slider.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/statline.h>
 #include <wx/gbsizer.h>
-#include <wx/panel.h>
+#include <wx/splitter.h>
 #include <wx/grid.h>
 #include <wx/gauge.h>
-#include <wx/splitter.h>
 #include <wx/notebook.h>
 #include <wx/frame.h>
 
@@ -86,6 +86,23 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
 		wxChoice* AVG_ChoiceValue;
+		wxStaticText* chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
+		wxCheckBox* m_plotParamScattersCheckBox;
+		wxCheckBox* m_plotParamCurveCheckBox;
+		wxCheckBox* m_plotParamLabelsCheckBox;
+		wxCheckBox* allIsosCheckBox;
+		wxStaticText* graphicFormatStaticText;
+		wxChoice* m_plotFormatChoice;
+		wxStaticText* m_plotingStaticText;
+		wxChoice* m_plotingChoice;
+		wxButton* m_executeButton;
+		wxPanel* m_ChartsManualCorners;
+		wxPanel* m_loupePanel;
 		wxStaticText* m_staticText38;
 		wxTextCtrl* m_coordX1Value;
 		wxStaticText* m_staticText381;
@@ -105,32 +122,8 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_staticText47;
 		wxTextCtrl* m_coordY4Value;
 		wxButton* m_clearAllCoordinates;
-		wxStaticText* chartPatchRowStaticText1;
-		wxTextCtrl* m_chartPatchRowValue1;
-		wxStaticText* chartPatchColStaticText1;
-		wxTextCtrl* m_chartPatchColValue1;
-		wxCheckBox* m_debugPatchesCheckBox;
-		wxTextCtrl* m_debugPatchesFileNameValue;
-		wxCheckBox* m_plotParamScattersCheckBox;
-		wxCheckBox* m_plotParamCurveCheckBox;
-		wxCheckBox* m_plotParamLabelsCheckBox;
-		wxCheckBox* allIsosCheckBox;
-		wxStaticText* graphicFormatStaticText;
-		wxChoice* m_plotFormatChoice;
-		wxStaticText* m_plotingStaticText;
-		wxChoice* m_plotingChoice;
-		wxButton* m_executeButton;
-		wxPanel* m_logPanel;
-		wxTextCtrl* m_logOutputTextCtrl;
-		wxPanel* m_resultsPanel;
-		wxSplitterWindow* m_splitterResults;
-		wxPanel* m_leftPanel;
-		wxStaticText* m_csvOutputStaticText;
-		wxGrid* m_cvsGrid;
-		wxPanel* m_rightPanel;
-		wxStaticText* m_generateGraphStaticText;
-		wxGauge* m_processingGauge;
-		wxPanel* m_webViewPlaceholderPanel;
+		wxPanel* m_rawImagePreviewPanel;
+		wxSlider* m_gammaThumbSlider;
 		wxPanel* m_chartPanel;
 		wxSplitterWindow* m_splitterChart;
 		wxPanel* leftColChartPanel;
@@ -159,11 +152,19 @@ class MyFrameBase : public wxFrame
 		wxButton* chartButtonPreview;
 		wxPanel* rightColChartPanel;
 		wxPanel* m_webView2PlaceholderPanel;
+		wxPanel* m_logPanel;
+		wxTextCtrl* m_logOutputTextCtrl;
 		wxPanel* m_equCliPanel;
 		wxTextCtrl* m_equivalentCliTextCtrl;
-		wxPanel* m_ChartsManualCorners;
-		wxSlider* m_gammaThumbSlider;
-		wxPanel* m_rawImagePreviewPanel;
+		wxPanel* m_resultsPanel;
+		wxSplitterWindow* m_splitterResults;
+		wxPanel* m_leftPanel;
+		wxStaticText* m_csvOutputStaticText;
+		wxGrid* m_cvsGrid;
+		wxPanel* m_rightPanel;
+		wxStaticText* m_generateGraphStaticText;
+		wxGauge* m_processingGauge;
+		wxPanel* m_webViewPlaceholderPanel;
 
 	public:
 
@@ -171,16 +172,16 @@ class MyFrameBase : public wxFrame
 
 		~MyFrameBase();
 
-		void m_splitterResultsOnIdle( wxIdleEvent& )
-		{
-			m_splitterResults->SetSashPosition( 0 );
-			m_splitterResults->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterResultsOnIdle ), NULL, this );
-		}
-
 		void m_splitterChartOnIdle( wxIdleEvent& )
 		{
 			m_splitterChart->SetSashPosition( 450 );
 			m_splitterChart->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterChartOnIdle ), NULL, this );
+		}
+
+		void m_splitterResultsOnIdle( wxIdleEvent& )
+		{
+			m_splitterResults->SetSashPosition( 0 );
+			m_splitterResults->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MyFrameBase::m_splitterResultsOnIdle ), NULL, this );
 		}
 
 };

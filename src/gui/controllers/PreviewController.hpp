@@ -8,7 +8,6 @@
  */
 #pragma once
 
-#include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../preview_interaction/ChartCornerInteractor.hpp"
 #include "../preview_interaction/PreviewOverlayRenderer.hpp"
 #include "wx/image.h"
@@ -43,6 +42,7 @@ public:
 private:
   // --- Event Handling Logic ---
   void OnPaintPreview(wxPaintEvent &event);
+  void OnPaintLoupe(wxPaintEvent &event);
   void OnSizePreview(wxSizeEvent &event);
   void OnPreviewMouseDown(wxMouseEvent &event);
   void OnPreviewMouseUp(wxMouseEvent &event);

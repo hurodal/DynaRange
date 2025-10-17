@@ -18,7 +18,7 @@ PreviewController::PreviewController(DynaRangeFrame *frame) : m_frame(frame) {
   m_interactor = std::make_unique<ChartCornerInteractor>();
   m_renderer = std::make_unique<PreviewOverlayRenderer>();
 
-  // Bind events for the preview panel
+  // Bind events for the main preview panel
   m_frame->m_rawImagePreviewPanel->Bind(wxEVT_PAINT, &PreviewController::OnPaintPreview, this);
   m_frame->m_rawImagePreviewPanel->Bind(wxEVT_SIZE, &PreviewController::OnSizePreview, this);
   m_frame->m_rawImagePreviewPanel->Bind(wxEVT_LEFT_DOWN, &PreviewController::OnPreviewMouseDown, this);
@@ -26,6 +26,9 @@ PreviewController::PreviewController(DynaRangeFrame *frame) : m_frame(frame) {
   m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOTION, &PreviewController::OnPreviewMouseMove, this);
   m_frame->m_rawImagePreviewPanel->Bind(wxEVT_MOUSE_CAPTURE_LOST, &PreviewController::OnPreviewMouseCaptureLost, this);
   m_frame->m_rawImagePreviewPanel->Bind(wxEVT_KEY_DOWN, &PreviewController::OnPreviewKeyDown, this);
+
+  // Bind the new paint event for the dedicated loupe panel
+  m_frame->m_loupePanel->Bind(wxEVT_PAINT, &PreviewController::OnPaintLoupe, this);
 
   // Bind gamma slider event
   m_frame->m_gammaThumbSlider->Bind(wxEVT_SCROLL_CHANGED, &PreviewController::OnGammaSliderChanged, this);
@@ -118,6 +121,19 @@ void PreviewController::OnPaintPreview(wxPaintEvent &event) {
   }
 }
 
+void PreviewController::OnPaintLoupe(wxPaintEvent& event)
+{
+    wxAutoBufferedPaintDC dc(m_frame->m_loupePanel);
+    dc.Clear();
+    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+    if (gc) {
+        // The renderer's DrawLoupe function can be called directly here.
+        // We pass {0, 0} as the position because we are drawing relative to the loupe panel itself.
+        m_renderer->DrawLoupe(gc, *m_interactor, m_displayPreviewImage, wxPoint(0,0));
+        delete gc;
+    }
+}
+
 void PreviewController::OnSizePreview(wxSizeEvent &event) {
   UpdatePreviewTransform();
   m_frame->m_rawImagePreviewPanel->Refresh();
@@ -143,6 +159,7 @@ void PreviewController::OnPreviewMouseDown(wxMouseEvent &event) {
   }
 
   m_frame->m_rawImagePreviewPanel->Refresh();
+  m_frame->m_loupePanel->Refresh(); // Refresh loupe as well
   event.Skip();
 }
 
@@ -165,6 +182,7 @@ void PreviewController::OnPreviewMouseMove(wxMouseEvent &event) {
     wxPoint2DDouble imageCoords = PanelToImageCoords(event.GetPosition());
     m_interactor->UpdateDraggedCorner(wxPoint(imageCoords.m_x, imageCoords.m_y));
     m_frame->m_rawImagePreviewPanel->Refresh();
+    m_frame->m_loupePanel->Refresh(); // Refresh loupe on move
   }
   event.Skip();
 }
@@ -269,9 +287,11 @@ void PreviewController::UpdatePreviewTransform() {
   m_previewOffset.m_y = (panel_size.GetHeight() - final_height) / 2.0;
 }
 
-void PreviewController::OnGammaSliderChanged(wxScrollEvent &event) {
-  ApplyGammaCorrection();
-  m_frame->m_rawImagePreviewPanel->Refresh();
+void PreviewController::OnGammaSliderChanged(wxScrollEvent &event)
+{
+    ApplyGammaCorrection();
+    m_frame->m_rawImagePreviewPanel->Refresh();
+    m_frame->m_loupePanel->Refresh(); // Also refresh the loupe as its source image changed
 }
 
 void PreviewController::ApplyGammaCorrection() {
@@ -306,34 +326,28 @@ void PreviewController::ApplyGammaCorrection() {
   m_displayPreviewImage = GuiHelpers::CvMatToWxImage(dst_mat);
 }
 
-void PreviewController::OnPreviewKeyDown(wxKeyEvent &event) {
-  if (m_interactor->GetSelectedCorner() == ChartCornerInteractor::Corner::None) {
-    event.Skip();
-    return;
-  }
+void PreviewController::OnPreviewKeyDown(wxKeyEvent &event)
+{
+    if (m_interactor->GetSelectedCorner() == ChartCornerInteractor::Corner::None) {
+        event.Skip();
+        return;
+    }
 
-  int dx = 0;
-  int dy = 0;
-  switch (event.GetKeyCode()) {
-  case WXK_UP:
-    dy = -1;
-    break;
-  case WXK_DOWN:
-    dy = 1;
-    break;
-  case WXK_LEFT:
-    dx = -1;
-    break;
-  case WXK_RIGHT:
-    dx = 1;
-    break;
-  default:
-    event.Skip();
-    return;
-  }
+    int dx = 0;
+    int dy = 0;
+    switch (event.GetKeyCode()) {
+        case WXK_UP:    dy = -1; break;
+        case WXK_DOWN:  dy = 1;  break;
+        case WXK_LEFT:  dx = -1; break;
+        case WXK_RIGHT: dx = 1;  break;
+        default:
+            event.Skip();
+            return;
+    }
 
-  m_interactor->MoveSelectedCorner(dx, dy);
-  UpdateCoordTextCtrls();
-  m_frame->m_presenter->UpdateCommandPreview();
-  m_frame->m_rawImagePreviewPanel->Refresh();
+    m_interactor->MoveSelectedCorner(dx, dy);
+    UpdateCoordTextCtrls();
+    m_frame->m_presenter->UpdateCommandPreview();
+    m_frame->m_rawImagePreviewPanel->Refresh();
+    m_frame->m_loupePanel->Refresh(); // Refresh loupe on move
 }

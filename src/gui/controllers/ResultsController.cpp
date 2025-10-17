@@ -66,6 +66,12 @@ bool ResultsController::DisplayResults(const std::string& csv_path) {
         // Force the sizer of the parent panel to recalculate the layout.
         // This makes the scrollbars appear immediately if the grid is too large.
         m_frame->m_leftPanel->Layout();
+        
+        // Se cambia la selección de la pestaña usando el puntero del panel en lugar de un índice fijo.
+        int page_index = m_frame->m_mainNotebook->FindPage(m_frame->m_resultsPanel);
+        if (page_index != wxNOT_FOUND) {
+            m_frame->m_mainNotebook->SetSelection(page_index);
+        }
     }
     return success;
 }
