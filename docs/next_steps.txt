@@ -50,23 +50,25 @@ Tambien añadir la posicion en la cuadricula de cada parche. Necesarios para la 
 NO PRIORITARIAS
 ===============
 
-6a: Mirar porque con ISO 102400 la SONY da valores extrañamente amuy altos.
+6a: Mirar porque con ISO 102400 la SONY da valores extrañamente muy altos.
 
-6b: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
-
-6c: Añadir una checkbox en el GUI para elegir si se quiere que los graficos tengan añadido el nombre de la camara y el ISO en el nombre de archivo.
+7: Añadir una checkbox en el GUI para elegir si se quiere que los graficos tengan añadido el nombre de la camara y el ISO en el nombre de archivo.
 (a mi me complica la  vida porque ya los tengo renombrados).
 
-7: IMPLEMENTAR EN EL UI UNA HOMOGRAFÍA (CORRECCIÓN DE PERSPECTIVA) INTERACTIVA CON ASISTENCIA DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
-   DUDA: LA USAMOS SOLO PARA ESTABLACER VISUALMENTE LAS ESQUINAS DE LA CARTA Y APLICAR LA CORRECCIÓN ACTUAL, O ADEMÁS PARA LEER LOS DATOS SOBRE LA HOMOGRAFÍA SIN NECESIDAD DE APLICAR
-   CORRECCIÓN DE PERSPECTIVA
+8: Cambiar la carpeta donde exportar los ficheros diversos a Mis Imagenes/DynaRange (crearla si no existe).
 
-8: ANÁLISIS DE RAWS X-TRANS
+9: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
+
+10: ANÁLISIS DE RAWS X-TRANS
 
 
 
 HECHOS
 ======
+
+(HECHO) IMPLEMENTAR EN EL UI UNA HOMOGRAFÍA (CORRECCIÓN DE PERSPECTIVA) INTERACTIVA CON ASISTENCIA DEL USUARIO (REQUIERE GRÁFICO SENSIBLE AL RATÓN)
+   DUDA: LA USAMOS SOLO PARA ESTABLACER VISUALMENTE LAS ESQUINAS DE LA CARTA Y APLICAR LA CORRECCIÓN ACTUAL, O ADEMÁS PARA LEER LOS DATOS SOBRE LA HOMOGRAFÍA SIN NECESIDAD DE APLICAR
+   CORRECCIÓN DE PERSPECTIVA
 
 (HECHO) DESACTIVAR LA ROTACION DEL RAW (va relacionado con el fallo de la 5D MkII)
 
