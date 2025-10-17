@@ -52,10 +52,8 @@ NO PRIORITARIAS
 
 6a: Mirar porque con ISO 102400 la SONY da valores extrañamente muy altos.
 
-7: Añadir una checkbox en el GUI para elegir si se quiere que los graficos tengan añadido el nombre de la camara y el ISO en el nombre de archivo.
-(a mi me complica la  vida porque ya los tengo renombrados).
-
 8: Cambiar la carpeta donde exportar los ficheros diversos a Mis Imagenes/DynaRange (crearla si no existe).
+   Vale, pero sería solo para windows, y tengo que comprobar si Mis Imagenes está reconocida como una carpeta "comodín" en windows, supongo que sí, como lo es "Mis Documentos"
 
 9: MODO RENDIMIENTO DEL SENSOR: CURVAS S/N COMPLETAS A PARTIR DE RAWS DE DIFERENTE EXPOSICIÓN
 
