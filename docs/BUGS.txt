@@ -1,9 +1,13 @@
 BUGS
 ====
 
+- La opcion Debug patches a menudo no exporta nada, pese a que en el Log hace una referencia a él: "Debug patch image will be saved to: D:\Mis documentos\printpatches_EOS_5D_Mark_II.png".
+Ademas, En la ultima version, al activarla no pone automaticamente el nombre del fichero como antes. Pregunta: hay que poner al final ".png" o lo hace él solito?
+
 - Al MARCAR LA OPCION "ALL ISOs" SISTEMATICAMENTE CUELGA EL PROGRAMA.
 
 - Al desmarcar la opcion SCATTERS, dejan de plotearse los puntos... y desaparecen las etiquetas de ISO de cada curva.
 
-- La opcion Debug patches a menudo no exporta nada, pese a que en el Log hace una referencia a él: "Debug patch image will be saved to: D:\Mis documentos\printpatches_EOS_5D_Mark_II.png".
-  En la ultima version, al activarla no pone automaticamente el nombre del fichero como antes. Pregunta: hay que poner al final ".png" o lo hace él solito?
+- Probando los RAW de la carpeta "Test convergencia" veo que detecta bien las esquinas pero parece que los parches no, porque salen cosas raras en la curva
+ (he usado mi version especial modificada para cartas anteriores y lo he configurado como 7x11). El problema es que no exporta los detected patches y
+ y no se puede saber si falla por eso...
