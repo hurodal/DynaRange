@@ -1,0 +1,9 @@
+BUGS
+====
+
+- Al MARCAR LA OPCION "ALL ISOs" SISTEMATICAMENTE CUELGA EL PROGRAMA.
+
+- Al desmarcar la opcion SCATTERS, dejan de plotearse los puntos... y desaparecen las etiquetas de ISO de cada curva.
+
+- La opcion Debug patches a menudo no exporta nada, pese a que en el Log hace una referencia a él: "Debug patch image will be saved to: D:\Mis documentos\printpatches_EOS_5D_Mark_II.png".
+  En la ultima version, al activarla no pone automaticamente el nombre del fichero como antes. Pregunta: hay que poner al final ".png" o lo hace él solito?
