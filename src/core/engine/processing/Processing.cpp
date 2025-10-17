@@ -17,22 +17,6 @@
 
 #define _(string) gettext(string)
 
-namespace { // Anonymous namespace for internal helper functions
-
-std::vector<RawFile> LoadRawFiles(const std::vector<std::string>& input_files, std::ostream& log_stream) {
-    std::vector<RawFile> raw_files;
-    raw_files.reserve(input_files.size());
-    for(const auto& filename : input_files) {
-        raw_files.emplace_back(filename);
-        if (!raw_files.back().Load()) {
-            log_stream << _("Error: Could not load RAW file: ") << filename << std::endl;
-        }
-    }
-    return raw_files;
-}
-
-} // end of anonymous namespace
-
 ProcessingResult ProcessFiles(
     const AnalysisParameters& params,
     const PathManager& paths,

@@ -422,50 +422,6 @@ void GuiPresenter::UpdateCalibrationFiles()
     UpdateCommandPreview();
 }
 
-void GuiPresenter::UpdateRawPreview()
-{
-    if (m_inputFiles.empty()) {
-        m_view->UpdateRawPreview(""); // Clear preview
-        m_view->UpdateInputFileList(m_inputFiles, -1);
-        return;
-    }
-    // Use the new core pre-analysis function.
-    // We need a saturation value. We'll get it from the view for now.
-    // In the future, this could be part of a more robust state management.
-    double sat_value = m_view->GetSaturationValue();
-    auto pre_analysis_results = PreAnalyzeRawFiles(m_inputFiles, sat_value, nullptr);
-    if (pre_analysis_results.empty()) {
-        m_view->UpdateRawPreview(""); // Clear preview if no files could be read
-        m_view->UpdateInputFileList(m_inputFiles, -1);
-        return;
-    }
-    // Find the best file index in the pre_analysis_results vector.
-    int best_index = 0;
-    bool found_non_saturated = false;
-    // Iterate from the end (brightest) to find the first non-saturated file.
-    for (int i = static_cast<int>(pre_analysis_results.size()) - 1; i >= 0; --i) {
-        if (!pre_analysis_results[i].has_saturated_pixels) {
-            best_index = i;
-            found_non_saturated = true;
-            break;
-        }
-    }
-    if (!found_non_saturated) {
-        best_index = 0; // Use the darkest file.
-    }
-    std::string best_file_path = pre_analysis_results[best_index].filename;
-    m_view->UpdateRawPreview(best_file_path);
-    // Find the index in the original m_inputFiles list.
-    int display_index = -1;
-    for (size_t i = 0; i < m_inputFiles.size(); ++i) {
-        if (m_inputFiles[i] == best_file_path) {
-            display_index = static_cast<int>(i);
-            break;
-        }
-    }
-    m_view->UpdateInputFileList(m_inputFiles, display_index);
-}
-
 void GuiPresenter::UpdateRawPreviewFromCache()
 {
     auto sorted_files = m_preAnalysisManager.GetSortedFileList();
