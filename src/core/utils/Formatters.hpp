@@ -19,13 +19,13 @@ namespace Formatters {
 struct FlatResultRow {
     std::string filename;
     double snr_threshold_db;
-    DataSource channel;
     float iso_speed;
+    double dr_ev;
+    DataSource channel;
     int samples_R;
     int samples_G1;
     int samples_G2;
     int samples_B;
-    double dr_ev;
 };
 
 std::string DataSourceToString(DataSource channel);
@@ -40,7 +40,6 @@ std::string DataSourceToString(DataSource channel);
  * @return A sorted vector of FlatResultRow structs, ready for display or saving.
  */
 std::vector<FlatResultRow> FlattenAndSortResults(const std::vector<DynamicRangeResult>& all_results);
-
 std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows);
 
 /**
@@ -48,15 +47,12 @@ std::string FormatResultsTable(const std::vector<FlatResultRow>& sorted_rows);
  * @return A string containing the CSV header row.
  */
 std::string FormatCsvHeader();
-
 /**
  * @brief Formats a single flattened result row into a CSV string.
  * @param row The FlatResultRow to format.
  * @return A string containing a single CSV row, ending with a newline.
  */
 std::string FormatCsvRow(const FlatResultRow& row);
-
-
 /**
  * @brief Generates a filename suffix based on the selected RAW channels.
  * @param channels The selection state of the RAW channels.
