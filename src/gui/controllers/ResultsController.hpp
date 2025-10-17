@@ -7,13 +7,14 @@
 #include <memory>
 #include <string>
 #include <wx/event.h>
-#include <wx/image.h> // Required for wxImage
+#include <wx/image.h>
 
 // Forward declarations
 class DynaRangeFrame;
 class ResultsGridManager;
 class wxSplitterEvent;
 class wxGridEvent;
+class wxPaintEvent;
 
 class ResultsController {
 public:
@@ -32,6 +33,7 @@ public:
     // --- Event Handling Logic ---
     void OnSplitterSashDClick(wxSplitterEvent& event);
     void OnGridCellClick(wxGridEvent& event);
+    void OnResultsCanvasPaint(wxPaintEvent& event); // New event handler
 
 private:
     DynaRangeFrame* m_frame;

@@ -13,7 +13,7 @@
 #include <string>
 #include <wx/bitmap.h>
 #include <wx/dnd.h>
-#include <wx/image.h> // Needed for wxImage
+#include <wx/image.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/timer.h>
@@ -26,6 +26,7 @@ class LogController;
 class ResultsController;
 class wxSplitterEvent;
 class wxNotebookEvent;
+class PreviewController;
 
 // Custom event declarations
 wxDECLARE_EVENT(wxEVT_COMMAND_WORKER_UPDATE, wxThreadEvent);
@@ -39,7 +40,7 @@ public:
 
     // --- Methods called by the Presenter to update the View ---
     void UpdateInputFileList(const std::vector<std::string>& files, int selected_index = -1);
-    void UpdateCommandPreview(const std::string& command); // Corrected signature
+    void UpdateCommandPreview(const std::string& command);
     void DisplayResults(const std::string& csv_path);
     void ShowError(const wxString& title, const wxString& message);
     void SetUiState(bool is_processing, int num_threads = 0);
@@ -73,6 +74,9 @@ public:
     bool ShouldEstimateBlackLevel() const;
     bool ShouldEstimateSaturationLevel() const;
 
+    // Public member for storing preview state
+    std::string m_currentPreviewFile;
+
 protected:
     // --- Event Handlers that remain in the Frame ---
     void OnExecuteClick(wxCommandEvent& event);
@@ -82,8 +86,6 @@ protected:
     void OnNotebookPageChanged(wxNotebookEvent& event);
     void OnWorkerCompleted(wxCommandEvent& event);
     void OnWorkerUpdate(wxThreadEvent& event);
-    void OnResultsCanvasPaint(wxPaintEvent& event);
-    void OnChartPreviewPaint(wxPaintEvent& event);
     void OnGaugeTimer(wxTimerEvent& event);
     void OnRemoveAllFilesClick(wxCommandEvent& event);
 
@@ -93,7 +95,6 @@ protected:
 
     // --- Data for Drawing ---
     wxBitmap m_chartPreviewBitmap;
-
 private:
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
@@ -107,8 +108,9 @@ private:
     std::unique_ptr<ResultsController> m_resultsController;
     std::unique_ptr<ChartController> m_chartController;
     
-    // Grant controllers access to protected UI members.
+    // Grant controllers access to protected/private UI members.
     friend class InputController;
+    friend class PreviewController;
     friend class ResultsController;
     friend class ChartController;
     friend class FileDropTarget;

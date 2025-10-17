@@ -63,7 +63,6 @@ GuiPresenter::GuiPresenter(DynaRangeFrame* view)
     : m_view(view)
 {
     m_cancelWorker = false;
-    m_currentPreviewFile = "";
 }
 
 GuiPresenter::~GuiPresenter()
@@ -427,17 +426,15 @@ void GuiPresenter::UpdateRawPreviewFromCache()
     auto sorted_files = m_preAnalysisManager.GetSortedFileList();
     auto best_file_opt = m_preAnalysisManager.GetBestPreviewFile();
 
-    // Determina la ruta del nuevo fichero a mostrar (o una cadena vacía si no hay ninguno)
     std::string new_best_file = best_file_opt.has_value() ? best_file_opt.value() : "";
 
-    // --- LÓGICA INTELIGENTE AÑADIDA ---
-    // Solo actualiza la imagen de previsualización si el fichero a mostrar ha cambiado.
-    if (new_best_file != m_currentPreviewFile) {
+    // Only update the preview image if the file to display has changed.
+    if (new_best_file != m_view->m_currentPreviewFile) { // Access public member of the frame
         m_view->UpdateRawPreview(new_best_file);
-        m_currentPreviewFile = new_best_file;
+        m_view->m_currentPreviewFile = new_best_file; // Update the frame's state
     }
 
-    // La lista de ficheros siempre se actualiza para reflejar borrados y la marca '▶'
+    // The file list is always updated to reflect deletions and the '▶' marker
     int display_index = -1;
     if (!new_best_file.empty()) {
         for (size_t i = 0; i < sorted_files.size(); ++i) {

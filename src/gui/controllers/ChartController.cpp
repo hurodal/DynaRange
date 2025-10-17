@@ -13,6 +13,8 @@
 #include <wx/log.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <wx/dcbuffer.h>   // For wxAutoBufferedPaintDC
+#include <wx/graphics.h> // For wxGraphicsContext
 
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
@@ -39,16 +41,12 @@ ChartController::~ChartController() = default;
 void ChartController::OnPreviewClick(wxCommandEvent& event) {
     // 1. Get current options from the UI.
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
-
     // 2. Generate the thumbnail image data in memory.
     std::optional<InMemoryImage> thumb_data_opt = GenerateChartThumbnail(opts, DynaRange::Gui::Constants::CHART_PREVIEW_WIDTH);
-
     if (thumb_data_opt) {
         const InMemoryImage& thumb_data = *thumb_data_opt;
-        
         // 3. Convert the raw RGB data to a wxImage.
         wxImage image(thumb_data.width, thumb_data.height, const_cast<unsigned char*>(thumb_data.data.data()), true);
-        
         if (image.IsOk()) {
             // 4. Store the wxBitmap in the frame and trigger a redraw.
             m_frame->m_chartPreviewBitmap = wxBitmap(image);
@@ -109,8 +107,32 @@ void ChartController::OnChartChartPatchChanged(wxCommandEvent& event) {
     m_frame->m_chartPatchRowValue1->ChangeValue(m_frame->m_chartPatchRowValue->GetValue());
     m_frame->m_chartPatchColValue1->ChangeValue(m_frame->m_chartPatchColValue->GetValue());
     
-    // This event doesn't affect the CLI command, so no need to call UpdateCommandPreview.
-    
     m_frame->m_isUpdatingPatches = false;
     event.Skip();
+}
+
+void ChartController::OnChartPreviewPaint(wxPaintEvent& event)
+{
+    wxAutoBufferedPaintDC dc(m_frame->m_chartPreviewPanel);
+    dc.Clear(); // Clear background
+
+    if (m_frame->m_chartPreviewBitmap.IsOk())
+    {
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if(gc)
+        {
+            double bmp_w = m_frame->m_chartPreviewBitmap.GetWidth();
+            double bmp_h = m_frame->m_chartPreviewBitmap.GetHeight();
+            const wxSize panel_size = dc.GetSize();
+            
+            double scale_factor = std::min(panel_size.GetWidth() / bmp_w, panel_size.GetHeight() / bmp_h);
+            double final_width = bmp_w * scale_factor;
+            double final_height = bmp_h * scale_factor;
+            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+
+            gc->DrawBitmap(m_frame->m_chartPreviewBitmap, offset_x, offset_y, final_width, final_height);
+            delete gc;
+        }
+    }
 }

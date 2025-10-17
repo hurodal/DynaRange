@@ -27,7 +27,7 @@ wxDEFINE_EVENT(wxEVT_COMMAND_PREVIEW_UPDATE_COMPLETE, wxCommandEvent);
 // CONSTRUCTOR & DESTRUCTOR
 // =============================================================================
 DynaRangeFrame::DynaRangeFrame(wxWindow* parent) 
-    : MyFrameBase(parent)
+    : MyFrameBase(parent), m_currentPreviewFile("")
 {
     // --- Create Controllers for each tab ---
     m_inputController = std::make_unique<InputController>(this);
@@ -35,10 +35,10 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_resultsController = std::make_unique<ResultsController>(this);
     m_chartController = std::make_unique<ChartController>(this);
     m_rawImagePreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
     // --- Manual UI Component Creation ---
     m_resultsCanvasPanel = new wxPanel(m_webViewPlaceholderPanel, wxID_ANY);
     m_resultsCanvasPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-
     wxBoxSizer* placeholderSizer = new wxBoxSizer(wxVERTICAL);
     placeholderSizer->Add(m_resultsCanvasPanel, 1, wxEXPAND, 0);
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
@@ -52,8 +52,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_presenter = std::make_unique<GuiPresenter>(this);
 
     // --- Bind top-level and inter-controller events ---
-    m_resultsCanvasPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnResultsCanvasPaint, this);
-    m_chartPreviewPanel->Bind(wxEVT_PAINT, &DynaRangeFrame::OnChartPreviewPaint, this);
+    m_resultsCanvasPanel->Bind(wxEVT_PAINT, &ResultsController::OnResultsCanvasPaint, m_resultsController.get());
+    m_chartPreviewPanel->Bind(wxEVT_PAINT, &ChartController::OnChartPreviewPaint, m_chartController.get());
     m_resultsCanvasPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_resultsCanvasPanel->Refresh(); event.Skip(); });
     m_chartPreviewPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){ this->m_chartPreviewPanel->Refresh(); event.Skip(); });
 
@@ -68,8 +68,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
 
     // --- Event bindings delegated directly to controllers ---
-    
-    // InputController bindings
     m_clearAllCoordinates->Bind(wxEVT_BUTTON, &InputController::OnClearAllCoordsClick, m_inputController.get());
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &InputController::OnAddFilesClick, m_inputController.get());
     m_saveLog->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
@@ -100,8 +98,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     G2_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     B_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     AVG_ChoiceValue->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
-
-    // ChartController bindings
     m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
     m_rParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
     m_gParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
@@ -116,8 +112,6 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_chartDimHValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
     m_chartPatchColValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
-
-    // ResultsController bindings
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &ResultsController::OnGridCellClick, m_resultsController.get());
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_DOUBLECLICKED, &ResultsController::OnSplitterSashDClick, m_resultsController.get());
 
@@ -185,7 +179,6 @@ void DynaRangeFrame::SetUiState(bool is_processing, int num_threads) {
         }
         m_generateGraphStaticText->SetLabel(status_label);
         m_processingGauge->Show();
-
     } else {
         m_executeButton->SetLabel(_("Execute"));
         m_executeButton->Enable(true);
@@ -231,11 +224,13 @@ double DynaRangeFrame::GetDrNormalization() const { return m_inputController->Ge
 }
 int DynaRangeFrame::GetPolyOrder() const { return m_inputController->GetPolyOrder(); }
 int DynaRangeFrame::GetPlotMode() const { return m_inputController->GetPlotMode(); }
-int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM(); }
+int DynaRangeFrame::GetChartPatchesM() const { return m_inputController->GetChartPatchesM();
+}
 int DynaRangeFrame::GetChartPatchesN() const { return m_inputController->GetChartPatchesN();
 }
 std::string DynaRangeFrame::GetPrintPatchesFilename() const { return m_inputController->GetPrintPatchesFilename(); }
-RawChannelSelection DynaRangeFrame::GetRawChannelSelection() const { return m_inputController->GetRawChannelSelection(); }
+RawChannelSelection DynaRangeFrame::GetRawChannelSelection() const { return m_inputController->GetRawChannelSelection();
+}
 PlottingDetails DynaRangeFrame::GetPlottingDetails() const { return m_inputController->GetPlottingDetails(); }
 
 // =============================================================================
@@ -263,7 +258,8 @@ std::vector<double> DynaRangeFrame::GetChartCoords() const {
 
 void DynaRangeFrame::OnSize(wxSizeEvent& event) { event.Skip();}
 
-void DynaRangeFrame::OnSplitterSashChanged(wxSplitterEvent& event) { event.Skip(); }
+void DynaRangeFrame::OnSplitterSashChanged(wxSplitterEvent& event) { event.Skip();
+}
 
 bool DynaRangeFrame::ShouldSaveLog() const {
     return m_inputController->ShouldSaveLog();
@@ -276,54 +272,43 @@ void DynaRangeFrame::OnRemoveAllFilesClick(wxCommandEvent& event) {
 void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
     SetUiState(false);
     const ReportOutput& report = m_presenter->GetLastReport();
-
-    // If the final_csv_path is empty, it indicates that the analysis was
-    // either cancelled by the user or failed before producing any results.
-    // In this case, we should not attempt to display the results.
     if (report.final_csv_path.empty()) {
-        // The log already contains a cancellation/error message from the engine.
-        // We can just return here, leaving the user on the current tab.
         return;
     }
 
-    // --- If we proceed, it means the analysis completed successfully ---
     const wxImage& summary_image = m_presenter->GetLastSummaryImage();
-    
     DisplayResults(report.final_csv_path);
 if (summary_image.IsOk()) {
         DisplayImage(summary_image);
-} else if (GetPlotMode() != 0) {
+    } else if (GetPlotMode() != 0) {
         m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
-m_resultsController->LoadDefaultContent(); 
+        m_resultsController->LoadDefaultContent(); 
         m_logController->AppendText(_("\nError: Summary plot could not be generated."));
     } else {
         m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
-m_resultsController->LoadDefaultContent();
+        m_resultsController->LoadDefaultContent();
     }
 
-    // --- Lógica para guardar el log ---
     if (ShouldSaveLog()) {
         ProgramOptions temp_opts;
-temp_opts.output_filename = GetOutputFilePath(); // Usa la ruta del CSV como base
+        temp_opts.output_filename = GetOutputFilePath();
         PathManager paths(temp_opts);
-fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
+        fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
 
         wxString log_content = m_logOutputTextCtrl->GetValue();
         std::ofstream log_file(log_path);
-if (log_file.is_open()) {
+        if (log_file.is_open()) {
             log_file << log_content.ToStdString();
             log_file.close();
-m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
+            m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
         } else {
             m_logController->AppendText(wxString::Format(_("\n[ERROR] Could not save log to file: %s\n"), log_path.string()));
-}
+        }
     }
 }
 
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
     wxString log_message = event.GetString();
-    
-    // Always append the original message to the "Log" tab.
     m_logController->AppendText(log_message);
 }
 
@@ -337,70 +322,9 @@ bool DynaRangeFrame::ShouldGenerateIndividualPlots() const {
 
 bool FileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames) {
     if (m_owner && m_owner->m_inputController) {
-        // Delegate the file handling to the InputController
         m_owner->m_inputController->AddDroppedFiles(filenames);
     }
     return true;
-}
-
-void DynaRangeFrame::OnResultsCanvasPaint(wxPaintEvent& event)
-{
-    wxAutoBufferedPaintDC dc(m_resultsCanvasPanel);
-    dc.Clear(); // Clear background
-
-    const wxImage& sourceImage = m_resultsController->GetSourceImage();
-
-    if (sourceImage.IsOk()) {
-        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
-        if (gc) {
-            double img_w = sourceImage.GetWidth();
-            double img_h = sourceImage.GetHeight();
-            const wxSize panel_size = dc.GetSize();
-            
-            // Calculate aspect-ratio correct scaling
-            double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
-            
-            double final_width = img_w * scale_factor;
-            double final_height = img_h * scale_factor;
-            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
-            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
-            
-            // Create a temporary, scaled bitmap for drawing in this paint event.
-            // This is more efficient for resizing than scaling a bitmap.
-            wxImage displayImage = sourceImage.Copy();
-            displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
-            wxBitmap bitmapToDraw(displayImage);
-            
-            gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
-            delete gc;
-        }
-    }
-}
-
-void DynaRangeFrame::OnChartPreviewPaint(wxPaintEvent& event)
-{
-    wxAutoBufferedPaintDC dc(m_chartPreviewPanel);
-    dc.Clear(); // Clear background
-
-    if (m_chartPreviewBitmap.IsOk())
-    {
-        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
-        if(gc)
-        {
-            double bmp_w = m_chartPreviewBitmap.GetWidth();
-            double bmp_h = m_chartPreviewBitmap.GetHeight();
-            const wxSize panel_size = dc.GetSize();
-            
-            double scale_factor = std::min(panel_size.GetWidth() / bmp_w, panel_size.GetHeight() / bmp_h);
-            double final_width = bmp_w * scale_factor;
-            double final_height = bmp_h * scale_factor;
-            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
-            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
-
-            gc->DrawBitmap(m_chartPreviewBitmap, offset_x, offset_y, final_width, final_height);
-            delete gc;
-        }
-    }
 }
 
 bool DynaRangeFrame::ValidateSnrThresholds() const {

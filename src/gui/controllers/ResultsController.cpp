@@ -9,6 +9,8 @@
 #include "../utils/PathManager.hpp"
 #include <wx/log.h>
 #include <wx/image.h>
+#include <wx/dcbuffer.h>   // For wxAutoBufferedPaintDC
+#include <wx/graphics.h> // For wxGraphicsContext
 #include <filesystem>
 #include <string>
 #include <cairo/cairo.h>
@@ -98,5 +100,36 @@ void ResultsController::OnSplitterSashDClick(wxSplitterEvent& event) {
         m_frame->m_splitterResults->Unsplit(m_frame->m_leftPanel);
     } else {
         m_frame->m_splitterResults->SplitVertically(m_frame->m_leftPanel, m_frame->m_rightPanel, m_lastSashPosition);
+    }
+}
+
+void ResultsController::OnResultsCanvasPaint(wxPaintEvent& event)
+{
+    wxAutoBufferedPaintDC dc(m_frame->m_resultsCanvasPanel);
+    dc.Clear(); // Clear background
+
+    const wxImage& sourceImage = GetSourceImage();
+    if (sourceImage.IsOk()) {
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if (gc) {
+            double img_w = sourceImage.GetWidth();
+            double img_h = sourceImage.GetHeight();
+            const wxSize panel_size = dc.GetSize();
+            
+            // Calculate aspect-ratio correct scaling
+            double scale_factor = std::min((double)panel_size.GetWidth() / img_w, (double)panel_size.GetHeight() / img_h);
+            double final_width = img_w * scale_factor;
+            double final_height = img_h * scale_factor;
+            double offset_x = (panel_size.GetWidth() - final_width) / 2.0;
+            double offset_y = (panel_size.GetHeight() - final_height) / 2.0;
+            
+            // Create a temporary, scaled bitmap for drawing in this paint event.
+            // This is more efficient for resizing than scaling a bitmap.
+            wxImage displayImage = sourceImage.Copy();
+            displayImage.Rescale(final_width, final_height, wxIMAGE_QUALITY_HIGH);
+            wxBitmap bitmapToDraw(displayImage);
+            gc->DrawBitmap(bitmapToDraw, offset_x, offset_y, final_width, final_height);
+            delete gc;
+        }
     }
 }

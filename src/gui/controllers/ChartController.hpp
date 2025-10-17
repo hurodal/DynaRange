@@ -10,6 +10,7 @@
 class DynaRangeFrame;
 struct ChartGeneratorOptions;
 class wxSizeEvent;
+class wxPaintEvent;
 
 class ChartController {
 public:
@@ -22,6 +23,7 @@ public:
     void OnColorSliderChanged(wxCommandEvent& event);
     void OnInputChanged(wxCommandEvent& event);
     void OnChartChartPatchChanged(wxCommandEvent& event);
+    void OnChartPreviewPaint(wxPaintEvent& event);
 
 private:
     ChartGeneratorOptions GetCurrentOptionsFromUi() const;
