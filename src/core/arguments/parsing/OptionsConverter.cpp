@@ -84,7 +84,7 @@ ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, st
     opts.saturation_level_is_default = Get<bool>(SaturationLevelIsDefault, values);
     
     if (Get<bool>(SnrThresholdIsDefault, values)) {
-        opts.snr_thresholds_db = { 12.0, 0.0 };
+        opts.snr_thresholds_db = DEFAULT_SNR_THRESHOLDS_DB;
     } else {
         opts.snr_thresholds_db = Get<std::vector<double>>(SnrThresholdDb, values);
     }

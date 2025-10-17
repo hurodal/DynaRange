@@ -19,7 +19,11 @@ constexpr double DEFAULT_DR_NORMALIZATION_MPX = 0.0;
 constexpr int DEFAULT_PLOT_MODE = 0;
 constexpr int DEFAULT_POLY_ORDER = 3;
 constexpr const char* DEFAULT_OUTPUT_FILENAME = "results.csv";
-
+/**
+ * @brief The default base filename for the debug patches image.
+ */
+constexpr const char* DEFAULT_PRINT_PATCHES_FILENAME = "printpatches.png";
+const std::vector<double> DEFAULT_SNR_THRESHOLDS_DB = { 12.0, 0.0 };
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
 inline int PolyOrderFromIndex(int index) {
@@ -85,8 +89,7 @@ struct ProgramOptions {
     double patch_ratio = DEFAULT_PATCH_RATIO;
     bool generate_plot = false;
     DynaRange::Graphics::Constants::PlotOutputFormat plot_format = DynaRange::Graphics::Constants::PlotOutputFormat::PNG;
-    int plot_command_mode = 0;
-    // 0: No plot, 1: No command, 2: Short, 3: Long
+    int plot_command_mode = 0; // 0: No plot, 1: No command, 2: Short, 3: Long
     PlottingDetails plot_details;
     bool create_chart_mode = false;
     std::vector<std::string> chart_colour_params;
@@ -104,7 +107,6 @@ struct ProgramOptions {
     int raw_height = 0;
     int full_raw_width = 0;
     int full_raw_height = 0;
-
     /**
      * @brief If true, individual plot files will be generated for each input RAW file.
      * @details Defaults to false. The GUI can override this based on a checkbox.
@@ -120,7 +122,6 @@ struct ProgramOptions {
     // --- Internal Flags ---
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
-    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4;
-    }
+    int GetChartPatchesM() const { return chart_patches.size() >= 1 ? chart_patches[0] : 4; }
     int GetChartPatchesN() const { return chart_patches.size() >= 2 ? chart_patches[1] : 6; }
 };

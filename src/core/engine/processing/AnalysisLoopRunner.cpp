@@ -20,21 +20,8 @@
 #define _(string) gettext(string)
 
 namespace fs = std::filesystem;
-
 namespace { // Anonymous namespace for internal helper functions
 
-/**
- * @brief Analyzes a single RAW file to extract SNR and DR data.
- * @param raw_file The loaded RawFile object to analyze.
- * @param params The consolidated analysis parameters.
- * @param chart The geometric profile of the test chart.
- * @param keystone_params The pre-calculated keystone correction parameters.
- * @param log_stream The stream for logging messages.
- * @param generate_debug_image Flag to indicate if a debug overlay image should be created.
- * @param cancel_flag The atomic flag to check for cancellation requests.
- * @param log_mutex A mutex to synchronize access to the log_stream.
- * @return A vector of SingleFileResult structs, one for each channel analyzed (e.g., R, G1, G2, B, AVG).
- */
 std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file,
     const AnalysisParameters& params,
@@ -52,7 +39,6 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
     }
 
     if (cancel_flag) return {};
-    
     std::map<DataSource, PatchAnalysisResult> individual_channel_patches;
 
     double norm_adjustment = 0.0;
@@ -85,7 +71,8 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
             continue;
         }
 
-        bool should_draw_overlay = generate_debug_image && (channel == DataSource::R);
+        bool should_draw_overlay = generate_debug_image && (channel == DataSource::G1);
+        
         individual_channel_patches[channel] = DynaRange::Engine::PerformTwoPassPatchAnalysis(
             img_prepared, channel, chart, params.patch_ratio, log_stream,
             strict_min_snr_db, permissive_min_snr_db, max_requested_threshold, should_draw_overlay,
@@ -153,7 +140,6 @@ ProcessingResult AnalysisLoopRunner::Run()
             if (!raw_file.IsLoaded()) continue;
 
             bool generate_debug_image = (j == m_source_image_index && !m_params.print_patch_filename.empty());
-
             batch_futures.push_back(std::async(std::launch::async, 
                 [&, generate_debug_image, keystone_params, &raw_file = raw_file]() {
                     cv::Mat local_keystone = keystone_params;
@@ -173,10 +159,7 @@ ProcessingResult AnalysisLoopRunner::Run()
                     std::lock_guard<std::mutex> lock(log_mutex);
                     result.debug_patch_image = file_result.final_debug_image;
                     
-                    ProgramOptions temp_opts;
-                    temp_opts.output_filename = "results.csv"; // Dummy path
-                    PathManager paths(temp_opts);
-                    fs::path debug_path = paths.GetCsvOutputPath().parent_path() / m_params.print_patch_filename;
+                    fs::path debug_path = m_params.print_patch_filename;
                     OutputWriter::WriteDebugImage(file_result.final_debug_image, debug_path, m_log_stream);
                 }
 

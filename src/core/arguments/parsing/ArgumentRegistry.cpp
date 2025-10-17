@@ -23,13 +23,14 @@ std::map<std::string, ArgumentDescriptor> ArgumentRegistry::RegisterAll()
     descriptors[SaturationFile] = { SaturationFile, "s", _("Totally clipped RAW file ideally shot at base ISO"), ArgType::String, std::string("") };
     descriptors[InputFiles] = { InputFiles, "i", _("Input RAW files shot over the test chart ideally for every ISO"), ArgType::StringVector, std::vector<std::string> {}, false };
     descriptors[PatchRatio] = { PatchRatio, "r", _("Relative patch width/height used to compute signal and noise readings (default=0.5)"), ArgType::Double, DEFAULT_PATCH_RATIO, false, 0.0, 1.0 };
-    descriptors[SnrThresholdDb] = { SnrThresholdDb, "d", _("SNR threshold(s) list in dB for DR calculation (default=0 12 being 0dB=\"Engineering DR\" and 12dB=\"Photographic DR\")"), ArgType::DoubleVector, std::vector<double> { 12.0, 0.0 } };
+    descriptors[SnrThresholdDb] = { SnrThresholdDb, "d", _("SNR threshold(s) list in dB for DR calculation (default=0 12 being 0dB=\"Engineering DR\" and 12dB=\"Photographic DR\")"), ArgType::DoubleVector, DEFAULT_SNR_THRESHOLDS_DB };    
     descriptors[DrNormalizationMpx] = { DrNormalizationMpx, "m", _("Number of Mpx for DR normalization (default=8Mpx, no normalization=per pixel DR=0Mpx)"), ArgType::Double, DEFAULT_DR_NORMALIZATION_MPX };
     descriptors[PolyFit] = { PolyFit, "f", _("Polynomic order to fit the SNR curve (default=3)"), ArgType::Int, DEFAULT_POLY_ORDER, false, 2, 3 };
     descriptors[OutputFile] = { OutputFile, "o", _("Output CSV text file(s) with all results..."), ArgType::String, std::string(DEFAULT_OUTPUT_FILENAME) };
     descriptors[PlotFormat] = { PlotFormat, "p", _("Export SNR curves plot in PNG/SVG format (default format=PNG)"), ArgType::String, std::string("PNG") };
     descriptors[PlotParams] = { PlotParams, "P", _("Export SNR curves with SCL 1-3 info (default=1 1 1 3)"), ArgType::IntVector, std::vector<int> { 1, 1, 1, 3 } };
-    descriptors[PrintPatches] = { PrintPatches, "g", _("Save keystone/ETTR/gamma corrected test chart in PNG format indicating the grid of patches used for all calculations (default=\"printpatches.png\")"), ArgType::String, std::string("") };
+    std::string print_patches_help = std::string(_("Save keystone/ETTR/gamma corrected test chart in PNG format indicating the grid of patches used for all calculations (default=\"")) + DEFAULT_PRINT_PATCHES_FILENAME + "\")";
+    descriptors[PrintPatches] = { PrintPatches, "g", print_patches_help, ArgType::String, std::string("") };
     descriptors[RawChannels] = { RawChannels, "w", _("Specify with 0/1 boolean values for which RAW channel(s) the calculations (SNR curves, DR) will be carried out (default=0 0 0 0 1)"), ArgType::IntVector, std::vector<int> { 0, 0, 0, 0, 1 } };
     descriptors[GeneratePlot] = { GeneratePlot, "", "", ArgType::Flag, false };
 
@@ -47,5 +48,4 @@ std::map<std::string, ArgumentDescriptor> ArgumentRegistry::RegisterAll()
     
     return descriptors;
 }
-
 } // namespace DynaRange::Arguments::Parsing

@@ -7,7 +7,6 @@
 #include "geometry/KeystoneCorrection.hpp"
 #include "../DebugConfig.hpp"
 #include "../io/raw/RawFile.hpp"
-#include "../utils/Formatters.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -129,12 +128,25 @@ cv::Mat PrepareChartImage(
 
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value)
 {
-    if (overlay_image.empty() || max_pixel_value <= 0) {
+    if (overlay_image.empty()) {
         return {};
     }
 
-    // 1. Normalize using the max value calculated *before* drawing patches.
-    cv::Mat normalized_image = overlay_image / max_pixel_value;
+    double normalization_value = max_pixel_value;
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // If max_pixel_value is 0 (no valid patches), find the max value in the image itself for normalization.
+    if (normalization_value <= 0) {
+        cv::minMaxLoc(overlay_image, nullptr, &normalization_value, nullptr, nullptr);
+    }
+
+    // If there's still no valid value (e.g., black image), we cannot proceed.
+    if (normalization_value <= 0) {
+        return {};
+    }
+    // --- FIN DE LA MODIFICACIÓN ---
+
+    // 1. Normalize using the determined value.
+    cv::Mat normalized_image = overlay_image / normalization_value;
 
     // 2. Clamp values to the [0.0, 1.0] range.
     cv::threshold(normalized_image, normalized_image, 1.0, 1.0, cv::THRESH_TRUNC);

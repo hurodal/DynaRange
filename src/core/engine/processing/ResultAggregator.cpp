@@ -13,6 +13,19 @@
 
 namespace DynaRange::Engine::Processing {
 
+/**
+ * @brief Aggregates patch data from individual channels and finalizes the results for a single RAW file.
+ * @details This function takes the raw patch analysis from each Bayer channel, calculates the final
+ * results for user-selected channels (including AVG), and prepares the SingleFileResult structs.
+ * It is also responsible for triggering the creation of the final debug patch image.
+ * @param individual_channel_patches A map containing the PatchAnalysisResult for each analyzed channel.
+ * @param raw_file The source RawFile object, used for metadata.
+ * @param params The consolidated analysis parameters.
+ * @param generate_debug_image A reference to a flag controlling debug image creation. This flag will be set to false by this function.
+ * @param log_stream The output stream for logging.
+ * @param log_mutex A mutex to synchronize access to the log_stream.
+ * @return A vector of SingleFileResult structs for the processed file.
+ */
 std::vector<SingleFileResult> AggregateAndFinalizeResults(
     const std::map<DataSource, PatchAnalysisResult>& individual_channel_patches,
     const RawFile& raw_file,
@@ -27,7 +40,6 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
     if (params.raw_channels.G1) user_selected_channels.push_back(DataSource::G1);
     if (params.raw_channels.G2) user_selected_channels.push_back(DataSource::G2);
     if (params.raw_channels.B) user_selected_channels.push_back(DataSource::B);
-    
     // First, process individual channels
     for (const auto& final_channel : user_selected_channels) {
         PatchAnalysisResult final_patch_data;
@@ -43,7 +55,6 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
         dr_result.samples_G1 = individual_channel_patches.count(DataSource::G1) ? individual_channel_patches.at(DataSource::G1).signal.size() : 0;
         dr_result.samples_G2 = individual_channel_patches.count(DataSource::G2) ? individual_channel_patches.at(DataSource::G2).signal.size() : 0;
         dr_result.samples_B = individual_channel_patches.count(DataSource::B) ? individual_channel_patches.at(DataSource::B).signal.size() : 0;
-        
         if(params.plot_labels.count(raw_file.GetFilename())) {
             curve_data.plot_label = params.plot_labels.at(raw_file.GetFilename());
         } else {
@@ -53,9 +64,16 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
 
         cv::Mat final_debug_image;
         if (generate_debug_image) {
-            if (individual_channel_patches.count(DataSource::R)) {
-                const auto& r_patches = individual_channel_patches.at(DataSource::R);
-                final_debug_image = CreateFinalDebugImage(r_patches.image_with_patches, r_patches.max_pixel_value);
+            if (individual_channel_patches.count(DataSource::G1)) {
+                const auto& g1_patches = individual_channel_patches.at(DataSource::G1);
+                
+                // Add a log message if no patches were found, indicating the overlay will be empty.
+                if (g1_patches.signal.empty()) {
+                    std::lock_guard<std::mutex> lock(log_mutex);
+                    log_stream << "  - Info: No valid patches found. Saving debug image without overlays." << std::endl;
+                }
+
+                final_debug_image = CreateFinalDebugImage(g1_patches.image_with_patches, g1_patches.max_pixel_value);
                 if (final_debug_image.empty()) {
                     std::lock_guard<std::mutex> lock(log_mutex);
                     log_stream << "  - " << _("Warning: Could not generate debug patch image for this file.") << std::endl;
@@ -111,5 +129,4 @@ std::vector<SingleFileResult> AggregateAndFinalizeResults(
     
     return final_results;
 }
-
 }

@@ -13,6 +13,15 @@
 #include <map>
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
+/**
+ * @brief Creates the final, viewable debug image from the overlay data.
+ * @details This function normalizes the image based on the maximum signal value found in valid patches,
+ * clamps the range, and applies gamma correction for proper viewing. If no valid patches were found
+ * (max_pixel_value <= 0), it will find the maximum value in the image itself to perform normalization.
+ * @param overlay_image The single-channel image with patch outlines drawn on it.
+ * @param max_pixel_value The maximum signal value from all valid patches.
+ * @return A gamma-corrected cv::Mat (CV_32F, range 0.0-1.0) ready for saving.
+ */
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value);
 
 /**

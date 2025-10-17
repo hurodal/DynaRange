@@ -1,3 +1,4 @@
+// File: src/core/utils/PathManager.cpp
 /**
  * @file core/utils/PathManager.cpp
  * @brief Implements the PathManager utility class.
@@ -71,7 +72,7 @@ fs::path GetUserDocumentsDirectory() {
 }
 } // end anonymous namespace
 
-PathManager::PathManager(const ProgramOptions& opts) {
+PathManager::PathManager(const ProgramOptions& opts) : m_opts(opts) {
     
     //Determine application directory once upon construction.
     m_app_directory = GetExecutablePath().parent_path();
@@ -135,6 +136,28 @@ fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const R
     }
     std::string filename = "snr_curves_" + safe_camera_name + Formatters::GenerateChannelSuffix(channels) + extension;
     return m_output_directory / filename;
+}
+
+fs::path PathManager::GetPrintPatchesPath(const std::string& camera_model) const
+{
+    std::string filename = m_opts.print_patch_filename;
+
+    // If the filename is the sentinel value, construct the dynamic default name.
+    if (filename == "_USE_DEFAULT_PRINT_PATCHES_") {
+        std::string safe_camera_model = camera_model;
+        std::replace(safe_camera_model.begin(), safe_camera_model.end(), ' ', '_');
+        
+        fs::path base_path(DEFAULT_PRINT_PATCHES_FILENAME);
+        filename = base_path.stem().string() + "_" + safe_camera_model + base_path.extension().string();
+    }
+    
+    // If a filename is specified (either custom or newly generated), return the full path.
+    if (!filename.empty()) {
+        return m_output_directory / filename;
+    }
+
+    // Return an empty path if not requested.
+    return {};
 }
 
 fs::path PathManager::GetAppDirectory() const {

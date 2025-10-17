@@ -8,6 +8,7 @@
 #include "processing/Processing.hpp"
 #include "Reporting.hpp"
 #include "Validation.hpp"
+#include "../arguments/ArgumentsOptions.hpp"
 #include <atomic>
 #include <ostream>
 #include <libintl.h>
@@ -27,21 +28,18 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
     // Phase 1: Preparation
     InitializationResult init_result = InitializeAnalysis(opts, log_stream);
     if (!init_result.success) {
-        return {}; // Return an empty ReportOutput on failure
+        return {};
     }
-
-    // --- New logic to construct default print-patches filename ---
-    if (opts.print_patch_filename == "_USE_DEFAULT_PRINT_PATCHES_") {
-        std::string camera_model = "UNKNOWN_CAMERA";
-        if (!init_result.loaded_raw_files.empty() && init_result.loaded_raw_files[0].IsLoaded()) {
-            camera_model = init_result.loaded_raw_files[0].GetCameraModel();
-        }
-        std::replace(camera_model.begin(), camera_model.end(), ' ', '_');
-        opts.print_patch_filename = "printpatches_" + camera_model + ".png";
-    }
-    // --- End new logic ---
 
     PathManager paths(opts);
+
+    // Get the final, resolved path for the debug patches image.
+    std::string camera_model = "UNKNOWN_CAMERA";
+    if (!init_result.loaded_raw_files.empty() && init_result.loaded_raw_files[0].IsLoaded()) {
+        camera_model = init_result.loaded_raw_files[0].GetCameraModel();
+    }
+    fs::path print_patches_final_path = paths.GetPrintPatchesPath(camera_model);
+
     AnalysisParameters analysis_params {
         .dark_value = init_result.dark_value,
         .saturation_value = init_result.saturation_value,
@@ -54,7 +52,7 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .chart_patches_m = opts.GetChartPatchesM(),
         .chart_patches_n = opts.GetChartPatchesN(),
         .raw_channels = opts.raw_channels,
-        .print_patch_filename = opts.print_patch_filename,
+        .print_patch_filename = print_patches_final_path.string(),
         .plot_labels = init_result.plot_labels,
         .generated_command = init_result.generated_command,
         .source_image_index = init_result.source_image_index
@@ -82,7 +80,7 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .saturation_level_is_default = init_result.saturation_level_is_default,
         .snr_thresholds_db = opts.snr_thresholds_db
     };
-    
+
     ReportOutput report = FinalizeAndReport(results, reporting_params, paths, log_stream);
     report.dr_results = results.dr_results;
     report.curve_data = results.curve_data;

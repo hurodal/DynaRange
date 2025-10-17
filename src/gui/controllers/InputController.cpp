@@ -162,9 +162,12 @@ int InputController::GetChartPatchesN() const {
 std::string InputController::GetPrintPatchesFilename() const {
     if (m_frame->m_debugPatchesCheckBox->IsChecked()) {
         wxString value = m_frame->m_debugPatchesFileNameValue->GetValue();
-        if (value.IsEmpty()) {
+        // If the value is empty or is the default placeholder, return the sentinel value
+        // that the core engine expects to trigger dynamic name generation.
+        if (value.IsEmpty() || value == DEFAULT_PRINT_PATCHES_FILENAME) {
             return "_USE_DEFAULT_PRINT_PATCHES_";
         }
+        // If the user has entered a custom name, respect it.
         return std::string(value.mb_str());
     }
     return "";
@@ -278,6 +281,15 @@ void InputController::OnListBoxKeyDown(wxKeyEvent& event) {
 void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
     bool is_checked = m_frame->m_debugPatchesCheckBox->IsChecked();
     m_frame->m_debugPatchesFileNameValue->Enable(is_checked);
+    
+    // If the checkbox is checked, display the default filename as a placeholder.
+    // If unchecked, clear the field.
+    if (is_checked) {
+        m_frame->m_debugPatchesFileNameValue->SetValue(DEFAULT_PRINT_PATCHES_FILENAME);
+    } else {
+        m_frame->m_debugPatchesFileNameValue->Clear();
+    }
+
     OnInputChanged(event);
 }
 

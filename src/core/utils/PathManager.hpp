@@ -51,6 +51,13 @@ public:
     fs::path GetSummaryPlotPath(const std::string& camera_name, const RawChannelSelection& channels, DynaRange::Graphics::Constants::PlotOutputFormat format) const;
 
     /**
+     * @brief Gets the full path for the debug patches image, handling default and dynamic naming.
+     * @param camera_model The camera model name, used to construct the dynamic filename.
+     * @return The final filesystem path for the debug patches image.
+     */
+    fs::path GetPrintPatchesPath(const std::string& camera_model) const;
+
+    /**
      * @brief Gets the path to the application's executable directory.
      * @return The filesystem path to the directory containing the running executable.
      */
@@ -70,7 +77,7 @@ public:
     fs::path GetAssetPath(const std::string& asset_name) const;
 
 private:
-    
+    const ProgramOptions& m_opts;      ///< A reference to the program options.
     fs::path m_app_directory;      ///< The directory where the application executable resides.
     fs::path m_output_directory;   ///< The base directory for all outputs.
     fs::path m_csv_filename;       ///< The filename for the CSV report.
