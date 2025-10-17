@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <cstddef> // For std::size
+#include <cstddef>
 
 // Default values for program options remain here as they are directly tied to arguments.
 constexpr double DEFAULT_BLACK_LEVEL = 256.0;
@@ -23,7 +23,13 @@ constexpr const char* DEFAULT_OUTPUT_FILENAME = "results.csv";
  * @brief The default base filename for the debug patches image.
  */
 constexpr const char* DEFAULT_PRINT_PATCHES_FILENAME = "printpatches.png";
+/**
+ * @brief The default filename for the generated test chart.
+ */
+constexpr const char* DEFAULT_CHART_FILENAME = "magentachart.png";
+
 const std::vector<double> DEFAULT_SNR_THRESHOLDS_DB = { 12.0, 0.0 };
+
 // Available polynomial orders for curve fitting.
 constexpr int VALID_POLY_ORDERS[] = {2, 3};
 inline int PolyOrderFromIndex(int index) {

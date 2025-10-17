@@ -281,36 +281,22 @@ void GuiPresenter::AnalysisWorker(ProgramOptions opts)
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
 {
     if (files_to_add.empty()) return;
-
-    // Show a busy indicator window that will be automatically destroyed on scope exit (RAII).
     wxBusyInfo wait(_("Loading and pre-processing files..."), m_view);
-    // Force the UI to update and show the busy info immediately.
     wxTheApp->Yield();
 
-    std::set<std::string> calibration_files;
-    std::string dark_file = m_view->GetDarkFilePath();
-    if (!dark_file.empty()) {
-        calibration_files.insert(dark_file);
-    }
-    std::string sat_file = m_view->GetSaturationFilePath();
-    if (!sat_file.empty()) {
-        calibration_files.insert(sat_file);
-    }
+    m_inputFileManager.AddFiles(files_to_add);
 
     std::vector<std::string> new_valid_files;
-    std::set<std::string> existing_files(m_inputFiles.begin(), m_inputFiles.end());
     for (const auto& file : files_to_add) {
-        bool is_calibration_file = calibration_files.count(file) > 0;
-        bool is_already_in_list = existing_files.count(file) > 0;
-        if (!is_calibration_file && !is_already_in_list) {
+        // Check against pre-analysis manager to avoid re-processing
+        auto existing_files = m_preAnalysisManager.GetSortedFileList();
+        if (std::find(existing_files.begin(), existing_files.end(), file) == existing_files.end()) {
             new_valid_files.push_back(file);
         }
     }
 
     if (new_valid_files.empty()) return;
 
-    // --- ASYNCHRONOUS LOADING PHASE ---
-    // Launch a future for each file to load it in a background thread.
     std::vector<std::future<PreAnalysisResult>> futures;
     double sat_value = m_view->GetSaturationValue();
     for (const auto& file : new_valid_files) {
@@ -319,17 +305,18 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
             if (!raw_file.Load()) {
                 return {file, -1.0, 0.0f, true, sat_value}; // Signal load failure
             }
-            cv::Mat active_img = raw_file.GetActiveRawImage();
+           
+             cv::Mat active_img = raw_file.GetActiveRawImage();
             if (active_img.empty()) {
                 return {file, -1.0, 0.0f, true, sat_value}; // Signal invalid image
             }
             double mean_brightness = cv::mean(active_img)[0];
             int saturated_pixels = cv::countNonZero(active_img >= (sat_value * 0.99));
-            return {file, mean_brightness, raw_file.GetIsoSpeed(), saturated_pixels > 0, sat_value};
+           
+             return {file, mean_brightness, raw_file.GetIsoSpeed(), saturated_pixels > 0, sat_value};
         }));
     }
 
-    // Wait for all futures to complete, periodically yielding to keep the UI responsive.
     std::vector<PreAnalysisResult> loaded_files;
     for (auto& fut : futures) {
         wxTheApp->Yield();
@@ -339,10 +326,8 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
         }
     }
 
-    // If no files were successfully loaded, abort.
     if (loaded_files.empty()) return;
 
-    // Add the new entries to the manager.
     for (const auto& entry : loaded_files) {
         m_preAnalysisManager.AddFile(entry.filename, sat_value);
     }
@@ -371,6 +356,7 @@ void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
         }
     }
 
+    m_inputFileManager.RemoveFiles(files_to_remove);
     for (const auto& file : files_to_remove) {
         m_preAnalysisManager.RemoveFile(file);
     }
@@ -382,6 +368,7 @@ void GuiPresenter::RemoveInputFiles(const std::vector<int>& indices)
 void GuiPresenter::RemoveAllInputFiles()
 {
     wxBusyInfo wait(_("Updating file list and preview..."), m_view);
+    m_inputFileManager.RemoveFiles(m_inputFileManager.GetInputFiles());
     m_preAnalysisManager.Clear();
     UpdateRawPreviewFromCache();
     UpdateCommandPreview();
@@ -399,25 +386,25 @@ const wxImage& GuiPresenter::GetLastSummaryImage() const { return m_summaryImage
 
 void GuiPresenter::UpdateCalibrationFiles()
 {
-    std::string dark_file = m_view->GetDarkFilePath();
-    std::string sat_file = m_view->GetSaturationFilePath();
-    std::set<std::string> calibration_files;
-    if (!dark_file.empty()) {
-        calibration_files.insert(dark_file);
-    }
-    if (!sat_file.empty()) {
-        calibration_files.insert(sat_file);
-    }
-    if (!calibration_files.empty()) {
-        auto original_size = m_preAnalysisManager.GetSortedFileList().size();
-        for (const auto& file : calibration_files) {
-            m_preAnalysisManager.RemoveFile(file);
+    m_inputFileManager.SetBlackFile(m_view->GetDarkFilePath());
+    m_inputFileManager.SetSaturationFile(m_view->GetSaturationFilePath());
+    
+    // The list in PreAnalysisManager must be synced with the clean list
+    auto clean_list = m_inputFileManager.GetInputFiles();
+    auto current_list = m_preAnalysisManager.GetSortedFileList();
+    std::sort(current_list.begin(), current_list.end());
+
+    if (clean_list != current_list) {
+        wxBusyInfo wait(_("Updating file list and preview..."), m_view);
+        // Rebuild the pre-analysis manager from the clean list
+        m_preAnalysisManager.Clear();
+        double sat_value = m_view->GetSaturationValue();
+        for (const auto& file : clean_list) {
+            m_preAnalysisManager.AddFile(file, sat_value);
         }
-        if (m_preAnalysisManager.GetSortedFileList().size() != original_size) {
-            wxBusyInfo wait(_("Updating file list and preview..."), m_view);
-            UpdateRawPreviewFromCache();
-        }
+        UpdateRawPreviewFromCache();
     }
+    
     UpdateCommandPreview();
 }
 

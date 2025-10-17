@@ -4,9 +4,8 @@
  * @brief Implements high-level image processing orchestration and utilities.
  */
 #include "ImageProcessing.hpp"
-#include "geometry/KeystoneCorrection.hpp"
 #include "../DebugConfig.hpp"
-#include "../io/raw/RawFile.hpp"
+#include "geometry/KeystoneCorrection.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -54,6 +53,7 @@ void ExtractBayerChannel(const cv::Mat& src, cv::Mat& dst, DataSource channel, c
 }
 
 } // end anonymous namespace
+
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
 {
     if (raw_image.empty()) {
@@ -67,65 +67,6 @@ cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double s
     return float_img;
 }
 
-cv::Mat PrepareChartImage(
-    const RawFile& raw_file, 
-    double dark_value,
-    double saturation_value,
-    const cv::Mat& keystone_params,
-    const ChartProfile& chart, 
-    std::ostream& log_stream,
-    DataSource channel_to_extract,
-    const PathManager& paths)
-{
-    // Use the active raw image area, which excludes masked pixels.
-    cv::Mat raw_img = raw_file.GetActiveRawImage();
-    if(raw_img.empty()){
-        return {};
-    }
-    cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
-    
-    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
-    
-    std::string filter_pattern = raw_file.GetFilterPattern();
-    if (filter_pattern != "RGGB" && channel_to_extract == DataSource::G1) {
-        log_stream << "[INFO] Detected non-RGGB Bayer pattern: " << filter_pattern << ". Adjusting channel extraction." << std::endl;
-    }
-    ExtractBayerChannel(img_float, imgBayer, channel_to_extract, filter_pattern);
-    
-    cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(imgBayer, keystone_params);
-
-    const auto& dst_pts = chart.GetDestinationPoints();
-    double xtl = dst_pts[0].x;
-    double ytl = dst_pts[0].y;
-    double xbr = dst_pts[2].x;
-    double ybr = dst_pts[2].y;
-
-    double gap_x = 0.0;
-    double gap_y = 0.0;
-
-    if (!chart.HasManualCoords()) {
-        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
-        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
-    }
-
-    cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
-    
-    // --- VISUAL DEBUG BLOCK ---
-    if (channel_to_extract == DataSource::G1) {
-        // ... (bloque de depuración sin cambios) ...
-    }
-    // --- END OF VISUAL DEBUG BLOCK ---
-
-    if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
-        crop_area.x + crop_area.width > img_corrected.cols ||
-        crop_area.y + crop_area.height > img_corrected.rows) {
-        log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
-        return {};
-    }
-    
-    return img_corrected(crop_area).clone();
-}
-
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value)
 {
     if (overlay_image.empty()) {
@@ -133,7 +74,6 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     }
 
     double normalization_value = max_pixel_value;
-    // --- INICIO DE LA MODIFICACIÓN ---
     // If max_pixel_value is 0 (no valid patches), find the max value in the image itself for normalization.
     if (normalization_value <= 0) {
         cv::minMaxLoc(overlay_image, nullptr, &normalization_value, nullptr, nullptr);
@@ -143,7 +83,6 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
     if (normalization_value <= 0) {
         return {};
     }
-    // --- FIN DE LA MODIFICACIÓN ---
 
     // 1. Normalize using the determined value.
     cv::Mat normalized_image = overlay_image / normalization_value;
@@ -178,4 +117,70 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
         cv::drawMarker(color_image, point, marker_color, cv::MARKER_CROSS, 40, 2);
     }
     return color_image;
+}
+
+// File: src/core/graphics/ImageProcessing.cpp
+/**
+ * @brief Prepares a single-channel Bayer image for analysis by extracting the channel,
+ * normalizing its values, applying keystone correction, and cropping to the chart area.
+ * @param raw_file The source RawFile object, containing the image data and metadata.
+ * @param dark_value The calibrated black level for normalization.
+ * @param saturation_value The calibrated saturation level for normalization.
+ * @param keystone_params The pre-calculated keystone transformation matrix.
+ * @param chart The chart profile defining the geometry (corner points and grid size).
+ * @param log_stream Stream for logging potential errors.
+ * @param channel_to_extract The specific Bayer channel to extract (R, G1, G2, or B).
+ * @param paths The PathManager for resolving debug output paths (not currently used in this function).
+ * @return A fully prepared cv::Mat (CV_32FC1) for the specified channel, ready for patch analysis.
+ * Returns an empty Mat on failure.
+ */
+cv::Mat PrepareChartImage(
+    const RawFile& raw_file, 
+    double dark_value,
+    double saturation_value,
+    const cv::Mat& keystone_params,
+    const ChartProfile& chart, 
+    std::ostream& log_stream,
+    DataSource channel_to_extract,
+    const PathManager& paths)
+{
+    // Use the active raw image area, which excludes masked pixels.
+    cv::Mat raw_img = raw_file.GetActiveRawImage();
+    if(raw_img.empty()){
+        return {};
+    }
+    cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
+    
+    cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
+    std::string filter_pattern = raw_file.GetFilterPattern();
+    
+    // The log message for non-RGGB patterns has been moved to the initialization phase to avoid repetition.
+    ExtractBayerChannel(img_float, imgBayer, channel_to_extract, filter_pattern);
+    
+    cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(imgBayer, keystone_params);
+
+    const auto& dst_pts = chart.GetDestinationPoints();
+    double xtl = dst_pts[0].x;
+    double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x;
+    double ybr = dst_pts[2].y;
+
+    double gap_x = 0.0;
+    double gap_y = 0.0;
+
+    if (!chart.HasManualCoords()) {
+        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
+        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
+    }
+
+    cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
+    
+    if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
+        crop_area.x + crop_area.width > img_corrected.cols ||
+        crop_area.y + crop_area.height > img_corrected.rows) {
+        log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
+        return {};
+    }
+    
+    return img_corrected(crop_area).clone();
 }

@@ -61,17 +61,18 @@ InitializationResult InitializeAnalysis(const ProgramOptions& opts, std::ostream
         }
     }
     loaded_raw_files = std::move(sorted_loaded_files);
-    
+
     if (local_opts.sensor_resolution_mpx == 0.0) {
         local_opts.sensor_resolution_mpx = DetectSensorResolution(local_opts.input_files, log_stream);
     }
     
-    // Store detected dimensions from the first valid file.
+    // Store detected dimensions and Bayer pattern from the first valid file.
     if (!loaded_raw_files.empty()) {
         local_opts.raw_width = loaded_raw_files[0].GetActiveWidth();
         local_opts.raw_height = loaded_raw_files[0].GetActiveHeight();
         local_opts.full_raw_width = loaded_raw_files[0].GetWidth();
         local_opts.full_raw_height = loaded_raw_files[0].GetHeight();
+        result.bayer_pattern = loaded_raw_files[0].GetFilterPattern(); // Store Bayer pattern
     }
     
     if (local_opts.plot_command_mode == 2) {
@@ -80,12 +81,10 @@ InitializationResult InitializeAnalysis(const ProgramOptions& opts, std::ostream
         local_opts.generated_command = CommandGenerator::GenerateCommand(CommandFormat::PlotLong);
     }
     
-    reporter.PrintFinalConfiguration(local_opts, log_stream);
+    reporter.PrintFinalConfiguration(local_opts, result.bayer_pattern, log_stream); // Pass pattern to reporter
     
-    // Select the source image using the dedicated module
     int source_image_index = DynaRange::Engine::Initialization::SelectPreAnalysisRawIndex(loaded_raw_files, local_opts.saturation_value, log_stream);
     
-    // Populate the result struct with all the final values.
     result.success = true;
     result.loaded_raw_files = std::move(loaded_raw_files);
     result.sorted_filenames = local_opts.input_files;

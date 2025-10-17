@@ -6,6 +6,7 @@
 #include "ChartController.hpp"
 #include "../DynaRangeFrame.hpp"
 #include "../../core/arguments/ChartOptionsParser.hpp"
+#include "../../core/arguments/ArgumentsOptions.hpp"
 #include "../../core/graphics/ChartGenerator.hpp"
 #include "../../core/utils/PathManager.hpp"
 #include "../../gui/Constants.hpp"
@@ -13,8 +14,8 @@
 #include <wx/log.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
-#include <wx/dcbuffer.h>   // For wxAutoBufferedPaintDC
-#include <wx/graphics.h> // For wxGraphicsContext
+#include <wx/dcbuffer.h>
+#include <wx/graphics.h>
 
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
@@ -67,7 +68,7 @@ void ChartController::OnCreateClick(wxCommandEvent& event) {
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
     ProgramOptions temp_prog_opts; 
     PathManager paths(temp_prog_opts);
-    fs::path chart_output_path = paths.GetCsvOutputPath().parent_path() / "magentachart_gui.png";
+    fs::path chart_output_path = paths.GetCsvOutputPath().parent_path() / DEFAULT_CHART_FILENAME;
     if (GenerateTestChart(opts, chart_output_path.string(), std::cout)) {
         wxMessageBox(wxString::Format(_("Chart saved successfully to:%s"), chart_output_path.string()), _("Success"), wxOK | wxICON_INFORMATION);
     } else {

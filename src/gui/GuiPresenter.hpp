@@ -1,4 +1,4 @@
-// File: gui/GuiPresenter.hpp
+// File: src/gui/GuiPresenter.hpp
 /**
  * @file GuiPresenter.hpp
  * @brief Declares the Presenter for the main GUI frame.
@@ -9,6 +9,7 @@
 #include "../core/arguments/ArgumentsOptions.hpp"
 #include "../core/engine/Reporting.hpp" // For ReportOutput
 #include "../core/setup/PreAnalysisManager.hpp"
+#include "../core/setup/InputFileManager.hpp" // Added include
 #include <atomic>
 #include <string>
 #include <thread>
@@ -26,18 +27,15 @@ public:
    */
   explicit GuiPresenter(DynaRangeFrame *view);
   ~GuiPresenter();
-
   /**
    * @brief Starts the dynamic range analysis in a background thread.
    */
   void StartAnalysis();
-
   /**
    * @brief Adds a list of files to the current input list.
    * @param files The file paths to add.
    */
   void AddInputFiles(const std::vector<std::string> &files);
-
   /**
    * @brief Updates the command preview text by querying the View for its
    * current state.
@@ -54,13 +52,11 @@ public:
    * @return A const reference to the ProgramOptions struct.
    */
   const ProgramOptions &GetLastRunOptions() const;
-
   /**
    * @brief Gets the report output from the most recent analysis run.
    * @return A const reference to the ReportOutput struct.
    */
   const ReportOutput &GetLastReport() const;
-  
   /**
    * @brief Gets the last generated summary plot image.
    * @return A const reference to the wxImage.
@@ -72,23 +68,19 @@ public:
    * @return true if the worker is active, false otherwise.
    */
   bool IsWorkerRunning() const;
-
   /**
    * @brief Removes a list of files from the input list by their indices.
    * @param indices The vector of zero-based indices to remove.
    */
   void RemoveInputFiles(const std::vector<int> &indices);
-
   /**
    * @brief Removes all files from the current input list.
    */
   void RemoveAllInputFiles();
-
   /**
    * @brief Signals the worker thread to stop its processing.
    */
   void RequestWorkerCancellation();
-
   /**
    * @brief Updates the input file list by filtering out selected calibration files.
    * @details This method ensures that if a user selects a dark or saturation
@@ -106,7 +98,6 @@ private:
    * @param opts The configuration to use for the analysis.
    */
   void AnalysisWorker(ProgramOptions opts);
-
   /**
    * @brief Gathers current settings from the View and updates the
    * ArgumentManager.
@@ -120,21 +111,17 @@ private:
   void UpdateRawPreviewFromCache();
 
   // Member variables
-  DynaRangeFrame *m_view; // Pointer to the View
+  DynaRangeFrame *m_view;
+  // Pointer to the View
 
   // Application State
-  std::vector<std::string> m_inputFiles;
+  InputFileManager m_inputFileManager;
   PreAnalysisManager m_preAnalysisManager;
   ReportOutput m_lastReport;
   ProgramOptions m_lastRunOptions;
-  
   // In-memory images for the GUI
   wxImage m_summaryImage;
   std::map<std::string, wxImage> m_individualImages;
-  /**
-   * @brief (NUEVO) Almacena la ruta del fichero que se está mostrando actualmente en la vista previa.
-   */
-  std::string m_currentPreviewFile;
   
   std::thread m_workerThread;
   std::atomic<bool> m_isWorkerRunning{false};

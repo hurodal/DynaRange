@@ -28,7 +28,8 @@ struct InitializationResult {
     double saturation_value = 0.0;
     bool black_level_is_default = true;
     bool saturation_level_is_default = true;
-    int source_image_index = 0; // Added missing member
+    int source_image_index = 0;
+    std::string bayer_pattern;
 };
 
 /**

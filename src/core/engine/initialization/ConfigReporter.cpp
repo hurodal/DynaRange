@@ -48,7 +48,14 @@ void ConfigReporter::PrintPreAnalysisTable(const std::vector<FileInfo>& file_inf
     }
 }
 
-void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::ostream& log_stream) const
+/**
+ * @brief Prints a summary of the final configuration that will be used for analysis,
+ * including calibration values, channel selections, detected resolutions, and the Bayer pattern.
+ * @param opts The final program options.
+ * @param bayer_pattern The detected Bayer pattern from the RAW file.
+ * @param log_stream The output stream for logging.
+ */
+void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, const std::string& bayer_pattern, std::ostream& log_stream) const
 {
     log_stream << std::fixed << std::setprecision(2);
     log_stream << "\n" << _("[Final configuration]") << std::endl;
@@ -56,13 +63,12 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
                << (opts.black_level_is_default ? _(" (estimated)") : "") << std::endl;
     log_stream << _("Saturation point: ") << opts.saturation_value 
                << (opts.saturation_level_is_default ? _(" (estimated)") : "") << std::endl;
-    
+
     std::vector<std::string> channels_to_print;
     if (opts.raw_channels.R) channels_to_print.push_back("R");
     if (opts.raw_channels.G1) channels_to_print.push_back("G1");
     if (opts.raw_channels.G2) channels_to_print.push_back("G2");
     if (opts.raw_channels.B) channels_to_print.push_back("B");
-    
     if (opts.raw_channels.avg_mode != AvgMode::None) {
         std::string avg_str = "AVG";
         if (opts.raw_channels.avg_mode == AvgMode::Full) {
@@ -94,7 +100,14 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
     std::string channel_label = (channels_to_print.size() > 1) ?
         _("Analysis channels: ") : _("Analysis channel: ");
     log_stream << channel_label << channels_ss.str() << std::endl;
-    
+
+    if (!bayer_pattern.empty()) {
+        log_stream << _("Bayer pattern: ") << bayer_pattern << std::endl;
+        //if (bayer_pattern != "RGGB") {
+        //    log_stream << _("Detected non-RGGB Bayer pattern. Adjusting channel extraction.") << std::endl;
+        //}
+    }
+
     if (opts.sensor_resolution_mpx > 0.0) {
         log_stream << _("Sensor resolution: ") << opts.sensor_resolution_mpx << _(" Mpx") << std::endl;
     }
@@ -112,11 +125,9 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, std::os
         log_stream << opts.snr_thresholds_db[i] << (i == opts.snr_thresholds_db.size() - 1 ? "" : ", ");
     }
     log_stream << _(" dB") << std::endl;
-    
     log_stream << _("DR normalization: ") << opts.dr_normalization_mpx << _(" Mpx") << std::endl;
     log_stream << _("Polynomic order: ") << opts.poly_order << std::endl;
     log_stream << _("Patch ratio: ") << opts.patch_ratio << std::endl;
-    
     log_stream << _("Plotting: ");
     if (!opts.generate_plot) {
         log_stream << _("No graphics") << std::endl;

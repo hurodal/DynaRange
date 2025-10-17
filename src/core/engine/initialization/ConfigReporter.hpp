@@ -12,6 +12,7 @@
 #include "../../setup/MetadataExtractor.hpp" // For FileInfo
 #include <ostream>
 #include <vector>
+#include <string> // For std::string
 
 namespace DynaRange::Engine::Initialization {
 
@@ -31,9 +32,9 @@ public:
     /**
      * @brief Prints a summary of the final configuration that will be used for analysis.
      * @param opts The final program options.
+     * @param bayer_pattern The detected Bayer pattern from the RAW file.
      * @param log_stream The output stream for logging.
      */
-    void PrintFinalConfiguration(const ProgramOptions& opts, std::ostream& log_stream) const;
+    void PrintFinalConfiguration(const ProgramOptions& opts, const std::string& bayer_pattern, std::ostream& log_stream) const;
 };
-
 } // namespace DynaRange::Engine::Initialization

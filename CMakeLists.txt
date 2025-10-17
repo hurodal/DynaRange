@@ -110,6 +110,7 @@ set(CORE_SOURCES
     src/core/math/Math.cpp   
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
+    src/core/setup/InputFileManager.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
     src/core/setup/SensorResolution.cpp
