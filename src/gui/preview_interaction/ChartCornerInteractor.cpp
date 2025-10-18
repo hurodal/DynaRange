@@ -26,9 +26,9 @@ void ChartCornerInteractor::ResetCorners()
 {
     // Reset corners to the exact image boundaries.
     m_corners[static_cast<int>(Corner::TL)] = wxPoint2DDouble(0.0, 0.0);
-    m_corners[static_cast<int>(Corner::BL)] = wxPoint2DDouble(0.0, m_imageSize.GetHeight() - 1.0);
-    m_corners[static_cast<int>(Corner::BR)] = wxPoint2DDouble(m_imageSize.GetWidth() - 1.0, m_imageSize.GetHeight() - 1.0);
-    m_corners[static_cast<int>(Corner::TR)] = wxPoint2DDouble(m_imageSize.GetWidth() - 1.0, 0.0);
+    m_corners[static_cast<int>(Corner::BL)] = wxPoint2DDouble(0.0, m_imageSize.GetHeight() > 0 ? m_imageSize.GetHeight() - 1.0 : 0.0);
+    m_corners[static_cast<int>(Corner::BR)] = wxPoint2DDouble(m_imageSize.GetWidth() > 0 ? m_imageSize.GetWidth() - 1.0 : 0.0, m_imageSize.GetHeight() > 0 ? m_imageSize.GetHeight() - 1.0 : 0.0);
+    m_corners[static_cast<int>(Corner::TR)] = wxPoint2DDouble(m_imageSize.GetWidth() > 0 ? m_imageSize.GetWidth() - 1.0 : 0.0, 0.0);
 }
 
 ChartCornerInteractor::Corner ChartCornerInteractor::HitTest(const wxPoint& point, double handleRadius) const
@@ -74,9 +74,9 @@ void ChartCornerInteractor::UpdateDraggedCorner(const wxPoint& point)
 
     wxRect2DDouble quadrant = GetQuadrant(m_draggedCorner);
     
-    // Se añade static_cast<double>() para resolver el conflicto de tipos entre int y double.
-    double newX = std::max(quadrant.m_x, std::min(static_cast<double>(point.x), quadrant.m_x + quadrant.m_width));
-    double newY = std::max(quadrant.m_y, std::min(static_cast<double>(point.y), quadrant.m_y + quadrant.m_height));
+    // Clamp the point to stay within the allowed quadrant and image boundaries
+    double newX = std::max(0.0, std::min(static_cast<double>(m_imageSize.GetWidth() - 1), std::max(quadrant.m_x, std::min(static_cast<double>(point.x), quadrant.m_x + quadrant.m_width))));
+    double newY = std::max(0.0, std::min(static_cast<double>(m_imageSize.GetHeight() - 1), std::max(quadrant.m_y, std::min(static_cast<double>(point.y), quadrant.m_y + quadrant.m_height))));
     
     m_corners[static_cast<int>(m_draggedCorner)] = wxPoint2DDouble(newX, newY);
 }
@@ -90,19 +90,17 @@ wxRect2DDouble ChartCornerInteractor::GetQuadrant(Corner corner) const
 {
     double halfWidth = m_imageSize.GetWidth() / 2.0;
     double halfHeight = m_imageSize.GetHeight() / 2.0;
+    // Ensure width/height are at least 1 to avoid invalid rectangles if image size is tiny
+    double w = std::max(1.0, halfWidth);
+    double h = std::max(1.0, halfHeight);
 
     switch (corner)
     {
-        case Corner::TL:
-            return wxRect2DDouble(0, 0, halfWidth, halfHeight);
-        case Corner::BL:
-            return wxRect2DDouble(0, halfHeight, halfWidth, halfHeight);
-        case Corner::BR:
-            return wxRect2DDouble(halfWidth, halfHeight, halfWidth, halfHeight);
-        case Corner::TR:
-            return wxRect2DDouble(halfWidth, 0, halfWidth, halfHeight);
-        default:
-            return wxRect2DDouble(0, 0, 0, 0); // Should not happen
+        case Corner::TL: return wxRect2DDouble(0, 0, w, h);
+        case Corner::BL: return wxRect2DDouble(0, halfHeight, w, h);
+        case Corner::BR: return wxRect2DDouble(halfWidth, halfHeight, w, h);
+        case Corner::TR: return wxRect2DDouble(halfWidth, 0, w, h);
+        default:         return wxRect2DDouble(0, 0, 0, 0); // Should not happen
     }
 }
 
@@ -123,9 +121,24 @@ void ChartCornerInteractor::MoveSelectedCorner(int dx, int dy)
     wxPoint2DDouble& corner_point = m_corners[static_cast<int>(m_selectedCorner)];
     wxRect2DDouble quadrant = GetQuadrant(m_selectedCorner);
 
-    double newX = std::max(quadrant.m_x, std::min(corner_point.m_x + dx, quadrant.m_x + quadrant.m_width));
-    double newY = std::max(quadrant.m_y, std::min(corner_point.m_y + dy, quadrant.m_y + quadrant.m_height));
+    // Calculate new position and clamp within quadrant and image boundaries
+    double newX = std::max(0.0, std::min(static_cast<double>(m_imageSize.GetWidth() - 1), std::max(quadrant.m_x, std::min(corner_point.m_x + dx, quadrant.m_x + quadrant.m_width))));
+    double newY = std::max(0.0, std::min(static_cast<double>(m_imageSize.GetHeight() - 1), std::max(quadrant.m_y, std::min(corner_point.m_y + dy, quadrant.m_y + quadrant.m_height))));
 
     corner_point.m_x = newX;
     corner_point.m_y = newY;
+}
+
+void ChartCornerInteractor::SetCornerPosition(Corner corner, wxPoint2DDouble newPos) {
+    if (corner == Corner::None || static_cast<int>(corner) >= m_corners.size()) {
+        return;
+    }
+
+    wxRect2DDouble quadrant = GetQuadrant(corner);
+
+    // Clamp the new position within the allowed quadrant and image boundaries
+    double newX = std::max(0.0, std::min(static_cast<double>(m_imageSize.GetWidth() - 1), std::max(quadrant.m_x, std::min(newPos.m_x, quadrant.m_x + quadrant.m_width))));
+    double newY = std::max(0.0, std::min(static_cast<double>(m_imageSize.GetHeight() - 1), std::max(quadrant.m_y, std::min(newPos.m_y, quadrant.m_y + quadrant.m_height))));
+
+    m_corners[static_cast<int>(corner)] = wxPoint2DDouble(newX, newY);
 }

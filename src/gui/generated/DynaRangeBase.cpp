@@ -146,7 +146,126 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	darkSatInputRawSizer->Add( inputRawSizer, 1, wxALL|wxEXPAND, 5 );
 
 
-	inputColLeftSizer->Add( darkSatInputRawSizer, 0, wxEXPAND, 5 );
+	inputColLeftSizer->Add( darkSatInputRawSizer, 0, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* graphicsMainSizer;
+	graphicsMainSizer = new wxBoxSizer( wxVERTICAL );
+
+	wxStaticBoxSizer* graphicSizer;
+	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Graphics") ), wxVERTICAL );
+
+	wxBoxSizer* plotParamsSizer;
+	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_plotParamScattersCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Scatters"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, 0, 5 );
+
+	m_plotParamCurveCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Curves"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, 0, 5 );
+
+	m_plotParamLabelsCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Labels"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, 0, 5 );
+
+
+	plotParamsSizer->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	allIsosCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("All ISOs"), wxDefaultPosition, wxDefaultSize, 0 );
+	plotParamsSizer->Add( allIsosCheckBox, 0, 0, 5 );
+
+
+	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* graphicsOthersSizer;
+	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	graphicFormatStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
+	graphicFormatStaticText->Wrap( -1 );
+	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
+	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
+	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
+	m_plotFormatChoice->SetSelection( 0 );
+	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_plotingStaticText->Wrap( -1 );
+	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
+	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
+	m_plotingChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
+	m_plotingChoice->SetSelection( 3 );
+	graphicsOthersSizer->Add( m_plotingChoice, 0, wxALL, 5 );
+
+
+	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
+
+
+	graphicsMainSizer->Add( graphicSizer, 0, wxALL|wxEXPAND|wxRIGHT, 5 );
+
+
+	inputColLeftSizer->Add( graphicsMainSizer, 0, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* patchesMainSizer;
+	patchesMainSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	wxStaticBoxSizer* patchesStaticSizer;
+	patchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Pacthes") ), wxHORIZONTAL );
+
+	wxStaticBoxSizer* chatPatchStaticSizer;
+	chatPatchStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Chart patches") ), wxVERTICAL );
+
+	wxFlexGridSizer* chartPatchFgSizer;
+	chartPatchFgSizer = new wxFlexGridSizer( 0, 0, 0, 0 );
+	chartPatchFgSizer->SetFlexibleDirection( wxBOTH );
+	chartPatchFgSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	chartPatchRowStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Rows."), wxDefaultPosition, wxDefaultSize, 0 );
+	chartPatchRowStaticText1->Wrap( -1 );
+	chartPatchFgSizer->Add( chartPatchRowStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartPatchRowValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	chartPatchFgSizer->Add( m_chartPatchRowValue1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	chartPatchColStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Cols."), wxDefaultPosition, wxDefaultSize, 0 );
+	chartPatchColStaticText1->Wrap( -1 );
+	chartPatchFgSizer->Add( chartPatchColStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartPatchColValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
+	chartPatchFgSizer->Add( m_chartPatchColValue1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	chatPatchStaticSizer->Add( chartPatchFgSizer, 1, wxALL|wxEXPAND, 5 );
+
+
+	patchesStaticSizer->Add( chatPatchStaticSizer, 0, wxALL|wxRIGHT, 5 );
+
+	wxStaticBoxSizer* debugPatchesStaticSizer;
+	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
+
+	wxBoxSizer* m_debugPatchesSizer;
+	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
+
+	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_debugPatchesFileNameValue->Enable( false );
+
+	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 1, wxALL|wxEXPAND, 5 );
+
+
+	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxALL|wxEXPAND, 5 );
+
+
+	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxALL, 5 );
+
+
+	patchesMainSizer->Add( patchesStaticSizer, 1, wxALL|wxEXPAND, 5 );
+
+
+	inputColLeftSizer->Add( patchesMainSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 
 	twoColMainPanelSizer->Add( inputColLeftSizer, 1, wxEXPAND, 5 );
@@ -288,137 +407,6 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 
 	inputColRightSizer->Add( analysisGraphSizer, 0, wxALL|wxEXPAND, 5 );
-
-	wxBoxSizer* patchesAndGraphicsSizer;
-	patchesAndGraphicsSizer = new wxBoxSizer( wxVERTICAL );
-
-	wxBoxSizer* patchesMainSizer;
-	patchesMainSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	wxStaticBoxSizer* patchesStaticSizer;
-	patchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Pacthes") ), wxVERTICAL );
-
-	wxStaticBoxSizer* chatPatchStaticSizer;
-	chatPatchStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Chart patches") ), wxVERTICAL );
-
-	wxBoxSizer* chartPatchSizer1;
-	chartPatchSizer1 = new wxBoxSizer( wxVERTICAL );
-
-
-	chatPatchStaticSizer->Add( chartPatchSizer1, 0, wxALL, 5 );
-
-	wxFlexGridSizer* chartPatchFgSizer;
-	chartPatchFgSizer = new wxFlexGridSizer( 0, 2, 0, 0 );
-	chartPatchFgSizer->SetFlexibleDirection( wxBOTH );
-	chartPatchFgSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
-
-	chartPatchRowStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Rows."), wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchRowStaticText1->Wrap( -1 );
-	chartPatchFgSizer->Add( chartPatchRowStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartPatchRowValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	chartPatchFgSizer->Add( m_chartPatchRowValue1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	chartPatchColStaticText1 = new wxStaticText( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, _("Cols."), wxDefaultPosition, wxDefaultSize, 0 );
-	chartPatchColStaticText1->Wrap( -1 );
-	chartPatchFgSizer->Add( chartPatchColStaticText1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartPatchColValue1 = new wxTextCtrl( chatPatchStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 70,-1 ), 0 );
-	chartPatchFgSizer->Add( m_chartPatchColValue1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-
-	chatPatchStaticSizer->Add( chartPatchFgSizer, 1, wxEXPAND, 5 );
-
-
-	patchesStaticSizer->Add( chatPatchStaticSizer, 0, wxLEFT|wxRIGHT, 5 );
-
-	wxStaticBoxSizer* debugPatchesStaticSizer;
-	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
-
-	wxBoxSizer* m_debugPatchesSizer;
-	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesFileNameValue->Enable( false );
-
-	m_debugPatchesSizer->Add( m_debugPatchesFileNameValue, 1, wxALL|wxEXPAND, 5 );
-
-
-	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxEXPAND, 5 );
-
-
-	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
-
-	patchesMainSizer->Add( patchesStaticSizer, 1, wxEXPAND|wxLEFT, 5 );
-
-
-	patchesAndGraphicsSizer->Add( patchesMainSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
-	wxBoxSizer* graphicsMainSizer;
-	graphicsMainSizer = new wxBoxSizer( wxVERTICAL );
-
-	wxStaticBoxSizer* graphicSizer;
-	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( m_inputPanel, wxID_ANY, _("Graphics") ), wxVERTICAL );
-
-	wxBoxSizer* plotParamsSizer;
-	plotParamsSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_plotParamScattersCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Scatters"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamScattersCheckBox, 0, 0, 5 );
-
-	m_plotParamCurveCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Curves"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamCurveCheckBox, 0, 0, 5 );
-
-	m_plotParamLabelsCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Labels"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( m_plotParamLabelsCheckBox, 0, 0, 5 );
-
-
-	plotParamsSizer->Add( 0, 0, 1, wxEXPAND, 5 );
-
-	allIsosCheckBox = new wxCheckBox( graphicSizer->GetStaticBox(), wxID_ANY, _("All ISOs"), wxDefaultPosition, wxDefaultSize, 0 );
-	plotParamsSizer->Add( allIsosCheckBox, 0, 0, 5 );
-
-
-	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
-
-	wxBoxSizer* graphicsOthersSizer;
-	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	graphicFormatStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic format"), wxDefaultPosition, wxDefaultSize, 0 );
-	graphicFormatStaticText->Wrap( -1 );
-	graphicsOthersSizer->Add( graphicFormatStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-	wxString m_plotFormatChoiceChoices[] = { _("PNG"), _("PDF"), _("SVG") };
-	int m_plotFormatChoiceNChoices = sizeof( m_plotFormatChoiceChoices ) / sizeof( wxString );
-	m_plotFormatChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotFormatChoiceNChoices, m_plotFormatChoiceChoices, 0 );
-	m_plotFormatChoice->SetSelection( 0 );
-	graphicsOthersSizer->Add( m_plotFormatChoice, 0, wxALIGN_CENTER_VERTICAL, 5 );
-
-	m_plotingStaticText = new wxStaticText( graphicSizer->GetStaticBox(), wxID_ANY, _("Graphic"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_plotingStaticText->Wrap( -1 );
-	graphicsOthersSizer->Add( m_plotingStaticText, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-	wxString m_plotingChoiceChoices[] = { _("No"), _("Graphic"), _("Graphic + Short Command"), _("Graphic + Long Command") };
-	int m_plotingChoiceNChoices = sizeof( m_plotingChoiceChoices ) / sizeof( wxString );
-	m_plotingChoice = new wxChoice( graphicSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, m_plotingChoiceNChoices, m_plotingChoiceChoices, 0 );
-	m_plotingChoice->SetSelection( 3 );
-	graphicsOthersSizer->Add( m_plotingChoice, 0, wxALL, 5 );
-
-
-	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
-
-
-	graphicsMainSizer->Add( graphicSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
-
-
-	patchesAndGraphicsSizer->Add( graphicsMainSizer, 0, wxEXPAND, 5 );
-
-
-	inputColRightSizer->Add( patchesAndGraphicsSizer, 0, 0, 5 );
 
 
 	twoColMainPanelSizer->Add( inputColRightSizer, 0, wxEXPAND, 5 );
