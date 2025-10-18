@@ -13,7 +13,7 @@ PRIORITARIAS
     2. Si se suministran valores se usan
     3. En otro caso proceso Automático (explicado abajo)
 
-    IMPORTANTE: PENDIENTE DETECCIÓN DE CÁMARAS CON NIVEL DE NEGRO=0 (Nikon) -> para ellas el nivel de negro=0 y se aplica reconstrucción de la distr. normal
+    IMPORTANTE: PENDIENTE DETECCIÓN DE CÁMARAS CON NIVEL DE NEGRO=0 (Nikon) -> para ellas el nivel de negro=0 y se aplica reconstrucción de la distr. normal (VERLO CON CALMA)
 
 0b: REDUCIR EL UMBRAL DEL CUANTIL EN LA DETECCIÓN DE LOS TESTIGOS, DE THRESHOLD=1-Quantile/4 -> THRESHOLD=1-Quantile/8:
     DIAG=(DIMX^2+DIMY^2)^0.5
@@ -171,6 +171,7 @@ HECHOS
               std::cout << "Saturation level = " << satLevel << std::endl;  // Output: 16383
               return 0;
           }
+
 
 
 
