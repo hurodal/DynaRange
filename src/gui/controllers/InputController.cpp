@@ -50,21 +50,23 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", DEFAULT_PATCH_RATIO));
     m_frame->m_drNormalizationSlider->SetValue(static_cast<int>(DEFAULT_DR_NORMALIZATION_MPX));
     m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", DEFAULT_DR_NORMALIZATION_MPX));
-    m_frame->m_plotingChoice->SetSelection(DEFAULT_PLOT_MODE);
+
+    // Set default plot mode to "Graphic" (index 1)
+    m_frame->m_plotingChoice->SetSelection(1);
+
     m_frame->m_debugPatchesCheckBox->SetValue(false);
     m_frame->m_debugPatchesFileNameValue->Enable(false);
+    // R,G1,G2,B checkboxes are initialized by wxFormBuilder (checked by default now)
+    m_frame->AVG_ChoiceValue->SetSelection(DynaRange::Gui::Constants::AvgChoices::DEFAULT_INDEX);
 
-    // Se eliminan las siguientes líneas para respetar el valor por defecto de wxFormBuilder (marcado)
-    // m_frame->R_checkBox->SetValue(false);
-    // m_frame->G1_checkBox->SetValue(false);
-    // m_frame->G2_checkBox->SetValue(false);
-    // m_frame->B_checkBox->SetValue(false);
-
-    m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
-
-    // Ensure the gamma slider is disabled by default.
+    // Ensure the gamma slider is disabled by default, but set its initial value using the constant
     m_frame->m_gammaThumbSlider->Enable(false);
+    m_frame->m_gammaThumbSlider->SetValue(DynaRange::Gui::Constants::DEFAULT_GAMMA_SLIDER_VALUE);
+
+    // Update AVG choice options based on initial checkbox state
+    UpdateAvgChoiceOptions();
 }
+
 // Explicit destructor implementation
 InputController::~InputController() = default;
 
@@ -250,7 +252,12 @@ void InputController::OnAddFilesClick(wxCommandEvent& event) {
 }
 
 void InputController::OnInputChanged(wxEvent& event) {
+    // Update the available options in the Average mode choice
+    UpdateAvgChoiceOptions();
+    // Update the equivalent CLI command preview
     m_frame->m_presenter->UpdateCommandPreview();
+    // Allow the event to propagate if needed (e.g., for text control updates)
+    event.Skip();
 }
 
 void InputController::OnPatchRatioSliderChanged(wxScrollEvent& event) {
@@ -393,4 +400,53 @@ bool InputController::ShouldEstimateSaturationLevel() const
     bool isFilePickerEmpty = m_frame->m_saturationFilePicker->GetPath().IsEmpty();
     bool isTextBoxEmpty = m_frame->m_saturationValueTextCtrl->GetValue().IsEmpty();
     return isFilePickerEmpty && isTextBoxEmpty;
+}
+
+void InputController::UpdateAvgChoiceOptions() {
+    using namespace DynaRange::Gui::Constants::AvgChoices;
+
+    // Get current selection before clearing
+    int currentSelectionIndex = m_frame->AVG_ChoiceValue->GetSelection();
+    wxString currentSelectionString = m_frame->AVG_ChoiceValue->GetStringSelection();
+
+    // Check if any individual channel is selected
+    bool anyChannelSelected = m_frame->R_checkBox->IsChecked() ||
+                              m_frame->G1_checkBox->IsChecked() ||
+                              m_frame->G2_checkBox->IsChecked() ||
+                              m_frame->B_checkBox->IsChecked();
+
+    // Rebuild the choice list
+    m_frame->AVG_ChoiceValue->Clear();
+    m_frame->AVG_ChoiceValue->Append(_(No)); // Use _() for translation at runtime
+    m_frame->AVG_ChoiceValue->Append(_(Full));
+    bool selectedOptionAvailable = false;
+    if (anyChannelSelected) {
+        m_frame->AVG_ChoiceValue->Append(_(Selected));
+        selectedOptionAvailable = true; // "Only Selected" is now an option
+    }
+
+    // Determine the new selection
+    int newSelectionIndex = DEFAULT_INDEX; // Default to "Full"
+
+    // Try to restore previous selection if possible
+    if (currentSelectionString == _(No)) {
+        newSelectionIndex = IDX_NO;
+    } else if (currentSelectionString == _(Full)) {
+        newSelectionIndex = IDX_FULL;
+    } else if (currentSelectionString == _(Selected)) {
+        if (selectedOptionAvailable) {
+            // Find the index of "Only Selected" (it might be 2)
+            newSelectionIndex = m_frame->AVG_ChoiceValue->FindString(_(Selected));
+        } else {
+            // "Only Selected" was chosen but is no longer valid, revert to default
+            newSelectionIndex = DEFAULT_INDEX;
+        }
+    }
+
+    // Ensure the index is valid before setting
+    if (newSelectionIndex < 0 || newSelectionIndex >= (int)m_frame->AVG_ChoiceValue->GetCount()) {
+        newSelectionIndex = DEFAULT_INDEX; // Fallback safety
+    }
+
+    m_frame->AVG_ChoiceValue->SetSelection(newSelectionIndex);
 }
