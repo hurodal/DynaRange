@@ -64,13 +64,18 @@ public:
     void OnDrNormSliderChanged(wxScrollEvent& event);
     void OnDebugPatchesCheckBoxChanged(wxCommandEvent& event);
     void OnCalibrationFileChanged(wxFileDirPickerEvent& event);
-    void OnInputChanged(wxEvent& event);
+    void OnInputChanged(wxEvent& event); // Handles checkbox changes
     void OnClearDarkFile(wxCommandEvent& event);
     void OnClearSaturationFile(wxCommandEvent& event);
     void OnInputChartPatchChanged(wxCommandEvent& event);
     void OnClearAllCoordsClick(wxCommandEvent& event);
 
 private:
+    /**
+     * @brief Updates the items and selection of the AVG mode wxChoice control
+     * based on the state of the individual channel checkboxes.
+     */
+    void UpdateAvgChoiceOptions();
     void PerformFileRemoval();
     bool IsSupportedRawFile(const wxString& filePath);
 

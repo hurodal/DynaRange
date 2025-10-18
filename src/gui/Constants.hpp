@@ -1,5 +1,4 @@
 // File: src/gui/Constants.hpp
-// File: src/gui/Constants.hpp
 /**
  * @file src/gui/Constants.hpp
  * @brief Centralizes constants related to the Graphical User Interface.
@@ -8,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <wx/string.h>
-#include <wx/intl.h>
+#include <wx/intl.h> // Needed for wxTRANSLATE
 
 namespace DynaRange::Gui::Constants {
 
@@ -30,7 +29,12 @@ namespace DynaRange::Gui::Constants {
     constexpr const char* LOG_OUTPUT_FILENAME = "DynaRange Analysis Results.txt";
 
     /**
-     * @brief (New) Fallback list of supported RAW file extensions.
+     * @brief The default initial value for the gamma/contrast slider (0-100).
+     */
+    constexpr int DEFAULT_GAMMA_SLIDER_VALUE = 90;
+
+    /**
+     * @brief Fallback list of supported RAW file extensions.
      */
     const std::vector<std::string> FALLBACK_RAW_EXTENSIONS = {
         "3fr", "ari", "arw", "bay", "crw", "cr2", "cr3", "cap", "data", "dcs",
@@ -40,7 +44,7 @@ namespace DynaRange::Gui::Constants {
     };
 
     /**
-     * @brief (New Function) Generates the wildcard filter string for file dialogs.
+     * @brief Generates the wildcard filter string for file dialogs.
      * @param extensions The list of file extensions (without dots).
      * @return A wxString formatted for use in wxFileDialog.
      */
@@ -56,9 +60,28 @@ namespace DynaRange::Gui::Constants {
             }
         }
         return wxString::Format(
-            _("RAW files (%s)|%s|All files (*.*)|*.*"),
+            // Use wxTRANSLATE to mark strings for translation
+            wxTRANSLATE("RAW files (%s)|%s|All files (*.*)|*.*"),
             wildcard, wildcard
         );
+    }
+
+    /**
+     * @namespace AvgChoices
+     * @brief Defines the available options and indices for the Average Mode wxChoice.
+     */
+    namespace AvgChoices {
+        // Mark strings for translation using wxTRANSLATE
+        const wxString No = wxTRANSLATE("No");
+        const wxString Full = wxTRANSLATE("Full");
+        const wxString Selected = wxTRANSLATE("Only Selected");
+
+        constexpr int IDX_NO = 0;
+        constexpr int IDX_FULL = 1;
+        constexpr int IDX_SELECTED = 2; // Index if it were present
+
+        const wxString DEFAULT_CHOICE = Full; // Default selection string
+        constexpr int DEFAULT_INDEX = IDX_FULL; // Default selection index
     }
 
 } // namespace DynaRange::Gui::Constants

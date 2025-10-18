@@ -170,43 +170,42 @@ std::map<std::string, std::string> GenerateIndividualPlots(
         results_by_file[result.filename].push_back(result);
     }
 
-    std::vector<std::future<std::pair<std::string, std::optional<std::string>>>> futures;
-    std::mutex log_mutex;
+    // Remove parallelism: Iterate directly and call GeneratePlotInternal sequentially.
+    std::mutex log_mutex; // Still potentially needed for GeneratePlotInternal's error logging
 
     for (const auto& pair : curves_by_file) {
         const std::string& filename = pair.first;
         const std::vector<CurveData>& curves_for_this_file = pair.second;
+        // Ensure results exist for the file before accessing with .at()
+        if (results_by_file.find(filename) == results_by_file.end()) {
+             // Optionally log a warning here if results are expected but missing
+             continue; // Skip this file if no results are found
+        }
         const std::vector<DynamicRangeResult>& results_for_this_file = results_by_file.at(filename);
 
-        if (curves_for_this_file.empty()) continue;
-        futures.push_back(std::async(std::launch::async, 
-            [&, filename, curves_for_this_file, results_for_this_file]() -> std::pair<std::string, std::optional<std::string>> {
-                
-                const auto& first_curve = curves_for_this_file[0];
-                fs::path plot_path = paths.GetIndividualPlotPath(first_curve, reporting_params.raw_channels, reporting_params.plot_format);
-                
-                std::stringstream title_ss;
-                title_ss << fs::path(filename).filename().string();
-                if (!first_curve.camera_model.empty()) {
-                    title_ss << " (" << first_curve.camera_model;
-                    if (first_curve.iso_speed > 0) {
-                        title_ss << ", " << _("ISO ") << static_cast<int>(first_curve.iso_speed);
-                    }
-                    title_ss << ")";
-                }
- 
-                auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, reporting_params, log_stream, log_mutex, global_bounds);
-                return {filename, path_opt};
-            }
-        ));
-    }
 
-    for (auto& fut : futures) {
-        auto [filename, path_opt] = fut.get();
+        if (curves_for_this_file.empty()) continue;
+
+        const auto& first_curve = curves_for_this_file[0];
+        fs::path plot_path = paths.GetIndividualPlotPath(first_curve, reporting_params.raw_channels, reporting_params.plot_format);
+
+        std::stringstream title_ss;
+        title_ss << fs::path(filename).filename().string();
+        if (!first_curve.camera_model.empty()) {
+            title_ss << " (" << first_curve.camera_model;
+            if (first_curve.iso_speed > 0) {
+                title_ss << ", " << _("ISO ") << static_cast<int>(first_curve.iso_speed);
+            }
+            title_ss << ")";
+        }
+
+        // Direct sequential call
+        auto path_opt = GeneratePlotInternal(plot_path.string(), title_ss.str(), curves_for_this_file, results_for_this_file, reporting_params, log_stream, log_mutex, global_bounds);
+
         if (path_opt) {
             plot_paths_map[filename] = *path_opt;
         }
     }
-    
+
     return plot_paths_map;
 }
