@@ -1,6 +1,8 @@
 BUGS
 ====
 
+- Al introducir las esquinas manualmente, ya no deberia exportar el "Debug detected corners".
+
 - (RECOMPROBAR Y DIME ALGO, A MI ME FUNCIONA) Al MARCAR LA OPCION "ALL ISOs" SISTEMATICAMENTE CUELGA EL PROGRAMA.
 
 - Al desmarcar la opcion SCATTERS, dejan de plotearse los puntos... (esto es lo esperable) (COMPROBAR DE NUEVO A VER SI FUNCIONA)
