@@ -281,43 +281,69 @@ void DynaRangeFrame::OnRemoveAllFilesClick(wxCommandEvent& event) {
 }
 
 void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
-    SetUiState(false);
+    SetUiState(false); // Set UI to idle state (reenables controls, hides gauge)
     const ReportOutput& report = m_presenter->GetLastReport();
+
+    // If the final_csv_path is empty, it means analysis was cancelled or failed.
     if (report.final_csv_path.empty()) {
+        // Log already contains cancellation/error message. Just return.
         return;
     }
 
+    // --- Analysis completed successfully ---
     const wxImage& summary_image = m_presenter->GetLastSummaryImage();
-    DisplayResults(report.final_csv_path);
-if (summary_image.IsOk()) {
-        DisplayImage(summary_image);
-    } else if (GetPlotMode() != 0) {
-        m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
-        m_resultsController->LoadDefaultContent(); 
-        m_logController->AppendText(_("\nError: Summary plot could not be generated."));
-    } else {
-        m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
-        m_resultsController->LoadDefaultContent();
-    }
 
-    if (ShouldSaveLog()) {
-        ProgramOptions temp_opts;
-        temp_opts.output_filename = GetOutputFilePath();
-        PathManager paths(temp_opts);
-        fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
+    // Display the results grid (this function no longer changes the tab)
+    // We capture the success state to know if we should proceed.
+    bool results_displayed = m_resultsController->DisplayResults(report.final_csv_path);
 
-        wxString log_content = m_logOutputTextCtrl->GetValue();
-        std::ofstream log_file(log_path);
-        if (log_file.is_open()) {
-            log_file << log_content.ToStdString();
-            log_file.close();
-            m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
+    if (results_displayed) {
+        // If the grid was loaded, display the summary image if available
+        if (summary_image.IsOk()) {
+            DisplayImage(summary_image); // Updates image panel on Results tab
+        } else if (GetPlotMode() != 0) {
+            // If plot was requested but failed
+            m_generateGraphStaticText->SetLabel(_("Results loaded, but summary plot failed."));
+            m_resultsController->LoadDefaultContent(); // Show default logo
+            m_logController->AppendText(_("\nError: Summary plot could not be generated."));
         } else {
-            m_logController->AppendText(wxString::Format(_("\n[ERROR] Could not save log to file: %s\n"), log_path.string()));
+            // If plot was not requested
+            m_generateGraphStaticText->SetLabel(_("Results loaded. Plot generation was not requested."));
+            m_resultsController->LoadDefaultContent(); // Show default logo
         }
+
+        // --- Log Saving Logic ---
+        if (ShouldSaveLog()) {
+            ProgramOptions temp_opts;
+            temp_opts.output_filename = GetOutputFilePath(); // Use CSV path as base
+            PathManager paths(temp_opts);
+            fs::path log_path = paths.GetCsvOutputPath().parent_path() / DynaRange::Gui::Constants::LOG_OUTPUT_FILENAME;
+
+            wxString log_content = m_logOutputTextCtrl->GetValue();
+            std::ofstream log_file(log_path);
+            if (log_file.is_open()) {
+                log_file << log_content.ToStdString();
+                log_file.close();
+                m_logController->AppendText(wxString::Format(_("\n[INFO] Log saved to: %s\n"), log_path.string()));
+            } else {
+                m_logController->AppendText(wxString::Format(_("\n[ERROR] Could not save log to file: %s\n"), log_path.string()));
+            }
+        }
+
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Force selection of the "Results" tab AFTER everything else is done.
+        int page_index = m_mainNotebook->FindPage(m_resultsPanel);
+        if (page_index != wxNOT_FOUND) {
+            m_mainNotebook->SetSelection(page_index);
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+
+    } else {
+         // Handle the case where DisplayResults failed (e.g., couldn't read CSV)
+         ShowError(_("Error"), _("Could not open or process the results file: ") + wxString(report.final_csv_path));
+         // Stay on the Log tab or switch back to Input? For now, do nothing extra.
     }
 }
-
 void DynaRangeFrame::OnWorkerUpdate(wxThreadEvent& event) {
     wxString log_message = event.GetString();
     m_logController->AppendText(log_message);
