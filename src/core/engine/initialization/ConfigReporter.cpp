@@ -102,7 +102,7 @@ void ConfigReporter::PrintFinalConfiguration(const ProgramOptions& opts, const s
     log_stream << channel_label << channels_ss.str() << std::endl;
 
     if (!bayer_pattern.empty()) {
-        log_stream << _("Bayer pattern: ") << bayer_pattern << std::endl;
+        log_stream << _("Bayer pattern detected: ") << bayer_pattern << std::endl;
         //if (bayer_pattern != "RGGB") {
         //    log_stream << _("Detected non-RGGB Bayer pattern. Adjusting channel extraction.") << std::endl;
         //}
