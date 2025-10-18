@@ -362,6 +362,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	channelsSizer->Add( R_staticText, 0, wxALL, 5 );
 
 	R_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	R_checkBox->SetValue(true);
 	channelsSizer->Add( R_checkBox, 0, wxALL, 5 );
 
 	G1_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("G1"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -369,6 +370,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	channelsSizer->Add( G1_staticText, 0, wxALL, 5 );
 
 	G1_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	G1_checkBox->SetValue(true);
 	channelsSizer->Add( G1_checkBox, 0, wxALL, 5 );
 
 	G2_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("G2"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -384,6 +386,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	channelsSizer->Add( B_staticText, 0, wxALL, 5 );
 
 	B_checkBox = new wxCheckBox( channelsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	B_checkBox->SetValue(true);
 	channelsSizer->Add( B_checkBox, 0, wxALL, 5 );
 
 
@@ -396,7 +399,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxString AVG_ChoiceValueChoices[] = { _("No"), _("Full"), _("Only Selected") };
 	int AVG_ChoiceValueNChoices = sizeof( AVG_ChoiceValueChoices ) / sizeof( wxString );
 	AVG_ChoiceValue = new wxChoice( channelsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, AVG_ChoiceValueNChoices, AVG_ChoiceValueChoices, 0 );
-	AVG_ChoiceValue->SetSelection( 2 );
+	AVG_ChoiceValue->SetSelection( 1 );
 	channelsSizer->Add( AVG_ChoiceValue, 0, 0, 5 );
 
 

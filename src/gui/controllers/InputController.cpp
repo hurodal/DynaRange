@@ -41,7 +41,7 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     if (default_index != -1) {
         m_frame->m_PlotChoice->SetSelection(default_index);
     }
-    
+
     m_frame->m_darkValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_BLACK_LEVEL));
     m_frame->m_saturationValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_SATURATION_LEVEL));
 
@@ -53,16 +53,18 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
     m_frame->m_plotingChoice->SetSelection(DEFAULT_PLOT_MODE);
     m_frame->m_debugPatchesCheckBox->SetValue(false);
     m_frame->m_debugPatchesFileNameValue->Enable(false);
-    m_frame->R_checkBox->SetValue(false);
-    m_frame->G1_checkBox->SetValue(false);
-    m_frame->G2_checkBox->SetValue(false);
-    m_frame->B_checkBox->SetValue(false);
+
+    // Se eliminan las siguientes líneas para respetar el valor por defecto de wxFormBuilder (marcado)
+    // m_frame->R_checkBox->SetValue(false);
+    // m_frame->G1_checkBox->SetValue(false);
+    // m_frame->G2_checkBox->SetValue(false);
+    // m_frame->B_checkBox->SetValue(false);
+
     m_frame->AVG_ChoiceValue->SetSelection(1); // Default is "Full" (index 1)
 
     // Ensure the gamma slider is disabled by default.
     m_frame->m_gammaThumbSlider->Enable(false);
 }
-
 // Explicit destructor implementation
 InputController::~InputController() = default;
 
