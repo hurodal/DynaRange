@@ -38,8 +38,8 @@ public:
 
     /**
      * @brief Performs a hit test to determine if a point is over a corner handle.
-     * @param point The coordinates of the mouse click in panel coordinates.
-     * @param handleRadius The visual radius of the handle for hit detection.
+     * @param point The coordinates of the mouse click in image coordinates relative to the preview.
+     * @param handleRadius The visual radius of the handle for hit detection (in image coordinates).
      * @return The identifier of the corner that was hit, or Corner::None.
      */
     Corner HitTest(const wxPoint& point, double handleRadius) const;
@@ -64,13 +64,13 @@ public:
     /**
      * @brief Updates the position of the currently dragged corner.
      * @details This method enforces the quadrant movement constraints.
-     * @param point The new coordinates of the mouse cursor.
+     * @param point The new coordinates of the mouse cursor in image coordinates relative to the preview.
      */
     void UpdateDraggedCorner(const wxPoint& point);
 
     /**
      * @brief Gets the current positions of the four corner handles.
-     * @return A constant reference to the vector of corner points.
+     * @return A constant reference to the vector of corner points (in image coordinates relative to the preview).
      */
     const std::vector<wxPoint2DDouble>& GetCorners() const;
 
@@ -88,22 +88,29 @@ public:
 
     /**
      * @brief Moves the currently selected corner by a given delta.
-     * @param dx The change in the x-coordinate.
-     * @param dy The change in the y-coordinate.
+     * @param dx The change in the x-coordinate (in image coordinates).
+     * @param dy The change in the y-coordinate (in image coordinates).
      */
     void MoveSelectedCorner(int dx, int dy);
+
+    /**
+     * @brief Directly sets the position of a specified corner handle.
+     * @param corner The corner handle to update.
+     * @param newPos The new position in image coordinates relative to the preview.
+     */
+    void SetCornerPosition(Corner corner, wxPoint2DDouble newPos);
 
 private:
     /**
      * @brief Calculates the bounding rectangle for a specific corner's quadrant.
      * @param corner The corner for which to get the quadrant.
-     * @return A wxRect2DDouble representing the allowed movement area.
+     * @return A wxRect2DDouble representing the allowed movement area (in image coordinates).
      */
     wxRect2DDouble GetQuadrant(Corner corner) const;
 
     /// The dimensions of the source image, used for constraints.
     wxSize m_imageSize;
-    /// The current coordinates of the four corners: TL, BL, BR, TR.
+    /// The current coordinates of the four corners: TL, BL, BR, TR (relative to preview image).
     std::vector<wxPoint2DDouble> m_corners;
     /// Flag indicating if a drag operation is active.
     bool m_isDragging;

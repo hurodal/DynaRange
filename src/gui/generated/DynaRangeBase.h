@@ -25,9 +25,9 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/listbox.h>
-#include <wx/slider.h>
-#include <wx/choice.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/statline.h>
 #include <wx/gbsizer.h>
@@ -63,6 +63,20 @@ class MyFrameBase : public wxFrame
 		wxButton* m_addRawFilesButton;
 		wxButton* m_removeRawFilesButton;
 		wxButton* m_removeAllFiles;
+		wxCheckBox* m_plotParamScattersCheckBox;
+		wxCheckBox* m_plotParamCurveCheckBox;
+		wxCheckBox* m_plotParamLabelsCheckBox;
+		wxCheckBox* allIsosCheckBox;
+		wxStaticText* graphicFormatStaticText;
+		wxChoice* m_plotFormatChoice;
+		wxStaticText* m_plotingStaticText;
+		wxChoice* m_plotingChoice;
+		wxStaticText* chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
 		wxStaticText* m_patchRatioStaticText;
 		wxSlider* m_patchRatioSlider;
 		wxStaticText* m_patchRatioValueText;
@@ -86,20 +100,6 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
 		wxChoice* AVG_ChoiceValue;
-		wxStaticText* chartPatchRowStaticText1;
-		wxTextCtrl* m_chartPatchRowValue1;
-		wxStaticText* chartPatchColStaticText1;
-		wxTextCtrl* m_chartPatchColValue1;
-		wxCheckBox* m_debugPatchesCheckBox;
-		wxTextCtrl* m_debugPatchesFileNameValue;
-		wxCheckBox* m_plotParamScattersCheckBox;
-		wxCheckBox* m_plotParamCurveCheckBox;
-		wxCheckBox* m_plotParamLabelsCheckBox;
-		wxCheckBox* allIsosCheckBox;
-		wxStaticText* graphicFormatStaticText;
-		wxChoice* m_plotFormatChoice;
-		wxStaticText* m_plotingStaticText;
-		wxChoice* m_plotingChoice;
 		wxButton* m_executeButton;
 		wxPanel* m_ChartsManualCorners;
 		wxPanel* m_loupePanel;

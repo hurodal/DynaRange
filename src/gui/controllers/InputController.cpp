@@ -358,7 +358,7 @@ void InputController::DisplayPreviewImage(const std::string& path)
 
 void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
 {
-    // Limpia los 8 campos de texto de las coordenadas
+    // Limpia explícitamente los 8 campos de texto de las coordenadas
     m_frame->m_coordX1Value->Clear();
     m_frame->m_coordY1Value->Clear();
     m_frame->m_coordX2Value->Clear();
@@ -368,9 +368,11 @@ void InputController::OnClearAllCoordsClick(wxCommandEvent& event)
     m_frame->m_coordX4Value->Clear();
     m_frame->m_coordY4Value->Clear();
 
+    // Llama al método del PreviewController para resetear explícitamente la interacción visual.
+    // Esto también llamará internamente a UpdateCoordTextCtrls para asegurarse
+    // de que los valores (ahora vacíos) son consistentes con el estado reseteado.
     if(m_previewController) {
-        // Refresh the preview with the current file to reset corner handles.
-        m_previewController->DisplayPreviewImage(m_frame->m_currentPreviewFile);
+        m_previewController->ResetCornerInteraction();
     }
 
     // Actualiza el comando CLI
