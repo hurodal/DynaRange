@@ -482,19 +482,19 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	coordsChartgbSizer->Add( m_clearAllCoordinates, wxGBPosition( 5, 0 ), wxGBSpan( 1, 5 ), wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
 
-	chartCoordStaticSizer->Add( coordsChartgbSizer, 0, 0, 5 );
+	chartCoordStaticSizer->Add( coordsChartgbSizer, 1, wxALL|wxEXPAND, 5 );
 
 
-	patchesStaticSizer->Add( chartCoordStaticSizer, 0, wxALL, 5 );
+	patchesStaticSizer->Add( chartCoordStaticSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* debugPatchesStaticSizer;
-	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxHORIZONTAL );
+	debugPatchesStaticSizer = new wxStaticBoxSizer( new wxStaticBox( patchesStaticSizer->GetStaticBox(), wxID_ANY, _("Debug patches") ), wxVERTICAL );
 
 	wxBoxSizer* m_debugPatchesSizer;
 	m_debugPatchesSizer = new wxBoxSizer( wxHORIZONTAL );
 
 	m_debugPatchesCheckBox = new wxCheckBox( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+	m_debugPatchesSizer->Add( m_debugPatchesCheckBox, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	m_debugPatchesFileNameValue = new wxTextCtrl( debugPatchesStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_debugPatchesFileNameValue->Enable( false );
@@ -505,7 +505,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	debugPatchesStaticSizer->Add( m_debugPatchesSizer, 1, wxALL|wxEXPAND, 5 );
 
 
-	patchesStaticSizer->Add( debugPatchesStaticSizer, 1, wxALL|wxEXPAND, 5 );
+	patchesStaticSizer->Add( debugPatchesStaticSizer, 0, wxALL|wxEXPAND, 5 );
 
 
 	loupeChartCoordSizer->Add( patchesStaticSizer, 1, wxALL|wxEXPAND, 5 );

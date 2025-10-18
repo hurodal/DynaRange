@@ -3345,7 +3345,7 @@
               <property name="bitmap"></property>
               <property name="label">Input Chart Manual Corners</property>
               <property name="select">0</property>
-              <object class="wxPanel" expanded="false">
+              <object class="wxPanel" expanded="true">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
                 <property name="RightDockable">1</property>
@@ -3397,16 +3397,16 @@
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style">wxTAB_TRAVERSAL</property>
-                <object class="wxBoxSizer" expanded="false">
+                <object class="wxBoxSizer" expanded="true">
                   <property name="minimum_size"></property>
                   <property name="name">thumbSliderSizer</property>
                   <property name="orient">wxHORIZONTAL</property>
                   <property name="permission">none</property>
-                  <object class="sizeritem" expanded="false">
+                  <object class="sizeritem" expanded="true">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
-                    <object class="wxBoxSizer" expanded="false">
+                    <object class="wxBoxSizer" expanded="true">
                       <property name="minimum_size"></property>
                       <property name="name">loupeChartCoordSizer</property>
                       <property name="orient">wxVERTICAL</property>
@@ -3469,11 +3469,11 @@
                           <property name="window_style">wxTAB_TRAVERSAL</property>
                         </object>
                       </object>
-                      <object class="sizeritem" expanded="false">
+                      <object class="sizeritem" expanded="true">
                         <property name="border">5</property>
                         <property name="flag">wxALL|wxEXPAND</property>
                         <property name="proportion">1</property>
-                        <object class="wxStaticBoxSizer" expanded="false">
+                        <object class="wxStaticBoxSizer" expanded="true">
                           <property name="id">wxID_ANY</property>
                           <property name="label">Pacthes</property>
                           <property name="minimum_size"></property>
@@ -3968,11 +3968,11 @@
                               </object>
                             </object>
                           </object>
-                          <object class="sizeritem" expanded="false">
+                          <object class="sizeritem" expanded="true">
                             <property name="border">5</property>
-                            <property name="flag">wxALL</property>
+                            <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxStaticBoxSizer" expanded="false">
+                            <object class="wxStaticBoxSizer" expanded="true">
                               <property name="id">wxID_ANY</property>
                               <property name="label">Chart Coordinates</property>
                               <property name="minimum_size"></property>
@@ -3982,8 +3982,8 @@
                               <property name="permission">none</property>
                               <object class="sizeritem" expanded="false">
                                 <property name="border">5</property>
-                                <property name="flag"></property>
-                                <property name="proportion">0</property>
+                                <property name="flag">wxALL|wxEXPAND</property>
+                                <property name="proportion">1</property>
                                 <object class="wxGridBagSizer" expanded="false">
                                   <property name="empty_cell_size"></property>
                                   <property name="flexible_direction">wxBOTH</property>
@@ -5267,13 +5267,13 @@
                           <object class="sizeritem" expanded="false">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
-                            <property name="proportion">1</property>
+                            <property name="proportion">0</property>
                             <object class="wxStaticBoxSizer" expanded="false">
                               <property name="id">wxID_ANY</property>
                               <property name="label">Debug patches</property>
                               <property name="minimum_size"></property>
                               <property name="name">debugPatchesStaticSizer</property>
-                              <property name="orient">wxHORIZONTAL</property>
+                              <property name="orient">wxVERTICAL</property>
                               <property name="parent">1</property>
                               <property name="permission">none</property>
                               <object class="sizeritem" expanded="false">
@@ -5287,7 +5287,7 @@
                                   <property name="permission">none</property>
                                   <object class="sizeritem" expanded="false">
                                     <property name="border">5</property>
-                                    <property name="flag">wxALIGN_CENTER|wxALL</property>
+                                    <property name="flag">wxALIGN_CENTER_VERTICAL|wxALL</property>
                                     <property name="proportion">0</property>
                                     <object class="wxCheckBox" expanded="false">
                                       <property name="BottomDockable">1</property>
