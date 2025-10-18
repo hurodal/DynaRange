@@ -3,11 +3,10 @@ PRIORITARIAS
 
 0: AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
 
-1A: AÑADIR al GUI DOS CHECKBOXES para elegir si se quiere que genere los graficos añadiendo al final del nombre de los archivos el nombre de camara (que sacaria del campo mencionado en 0) e ISO o no.
+1A: AÑADIR al GUI DOS CHECKBOXES (o CAMPOS DE TEXTO DIRECTAMENTE, eso tu sabes mejor) para elegir si se quiere que genere los graficos añadiendo al final del nombre de los archivos
+el nombre de camara (que sacaria del campo mencionado en el punto anterior) y el ISO. (si puede ser, con este formato: " - camara tal ISO tal")
 
-1B: (HECHO) MOVER LA COLUMNA 'DR_EV' EN LA PESTAÑA RESULTS JUSTO DESPUES DE LA COLUMNA ISO (SINO QUEDA AL FINAL Y OBLIGA A HACER SCROLL PARA VERLA)
-
-1C: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+1B: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
@@ -60,6 +59,8 @@ NO PRIORITARIAS
 
 HECHOS
 ======
+
+(HECHO) MOVER LA COLUMNA 'DR_EV' EN LA PESTAÑA RESULTS JUSTO DESPUES DE LA COLUMNA ISO (SINO QUEDA AL FINAL Y OBLIGA A HACER SCROLL PARA VERLA)
 
 (HECHO, ES MUY AGRESIVO) FILTRO PARA SENSORES CON NIVEL DE NEGRO=0 (NIKON): AÑADIR UN CUARTO FILTRO EN LA RUTINA DE ANALIZAR PARCHES PARA QUE DESCARTE PARCHES CON TODOS LOS VALORES >=0
    Y MÁS DE UN 1% DE PÍXELES A 0 (EXACTAMENTE A 0)
