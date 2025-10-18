@@ -1,30 +1,21 @@
 PRIORITARIAS
 ============
 
-0: REORGANIZACIÓN DE GUI (SUBIDOS rangogui1.png y rangogui2.png A ESTA RUTA)
+0a: REORGANIZACIÓN DE GUI (SUBIDOS rangogui1.png y rangogui2.png A ESTA RUTA)
 
-0: TRATAR DE APLICAR REALTIME EN LAS PESTAÑAS CHART E INPUT CHART -> NO HAY BOTÓN DE PREVIEW
-   SUSTITUIR EN AMBAS LA ENTRADA DE NÚMERO DE ROWS/COLS POR SENDOR DESPLEGABLES
+0b: TRATAR DE APLICAR REALTIME EN LAS PESTAÑAS CHART E INPUT CHART -> NO HAY BOTÓN DE PREVIEW
+    SUSTITUIR EN AMBAS LA ENTRADA DE NÚMERO DE ROWS/COLS POR SENDOR DESPLEGABLES
 
-0: EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
+0c: EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
 
-0a: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
+0d: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
     1. Si se suministran ficheros -> BLACK=mean(darkframe), SAT=median(saturation).
     2. Si se suministran valores se usan
     3. En otro caso proceso Automático (explicado abajo)
 
     IMPORTANTE: PENDIENTE DETECCIÓN DE CÁMARAS CON NIVEL DE NEGRO=0 (Nikon) -> para ellas el nivel de negro=0 y se aplica reconstrucción de la distr. normal (VERLO CON CALMA)
 
-0b: REDUCIR EL UMBRAL DEL CUANTIL EN LA DETECCIÓN DE LOS TESTIGOS, DE THRESHOLD=1-Quantile/4 -> THRESHOLD=1-Quantile/8:
-    DIAG=(DIMX^2+DIMY^2)^0.5
-    RADIUS=DIAG*0.01  # Radius=1% of the whole Diagonal
-    AreaCircle=pi*RADIUS^2
-    AreaQuad=(DIMX/2)*(DIMY/2)
-    Quantile=AreaCircle/AreaQuad
-    # THRESHOLD=1-Quantile/4  # THESHOLD to be used for quantile on corner detection
-    THRESHOLD=1-Quantile/8  # THESHOLD to be used for quantile on corner detection
-
-0c: AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
+0e: AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
 
 1a: AÑADIR al GUI DOS CHECKBOXES (o CAMPOS DE TEXTO DIRECTAMENTE, eso tu sabes mejor) para elegir si se quiere que genere los graficos añadiendo al final del nombre de los archivos
 el nombre de camara (que sacaria del campo mencionado en el punto anterior) y el ISO. (si puede ser, con este formato: " - camara tal ISO tal")
@@ -171,6 +162,7 @@ HECHOS
               std::cout << "Saturation level = " << satLevel << std::endl;  // Output: 16383
               return 0;
           }
+
 
 
 
