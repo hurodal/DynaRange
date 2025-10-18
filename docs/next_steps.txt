@@ -1,6 +1,12 @@
 PRIORITARIAS
 ============
 
+0: REORGANIZACIÓN DE GUI (SUBIDOS rangogui1.png y rangogui2.png A ESTA RUTA)
+
+0: TRATAR DE APLICAR REALTIME EN LAS PESTAÑAS CHART E INPUT CHART -> NO HAY BOTÓN DE PREVIEW. SUSTITUIR EN AMBAS LA ENTRADA DE NÚMERO DE ROWS/COLS POR SENDOR DESPLEGABLES
+
+0: EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
+
 0a: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
     1. Si se suministran ficheros -> BLACK=mean(darkframe), SAT=median(saturation).
     2. Si se suministran valores se usan
@@ -164,6 +170,7 @@ HECHOS
               std::cout << "Saturation level = " << satLevel << std::endl;  // Output: 16383
               return 0;
           }
+
 
 
 
