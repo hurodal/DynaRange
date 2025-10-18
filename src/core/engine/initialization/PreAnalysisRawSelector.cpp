@@ -4,6 +4,7 @@
  * @brief Implements the source RAW file selection logic for the pre-analysis phase.
  */
 #include "PreAnalysisRawSelector.hpp"
+#include "../setup/Constants.hpp"
 #include <opencv2/core.hpp>
 #include <filesystem>
 #include <libintl.h>
@@ -14,38 +15,39 @@ namespace fs = std::filesystem;
 namespace DynaRange::Engine::Initialization {
 
 int SelectPreAnalysisRawIndex(
-    const std::vector<RawFile>& sorted_files,
-    double saturation_value,
+    const std::vector<PreAnalysisResult>& sorted_pre_analysis_results, // <<-- PARÁMETRO CAMBIADO
     std::ostream& log_stream)
 {
     int source_image_index = 0; // Default to the darkest file (index 0 of sorted list)
-    bool found_non_saturated = false;
-    
-    // Iterate backwards from the brightest file (end of the list) to find the first non-saturated one.
-    for (int i = sorted_files.size() - 1; i >= 0; --i) {
-        const auto& raw_file = sorted_files[i];
-        if (raw_file.IsLoaded()) {
-            cv::Mat active_img = raw_file.GetActiveRawImage();
-            if (!active_img.empty()) {
-                // A pixel is considered saturated if it's at 99% or more of the saturation level.
-                int saturated_pixels = cv::countNonZero(active_img >= (saturation_value * 0.99));
-                if (saturated_pixels == 0) {
-                    source_image_index = i; // Found the brightest non-saturated file
-                    found_non_saturated = true;
-                    break;
-                }
-            }
+    bool found_suitable = false;
+
+    // Iterate backwards from the brightest file (end of the list)
+    // to find the first one that is NOT marked as saturated.
+    for (int i = sorted_pre_analysis_results.size() - 1; i >= 0; --i) {
+        if (!sorted_pre_analysis_results[i].has_saturated_pixels) {
+            source_image_index = i; // Found the brightest non-saturated file
+            found_suitable = true;
+            break;
         }
     }
 
-    if (found_non_saturated) {
-        log_stream << _("[INFO] Selected '") << fs::path(sorted_files[source_image_index].GetFilename()).filename().string()
-                   << _("' as the source image for detection (brightest non-saturated).") << std::endl;
+    // Log the selection based on the result
+    const std::string& selected_filename = sorted_pre_analysis_results.empty() ?
+                                            "N/A" : // Handle empty list case
+                                            sorted_pre_analysis_results[source_image_index].filename;
+
+    if (found_suitable) {
+        log_stream << _("[INFO] Selected '") << fs::path(selected_filename).filename().string()
+                   << _("' as the source image for detection (brightest with < ")
+                   << (DynaRange::Setup::Constants::MAX_PRE_ANALYSIS_SATURATION_RATIO * 100.0)
+                   << _("% saturated pixels).") << std::endl;
     } else {
-        log_stream << _("[INFO] All images contain saturated pixels. Selected '") << fs::path(sorted_files[source_image_index].GetFilename()).filename().string()
+        log_stream << _("[INFO] All images contain saturated pixels (>= ")
+                   << (DynaRange::Setup::Constants::MAX_PRE_ANALYSIS_SATURATION_RATIO * 100.0)
+                   << _("%). Selected '") << fs::path(selected_filename).filename().string()
                    << _("' as the source image for detection (darkest).") << std::endl;
     }
-    
+
     return source_image_index;
 }
 
