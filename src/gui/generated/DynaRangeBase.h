@@ -25,9 +25,9 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/listbox.h>
+#include <wx/slider.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/statline.h>
 #include <wx/gbsizer.h>
@@ -63,33 +63,11 @@ class MyFrameBase : public wxFrame
 		wxButton* m_addRawFilesButton;
 		wxButton* m_removeRawFilesButton;
 		wxButton* m_removeAllFiles;
-		wxCheckBox* m_plotParamScattersCheckBox;
-		wxCheckBox* m_plotParamCurveCheckBox;
-		wxCheckBox* m_plotParamLabelsCheckBox;
-		wxCheckBox* allIsosCheckBox;
-		wxStaticText* graphicFormatStaticText;
-		wxChoice* m_plotFormatChoice;
-		wxStaticText* m_plotingStaticText;
-		wxChoice* m_plotingChoice;
-		wxStaticText* chartPatchRowStaticText1;
-		wxTextCtrl* m_chartPatchRowValue1;
-		wxStaticText* chartPatchColStaticText1;
-		wxTextCtrl* m_chartPatchColValue1;
-		wxCheckBox* m_debugPatchesCheckBox;
-		wxTextCtrl* m_debugPatchesFileNameValue;
-		wxStaticText* m_patchRatioStaticText;
-		wxSlider* m_patchRatioSlider;
-		wxStaticText* m_patchRatioValueText;
+		wxStaticText* m_snrThresholdStaticText;
+		wxTextCtrl* m_snrThresholdsValues;
 		wxStaticText* m_drNormalizationStaticText;
 		wxSlider* m_drNormalizationSlider;
 		wxStaticText* m_drNormalizationValueText;
-		wxStaticText* m_snrThresholdStaticText;
-		wxTextCtrl* m_snrThresholdsValues;
-		wxStaticText* m_polynomicStaticText;
-		wxChoice* m_PlotChoice;
-		wxStaticText* m_outputStaticText;
-		wxTextCtrl* m_outputTextCtrl;
-		wxCheckBox* m_saveLog;
 		wxStaticText* R_staticText;
 		wxCheckBox* R_checkBox;
 		wxStaticText* G1_staticText;
@@ -100,9 +78,30 @@ class MyFrameBase : public wxFrame
 		wxCheckBox* B_checkBox;
 		wxStaticText* AVG_staticText;
 		wxChoice* AVG_ChoiceValue;
+		wxStaticText* m_polynomicStaticText;
+		wxChoice* m_PlotChoice;
+		wxStaticText* m_outputStaticText;
+		wxTextCtrl* m_outputTextCtrl;
+		wxCheckBox* m_saveLog;
+		wxCheckBox* m_plotParamScattersCheckBox;
+		wxCheckBox* m_plotParamCurveCheckBox;
+		wxCheckBox* m_plotParamLabelsCheckBox;
+		wxCheckBox* allIsosCheckBox;
+		wxStaticText* graphicFormatStaticText;
+		wxChoice* m_plotFormatChoice;
+		wxStaticText* m_plotingStaticText;
+		wxChoice* m_plotingChoice;
+		wxTextCtrl* m_equivalentCliTextCtrl;
 		wxButton* m_executeButton;
 		wxPanel* m_ChartsManualCorners;
 		wxPanel* m_loupePanel;
+		wxStaticText* chartPatchRowStaticText1;
+		wxTextCtrl* m_chartPatchRowValue1;
+		wxStaticText* chartPatchColStaticText1;
+		wxTextCtrl* m_chartPatchColValue1;
+		wxStaticText* m_patchRatioStaticText;
+		wxSlider* m_patchRatioSlider;
+		wxStaticText* m_patchRatioValueText;
 		wxStaticText* m_staticText38;
 		wxTextCtrl* m_coordX1Value;
 		wxStaticText* m_staticText381;
@@ -122,6 +121,8 @@ class MyFrameBase : public wxFrame
 		wxStaticText* m_staticText47;
 		wxTextCtrl* m_coordY4Value;
 		wxButton* m_clearAllCoordinates;
+		wxCheckBox* m_debugPatchesCheckBox;
+		wxTextCtrl* m_debugPatchesFileNameValue;
 		wxPanel* m_rawImagePreviewPanel;
 		wxSlider* m_gammaThumbSlider;
 		wxPanel* m_chartPanel;
@@ -149,13 +150,10 @@ class MyFrameBase : public wxFrame
 		wxStaticText* chartPatchColStaticText;
 		wxTextCtrl* m_chartPatchColValue;
 		wxButton* chartButtonCreate;
-		wxButton* chartButtonPreview;
 		wxPanel* rightColChartPanel;
 		wxPanel* m_webView2PlaceholderPanel;
 		wxPanel* m_logPanel;
 		wxTextCtrl* m_logOutputTextCtrl;
-		wxPanel* m_equCliPanel;
-		wxTextCtrl* m_equivalentCliTextCtrl;
 		wxPanel* m_resultsPanel;
 		wxSplitterWindow* m_splitterResults;
 		wxPanel* m_leftPanel;

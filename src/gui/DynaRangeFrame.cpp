@@ -44,10 +44,9 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_webViewPlaceholderPanel->SetSizer(placeholderSizer);
     m_chartPreviewPanel = new wxPanel(m_webView2PlaceholderPanel, wxID_ANY);
     m_chartPreviewPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    
+
     // The new loupe panel must also be configured for custom painting.
     m_loupePanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-
     wxBoxSizer* chartPlaceholderSizer = new wxBoxSizer(wxVERTICAL);
     chartPlaceholderSizer->Add(m_chartPreviewPanel, 1, wxEXPAND, 0);
     m_webView2PlaceholderPanel->SetSizer(chartPlaceholderSizer);
@@ -72,6 +71,7 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, &DynaRangeFrame::OnSplitterSashChanged, this);
 
     // --- Event bindings delegated directly to controllers ---
+    // InputController events
     m_clearAllCoordinates->Bind(wxEVT_BUTTON, &InputController::OnClearAllCoordsClick, m_inputController.get());
     m_addRawFilesButton->Bind(wxEVT_BUTTON, &InputController::OnAddFilesClick, m_inputController.get());
     m_saveLog->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
@@ -88,10 +88,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_plotingChoice->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
     m_plotFormatChoice->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
     m_outputTextCtrl->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_patchRatioSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &InputController::OnPatchRatioSliderChanged, m_inputController.get());
     m_patchRatioSlider->Bind(wxEVT_SCROLL_CHANGED, &InputController::OnPatchRatioSliderChanged, m_inputController.get());
     m_snrThresholdsValues->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_drNormalizationSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &InputController::OnDrNormSliderChanged, m_inputController.get());
     m_drNormalizationSlider->Bind(wxEVT_SCROLL_CHANGED, &InputController::OnDrNormSliderChanged, m_inputController.get());
     m_chartPatchRowValue1->Bind(wxEVT_TEXT, &InputController::OnInputChartPatchChanged, m_inputController.get());
     m_chartPatchColValue1->Bind(wxEVT_TEXT, &InputController::OnInputChartPatchChanged, m_inputController.get());
@@ -102,23 +100,22 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     G2_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     B_checkBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     AVG_ChoiceValue->Bind(wxEVT_CHOICE, &InputController::OnInputChanged, m_inputController.get());
-    m_rParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
+    allIsosCheckBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    m_plotParamScattersCheckBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    m_plotParamCurveCheckBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
+    m_plotParamLabelsCheckBox->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, m_inputController.get());
     m_rParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
-    m_gParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
     m_gParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
-    m_bParamSlider->Bind(wxEVT_SCROLL_THUMBTRACK, &ChartController::OnColorSliderChanged, m_chartController.get());
     m_bParamSlider->Bind(wxEVT_SCROLL_CHANGED, &ChartController::OnColorSliderChanged, m_chartController.get());
-    chartButtonPreview->Bind(wxEVT_BUTTON, &ChartController::OnPreviewClick, m_chartController.get());
     chartButtonCreate->Bind(wxEVT_BUTTON, &ChartController::OnCreateClick, m_chartController.get());
-    m_InvGammaValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
-    m_chartDimXValue->Bind(wxEVT_TEXT, &ChartController::OnInputChanged, m_chartController.get());
-    m_chartDimWValue->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
-    m_chartDimHValue->Bind(wxEVT_TEXT, &InputController::OnInputChanged, m_inputController.get());
+    m_InvGammaValue->Bind(wxEVT_TEXT, &ChartController::OnChartParamTextChanged, m_chartController.get());
+    m_chartDimXValue->Bind(wxEVT_TEXT, &ChartController::OnChartParamTextChanged, m_chartController.get());
+    m_chartDimWValue->Bind(wxEVT_TEXT, &ChartController::OnChartParamTextChanged, m_chartController.get());
+    m_chartDimHValue->Bind(wxEVT_TEXT, &ChartController::OnChartParamTextChanged, m_chartController.get());
     m_chartPatchRowValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
     m_chartPatchColValue->Bind(wxEVT_TEXT, &ChartController::OnChartChartPatchChanged, m_chartController.get());
     m_cvsGrid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &ResultsController::OnGridCellClick, m_resultsController.get());
     m_splitterResults->Bind(wxEVT_COMMAND_SPLITTER_DOUBLECLICKED, &ResultsController::OnSplitterSashDClick, m_resultsController.get());
-
     m_gaugeTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &DynaRangeFrame::OnGaugeTimer, this, m_gaugeTimer->GetId());
     m_dropTarget = new FileDropTarget(this);
@@ -132,6 +129,8 @@ DynaRangeFrame::DynaRangeFrame(wxWindow* parent)
     m_resultsController->LoadDefaultContent();
 
     m_presenter->UpdateCommandPreview();
+
+    m_chartController->UpdatePreview(); // Generar la vista previa inicial del chart ahora que todo está listo.
 
     this->Layout();
 }

@@ -2,31 +2,20 @@
 # 1. CONFIGURACIÓN INICIAL DEL PROYECTO
 # =============================================================================
 cmake_minimum_required(VERSION 3.16)
-
 project(dynaRange CXX)
-
-# Establece el directorio de salida para todos los ejecutables (rango, dynaRangeGui)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 set(PROJECT_VERSION "1.1.1")
-
-# Establece la política para normalizar las rutas de instalación y silenciar el aviso.
 cmake_policy(SET CMP0177 NEW)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-# This line MUST be present to generate the compile_commands.json file.
-# compile_commands.json has info for clangd will find libraries to work with sublime-text
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # =============================================================================
 # 2. CONFIGURACIÓN ESPECÍFICA DE LA PLATAFORMA
 # =============================================================================
-# Esta sección debe estar vacía porque la ruta se pasa desde el build.yml
+# (Vacía)
 
 # =============================================================================
 # 3. DEPENDENCIAS
@@ -46,15 +35,39 @@ if(WIN32)
 endif()
 
 # --- Dependencias Solo para la GUI ---
-# Esta sección ha sido modificada para corregir el error de enlazado.
-# Buscamos TODOS los componentes de wxWidgets en una sola llamada para que
-# la variable wxWidgets_LIBRARIES contenga todas las librerías necesarias.
 find_package(wxWidgets COMPONENTS core base html xrc qa net REQUIRED)
-
-# Creamos una lista explícita de librerías solo para la GUI.
-# Esta variable ahora contendrá 'core', 'base' y todas las demás.
 set(GUI_WX_LIBS ${wxWidgets_LIBRARIES})
 
+# La buscamos siempre, pero solo la incluimos si es necesario
+find_package(Eigen3 REQUIRED)
+
+# =============================================================================
+# OPCIÓN PARA SELECCIONAR EL ESTIMADOR -> ELIMINADA
+# =============================================================================
+# option(DYNA_RANGE_USE_LBFGSPP "Use LBFGSpp estimator (Method 2)" ON) # ELIMINADA
+
+# =============================================================================
+# CONFIGURACIÓN DE LBFGSPP (HEADER-ONLY)
+# =============================================================================
+set(LBFGSPP_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/LBFGSpp/include)
+# Comprobar si existe solo si vamos a usarlo (determinado por la constante C++)
+# Esta comprobación es más informativa que funcional ahora
+if(EXISTS ${CMAKE_SOURCE_DIR}/src/core/math/estimation/Constants.hpp)
+    file(READ ${CMAKE_SOURCE_DIR}/src/core/math/estimation/Constants.hpp LBFGSPP_CONST_CONTENT)
+    string(REGEX MATCH "constexpr bool USE_LBFGSPP_ESTIMATOR = true" LBFGSPP_ENABLED ${LBFGSPP_CONST_CONTENT})
+    if(LBFGSPP_ENABLED)
+        message(STATUS "LBFGSpp selected via C++ constant. Checking headers...")
+        if(NOT EXISTS ${LBFGSPP_INCLUDE_DIR}/LBFGS.h)
+             message(FATAL_ERROR "LBFGSpp header LBFGS.h not found directly in ${LBFGSPP_INCLUDE_DIR}")
+        endif()
+        message(STATUS "LBFGSpp headers found.")
+    else()
+        message(STATUS "Gradient Descent selected via C++ constant.")
+    endif()
+else()
+     message(WARNING "src/core/math/estimation/Constants.hpp not found. Cannot determine estimator setting.")
+     set(LBFGSPP_ENABLED FALSE) # Asumir que no se usa LBFGSpp si el fichero no existe
+endif()
 
 # =============================================================================
 # 4. FUENTES
@@ -89,7 +102,7 @@ set(CORE_SOURCES
     src/core/graphics/drawing/AxisLabelDrawer.cpp
     src/core/graphics/drawing/CurveDrawer.cpp
     src/core/graphics/drawing/FooterDrawer.cpp
-    src/core/graphics/drawing/GridDrawer.cpp    
+    src/core/graphics/drawing/GridDrawer.cpp
     src/core/graphics/drawing/LabelDrawer.cpp
     src/core/graphics/drawing/TitleDrawer.cpp
     src/core/graphics/FontManager.cpp
@@ -107,7 +120,10 @@ set(CORE_SOURCES
     src/core/io/raw/RawImageAccessor.cpp
     src/core/io/raw/RawLoader.cpp
     src/core/io/raw/RawMetadataExtractor.cpp
-    src/core/math/Math.cpp   
+    src/core/math/Math.cpp
+    src/core/math/estimation/TruncatedNormalEstimator.cpp
+    src/core/math/estimation/lbfgspp_optimizer.cpp
+    src/core/math/estimation/gradient_descent.cpp
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
     src/core/setup/InputFileManager.cpp
@@ -119,9 +135,9 @@ set(CORE_SOURCES
     src/core/utils/Formatters.cpp
     src/core/utils/LocaleManager.cpp
     src/core/utils/PathManager.cpp
-    src/core/utils/PlatformUtils.cpp 
-    src/core/setup/PreAnalysis.cpp 
-    src/core/setup/PreAnalysisManager.cpp 
+    src/core/utils/PlatformUtils.cpp
+    src/core/setup/PreAnalysis.cpp
+    src/core/setup/PreAnalysisManager.cpp
 )
 
 # =============================================================================
@@ -131,10 +147,12 @@ add_executable(rango
     src/cli/rango.cpp
     ${CORE_SOURCES}
 )
+
 if(WIN32)
     target_sources(rango PRIVATE assets/windows/icono_owl.rc)
 endif()
 
+# Incluir directorios
 target_include_directories(rango PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
@@ -145,8 +163,11 @@ target_include_directories(rango PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
-   
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math/estimation
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    ${EIGEN3_INCLUDE_DIR}
+    ${LBFGSPP_INCLUDE_DIR}
 )
 
 add_executable(dynaRangeGui WIN32
@@ -160,31 +181,26 @@ add_executable(dynaRangeGui WIN32
     src/gui/generated/DynaRangeBase.cpp
     src/gui/GuiPresenter.cpp
     src/gui/helpers/CvWxImageConverter.cpp
-    src/gui/helpers/GuiPlotter.cpp 
+    src/gui/helpers/GuiPlotter.cpp
     src/gui/helpers/RawExtensionHelper.cpp
     src/gui/helpers/ResultsGridManager.cpp
     src/gui/preview_interaction/ChartCornerInteractor.cpp
     src/gui/preview_interaction/PreviewOverlayRenderer.cpp
     ${CORE_SOURCES}
 )
+
 if(WIN32)
     target_sources(dynaRangeGui PRIVATE assets/windows/icono_noise.rc)
 endif()
-# =============================================================================
-# INICIO DEL BLOQUE A AÑADIR PARA COMPATIBILIDAD CON MACOS
-# =============================================================================
+
 if(APPLE)
     set_target_properties(dynaRangeGui PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/macos/icono.icns
     )
-    # Aquí puedes añadir también un fichero de icono si lo tienes
-    # MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/macos/icono.icns
 endif()
-# =============================================================================
-# FIN DEL BLOQUE A AÑADIR
-# =============================================================================
 
+# Incluir directorios
 target_include_directories(dynaRangeGui PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${LIBRAW_INCLUDE_DIRS}
@@ -196,14 +212,18 @@ target_include_directories(dynaRangeGui PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/setup
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/io
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/graphics
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math/estimation
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    ${EIGEN3_INCLUDE_DIR}
+    ${LBFGSPP_INCLUDE_DIR}
 )
 
-target_compile_definitions(dynaRangeGui PRIVATE
-    ${wxWidgets_DEFINITIONS}
-)
+# target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS} ${ESTIMATOR_DEFINE})
+target_compile_definitions(dynaRangeGui PRIVATE ${wxWidgets_DEFINITIONS})
 
-# Contiene librerías de importación para DLLs del sistema y de dependencias.
+
+# Librerías Windows
 if(WIN32)
     set(WIN_LINK_LIBS
         gdi32 comdlg32 shell32 ole32 oleaut32 uuid ws2_32 rpcrt4 shlwapi
@@ -213,6 +233,7 @@ if(WIN32)
     )
 endif()
 
+# Enlazado rango
 target_link_libraries(rango PRIVATE
     ${OpenCV_LIBS}
     ${LIBRAW_LIBRARIES}
@@ -223,9 +244,7 @@ target_link_libraries(rango PRIVATE
     ${WIN_LINK_LIBS}
 )
 
-# Esta sección ha sido modificada.
-# Ahora 'dynaRangeGui' enlaza explícitamente con la variable GUI_WX_LIBS,
-# que contiene todas las librerías de wxWidgets.
+# Enlazado dynaRangeGui
 target_link_libraries(dynaRangeGui PRIVATE
     ${GUI_WX_LIBS}
     ${OpenCV_LIBS}
@@ -240,6 +259,4 @@ target_link_libraries(dynaRangeGui PRIVATE
 # =============================================================================
 # 6. ASSET MANAGEMENT
 # =============================================================================
-# Se encarga de copiar los recursos necesarios (imágenes,
-# etc.) al directorio de salida para que los ejecutables puedan encontrarlos.
 file(COPY assets/images DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)
