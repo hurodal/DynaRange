@@ -632,34 +632,34 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	wxBoxSizer* chartDimWHSizer;
 	chartDimWHSizer = new wxBoxSizer( wxHORIZONTAL );
 
-	wxBoxSizer* chartDimWSizer;
-	chartDimWSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_chartDimWStaticText = new wxStaticText( chartDimStaticSizer->GetStaticBox(), wxID_ANY, _("Width proportion"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_chartDimWStaticText->Wrap( -1 );
-	chartDimWSizer->Add( m_chartDimWStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartDimWValue = new wxTextCtrl( chartDimStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	chartDimWSizer->Add( m_chartDimWValue, 0, wxALIGN_CENTER|wxALL, 5 );
-
-
-	chartDimWHSizer->Add( chartDimWSizer, 1, wxEXPAND, 5 );
-
 	wxBoxSizer* chartDimHSizer;
 	chartDimHSizer = new wxBoxSizer( wxHORIZONTAL );
-
-	m_chartDimHStaticText = new wxStaticText( chartDimStaticSizer->GetStaticBox(), wxID_ANY, _("Height proportion"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_chartDimHStaticText->Wrap( -1 );
-	chartDimHSizer->Add( m_chartDimHStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	m_chartDimHValue = new wxTextCtrl( chartDimStaticSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	chartDimHSizer->Add( m_chartDimHValue, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
 	chartDimWHSizer->Add( chartDimHSizer, 1, wxEXPAND, 5 );
 
 
 	chartDimStaticSizer->Add( chartDimWHSizer, 0, 0, 5 );
+
+	wxStaticBoxSizer* proportionsSizer;
+	proportionsSizer = new wxStaticBoxSizer( new wxStaticBox( chartDimStaticSizer->GetStaticBox(), wxID_ANY, _("Proportions") ), wxHORIZONTAL );
+
+	m_chartDimWStaticText = new wxStaticText( proportionsSizer->GetStaticBox(), wxID_ANY, _("Width"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_chartDimWStaticText->Wrap( -1 );
+	proportionsSizer->Add( m_chartDimWStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartDimWValue = new wxTextCtrl( proportionsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	proportionsSizer->Add( m_chartDimWValue, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartDimHStaticText = new wxStaticText( proportionsSizer->GetStaticBox(), wxID_ANY, _("Height"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_chartDimHStaticText->Wrap( -1 );
+	proportionsSizer->Add( m_chartDimHStaticText, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_chartDimHValue = new wxTextCtrl( proportionsSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	proportionsSizer->Add( m_chartDimHValue, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	chartDimStaticSizer->Add( proportionsSizer, 1, wxALL|wxEXPAND, 5 );
 
 
 	bSizer29->Add( chartDimStaticSizer, 0, wxALL|wxEXPAND, 5 );
