@@ -91,6 +91,9 @@ class MyFrameBase : public wxFrame
 		wxChoice* m_plotFormatChoice;
 		wxStaticText* m_plotingStaticText;
 		wxChoice* m_plotingChoice;
+		wxCheckBox* m_subnameOutputcheckBox;
+		wxCheckBox* m_fromExifOutputCheckBox;
+		wxTextCtrl* m_subnameTextCtrl;
 		wxTextCtrl* m_equivalentCliTextCtrl;
 		wxButton* m_executeButton;
 		wxPanel* m_ChartsManualCorners;

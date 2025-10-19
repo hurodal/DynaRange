@@ -153,7 +153,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	snrThresholdSizer->Add( m_snrThresholdsValues, 1, wxLEFT|wxRIGHT, 5 );
 
 
-	analysisParamsSizer->Add( snrThresholdSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( snrThresholdSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* drNormalizationSizer;
 	drNormalizationSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -170,7 +170,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	drNormalizationSizer->Add( m_drNormalizationValueText, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 
 
-	analysisParamsSizer->Add( drNormalizationSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( drNormalizationSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* channelsSizer;
 	channelsSizer = new wxStaticBoxSizer( new wxStaticBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Channels") ), wxHORIZONTAL );
@@ -212,16 +212,16 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	AVG_staticText = new wxStaticText( channelsSizer->GetStaticBox(), wxID_ANY, _("Average"), wxDefaultPosition, wxDefaultSize, 0 );
 	AVG_staticText->Wrap( -1 );
-	channelsSizer->Add( AVG_staticText, 0, wxALL, 5 );
+	channelsSizer->Add( AVG_staticText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	wxString AVG_ChoiceValueChoices[] = { _("No"), _("Full"), _("Only Selected") };
 	int AVG_ChoiceValueNChoices = sizeof( AVG_ChoiceValueChoices ) / sizeof( wxString );
 	AVG_ChoiceValue = new wxChoice( channelsSizer->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, AVG_ChoiceValueNChoices, AVG_ChoiceValueChoices, 0 );
 	AVG_ChoiceValue->SetSelection( 1 );
-	channelsSizer->Add( AVG_ChoiceValue, 0, 0, 5 );
+	channelsSizer->Add( AVG_ChoiceValue, 0, wxALL, 5 );
 
 
-	analysisParamsSizer->Add( channelsSizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
+	analysisParamsSizer->Add( channelsSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* polyOutLogSizer;
 	polyOutLogSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -237,7 +237,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	polyOutLogSizer->Add( m_PlotChoice, 0, wxALL, 5 );
 
 
-	analysisParamsSizer->Add( polyOutLogSizer, 0, wxEXPAND, 5 );
+	analysisParamsSizer->Add( polyOutLogSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* outputSaveLogSizer;
 	outputSaveLogSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -253,7 +253,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	outputSaveLogSizer->Add( m_saveLog, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
-	analysisParamsSizer->Add( outputSaveLogSizer, 1, wxEXPAND, 5 );
+	analysisParamsSizer->Add( outputSaveLogSizer, 1, wxALL|wxEXPAND, 5 );
 
 	wxStaticBoxSizer* graphicSizer;
 	graphicSizer = new wxStaticBoxSizer( new wxStaticBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Graphics") ), wxVERTICAL );
@@ -277,7 +277,7 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	plotParamsSizer->Add( allIsosCheckBox, 0, 0, 5 );
 
 
-	graphicSizer->Add( plotParamsSizer, 1, wxEXPAND, 5 );
+	graphicSizer->Add( plotParamsSizer, 0, wxALL|wxEXPAND, 5 );
 
 	wxBoxSizer* graphicsOthersSizer;
 	graphicsOthersSizer = new wxBoxSizer( wxHORIZONTAL );
@@ -303,7 +303,26 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	graphicsOthersSizer->Add( m_plotingChoice, 0, 0, 5 );
 
 
-	graphicSizer->Add( graphicsOthersSizer, 1, wxEXPAND, 5 );
+	graphicSizer->Add( graphicsOthersSizer, 0, wxALL|wxEXPAND, 5 );
+
+	wxStaticBoxSizer* sbSizer16;
+	sbSizer16 = new wxStaticBoxSizer( new wxStaticBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Output subname") ), wxHORIZONTAL );
+
+	m_subnameOutputcheckBox = new wxCheckBox( sbSizer16->GetStaticBox(), wxID_ANY, _("Subname"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_subnameOutputcheckBox->SetValue(true);
+	sbSizer16->Add( m_subnameOutputcheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_fromExifOutputCheckBox = new wxCheckBox( sbSizer16->GetStaticBox(), wxID_ANY, _("From exif"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_fromExifOutputCheckBox->SetValue(true);
+	sbSizer16->Add( m_fromExifOutputCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_subnameTextCtrl = new wxTextCtrl( sbSizer16->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_subnameTextCtrl->Enable( false );
+
+	sbSizer16->Add( m_subnameTextCtrl, 0, wxALL, 5 );
+
+
+	graphicSizer->Add( sbSizer16, 1, wxALL|wxEXPAND, 5 );
 
 
 	analysisParamsSizer->Add( graphicSizer, 0, wxALL|wxEXPAND|wxRIGHT, 5 );

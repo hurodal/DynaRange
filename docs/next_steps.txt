@@ -6,14 +6,14 @@ PRIORITARIAS
 0b: (HECHO) TRATAR DE APLICAR REALTIME EN LAS PESTAÑAS CHART E INPUT CHART -> NO HAY BOTÓN DE PREVIEW
     SUSTITUIR EN AMBAS LA ENTRADA DE NÚMERO DE ROWS/COLS POR SENDOR DESPLEGABLES
 
-0c: EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
+0c: (¿ NO ESTABA HECHO ?) EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
 
 0d: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
     1. Si se suministran ficheros -> BLACK=mean(darkframe), SAT=median(saturation).
     2. Si se suministran valores se usan
     3. En otro caso proceso Automático (explicado abajo)
 
-    IMPORTANTE: PENDIENTE DETECCIÓN DE CÁMARAS CON NIVEL DE NEGRO=0 (Nikon) -> para ellas el nivel de negro=0 y se aplica reconstrucción de la distr. normal (VERLO CON CALMA)
+    IMPORTANTE: (HECHO, aplicado método 2 y 3, actualmente 3) PENDIENTE DETECCIÓN DE CÁMARAS CON NIVEL DE NEGRO=0 (Nikon) -> para ellas el nivel de negro=0 y se aplica reconstrucción de la distr. normal (VERLO CON CALMA)
 
 0e: AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
 
