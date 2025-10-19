@@ -6,24 +6,24 @@
 #pragma once
 
 #include "../../core/analysis/Analysis.hpp"
-#include "../../core/engine/Reporting.hpp" 
+#include "../../core/engine/Reporting.hpp"
+#include "../../core/utils/OutputNamingContext.hpp"
 #include <wx/image.h>
 #include <vector>
-#include <string>
 
 namespace GuiPlotter {
     /**
-     * @brief (Modified function) Renders a plot from core data structures into a wxImage for GUI display.
+     * @brief Renders a plot from core data structures into a wxImage for GUI display.
      * @param curves The vector of CurveData containing the points and coefficients to plot.
      * @param results The vector of DynamicRangeResult for plotting intersection labels.
-     * @param title The main title of the plot.
-     * @param reporting_params The parameters required for rendering the plot.
-     * @return A wxImage containing the rendered plot, ready for display.
+     * @param ctx The OutputNamingContext with data needed for title generation and plotting options. // Parameter changed
+     * @param reporting_params The parameters required for rendering the plot details (distinct from naming context).
+     * @return A wxImage containing the rendered plot, ready for display. Returns invalid image on error or if curves are empty.
      */
     wxImage GeneratePlotAsWxImage(
         const std::vector<CurveData>& curves,
         const std::vector<DynamicRangeResult>& results,
-        const std::string& title,
+        const OutputNamingContext& ctx,
         const ReportingParameters& reporting_params
     );
 }

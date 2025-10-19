@@ -305,24 +305,24 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 
 	graphicSizer->Add( graphicsOthersSizer, 0, wxALL|wxEXPAND, 5 );
 
-	wxStaticBoxSizer* sbSizer16;
-	sbSizer16 = new wxStaticBoxSizer( new wxStaticBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Output subname") ), wxHORIZONTAL );
+	wxStaticBoxSizer* outputSubnameSizer;
+	outputSubnameSizer = new wxStaticBoxSizer( new wxStaticBox( graphicSizer->GetStaticBox(), wxID_ANY, _("Output subname") ), wxHORIZONTAL );
 
-	m_subnameOutputcheckBox = new wxCheckBox( sbSizer16->GetStaticBox(), wxID_ANY, _("Subname"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_subnameOutputcheckBox = new wxCheckBox( outputSubnameSizer->GetStaticBox(), wxID_ANY, _("Subname"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_subnameOutputcheckBox->SetValue(true);
-	sbSizer16->Add( m_subnameOutputcheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+	outputSubnameSizer->Add( m_subnameOutputcheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_fromExifOutputCheckBox = new wxCheckBox( sbSizer16->GetStaticBox(), wxID_ANY, _("From exif"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_fromExifOutputCheckBox = new wxCheckBox( outputSubnameSizer->GetStaticBox(), wxID_ANY, _("From exif"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_fromExifOutputCheckBox->SetValue(true);
-	sbSizer16->Add( m_fromExifOutputCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
+	outputSubnameSizer->Add( m_fromExifOutputCheckBox, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_subnameTextCtrl = new wxTextCtrl( sbSizer16->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_subnameTextCtrl = new wxTextCtrl( outputSubnameSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_subnameTextCtrl->Enable( false );
 
-	sbSizer16->Add( m_subnameTextCtrl, 0, wxALL, 5 );
+	outputSubnameSizer->Add( m_subnameTextCtrl, 0, wxALL, 5 );
 
 
-	graphicSizer->Add( sbSizer16, 1, wxALL|wxEXPAND, 5 );
+	graphicSizer->Add( outputSubnameSizer, 1, wxALL|wxEXPAND, 5 );
 
 
 	analysisParamsSizer->Add( graphicSizer, 0, wxALL|wxEXPAND|wxRIGHT, 5 );
@@ -343,19 +343,25 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_equivalentCliTextCtrl = new wxTextCtrl( equivalentSbSizer->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
 	m_equivalentCliTextCtrl->SetMinSize( wxSize( -1,100 ) );
 
-	equivalentSbSizer->Add( m_equivalentCliTextCtrl, 1, wxALL|wxEXPAND, 5 );
+	equivalentSbSizer->Add( m_equivalentCliTextCtrl, 0, wxALL|wxEXPAND, 5 );
 
 
-	middleMainSizer->Add( equivalentSbSizer, 1, wxALL|wxEXPAND, 5 );
+	middleMainSizer->Add( equivalentSbSizer, 0, wxALL|wxEXPAND, 5 );
 
 
-	mainPanelSizer->Add( middleMainSizer, 1, wxEXPAND, 5 );
+	mainPanelSizer->Add( middleMainSizer, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* footSizer;
-	footSizer = new wxBoxSizer( wxVERTICAL );
+	footSizer = new wxBoxSizer( wxHORIZONTAL );
+
+
+	footSizer->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	m_executeButton = new wxButton( m_inputPanel, wxID_ANY, _("Execute"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
-	footSizer->Add( m_executeButton, 0, wxALIGN_CENTER|wxALL, 10 );
+	footSizer->Add( m_executeButton, 0, wxALL|wxEXPAND, 10 );
+
+
+	footSizer->Add( 0, 0, 1, wxEXPAND, 5 );
 
 
 	mainPanelSizer->Add( footSizer, 0, wxEXPAND, 5 );

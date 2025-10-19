@@ -4,160 +4,139 @@
  * @brief Implements the PathManager utility class.
  */
 #include "PathManager.hpp"
-#include "../graphics/Constants.hpp"
-#include "../utils/Formatters.hpp"
-#include <sstream>
-#include <algorithm>
 
 #ifdef _WIN32
 #include <ShlObj.h> // For SHGetFolderPathW
+#include <windows.h> // For GetModuleFileNameW, MAX_PATH
 #else
 #include <pwd.h>    // For getpwuid
-#include <unistd.h> // For getuid
+#include <unistd.h> // For getuid, readlink
+#include <limits.h> // For PATH_MAX
 #endif
 
 #ifdef __APPLE__
-#include <mach-o/dyld.h>
+#include <mach-o/dyld.h> // For _NSGetExecutablePath
 #include <limits.h>
 #endif
 
 namespace { // Anonymous namespace for internal helpers
 
-fs::path GetExecutablePath() {
-#ifdef _WIN32
-    WCHAR path[MAX_PATH] = {0};
-    GetModuleFileNameW(NULL, path, MAX_PATH);
-    return fs::path(path);
-#elif __APPLE__
-    char path[PATH_MAX];
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0) {
-        return fs::path(path);
+    /**
+     * @brief Gets the full path to the currently running executable.
+     * @return Filesystem path to the executable, or empty path on error.
+     */
+    fs::path GetExecutablePath() {
+        #ifdef _WIN32
+            WCHAR path[MAX_PATH] = {0};
+            if (GetModuleFileNameW(NULL, path, MAX_PATH) > 0) {
+                 return fs::path(path);
+            }
+        #elif __APPLE__
+            char path[PATH_MAX];
+            uint32_t size = sizeof(path);
+            if (_NSGetExecutablePath(path, &size) == 0) {
+                char real_path[PATH_MAX];
+                if (realpath(path, real_path)) {
+                    return fs::path(real_path);
+                }
+                // Fallback if realpath fails
+                return fs::path(path);
+            }
+        #else // Linux
+            char result[PATH_MAX];
+            ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+            if (count > 0) {
+                 return std::string(result, count);
+            }
+        #endif
+        return ""; // Return empty on error
     }
-    return ""; // Return empty on error
-#else // Linux
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-    return std::string(result, (count > 0) ? count : 0);
-#endif
-}
 
-// Helper function to get the user's documents directory in a cross-platform way.
-fs::path GetUserDocumentsDirectory() {
-#ifdef _WIN32
-    WCHAR path[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, path))) {
-        return fs::path(path);
+    /**
+     * @brief Gets the user's standard "Documents" directory in a cross-platform way.
+     * @return Filesystem path to the Documents directory, falling back to home or current path.
+     */
+    fs::path GetUserDocumentsDirectory() {
+        #ifdef _WIN32
+            WCHAR path[MAX_PATH];
+            // Use FOLDERID_Documents for modern Windows versions
+            // Fallback to CSIDL_MYDOCUMENTS if needed, though FOLDERID is preferred
+            if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, path))) {
+                 return fs::path(path);
+            }
+        #else
+            const char* home_dir = getenv("HOME");
+            if (home_dir == nullptr) {
+                // Fallback for environments where HOME is not set
+                struct passwd* pw = getpwuid(getuid());
+                if (pw != nullptr) {
+                    home_dir = pw->pw_dir;
+                }
+            }
+            if (home_dir != nullptr) {
+                fs::path home_path(home_dir);
+                // Standard XDG directory or common fallbacks
+                fs::path xdg_docs_path = home_path / "Documents"; // Standard XDG
+                fs::path mac_docs_path = home_path / "Documents"; // Common macOS/Linux
+
+                // Check standard locations first
+                if (fs::exists(xdg_docs_path) && fs::is_directory(xdg_docs_path)) {
+                    return xdg_docs_path;
+                }
+                 if (fs::exists(mac_docs_path) && fs::is_directory(mac_docs_path)) {
+                    return mac_docs_path;
+                }
+                // If specific "Documents" folder doesn't exist, return the home directory itself
+                return home_path;
+            }
+        #endif
+        // Final fallback to the current working directory if all else fails.
+        return fs::current_path();
     }
-#else
-    const char* home_dir = getenv("HOME");
-    if (home_dir == nullptr) {
-        // Fallback for environments where HOME is not set
-        struct passwd* pw = getpwuid(getuid());
-        if (pw != nullptr) {
-            home_dir = pw->pw_dir;
-        }
-    }
-    if (home_dir != nullptr) {
-        fs::path docs_path = fs::path(home_dir) / "Documents";
-        // Check if a "Documents" directory exists, otherwise just use home.
-        if (fs::exists(docs_path) && fs::is_directory(docs_path)) {
-            return docs_path;
-        }
-        return fs::path(home_dir);
-    }
-#endif
-    // Final fallback to the current path if all else fails.
-    return fs::current_path();
-}
 } // end anonymous namespace
 
 PathManager::PathManager(const ProgramOptions& opts) : m_opts(opts) {
-    
-    //Determine application directory once upon construction.
+
+    // Determine application directory once upon construction.
     m_app_directory = GetExecutablePath().parent_path();
-    
-    fs::path full_csv_path(opts.output_filename);
-    // If the provided path has no parent (it's just a filename like "results.csv"),
-    // then we build the path inside the user's Documents directory.
-    if (full_csv_path.parent_path().empty()) {
+
+    // Determine the base output directory based on opts.output_filename
+    fs::path user_output_path(opts.output_filename);
+
+    // If the path provided by the user is absolute, use its parent directory.
+    if (user_output_path.is_absolute()) {
+        m_output_directory = user_output_path.parent_path();
+    }
+    // If the path has a parent (e.g., "subdir/results.csv"), resolve it relative to CWD.
+    else if (user_output_path.has_parent_path() && !user_output_path.parent_path().empty()) {
+         m_output_directory = fs::absolute(user_output_path.parent_path());
+    }
+    // If it's just a filename (no parent), use the user's Documents directory.
+    else {
         m_output_directory = GetUserDocumentsDirectory();
-        m_csv_filename = full_csv_path.filename();
-    } else {
-        // Otherwise, the user has provided a relative or absolute path, so we respect it.
-        m_output_directory = full_csv_path.parent_path();
-        m_csv_filename = full_csv_path.filename();
+    }
+
+    // Ensure the output directory exists.
+    try {
+        if (!fs::exists(m_output_directory)) {
+            fs::create_directories(m_output_directory);
+        }
+    } catch (const fs::filesystem_error& e) {
+        // Log error? For now, fallback to current path if creation fails.
+        m_output_directory = fs::current_path();
     }
 }
 
-fs::path PathManager::GetCsvOutputPath() const {
-    return m_output_directory / m_csv_filename;
+fs::path PathManager::GetOutputDirectory() const {
+    return m_output_directory;
 }
 
-fs::path PathManager::GetIndividualPlotPath(const CurveData& curve, const RawChannelSelection& channels, DynaRange::Graphics::Constants::PlotOutputFormat format) const {
-    std::stringstream new_filename_ss;
-    new_filename_ss << fs::path(curve.filename).stem().string();
-    if (curve.iso_speed > 0) {
-        new_filename_ss << "_ISO" << static_cast<int>(curve.iso_speed);
+fs::path PathManager::GetFullPath(const fs::path& generated_filename) const {
+    // Ensure the filename part is treated as relative if it's not absolute already
+    if (generated_filename.is_absolute()) {
+        return generated_filename; // User provided an absolute path override
     }
-    new_filename_ss << "_snr_plot";
-    if (!curve.camera_model.empty()) {
-        std::string safe_model = curve.camera_model;
-        std::replace(safe_model.begin(), safe_model.end(), ' ', '_');
-        new_filename_ss << "_" << safe_model;
-    }
-
-    // Add the channel suffix.
-    new_filename_ss << Formatters::GenerateChannelSuffix(channels);
-
-    // Add the correct extension based on the runtime option.
-    std::string extension;
-    switch (format) {
-        case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
-        case DynaRange::Graphics::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
-        case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
-        default: extension = ".png"; break;
-    }
-    new_filename_ss << extension;
-    return m_output_directory / new_filename_ss.str();
-}
-
-fs::path PathManager::GetSummaryPlotPath(const std::string& camera_name, const RawChannelSelection& channels, DynaRange::Graphics::Constants::PlotOutputFormat format) const {
-    std::string safe_camera_name = camera_name;
-    std::replace(safe_camera_name.begin(), safe_camera_name.end(), ' ', '_');
-    
-    // Add the correct extension based on the runtime option.
-    std::string extension;
-    switch (format) {
-        case DynaRange::Graphics::Constants::PlotOutputFormat::SVG: extension = ".svg"; break;
-        case DynaRange::Graphics::Constants::PlotOutputFormat::PDF: extension = ".pdf"; break;
-        case DynaRange::Graphics::Constants::PlotOutputFormat::PNG:
-        default: extension = ".png"; break;
-    }
-    std::string filename = "snr_curves_" + safe_camera_name + Formatters::GenerateChannelSuffix(channels) + extension;
-    return m_output_directory / filename;
-}
-
-fs::path PathManager::GetPrintPatchesPath(const std::string& camera_model) const
-{
-    std::string filename = m_opts.print_patch_filename;
-
-    // If the filename is the sentinel value, construct the dynamic default name.
-    if (filename == "_USE_DEFAULT_PRINT_PATCHES_") {
-        std::string safe_camera_model = camera_model;
-        std::replace(safe_camera_model.begin(), safe_camera_model.end(), ' ', '_');
-        
-        fs::path base_path(DEFAULT_PRINT_PATCHES_FILENAME);
-        filename = base_path.stem().string() + "_" + safe_camera_model + base_path.extension().string();
-    }
-    
-    // If a filename is specified (either custom or newly generated), return the full path.
-    if (!filename.empty()) {
-        return m_output_directory / filename;
-    }
-
-    // Return an empty path if not requested.
-    return {};
+    return m_output_directory / generated_filename;
 }
 
 fs::path PathManager::GetAppDirectory() const {
@@ -165,9 +144,12 @@ fs::path PathManager::GetAppDirectory() const {
 }
 
 fs::path PathManager::GetLocaleDirectory() const {
+    // Consider build type (install vs build dir) if needed later
     return m_app_directory / "locale";
 }
 
 fs::path PathManager::GetAssetPath(const std::string& asset_name) const {
+    // Simply join the application directory with the provided relative asset name/path.
+    // The caller is responsible for providing the correct relative path including "assets/".
     return m_app_directory / asset_name;
 }

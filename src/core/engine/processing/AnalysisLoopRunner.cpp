@@ -8,7 +8,6 @@
 #include "ResultAggregator.hpp"
 #include "../../graphics/geometry/KeystoneCorrection.hpp"
 #include "../../utils/PathManager.hpp"
-#include "../../io/OutputWriter.hpp"
 #include "../../analysis/Constants.hpp"   
 #include "../../graphics/ImageProcessing.hpp"
 #include "../../utils/Formatters.hpp"
@@ -155,12 +154,16 @@ ProcessingResult AnalysisLoopRunner::Run()
             if (m_cancel_flag) break;
             std::vector<SingleFileResult> file_results_vec = fut.get();
             for (auto& file_result : file_results_vec) {
+                
                 if (!file_result.final_debug_image.empty()) {
+                    // This logic is now handled *after* ProcessFiles returns,
+                    // using the ArtifactFactory in Engine::RunDynamicRangeAnalysis.
+                    // We just store the image in the result struct.
                     std::lock_guard<std::mutex> lock(log_mutex);
                     result.debug_patch_image = file_result.final_debug_image;
                     
-                    fs::path debug_path = m_params.print_patch_filename;
-                    OutputWriter::WriteDebugImage(file_result.final_debug_image, debug_path, m_log_stream);
+                    // fs::path debug_path = m_params.print_patch_filename; // LÍNEA ELIMINADA
+                    // OutputWriter::WriteDebugImage(file_result.final_debug_image, debug_path, m_log_stream); // LÍNEA ELIMINADA
                 }
 
                 if (!file_result.dr_result.filename.empty()) {

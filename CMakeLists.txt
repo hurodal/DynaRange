@@ -96,7 +96,6 @@ set(CORE_SOURCES
     src/core/engine/processing/ResultAggregator.cpp
     src/core/engine/Reporting.cpp
     src/core/engine/Validation.cpp
-    src/core/graphics/ChartGenerator.cpp
     src/core/graphics/detection/ChartCornerDetector.cpp
     src/core/graphics/drawing/AxisDrawer.cpp
     src/core/graphics/drawing/AxisLabelDrawer.cpp
@@ -114,7 +113,7 @@ set(CORE_SOURCES
     src/core/graphics/PlotDataGenerator.cpp
     src/core/graphics/PlotInfoBox.cpp
     src/core/graphics/PlotOrchestrator.cpp
-    src/core/graphics/Plotting.cpp
+    # src/core/graphics/Plotting.cpp # *** LÍNEA ELIMINADA ***
     src/core/io/OutputWriter.cpp
     src/core/io/raw/RawFile.cpp
     src/core/io/raw/RawImageAccessor.cpp
@@ -134,10 +133,13 @@ set(CORE_SOURCES
     src/core/utils/CommandGenerator.cpp
     src/core/utils/Formatters.cpp
     src/core/utils/LocaleManager.cpp
+    src/core/utils/OutputFilenameGenerator.cpp
     src/core/utils/PathManager.cpp
     src/core/utils/PlatformUtils.cpp
+    src/core/utils/PlotTitleGenerator.cpp
     src/core/setup/PreAnalysis.cpp
     src/core/setup/PreAnalysisManager.cpp
+    src/core/artifacts/ArtifactFactory.cpp # *** NUEVA LÍNEA ***
 )
 
 # =============================================================================
@@ -166,6 +168,7 @@ target_include_directories(rango PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math/estimation
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/artifacts # *** NUEVA LÍNEA ***
     ${EIGEN3_INCLUDE_DIR}
     ${LBFGSPP_INCLUDE_DIR}
 )
@@ -215,6 +218,7 @@ target_include_directories(dynaRangeGui PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/math/estimation
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/artifacts # *** NUEVA LÍNEA ***
     ${EIGEN3_INCLUDE_DIR}
     ${LBFGSPP_INCLUDE_DIR}
 )

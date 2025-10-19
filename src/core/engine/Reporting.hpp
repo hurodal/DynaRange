@@ -36,6 +36,11 @@ struct ReportingParameters {
     bool black_level_is_default;
     bool saturation_level_is_default;
     std::vector<double> snr_thresholds_db;
+
+    // --- Campos para lógica de nombrado ---
+    std::string gui_manual_camera_name;
+    bool gui_use_exif_camera_name;
+    bool gui_use_camera_suffix;
 };
 /**
  * @struct ReportOutput

@@ -4,11 +4,13 @@
  * @brief Implements the application logic presenter for the GUI.
  */
 #include "GuiPresenter.hpp"
-#include "DynaRangeFrame.hpp" // Include the full View definition
+#include "DynaRangeFrame.hpp"
+#include "controllers/InputController.hpp"
 #include "helpers/GuiPlotter.hpp"
 #include "../core/arguments/ArgumentManager.hpp"
 #include "../core/engine/Engine.hpp"
 #include "../core/utils/CommandGenerator.hpp"
+#include "../core/utils/OutputNamingContext.hpp"
 #include "../core/arguments/Constants.hpp"
 #include "../core/setup/PreAnalysis.hpp"
 #include <algorithm>
@@ -21,8 +23,6 @@
 #include <wx/busyinfo.h>
 #include <wx/app.h>
 #include <thread>
-
-namespace fs = std::filesystem;
 
 // --- WORKER THREAD LOGGING SETUP ---
 // This streambuf redirects std::ostream to the View's log through wxEvents
@@ -76,67 +76,169 @@ void GuiPresenter::UpdateManagerFromView()
 {
     using namespace DynaRange::Arguments::Constants;
     auto& mgr = ArgumentManager::Instance();
-    
-    mgr.Set(InputFiles, m_preAnalysisManager.GetSortedFileList());
-    mgr.Set(BlackFile, m_view->GetDarkFilePath());
-    mgr.Set(SaturationFile, m_view->GetSaturationFilePath());
-    mgr.Set(BlackLevel, m_view->GetDarkValue());
-    mgr.Set(SaturationLevel, m_view->GetSaturationValue());
-    mgr.Set(PatchRatio, m_view->GetPatchRatio());
-    mgr.Set(OutputFile, m_view->GetOutputFilePath());
-    mgr.Set(SnrThresholdDb, m_view->GetSnrThresholds());
-    mgr.Set(DrNormalizationMpx, m_view->GetDrNormalization());
-    mgr.Set(PolyFit, m_view->GetPolyOrder());
 
-    int plotModeChoice = m_view->GetPlotMode();
+    // Check if view and input controller are valid
+    if (!m_view || !m_view->GetInputController()) {
+        return;
+    }
+    const InputController* inputCtrl = m_view->GetInputController();
+
+    // --- Update ArgumentManager with values from GUI controls (most are unchanged) ---
+    mgr.Set(InputFiles, m_preAnalysisManager.GetSortedFileList());
+    mgr.Set(BlackFile, inputCtrl->GetDarkFilePath());
+    mgr.Set(SaturationFile, inputCtrl->GetSaturationFilePath());
+    mgr.Set(BlackLevel, inputCtrl->GetDarkValue());
+    mgr.Set(SaturationLevel, inputCtrl->GetSaturationValue());
+    mgr.Set(PatchRatio, inputCtrl->GetPatchRatio());
+    mgr.Set(OutputFile, inputCtrl->GetOutputFilePath()); // Keep user override separate
+    mgr.Set(PrintPatches, inputCtrl->GetPrintPatchesFilename()); // Keep user override separate
+    mgr.Set(SnrThresholdDb, inputCtrl->GetSnrThresholds());
+    mgr.Set(DrNormalizationMpx, inputCtrl->GetDrNormalization());
+    mgr.Set(PolyFit, inputCtrl->GetPolyOrder());
+    mgr.Set(ChartCoords, inputCtrl->GetChartCoords());
+    std::vector<int> patches = { inputCtrl->GetChartPatchesM(), inputCtrl->GetChartPatchesN() };
+    mgr.Set(ChartPatches, patches);
+
+    // Plotting flags and parameters
+    int plotModeChoice = inputCtrl->GetPlotMode();
     bool generatePlot = (plotModeChoice != 0);
     mgr.Set(GeneratePlot, generatePlot);
-
     if (generatePlot) {
-        DynaRange::Graphics::Constants::PlotOutputFormat format_enum = m_view->GetPlotFormat();
+        // Plot Format
+        DynaRange::Graphics::Constants::PlotOutputFormat format_enum = inputCtrl->GetPlotFormat();
         std::string format_str = "PNG";
-        if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::PDF) {
-            format_str = "PDF";
-        } else if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::SVG) {
-            format_str = "SVG";
-        }
+        if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::PDF) format_str = "PDF";
+        else if (format_enum == DynaRange::Graphics::Constants::PlotOutputFormat::SVG) format_str = "SVG";
         mgr.Set(PlotFormat, format_str);
-
-        PlottingDetails details = m_view->GetPlottingDetails();
-        int commandMode = plotModeChoice;
-        // 1: No cmd, 2: Short, 3: Long
-        std::vector<int> params = { static_cast<int>(details.show_scatters), static_cast<int>(details.show_curve), static_cast<int>(details.show_labels), commandMode };
+        // Plot Details & Command Mode
+        PlottingDetails details = inputCtrl->GetPlottingDetails();
+        std::vector<int> params = { static_cast<int>(details.show_scatters), static_cast<int>(details.show_curve), static_cast<int>(details.show_labels), plotModeChoice };
         mgr.Set(PlotParams, params);
     }
 
-    mgr.Set(ChartCoords, m_view->GetChartCoords());
-    
-    std::vector<int> patches = { m_view->GetChartPatchesM(), m_view->GetChartPatchesN() };
-    mgr.Set(ChartPatches, patches);
-
-    RawChannelSelection channels = m_view->GetRawChannelSelection();
-    std::vector<int> channels_vec = { 
-        static_cast<int>(channels.R), 
-        static_cast<int>(channels.G1), 
-        static_cast<int>(channels.G2), 
-        static_cast<int>(channels.B), 
-        static_cast<int>(channels.avg_mode) 
-    };
+    // Channel Selection
+    RawChannelSelection channels = inputCtrl->GetRawChannelSelection();
+    std::vector<int> channels_vec = { static_cast<int>(channels.R), static_cast<int>(channels.G1), static_cast<int>(channels.G2), static_cast<int>(channels.B), static_cast<int>(channels.avg_mode) };
     mgr.Set(RawChannels, channels_vec);
 
-    // La estimación del nivel de negro se activa si, y solo si, ambos campos (fichero y valor) están vacíos.
-    bool black_is_default = m_view->ShouldEstimateBlackLevel();
-    mgr.Set(BlackLevelIsDefault, black_is_default);
-    
-    // La estimación del nivel de saturación se activa si, y solo si, ambos campos (fichero y valor) están vacíos.
-    bool sat_is_default = m_view->ShouldEstimateSaturationLevel();
-    mgr.Set(SaturationLevelIsDefault, sat_is_default);
-    
-    std::vector<double> current_thresholds = m_view->GetSnrThresholds();
-    bool snr_is_default = (current_thresholds.size() == 2 && current_thresholds[0] == 0 && current_thresholds[1] == 12);
-    mgr.Set(SnrThresholdIsDefault, snr_is_default);
-    
-    mgr.Set(PrintPatches, m_view->GetPrintPatchesFilename());
+    // Internal flags (Calibration Defaults, SNR Default)
+    mgr.Set(BlackLevelIsDefault, inputCtrl->ShouldEstimateBlackLevel());
+    mgr.Set(SaturationLevelIsDefault, inputCtrl->ShouldEstimateSaturationLevel());
+    std::vector<double> current_thresholds = inputCtrl->GetSnrThresholds();
+    const std::vector<double> default_snr = DEFAULT_SNR_THRESHOLDS_DB;
+    mgr.Set(SnrThresholdIsDefault, current_thresholds == default_snr);
+    mgr.Set(GuiManualCameraName, inputCtrl->GetManualCameraName());
+    mgr.Set(GuiUseExifNameFlag, inputCtrl->GetUseExifNameFlag());
+    mgr.Set(GuiUseSuffixFlag, inputCtrl->GetUseSuffixFlag());
+
+}
+
+/**
+ * @brief The main function for the background analysis worker thread.
+ * @details Runs the core analysis engine, generates in-memory plots for the GUI,
+ * and posts completion events back to the main thread.
+ * @param opts A copy of the ProgramOptions struct containing all settings gathered from the GUI.
+ */
+void GuiPresenter::AnalysisWorker(ProgramOptions opts)
+{
+    m_isWorkerRunning = true; // Set running flag
+    // Clear previous results from memory
+    m_summaryImage = wxImage();
+    m_individualImages.clear();
+
+    // Setup stream buffer to redirect std::cout/cerr to GUI log panel
+    WxLogStreambuf log_streambuf(m_view);
+    std::ostream log_stream(&log_streambuf);
+
+    // 1. Run the core dynamic range analysis engine
+    m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
+
+    // Check for cancellation
+    if (m_cancelWorker) {
+        if (m_view) m_view->PostAnalysisComplete();
+        // m_isWorkerRunning = false; // Set by caller thread after join
+        return;
+    }
+    // Check for early failure
+     if (m_lastReport.final_csv_path.empty() && opts.generate_plot && !m_lastReport.curve_data.empty()) {
+          log_stream << _("\nWarning: Analysis completed but failed to save CSV. Plot generation might proceed.") << std::endl;
+     } else if (m_lastReport.final_csv_path.empty()) {
+          if (m_view) m_view->PostAnalysisComplete();
+          // m_isWorkerRunning = false; // Set by caller thread after join
+          return;
+     }
+
+    // 2. Generate in-memory plot images if requested and possible
+    if (opts.generate_plot && !m_lastReport.curve_data.empty()) {
+        log_stream << _("\nGenerating in-memory plots for GUI...") << std::endl;
+
+        // Create ReportingParameters
+        ReportingParameters reporting_params { /* ... */
+            .raw_channels = opts.raw_channels,
+            .generate_plot = opts.generate_plot,
+            .plot_format = opts.plot_format,
+            .plot_details = opts.plot_details,
+            .plot_command_mode = opts.plot_command_mode,
+            .generated_command = m_lastReport.curve_data[0].generated_command,
+            .dark_value = opts.dark_value,
+            .saturation_value = opts.saturation_value,
+            .black_level_is_default = opts.black_level_is_default,
+            .saturation_level_is_default = opts.saturation_level_is_default,
+            .snr_thresholds_db = opts.snr_thresholds_db
+        };
+
+        // Create OutputNamingContext
+        OutputNamingContext naming_ctx;
+        naming_ctx.camera_name_exif = m_lastReport.curve_data[0].camera_model;
+        naming_ctx.raw_channels = opts.raw_channels;
+        naming_ctx.plot_format = opts.plot_format;
+
+        // --- Determine Effective Camera Name based on opts (GUI state copy) ---
+        std::string effective_name = "";
+        if (opts.gui_use_camera_suffix) {
+            if (opts.gui_use_exif_camera_name) {
+                effective_name = naming_ctx.camera_name_exif;
+            } else {
+                effective_name = opts.gui_manual_camera_name;
+            }
+        }
+        naming_ctx.effective_camera_name_for_output = effective_name;
+
+        // *** NUEVO: Log de depuración del estado recibido y el nombre efectivo ***
+        wxLogDebug("GuiPresenter::AnalysisWorker - Received Options State:");
+        wxLogDebug("  gui_use_camera_suffix: %s", opts.gui_use_camera_suffix ? "true" : "false");
+        wxLogDebug("  gui_use_exif_camera_name: %s", opts.gui_use_exif_camera_name ? "true" : "false");
+        wxLogDebug("  gui_manual_camera_name: '%s'", opts.gui_manual_camera_name);
+        wxLogDebug("  => effective_camera_name_for_output: '%s'", naming_ctx.effective_camera_name_for_output);
+        // *** FIN NUEVO ***
+
+
+        // Generate summary plot image
+        m_summaryImage = GuiPlotter::GeneratePlotAsWxImage(m_lastReport.curve_data, m_lastReport.dr_results, naming_ctx, reporting_params);
+
+        // Generate individual plot images if requested
+        if (opts.generate_individual_plots) {
+             std::map<std::string, std::vector<CurveData>> curves_by_file;
+             for (const auto& curve : m_lastReport.curve_data) curves_by_file[curve.filename].push_back(curve);
+             std::map<std::string, std::vector<DynamicRangeResult>> results_by_file;
+             for (const auto& result : m_lastReport.dr_results) results_by_file[result.filename].push_back(result);
+
+             for (const auto& pair : curves_by_file) {
+                 const std::string& filename = pair.first;
+                 if (results_by_file.find(filename) == results_by_file.end()) continue;
+                 OutputNamingContext individual_ctx = naming_ctx; // Copy context
+                 if (!pair.second.empty()) individual_ctx.iso_speed = pair.second[0].iso_speed;
+                 else individual_ctx.iso_speed = std::nullopt;
+                 m_individualImages[filename] = GuiPlotter::GeneratePlotAsWxImage(pair.second, results_by_file.at(filename), individual_ctx, reporting_params);
+             }
+        }
+        log_stream << _("In-memory plot generation complete.") << std::endl;
+    }
+
+    // 3. Notify main thread of completion
+    if (m_view) {
+        m_view->PostAnalysisComplete();
+    }
 }
 
 void GuiPresenter::UpdateCommandPreview()
@@ -154,128 +256,74 @@ void GuiPresenter::UpdateCommandPreview()
 
 void GuiPresenter::StartAnalysis()
 {
-    if (!m_view->ValidateSnrThresholds()) {
-        m_view->ShowError(_("Invalid Input"), _("The 'SNR Thresholds' field contains invalid characters. Please enter only numbers separated by spaces."));
+    // 1. Validate critical inputs (e.g., SNR thresholds format)
+    if (!m_view || !m_view->ValidateSnrThresholds()) {
+        if(m_view) m_view->ShowError(_("Invalid Input"), _("The 'SNR Thresholds' field contains invalid characters. Please enter only numbers separated by spaces."));
         return;
     }
 
+    // 2. Synchronize ArgumentManager with the current GUI state
     UpdateManagerFromView();
 
+    // 3. Create the ProgramOptions struct for this specific run
+    // This reads all settings, including GUI flags, from ArgumentManager
     m_lastRunOptions = ArgumentManager::Instance().ToProgramOptions();
-    
-    m_lastRunOptions.generate_individual_plots = m_view->ShouldGenerateIndividualPlots();
 
-    if (m_lastRunOptions.input_files.empty()) {
+    // *** NUEVO: Log de depuración del estado capturado ***
+    wxLogDebug("GuiPresenter::StartAnalysis - Captured Options State:");
+    wxLogDebug("  gui_use_camera_suffix: %s", m_lastRunOptions.gui_use_camera_suffix ? "true" : "false");
+    wxLogDebug("  gui_use_exif_camera_name: %s", m_lastRunOptions.gui_use_exif_camera_name ? "true" : "false");
+    wxLogDebug("  gui_manual_camera_name: '%s'", m_lastRunOptions.gui_manual_camera_name);
+    // *** FIN NUEVO ***
+
+    // 4. Copy and potentially modify options specific to this run
+    ProgramOptions runOpts = m_lastRunOptions; // Make a copy for modification
+    runOpts.generate_individual_plots = m_view->ShouldGenerateIndividualPlots(); // Get specific flag not stored in ArgumentManager
+
+    // 5. Check for essential inputs (input files)
+    if (runOpts.input_files.empty()) {
         m_view->ShowError(_("Error"), _("Please select at least one input RAW file."));
         return;
     }
-    
-    // The source image selection logic is now handled inside RunDynamicRangeAnalysis,
-    // so it is no longer needed here. We just pass the options.
 
-    if (!m_lastRunOptions.dark_file_path.empty() || !m_lastRunOptions.sat_file_path.empty()) {
+    // 6. Filter calibration files from the input list for this run
+    if (!runOpts.dark_file_path.empty() || !runOpts.sat_file_path.empty()) {
         std::set<std::string> calibration_files;
-        if (!m_lastRunOptions.dark_file_path.empty()) {
-            calibration_files.insert(m_lastRunOptions.dark_file_path);
-        }
-        if (!m_lastRunOptions.sat_file_path.empty()) {
-            calibration_files.insert(m_lastRunOptions.sat_file_path);
-        }
+        if (!runOpts.dark_file_path.empty()) calibration_files.insert(runOpts.dark_file_path);
+        if (!runOpts.sat_file_path.empty()) calibration_files.insert(runOpts.sat_file_path);
 
-        m_lastRunOptions.input_files.erase(
-            std::remove_if(m_lastRunOptions.input_files.begin(), m_lastRunOptions.input_files.end(),
+        // Remove calibration files directly from the runOpts copy
+        runOpts.input_files.erase(
+            std::remove_if(runOpts.input_files.begin(), runOpts.input_files.end(),
                 [&](const std::string& input_file) {
                     return calibration_files.count(input_file);
                 }),
-            m_lastRunOptions.input_files.end()
+            runOpts.input_files.end()
         );
-        m_view->UpdateInputFileList(m_lastRunOptions.input_files);
-        ArgumentManager::Instance().Set("input-files", m_lastRunOptions.input_files);
-        UpdateCommandPreview();
+        // Reflect removal in UI if necessary (optional, could cause flicker)
+        // m_view->UpdateInputFileList(runOpts.input_files);
+        // ArgumentManager might need update too if core relies on it directly later? Risky.
+        // ArgumentManager::Instance().Set("input-files", runOpts.input_files);
+        // UpdateCommandPreview(); // Update command preview if files changed
     }
 
+    // 7. Set UI state to "processing"
     unsigned int num_threads = std::thread::hardware_concurrency();
-    if (num_threads == 0) {
-        num_threads = 1; 
-    }
+    if (num_threads == 0) num_threads = 1;
     m_view->SetUiState(true, num_threads);
+
+    // 8. Ensure previous worker thread is finished before starting new one
     if (m_workerThread.joinable()) {
         m_workerThread.join();
     }
 
-    m_cancelWorker = false;
-    m_workerThread = std::thread([this] {
-        this->AnalysisWorker(m_lastRunOptions);
+    // 9. Launch the worker thread with the prepared options copy
+    m_cancelWorker = false; // Reset cancellation flag
+    m_workerThread = std::thread([this, opts = std::move(runOpts)] { // Pass opts copy by value (move constructor)
+        this->AnalysisWorker(opts);
+        // Set running flag to false *after* thread finishes (or is about to exit)
         m_isWorkerRunning = false;
     });
-}
-
-void GuiPresenter::AnalysisWorker(ProgramOptions opts)
-{
-    m_isWorkerRunning = true;
-    // Clear previous results
-    m_summaryImage = wxImage();
-    m_individualImages.clear();
-    
-    WxLogStreambuf log_streambuf(m_view);
-    std::ostream log_stream(&log_streambuf);
-
-    // 1. Run core analysis to get raw data and file-based reports
-    m_lastReport = DynaRange::RunDynamicRangeAnalysis(opts, log_stream, m_cancelWorker);
-    
-    if (m_cancelWorker) {
-        if (m_view)
-            m_view->PostAnalysisComplete();
-        return;
-    }
-
-    // 2. After core analysis, generate in-memory images for the GUI
-    if (opts.generate_plot && !m_lastReport.curve_data.empty()) {
-        log_stream << _("\nGenerating in-memory plots for GUI...") << std::endl;
-
-        // Create the ReportingParameters struct needed by the plotter.
-        ReportingParameters reporting_params {
-            .raw_channels = opts.raw_channels,
-            .generate_plot = opts.generate_plot,
-            .plot_format = opts.plot_format,
-            .plot_details = opts.plot_details,
-            .plot_command_mode = opts.plot_command_mode,
-            .generated_command = m_lastReport.curve_data[0].generated_command, // Get from results
-            .dark_value = opts.dark_value,
-            .saturation_value = opts.saturation_value,
-            .black_level_is_default = opts.black_level_is_default,
-            .saturation_level_is_default = opts.saturation_level_is_default,
-            .snr_thresholds_db = opts.snr_thresholds_db
-        };
-        
-        // Generate summary plot image
-        wxString summary_title_wx = _("SNR Curves - Summary (") + wxString(m_lastReport.curve_data[0].camera_model) + ")";
-        std::string summary_title = std::string(summary_title_wx.mb_str());
-        m_summaryImage = GuiPlotter::GeneratePlotAsWxImage(m_lastReport.curve_data, m_lastReport.dr_results, summary_title, reporting_params);
-        
-        // Generate individual plot images
-        std::map<std::string, std::vector<CurveData>> curves_by_file;
-        for (const auto& curve : m_lastReport.curve_data) {
-            curves_by_file[curve.filename].push_back(curve);
-        }
-        std::map<std::string, std::vector<DynamicRangeResult>> results_by_file;
-        for (const auto& result : m_lastReport.dr_results) {
-            results_by_file[result.filename].push_back(result);
-        }
-
-        for (const auto& pair : curves_by_file) {
-            const std::string& filename = pair.first;
-            std::stringstream title_ss;
-            title_ss << fs::path(filename).filename().string() << " (" << pair.second[0].camera_model << ")";
-            m_individualImages[filename] = GuiPlotter::GeneratePlotAsWxImage(pair.second, results_by_file[filename], title_ss.str(), reporting_params);
-        }
-        log_stream << _("In-memory plot generation complete.") << std::endl;
-    }
-
-    // 3. Notify the view on the main thread that all work is done
-    if (m_view) {
-        m_view->PostAnalysisComplete();
-    }
 }
 
 void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)

@@ -4,11 +4,15 @@
  * @brief Implements the ChartController class.
  */
 #include "ChartController.hpp"
+#include "InputController.hpp"
 #include "../DynaRangeFrame.hpp"
+#include "../GuiPresenter.hpp" 
 #include "../../core/arguments/ChartOptionsParser.hpp"
 #include "../../core/arguments/ArgumentsOptions.hpp"
-#include "../../core/graphics/ChartGenerator.hpp"
+#include "../../core/artifacts/ArtifactFactory.hpp" 
 #include "../../core/utils/PathManager.hpp"
+#include "../../core/utils/OutputNamingContext.hpp"
+#include "../../core/utils/OutputFilenameGenerator.hpp"
 #include "../../gui/Constants.hpp"
 #include <wx/msgdlg.h>
 #include <wx/log.h>
@@ -16,6 +20,10 @@
 #include <wx/image.h>
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
+#include <sstream>     
+#include <filesystem>   
+
+namespace fs = std::filesystem; // Alias for filesystem
 
 ChartController::ChartController(DynaRangeFrame* frame) : m_frame(frame)
 {
@@ -49,7 +57,6 @@ void ChartController::OnChartChartPatchChanged(wxCommandEvent& event) {
     // Sincronizar desde Chart tab -> Input tab
     m_frame->m_chartPatchRowValue1->ChangeValue(m_frame->m_chartPatchRowValue->GetValue());
     m_frame->m_chartPatchColValue1->ChangeValue(m_frame->m_chartPatchColValue->GetValue());
-
     // Actualizar preview y comando
     UpdatePreview();
     // Acceder al presenter a través del frame para actualizar el comando
@@ -62,39 +69,59 @@ void ChartController::OnChartChartPatchChanged(wxCommandEvent& event) {
 }
 
 void ChartController::OnCreateClick(wxCommandEvent& event) {
+    // 1. Get chart generation parameters from the UI
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
-    // Usar PathManager para obtener una ruta por defecto consistente
-    ProgramOptions temp_prog_opts; // Necesario para PathManager
-    PathManager paths(temp_prog_opts);
-    fs::path chart_output_path = paths.GetCsvOutputPath().parent_path() / DEFAULT_CHART_FILENAME;
 
-    // Pedir al usuario dónde guardar, sugiriendo la ruta por defecto
-    wxFileDialog saveFileDialog(m_frame, _("Save Chart As"),
-                                chart_output_path.parent_path().string(), // Directorio inicial
-                                chart_output_path.filename().string(),    // Nombre de fichero sugerido
-                                _("PNG files (*.png)|*.png"),
-                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (saveFileDialog.ShowModal() == wxID_CANCEL) {
-        return; // El usuario canceló
+    // 2. Determine effective camera name using InputController's logic
+    std::string effective_camera_name = "";
+    if (m_frame && m_frame->GetInputController()) { // Check pointers
+        effective_camera_name = m_frame->GetInputController()->DetermineEffectiveCameraName();
     }
-    wxString save_path = saveFileDialog.GetPath();
 
+    // 3. Create context for filename generation, passing the effective name
+    OutputNamingContext naming_ctx;
+    naming_ctx.effective_camera_name_for_output = effective_camera_name;
+    // Populate other necessary fields if any (currently none for this specific filename)
 
-    // Generar y guardar el chart en la ruta seleccionada
-    std::stringstream log_stream_buffer; // Usar un buffer para mensajes de éxito/error
-    if (GenerateTestChart(opts, std::string(save_path.ToUTF8()), log_stream_buffer)) {
-        wxMessageBox(wxString::Format(_("Chart saved successfully to:\n%s"), save_path),
-                     _("Success"), wxOK | wxICON_INFORMATION, m_frame);
+    // 4. Determine the save path using PathManager based on current settings
+    ProgramOptions temp_prog_opts;
+    // Use the current output CSV path setting from InputController to ensure consistency
+    if (m_frame && m_frame->GetInputController()) {
+        temp_prog_opts.output_filename = m_frame->GetInputController()->GetOutputFilePath();
+        if (temp_prog_opts.output_filename.empty()){
+            temp_prog_opts.output_filename = DEFAULT_OUTPUT_FILENAME;
+        }
     } else {
+         temp_prog_opts.output_filename = DEFAULT_OUTPUT_FILENAME; // Fallback
+    }
+    PathManager paths(temp_prog_opts);
+
+    // 5. Use ArtifactFactory to create and save the chart
+    std::stringstream log_stream_buffer; // Use a stringstream to capture logs
+    std::optional<fs::path> chart_path_opt = ArtifactFactory::CreateTestChartImage(
+        opts,
+        naming_ctx,
+        paths,
+        log_stream_buffer // Pass the stringstream for logging
+    );
+
+    // 6. Notify the user
+    if (chart_path_opt) {
+        wxMessageBox(wxString::Format(_("Chart saved successfully to:\n%s"), chart_path_opt->wstring()),
+                     _("Chart Saved"), wxOK | wxICON_INFORMATION, m_frame);
+    } else {
+        // Log the captured error message from the stringstream
         wxLogError("Chart generation failed. Log: %s", log_stream_buffer.str());
-        wxMessageBox(_("Failed to generate and save the chart. Check logs for details."),
-                     _("Error"), wxOK | wxICON_ERROR, m_frame);
+        // Show a message box indicating failure (path might be invalid if factory failed early)
+        // We generate a potential path just for the error message using the filename generator directly
+        fs::path potential_filename = OutputFilenameGenerator::GenerateTestChartFilename(naming_ctx);
+        fs::path potential_output_path = paths.GetFullPath(potential_filename);
+        wxMessageBox(wxString::Format(_("Failed to save the chart to:\n%s\n\nCheck application log for details."), potential_output_path.wstring()),
+                     _("Error Saving Chart"), wxOK | wxICON_ERROR, m_frame);
     }
 }
-
 ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
-    ChartGeneratorOptions opts{}; // Inicializa con ceros o valores por defecto del struct si los tuviera
+    ChartGeneratorOptions opts{}; // Inicializa con valores por defecto del struct
 
     // Leer valores de los controles
     opts.R = m_frame->m_rParamSlider->GetValue();
@@ -106,39 +133,39 @@ ChartGeneratorOptions ChartController::GetCurrentOptionsFromUi() const {
     if (m_frame->m_InvGammaValue->GetValue().ToDouble(&invgamma_read) && invgamma_read > 0.0) {
         opts.invgamma = invgamma_read;
     } else {
-        opts.invgamma = DEFAULT_CHART_INV_GAMMA; // Fallback a la constante
+        opts.invgamma = DEFAULT_CHART_INV_GAMMA;
     }
 
     long temp_val;
     if (m_frame->m_chartDimXValue->GetValue().ToLong(&temp_val) && temp_val > 0) {
         opts.dim_x = temp_val;
     } else {
-        opts.dim_x = DEFAULT_CHART_DIM_X; // Fallback a la constante
+        opts.dim_x = DEFAULT_CHART_DIM_X;
     }
 
     if (m_frame->m_chartDimWValue->GetValue().ToLong(&temp_val) && temp_val > 0) {
         opts.aspect_w = temp_val;
     } else {
-        opts.aspect_w = DEFAULT_CHART_ASPECT_W; // Fallback a la constante
+        opts.aspect_w = DEFAULT_CHART_ASPECT_W;
     }
 
     if (m_frame->m_chartDimHValue->GetValue().ToLong(&temp_val) && temp_val > 0) {
         opts.aspect_h = temp_val;
     } else {
-        opts.aspect_h = DEFAULT_CHART_ASPECT_H; // Fallback a la constante
+        opts.aspect_h = DEFAULT_CHART_ASPECT_H;
     }
 
     // Leer desde los controles de esta pestaña (Chart)
     if (m_frame->m_chartPatchRowValue->GetValue().ToLong(&temp_val) && temp_val > 0) {
         opts.patches_m = temp_val;
     } else {
-        opts.patches_m = DEFAULT_CHART_PATCHES_M; // Fallback a la constante
+        opts.patches_m = DEFAULT_CHART_PATCHES_M;
     }
 
     if (m_frame->m_chartPatchColValue->GetValue().ToLong(&temp_val) && temp_val > 0) {
         opts.patches_n = temp_val;
     } else {
-        opts.patches_n = DEFAULT_CHART_PATCHES_N; // Fallback a la constante
+        opts.patches_n = DEFAULT_CHART_PATCHES_N;
     }
 
     return opts;
@@ -149,7 +176,7 @@ void ChartController::OnColorSliderChanged(wxCommandEvent& event) {
     m_frame->m_gParamValue->SetLabel(std::to_string(m_frame->m_gParamSlider->GetValue()));
     m_frame->m_bParamValue->SetLabel(std::to_string(m_frame->m_bParamSlider->GetValue()));
     UpdatePreview(); // Actualizar preview en tiempo real
-    event.Skip(); // Permitir que el evento continúe si es necesario
+    event.Skip();
 }
 
 void ChartController::OnChartParamTextChanged(wxCommandEvent& event) {
@@ -163,7 +190,6 @@ void ChartController::OnChartPreviewPaint(wxPaintEvent& event)
 {
     wxAutoBufferedPaintDC dc(m_frame->m_chartPreviewPanel);
     dc.Clear();
-
     if (m_frame->m_chartPreviewBitmap.IsOk())
     {
         wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
@@ -194,16 +220,16 @@ void ChartController::OnChartPreviewPaint(wxPaintEvent& event)
 
 void ChartController::UpdatePreview() {
     ChartGeneratorOptions opts = GetCurrentOptionsFromUi();
-    std::optional<InMemoryImage> thumb_data_opt = GenerateChartThumbnail(opts, DynaRange::Gui::Constants::CHART_PREVIEW_WIDTH);
+    
+    std::optional<InMemoryImage> thumb_data_opt = ArtifactFactory::GenerateChartThumbnail(opts, DynaRange::Gui::Constants::CHART_PREVIEW_WIDTH);
 
     if (thumb_data_opt) {
         const InMemoryImage& thumb_data = *thumb_data_opt;
-
+        // std::memcpy is safe to use for POD types like unsigned char
         unsigned char* data_copy = new unsigned char[thumb_data.data.size()];
         std::memcpy(data_copy, thumb_data.data.data(), thumb_data.data.size());
 
         wxImage image(thumb_data.width, thumb_data.height, data_copy, false);
-
         if (image.IsOk()) {
             m_frame->m_chartPreviewBitmap = wxBitmap(image);
         } else {

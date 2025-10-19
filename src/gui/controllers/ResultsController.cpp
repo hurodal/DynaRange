@@ -13,7 +13,6 @@
 #include <wx/graphics.h> // For wxGraphicsContext
 #include <filesystem>
 #include <string>
-#include <cairo/cairo.h>
 
 namespace fs = std::filesystem;
 
