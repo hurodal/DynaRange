@@ -1,6 +1,9 @@
 BUGS
 ====
 
+- La nueva casilla para subnombre no acaba de funcionar: el campo de texto deberia de volverse blanco al activarla, porque se mantiene gris y no deja escribir
+en ningun momento. Por otra parte, yo la llamaria "añadir sufijo" en vez de "subnombre".
+
 - Al introducir las esquinas manualmente, ya no deberia exportar el "Debug detected corners".
 
 - (COMPROBAR AHORA Y DIME ALGO) Probando los RAW de la carpeta "Test convergencia" veo que detecta bien las esquinas pero parece que los parches no, porque salen cosas raras en la curva

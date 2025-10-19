@@ -17,10 +17,7 @@ PRIORITARIAS
 
 0e: AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
 
-1a: AÑADIR al GUI DOS CHECKBOXES (o CAMPOS DE TEXTO DIRECTAMENTE, eso tu sabes mejor) para elegir si se quiere que genere los graficos añadiendo al final del nombre de los archivos
-el nombre de camara (que sacaria del campo mencionado en el punto anterior) y el ISO. (si puede ser, con este formato: " - camara tal ISO tal")
-
-1b: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
+1: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
    Corregir el que la marca de escala "SNR > 0dB" se salga fuera de la grafica (quitarla) en aquellos casos en que queda fuera de la grafica.
 
@@ -73,6 +70,9 @@ NO PRIORITARIAS
 
 HECHOS
 ======
+
+(HECHO) AÑADIR al GUI DOS CHECKBOXES (o CAMPOS DE TEXTO DIRECTAMENTE, eso tu sabes mejor) para elegir si se quiere que genere los graficos añadiendo al final del nombre de los archivos
+el nombre de camara (que sacaria del campo mencionado en el punto anterior) y el ISO. (si puede ser, con este formato: " - camara tal ISO tal")
 
 (HECHO) MOVER LA COLUMNA 'DR_EV' EN LA PESTAÑA RESULTS JUSTO DESPUES DE LA COLUMNA ISO (SINO QUEDA AL FINAL Y OBLIGA A HACER SCROLL PARA VERLA)
 
