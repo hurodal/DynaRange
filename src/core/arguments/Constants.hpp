@@ -36,8 +36,16 @@ namespace DynaRange::Arguments::Constants {
     // --- Internal Flags (no user-facing CLI equivalent) ---
     constexpr const char* GeneratePlot = "generate-plot";
     constexpr const char* CreateChartMode = "create-chart-mode";
-    constexpr const char* SnrThresholdIsDefault = "snr-threshold-is-default";
+    constexpr const char* SnrThresholdIsDefault = "snr-threshold-is-default"; // Still needed by parser logic
     constexpr const char* BlackLevelIsDefault = "black-level-is-default";
     constexpr const char* SaturationLevelIsDefault = "saturation-level-is-default";
+
+    // --- NEW INTERNAL FLAGS FOR GUI STATE ---
+    /** @brief Internal name for storing the manual camera name from the GUI. */
+    constexpr const char* GuiManualCameraName = "gui-manual-camera-name";
+    /** @brief Internal name for storing the 'Use EXIF Name' flag state from the GUI. */
+    constexpr const char* GuiUseExifNameFlag = "gui-use-exif-flag";
+    /** @brief Internal name for storing the 'Add Suffix' flag state from the GUI. */
+    constexpr const char* GuiUseSuffixFlag = "gui-use-suffix-flag";
 
 } // namespace DynaRange::Arguments::Constants

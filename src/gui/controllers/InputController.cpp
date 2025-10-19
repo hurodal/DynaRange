@@ -9,7 +9,10 @@
 #include "../DynaRangeFrame.hpp"
 #include "../GuiPresenter.hpp"
 #include "../../core/arguments/ArgumentsOptions.hpp"
-#include "../graphics/Constants.hpp"
+#include "../../core/utils/OutputNamingContext.hpp" 
+#include "../../core/utils/OutputFilenameGenerator.hpp"
+#include "../GuiPresenter.hpp"
+//#include "../graphics/Constants.hpp"
 #include "../helpers/RawExtensionHelper.hpp"
 #include <libraw/libraw.h>
 #include <set>
@@ -20,50 +23,64 @@
 #include <wx/filename.h>
 #include <wx/msgdlg.h>
 
-InputController::InputController(DynaRangeFrame* frame) : m_frame(frame) {
-    // Instantiate the new controller responsible for the preview panel
+InputController::InputController(DynaRangeFrame* frame) : m_frame(frame), m_cachedExifName("") {
     m_previewController = std::make_unique<PreviewController>(frame);
 
-    // Dynamically populate the polynomial order choice control.
+    // Populate polynomial order choice
     m_frame->m_PlotChoice->Clear();
     for (const auto& order : VALID_POLY_ORDERS) {
         m_frame->m_PlotChoice->Append(std::to_string(order));
     }
-
-    // Set the default selection based on the default value
-    int default_index = -1;
+    int default_poly_index = -1;
     for (size_t i = 0; i < std::size(VALID_POLY_ORDERS); ++i) {
         if (VALID_POLY_ORDERS[i] == DEFAULT_POLY_ORDER) {
-            default_index = i;
+            default_poly_index = i;
             break;
         }
     }
-    if (default_index != -1) {
-        m_frame->m_PlotChoice->SetSelection(default_index);
+    if (default_poly_index != -1) {
+        m_frame->m_PlotChoice->SetSelection(default_poly_index);
     }
 
+    // Set other default values
     m_frame->m_darkValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_BLACK_LEVEL));
     m_frame->m_saturationValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_SATURATION_LEVEL));
-
-    m_frame->m_outputTextCtrl->SetValue(DEFAULT_OUTPUT_FILENAME);
     m_frame->m_patchRatioSlider->SetValue(static_cast<int>(DEFAULT_PATCH_RATIO * 100));
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", DEFAULT_PATCH_RATIO));
     m_frame->m_drNormalizationSlider->SetValue(static_cast<int>(DEFAULT_DR_NORMALIZATION_MPX));
     m_frame->m_drNormalizationValueText->SetLabel(wxString::Format("%.0fMpx", DEFAULT_DR_NORMALIZATION_MPX));
-
-    // Set default plot mode to "Graphic" (index 1)
-    m_frame->m_plotingChoice->SetSelection(1);
-
     m_frame->m_debugPatchesCheckBox->SetValue(false);
     m_frame->m_debugPatchesFileNameValue->Enable(false);
-    // R,G1,G2,B checkboxes are initialized by wxFormBuilder (checked by default now)
     m_frame->AVG_ChoiceValue->SetSelection(DynaRange::Gui::Constants::AvgChoices::DEFAULT_INDEX);
-
-    // Ensure the gamma slider is disabled by default, but set its initial value using the constant
     m_frame->m_gammaThumbSlider->Enable(false);
     m_frame->m_gammaThumbSlider->SetValue(DynaRange::Gui::Constants::DEFAULT_GAMMA_SLIDER_VALUE);
+    m_frame->m_plotParamScattersCheckBox->SetValue(true);
+    m_frame->m_plotParamCurveCheckBox->SetValue(true);
+    m_frame->m_plotParamLabelsCheckBox->SetValue(true);
+    m_frame->m_plotingChoice->SetSelection(3);
 
-    // Update AVG choice options based on initial checkbox state
+    // *** Establecer estado inicial de controles de nombre  ***
+    bool initialAddSuffix = m_frame->m_subnameOutputcheckBox->IsChecked(); // Leer estado inicial
+    bool initialUseExif = m_frame->m_fromExifOutputCheckBox->IsChecked(); // Leer estado inicial
+
+    if (initialAddSuffix) {
+        m_frame->m_fromExifOutputCheckBox->Enable(true);
+        m_frame->m_subnameTextCtrl->Enable(!initialUseExif);
+        if (initialUseExif) {
+            m_frame->m_subnameTextCtrl->Clear();
+        }
+    } else {
+        m_frame->m_fromExifOutputCheckBox->SetValue(false); // Forzar desmarcado
+        m_frame->m_fromExifOutputCheckBox->Enable(false);
+        m_frame->m_subnameTextCtrl->Clear();
+        m_frame->m_subnameTextCtrl->Enable(false);
+    }
+    // *** FIN Estado inicial ***
+
+    // Llamar al helper para establecer nombres iniciales (ahora usa DetermineEffectiveCameraName)
+    UpdateDefaultFilenamesInUI();
+
+    // Update AVG choice options
     UpdateAvgChoiceOptions();
 }
 
@@ -94,6 +111,9 @@ std::vector<double> InputController::GetSnrThresholds() const {
     }
     return thresholds;
 }
+std::string InputController::GetManualCameraName() const { return m_frame->m_subnameTextCtrl->GetValue().ToStdString(); }
+bool InputController::GetUseExifNameFlag() const { return m_frame->m_fromExifOutputCheckBox->IsChecked(); }
+bool InputController::GetUseSuffixFlag() const { return m_frame->m_subnameOutputcheckBox->IsChecked(); }
 
 void InputController::UpdateInputFileList(const std::vector<std::string>& files, int selected_index)
 {
@@ -290,15 +310,11 @@ void InputController::OnListBoxKeyDown(wxKeyEvent& event) {
 void InputController::OnDebugPatchesCheckBoxChanged(wxCommandEvent& event) {
     bool is_checked = m_frame->m_debugPatchesCheckBox->IsChecked();
     m_frame->m_debugPatchesFileNameValue->Enable(is_checked);
-    
-    // If the checkbox is checked, display the default filename as a placeholder.
-    // If unchecked, clear the field.
-    if (is_checked) {
-        m_frame->m_debugPatchesFileNameValue->SetValue(DEFAULT_PRINT_PATCHES_FILENAME);
-    } else {
-        m_frame->m_debugPatchesFileNameValue->Clear();
-    }
 
+    // Update default filenames (handles clearing/setting based on state)
+    UpdateDefaultFilenamesInUI();
+
+    // Trigger command preview update etc.
     OnInputChanged(event);
 }
 
@@ -337,6 +353,87 @@ void InputController::OnInputChartPatchChanged(wxCommandEvent& event) {
     event.Skip();
 }
 
+/**
+ * @brief Private Helper: Determines the effective camera name based on GUI state.
+ * @details Reads the state of m_subnameOutputcheckBox, m_fromExifOutputCheckBox,
+ * and m_subnameTextCtrl to decide which camera name (EXIF, manual, or none)
+ * should be used for output naming.
+ * @return The effective camera name string, or an empty string if no suffix should be added.
+ */
+std::string InputController::DetermineEffectiveCameraName() const {
+    // 1. Check if the suffix should be added at all
+    if (!m_frame->m_subnameOutputcheckBox->IsChecked()) {
+        return ""; // No suffix needed
+    }
+
+    // 2. Determine the source: EXIF or Manual
+    bool useExif = m_frame->m_fromExifOutputCheckBox->IsChecked();
+    std::string name_to_use;
+
+    if (useExif) {
+        // Use cached EXIF name
+        // Ideally, this cache is updated whenever new files are added or analysis runs
+        name_to_use = m_cachedExifName;
+        // Fallback if cache is empty (e.g., before first run/file load)
+        if (name_to_use.empty() && m_frame->m_presenter && !m_frame->m_presenter->GetLastReport().curve_data.empty()) {
+             name_to_use = m_frame->m_presenter->GetLastReport().curve_data[0].camera_model;
+        }
+
+    } else {
+        // Use manual name from text control
+        name_to_use = m_frame->m_subnameTextCtrl->GetValue().ToStdString();
+    }
+
+    // Return the determined name (could still be empty if source was empty)
+    return name_to_use;
+}
+
+/**
+ * @brief Updates the default/placeholder filenames in the UI text controls (CSV, Debug Patches).
+ * @details Generates default names using OutputFilenameGenerator based on the effective
+ * camera name determined by the current GUI state. Updates controls cautiously.
+ */
+void InputController::UpdateDefaultFilenamesInUI() {
+    // 1. Determinar el nombre efectivo de cámara AHORA
+    std::string effectiveName = DetermineEffectiveCameraName(); // Llama al método (ahora público)
+
+    // 2. Crear contexto SÓLO con el nombre efectivo
+    OutputNamingContext ctx;
+    ctx.effective_camera_name_for_output = effectiveName; // Usar el nombre determinado
+    // Poblar EXIF para referencia interna de GetSafeCameraSuffix si fuera necesario (aunque ya no lo usa)
+    ctx.camera_name_exif = m_cachedExifName;
+
+    // 3. Generar nuevos nombres por defecto usando el nombre efectivo
+    std::string new_default_csv = OutputFilenameGenerator::GenerateCsvFilename(ctx).string();
+    std::string new_default_patches = "";
+    if (m_frame->m_debugPatchesCheckBox->IsChecked()) {
+        ctx.user_print_patches_filename = ""; // Asegurar que generamos el default
+        new_default_patches = OutputFilenameGenerator::GeneratePrintPatchesFilename(ctx).string();
+    }
+
+    // 4. Actualizar control CSV si corresponde
+    std::string current_csv_text = m_frame->m_outputTextCtrl->GetValue().ToStdString();
+    if (current_csv_text.empty() || current_csv_text == m_currentDefaultCsvName) {
+        m_frame->m_outputTextCtrl->ChangeValue(new_default_csv);
+    }
+    m_currentDefaultCsvName = new_default_csv;
+
+    // 5. Actualizar control Patches si corresponde
+    std::string current_patches_text = m_frame->m_debugPatchesFileNameValue->GetValue().ToStdString();
+    if (m_frame->m_debugPatchesCheckBox->IsChecked()) {
+         if (current_patches_text.empty() || current_patches_text == m_currentDefaultPatchesName) {
+             m_frame->m_debugPatchesFileNameValue->ChangeValue(new_default_patches);
+         }
+         m_currentDefaultPatchesName = new_default_patches;
+    } else {
+         // Si se desmarca, limpiar el campo si contenía el default anterior
+         if (!current_patches_text.empty() && current_patches_text == m_currentDefaultPatchesName) {
+              m_frame->m_debugPatchesFileNameValue->Clear();
+         }
+         m_currentDefaultPatchesName = ""; // Resetear default cacheado
+    }
+}
+
 std::vector<double> InputController::GetChartCoords() const {
     std::vector<double> coords;
     std::vector<wxTextCtrl*> controls = {
@@ -363,6 +460,87 @@ void InputController::DisplayPreviewImage(const std::string& path)
     if (m_previewController) {
         m_previewController->DisplayPreviewImage(path);
     }
+}
+
+/**
+ * @brief Handles text changes specifically for the manual subname control ('m_subnameTextCtrl').
+ * @details Updates default filenames if relevant and refreshes command preview.
+ * @param event The command event details.
+ */
+void InputController::OnSubnameTextChanged(wxCommandEvent& event) {
+    // Actualizar nombres por defecto solo si este control está habilitado
+    // (lo que implica que addSuffix=true y useExif=false)
+    if (m_frame->m_subnameTextCtrl->IsEnabled())
+    {
+        UpdateDefaultFilenamesInUI();
+    }
+
+    // Siempre actualizar comando preview
+    if (m_frame->m_presenter) {
+        m_frame->m_presenter->UpdateCommandPreview();
+    }
+    event.Skip();
+}
+
+/**
+ * @brief Handles changes in the 'm_subnameOutputcheckBox' (Add Suffix).
+ * @details Enables/disables/clears related controls according to the new logic,
+ * updates default filenames and command preview.
+ * @param event The command event details.
+ */
+void InputController::OnSubnameCheckBoxChanged(wxCommandEvent& event) {
+    bool addSuffix = m_frame->m_subnameOutputcheckBox->IsChecked();
+
+    if (addSuffix) {
+        // Habilitar 'From Exif'
+        m_frame->m_fromExifOutputCheckBox->Enable(true);
+        // Habilitar/Deshabilitar campo manual según 'From Exif'
+        bool useExif = m_frame->m_fromExifOutputCheckBox->IsChecked();
+        m_frame->m_subnameTextCtrl->Enable(!useExif);
+        // Limpiar campo manual si 'From Exif' está marcado
+        if (useExif) {
+             m_frame->m_subnameTextCtrl->Clear();
+        }
+    } else {
+        // Deshabilitar y desmarcar 'From Exif'
+        m_frame->m_fromExifOutputCheckBox->SetValue(false);
+        m_frame->m_fromExifOutputCheckBox->Enable(false);
+        // Deshabilitar y limpiar campo manual
+        m_frame->m_subnameTextCtrl->Clear();
+        m_frame->m_subnameTextCtrl->Enable(false);
+    }
+
+    // Actualizar nombres por defecto y comando
+    UpdateDefaultFilenamesInUI();
+    if (m_frame->m_presenter) {
+        m_frame->m_presenter->UpdateCommandPreview();
+    }
+
+    event.Skip();
+}
+
+/**
+ * @brief Handles changes in the 'm_fromExifOutputCheckBox'.
+ * @details Enables/disables manual name field, clears it if needed,
+ * updates default filenames and command preview.
+ * @param event The command event details.
+ */
+void InputController::OnFromExifCheckBoxChanged(wxCommandEvent& event) {
+    // Solo reaccionar si el checkbox "Add Suffix" está habilitado
+    if (m_frame->m_subnameOutputcheckBox->IsChecked()) {
+        bool useExif = m_frame->m_fromExifOutputCheckBox->IsChecked();
+        m_frame->m_subnameTextCtrl->Enable(!useExif);
+        if (useExif) {
+            m_frame->m_subnameTextCtrl->Clear();
+        }
+
+        // Actualizar nombres por defecto y comando
+        UpdateDefaultFilenamesInUI();
+        if (m_frame->m_presenter) {
+            m_frame->m_presenter->UpdateCommandPreview();
+        }
+    }
+    event.Skip();
 }
 
 void InputController::OnClearAllCoordsClick(wxCommandEvent& event)

@@ -51,6 +51,7 @@ public:
     void SetExecuteButtonToStoppingState();
 
     // --- Getters that delegate to InputController ---
+    // These remain as the public interface for the Presenter
     std::string GetDarkFilePath() const;
     std::string GetSaturationFilePath() const;
     double GetDarkValue() const;
@@ -70,12 +71,22 @@ public:
     PlottingDetails GetPlottingDetails() const;
     bool ValidateSnrThresholds() const;
     bool ShouldSaveLog() const;
-    bool ShouldGenerateIndividualPlots() const;    
+    bool ShouldGenerateIndividualPlots() const;
     bool ShouldEstimateBlackLevel() const;
     bool ShouldEstimateSaturationLevel() const;
 
-    // Public member for storing preview state
+    /**
+     * @brief Provides access to the InputController instance.
+     * @return A pointer to the InputController, or nullptr if not initialized.
+     */
+    InputController* GetInputController() const;
+
+    // Public member for storing preview state (consider making private with getter/setter)
     std::string m_currentPreviewFile;
+
+    // Make presenter a friend to allow access to UI elements if needed later,
+    // though direct access should be minimized. Controllers already friends.
+    friend class GuiPresenter;
 
 protected:
     // --- Event Handlers that remain in the Frame ---
@@ -90,30 +101,34 @@ protected:
     void OnRemoveAllFilesClick(wxCommandEvent& event);
 
     // --- UI Components ---
+    // These need to remain accessible to controllers via friend declaration
     wxPanel* m_resultsCanvasPanel;
     wxPanel* m_chartPreviewPanel;
 
     // --- Data for Drawing ---
-    wxBitmap m_chartPreviewBitmap;
+    wxBitmap m_chartPreviewBitmap; // Used by ChartController
+
 private:
     // --- Member variables ---
     std::unique_ptr<GuiPresenter> m_presenter;
     wxTimer* m_gaugeTimer;
     FileDropTarget* m_dropTarget;
-    bool m_isUpdatingPatches = false;
+    bool m_isUpdatingPatches = false; // Used by ChartController and InputController coordination
 
     // --- Controller Class Members ---
+    // Keep these private, accessed via friend declarations or public getters
     std::unique_ptr<InputController> m_inputController;
     std::unique_ptr<LogController> m_logController;
     std::unique_ptr<ResultsController> m_resultsController;
     std::unique_ptr<ChartController> m_chartController;
-    
-    // Grant controllers access to protected/private UI members.
+
+    // Grant controllers access to protected/private UI members if absolutely necessary
+    // Friend declarations moved to grant access specifically
     friend class InputController;
     friend class PreviewController;
     friend class ResultsController;
     friend class ChartController;
-    friend class FileDropTarget;
+    friend class FileDropTarget; // Needs access to InputController or Presenter
 };
 
 class FileDropTarget : public wxFileDropTarget {

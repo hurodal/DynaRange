@@ -23,10 +23,9 @@ namespace DynaRange::Gui::Constants {
      */
     constexpr double GUI_RENDER_SCALE_FACTOR = 0.75;
 
-    /**
-     * @brief The default filename for the log output when saving is enabled.
-     */
-    constexpr const char* LOG_OUTPUT_FILENAME = "DynaRange Analysis Results.txt";
+    // *** CONSTANTE LOG_OUTPUT_FILENAME ELIMINADA DE AQUÍ ***
+    // (Movida a src/core/utils/Constants.hpp)
+    // constexpr const char* LOG_OUTPUT_FILENAME = "DynaRange Analysis Results.txt";
 
     /**
      * @brief The default initial value for the gamma/contrast slider (0-100).
@@ -42,7 +41,6 @@ namespace DynaRange::Gui::Constants {
         "mdc", "mef", "mos", "mrw", "nef", "nrw", "obm", "orf", "pef", "ptx",
         "pxn", "r3d", "raf", "raw", "rwl", "rw2", "rwz", "sr2", "srf", "srw", "x3f"
     };
-
     /**
      * @brief Generates the wildcard filter string for file dialogs.
      * @param extensions The list of file extensions (without dots).
@@ -78,10 +76,13 @@ namespace DynaRange::Gui::Constants {
 
         constexpr int IDX_NO = 0;
         constexpr int IDX_FULL = 1;
-        constexpr int IDX_SELECTED = 2; // Index if it were present
+        constexpr int IDX_SELECTED = 2;
+        // Index if it were present
 
-        const wxString DEFAULT_CHOICE = Full; // Default selection string
-        constexpr int DEFAULT_INDEX = IDX_FULL; // Default selection index
+        const wxString DEFAULT_CHOICE = Full;
+        // Default selection string
+        constexpr int DEFAULT_INDEX = IDX_FULL;
+        // Default selection index
     }
 
 } // namespace DynaRange::Gui::Constants
