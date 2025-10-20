@@ -1,13 +1,6 @@
 PRIORITARIAS
 ============
 
-0a: (HECHO) REORGANIZACIÓN DE GUI (SUBIDOS rangogui1.png y rangogui2.png A ESTA RUTA)
-
-0b: (HECHO) TRATAR DE APLICAR REALTIME EN LAS PESTAÑAS CHART E INPUT CHART -> NO HAY BOTÓN DE PREVIEW
-    SUSTITUIR EN AMBAS LA ENTRADA DE NÚMERO DE ROWS/COLS POR SENDOR DESPLEGABLES
-
-0c: (¿ NO ESTABA HECHO ?) EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
-
 0d: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
     1. Si se suministran ficheros -> BLACK=mean(darkframe), SAT=median(saturation).
     2. Si se suministran valores se usan
@@ -70,6 +63,13 @@ NO PRIORITARIAS
 
 HECHOS
 ======
+
+(HECHO) EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
+
+(HECHO) TRATAR DE APLICAR REALTIME EN LAS PESTAÑAS CHART E INPUT CHART -> NO HAY BOTÓN DE PREVIEW
+    SUSTITUIR EN AMBAS LA ENTRADA DE NÚMERO DE ROWS/COLS POR SENDOR DESPLEGABLES
+
+(HECHO) REORGANIZACIÓN DE GUI (SUBIDOS rangogui1.png y rangogui2.png A ESTA RUTA)
 
 (HECHO) AÑADIR al GUI DOS CHECKBOXES (o CAMPOS DE TEXTO DIRECTAMENTE, eso tu sabes mejor) para elegir si se quiere que genere los graficos añadiendo al final del nombre de los archivos
 el nombre de camara (que sacaria del campo mencionado en el punto anterior) y el ISO. (si puede ser, con este formato: " - camara tal ISO tal")
