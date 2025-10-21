@@ -32,22 +32,19 @@ struct AnalysisParameters {
     // Calibration values
     double dark_value;
     double saturation_value;
-
     // Core analysis settings
     int poly_order;
     double dr_normalization_mpx;
     std::vector<double> snr_thresholds_db;
     double patch_ratio;
     double sensor_resolution_mpx;
-
     // Chart geometry settings
     std::vector<double> chart_coords;
     int chart_patches_m;
     int chart_patches_n;
-
     // Channel selection
     RawChannelSelection raw_channels;
-    
+
     // Output & Reporting settings
     std::string print_patch_filename;
     std::map<std::string, std::string> plot_labels;
@@ -58,6 +55,9 @@ struct AnalysisParameters {
      * source for corner detection and debug patch image generation.
      */
     int source_image_index = 0;
+
+    /** @brief If true, generate extended debug images (pre/post keystone, crop). */
+    bool generate_full_debug = false;
 };
 /**
  * @struct SingleFileResult

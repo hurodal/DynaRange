@@ -252,6 +252,9 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_saveLog = new wxCheckBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Save Log"), wxDefaultPosition, wxDefaultSize, 0 );
 	outputSaveLogSizer->Add( m_saveLog, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+	m_fullDebug = new wxCheckBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Full debug"), wxDefaultPosition, wxDefaultSize, 0 );
+	outputSaveLogSizer->Add( m_fullDebug, 0, wxALL, 5 );
+
 
 	analysisParamsSizer->Add( outputSaveLogSizer, 1, wxALL|wxEXPAND, 5 );
 

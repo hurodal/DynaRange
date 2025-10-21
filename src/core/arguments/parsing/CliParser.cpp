@@ -14,6 +14,7 @@
 
 namespace DynaRange::Arguments::Parsing {
 
+// File: src/core/arguments/parsing/CliParser.cpp
 std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const std::map<std::string, ArgumentDescriptor>& descriptors)
 {
     using namespace DynaRange::Arguments::Constants;
@@ -22,16 +23,16 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     CLI::App app { _("Calculates the dynamic range from a series of RAW images.") };
     auto fmt = app.get_formatter();
     fmt->column_width(35);
-    
-    ProgramOptions temp_opts;
+
+    ProgramOptions temp_opts; // Usado temporalmente por CLI11
     std::vector<double> temp_snr_thresholds;
     std::vector<int> temp_raw_channels;
     std::string temp_plot_format;
     std::vector<int> temp_plot_params;
-    
+
     // --- Define all options ---
-    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, descriptors.at(Chart).help_text)->expected(5);
-    auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, descriptors.at(ChartColour).help_text)->expected(0, 4);
+    auto chart_opt = app.add_option("-c,--chart", temp_opts.chart_params, descriptors.at(Chart).help_text)->expected(0,5); // Allow 0 args for default
+    auto chart_colour_opt = app.add_option("-C,--chart-colour", temp_opts.chart_colour_params, descriptors.at(ChartColour).help_text)->expected(0, 4); // Allow 0 args for default
     auto chart_patches_opt = app.add_option("-M,--chart-patches", temp_opts.chart_patches, descriptors.at(ChartPatches).help_text)->expected(2);
     auto chart_coords_opt = app.add_option("-x,--chart-coords", temp_opts.chart_coords, descriptors.at(ChartCoords).help_text)->expected(8);
     auto input_opt = app.add_option("-i,--input-files", temp_opts.input_files, descriptors.at(InputFiles).help_text);
@@ -49,6 +50,8 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     auto plot_params_opt = app.add_option("-P,--plot-params", temp_plot_params, descriptors.at(PlotParams).help_text)->expected(4);
     auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, descriptors.at(PrintPatches).help_text)->expected(0, 1)->default_str("_USE_DEFAULT_PRINT_PATCHES_");
     auto raw_channel_opt = app.add_option("-w,--raw-channels", temp_raw_channels, descriptors.at(RawChannels).help_text)->expected(5);
+    auto debug_opt = app.add_flag("-D,--debug", temp_opts.generate_full_debug, descriptors.at(FullDebug).help_text);
+
 
     // --- Single Parse Pass ---
     try {
@@ -57,6 +60,8 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
             throw CLI::RequiredError(_("--input-files is required unless creating a chart with --chart or --chart-colour."));
         }
     } catch (const CLI::ParseError& e) {
+        // Use standard streams for error output from CLI11's exit mechanism
+        // exit() prints the error message and terminates.
         exit(app.exit(e));
     }
 
@@ -95,13 +100,30 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     if (plot_format_opt->count() > 0) values[PlotFormat] = temp_plot_format;
     if (plot_params_opt->count() > 0) values[PlotParams] = temp_plot_params;
     if (print_patch_opt->count() > 0) values[PrintPatches] = temp_opts.print_patch_filename;
-    
+
+    // --debug -D Full debug plotting
+    // Read the actual boolean value parsed by CLI11 into temp_opts.generate_full_debug
+    values[FullDebug] = temp_opts.generate_full_debug;
+
     values[InputFiles] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
-    
     if (snr_opt->count() > 0) {
         values[SnrThresholdDb] = temp_snr_thresholds;
         values[SnrThresholdIsDefault] = false;
+    } else {
+        // Ensure default values are populated if the option wasn't used
+        // Get the default from the descriptor
+        values[SnrThresholdDb] = std::any_cast<std::vector<double>>(descriptors.at(SnrThresholdDb).default_value);
+        values[SnrThresholdIsDefault] = true;
     }
+
+
+     // Populate missing values with defaults from descriptors
+    for (const auto& [name, desc] : descriptors) {
+        if (values.find(name) == values.end()) {
+            values[name] = desc.default_value;
+        }
+    }
+
 
     return values;
 }

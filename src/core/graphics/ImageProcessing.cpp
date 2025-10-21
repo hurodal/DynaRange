@@ -16,6 +16,7 @@
 
 #define _(string) gettext(string)
 
+
 namespace { // Anonymous namespace for internal helpers
 
 void ExtractBayerChannel(const cv::Mat& src, cv::Mat& dst, DataSource channel, const std::string& pattern) {
@@ -48,15 +49,15 @@ void ExtractBayerChannel(const cv::Mat& src, cv::Mat& dst, DataSource channel, c
         if (channel == DataSource::G2) { r_offset = 1; c_offset = 0; }
         if (channel == DataSource::B)  { r_offset = 1; c_offset = 1; }
     }
-    
+
     for (int r = 0; r < dst.rows; ++r) {
         for (int c = 0; c < dst.cols; ++c) {
             dst.at<float>(r, c) = src.at<float>(r * 2 + r_offset, c * 2 + c_offset);
         }
     }
-}
+} 
 
-} // end anonymous namespace
+} // end anonymous namespace/ end anonymous namespace
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level)
 {
@@ -71,35 +72,25 @@ cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double s
     return float_img;
 }
 
+/**
+ * @brief Creates the final, viewable debug image from the overlay data.
+ * @details Applies consistent visualization processing (contrast stretch, gamma)
+ * to the input image which already contains overlays.
+ * @param overlay_image The single-channel image (CV_32F) with patch outlines drawn on it.
+ * @param max_pixel_value The maximum signal value from valid patches (currently unused).
+ * @return A gamma-corrected cv::Mat (CV_32F BGR, range 0.0-1.0) ready for saving.
+ */
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value)
 {
     if (overlay_image.empty()) {
         return {};
     }
 
-    double normalization_value = max_pixel_value;
-    // If max_pixel_value is 0 (no valid patches), find the max value in the image itself for normalization.
-    if (normalization_value <= 0) {
-        cv::minMaxLoc(overlay_image, nullptr, &normalization_value, nullptr, nullptr);
-    }
+    // Apply the same visualization processing as other debug images
+    // PrepareDebugImageView handles robust normalization, gamma, and BGR conversion
+    cv::Mat final_view = PrepareDebugImageView(overlay_image);
 
-    // If there's still no valid value (e.g., black image), we cannot proceed.
-    if (normalization_value <= 0) {
-        return {};
-    }
-
-    // 1. Normalize using the determined value.
-    cv::Mat normalized_image = overlay_image / normalization_value;
-
-    // 2. Clamp values to the [0.0, 1.0] range.
-    cv::threshold(normalized_image, normalized_image, 1.0, 1.0, cv::THRESH_TRUNC);
-    cv::threshold(normalized_image, normalized_image, 0.0, 0.0, cv::THRESH_TOZERO);
-
-    // 3. Apply standard 2.2 gamma correction for visibility.
-    cv::Mat gamma_corrected_image;
-    cv::pow(normalized_image, 1.0 / 2.2, gamma_corrected_image);
-
-    return gamma_corrected_image;
+    return final_view;
 }
 
 cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners)
@@ -121,6 +112,115 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
         cv::drawMarker(color_image, point, marker_color, cv::MARKER_CROSS, 40, 2);
     }
     return color_image;
+}
+
+/**
+ * @brief Prepares a single-channel float image for consistent visual debugging display.
+ * @details Applies robust contrast stretching based on percentiles and gamma correction.
+ * @param img_float The input single-channel image (CV_32F), assumed normalized by black/saturation.
+ * @return A 3-channel BGR image (CV_32F, range [0,1]) ready for drawing overlays or saving. Returns empty Mat on error.
+ */
+cv::Mat PrepareDebugImageView(const cv::Mat& img_float) {
+    if (img_float.empty() || img_float.type() != CV_32FC1) {
+        return {};
+    }
+
+    // --- Calculate robust min/max using percentiles (e.g., 0.1% and 99.9%) ---
+    cv::Mat hist;
+    int histSize = 256;
+    // Estimate range based on typical normalized values, adjust if needed
+    float range[] = { -0.1f, 1.1f }; // Slightly wider range to catch potential undershoot/overshoot
+    const float* histRange = { range };
+    bool uniform = true; bool accumulate = false;
+    // Calculate histogram only on valid pixels (e.g., > -infinity if any transformation caused it)
+    cv::Mat valid_mask = img_float > -std::numeric_limits<float>::infinity();
+    cv::calcHist(&img_float, 1, 0, valid_mask, hist, 1, &histSize, &histRange, uniform, accumulate);
+
+    float total_valid_pixels = cv::countNonZero(valid_mask);
+    if (total_valid_pixels == 0) return {}; // Handle fully masked image
+
+    float lower_percentile_count = total_valid_pixels * 0.001f; // 0.1%
+    float upper_percentile_count = total_valid_pixels * 0.999f; // 99.9%
+
+    float robust_min = range[0]; // Initialize with range start
+    float robust_max = range[1]; // Initialize with range end
+    float cumulative_count = 0.0f;
+    bool min_found = false;
+
+    // Find percentile values from histogram
+    for(int i = 0; i < histSize; i++) {
+        float bin_value = hist.at<float>(i);
+        // Check if bin_value is finite before adding
+        if (!std::isfinite(bin_value)) continue;
+        float current_bin_start = range[0] + (i * (range[1] - range[0]) / histSize);
+        float next_bin_start = range[0] + ((i + 1) * (range[1] - range[0]) / histSize);
+
+        if (!min_found && cumulative_count + bin_value >= lower_percentile_count) {
+            // Interpolate within the bin if possible
+            if (bin_value > 0) {
+                 robust_min = current_bin_start + ((lower_percentile_count - cumulative_count) / bin_value) * (next_bin_start - current_bin_start);
+            } else {
+                 robust_min = current_bin_start; // Assign bin start if bin is empty
+            }
+             min_found = true;
+        }
+        if (cumulative_count + bin_value >= upper_percentile_count) {
+             if (bin_value > 0) {
+                 robust_max = current_bin_start + ((upper_percentile_count - cumulative_count) / bin_value) * (next_bin_start - current_bin_start);
+             } else {
+                 robust_max = current_bin_start;
+             }
+            break; // Found upper percentile
+        }
+        cumulative_count += bin_value;
+    }
+
+
+    // Ensure max > min and handle edge cases
+    if (robust_max <= robust_min) {
+         double min_val_raw, max_val_raw;
+         cv::minMaxLoc(img_float, &min_val_raw, &max_val_raw, nullptr, nullptr, valid_mask);
+         robust_min = static_cast<float>(min_val_raw);
+         robust_max = static_cast<float>(max_val_raw);
+         // If still max <= min (e.g., flat image), use default range
+         if (robust_max <= robust_min) {
+             robust_min = 0.0f;
+             robust_max = 1.0f;
+         }
+    }
+    // Clamp robust min/max just in case calculation went out of expected bounds
+    robust_min = std::max(range[0], robust_min);
+    robust_max = std::min(range[1], robust_max);
+
+
+    // --- Apply manual normalization ---
+    cv::Mat view_img;
+    cv::subtract(img_float, cv::Scalar(robust_min), view_img);
+    // Avoid division by zero or near-zero
+    float range_diff = robust_max - robust_min;
+    if (range_diff > 1e-6) {
+        view_img /= range_diff;
+    } else {
+        // If range is tiny, just set to mid-gray or keep as is (potentially all zeros)
+         view_img = cv::Scalar(0.5); // Or handle as appropriate
+    }
+
+
+    // --- Clamp [0, 1] ---
+    cv::threshold(view_img, view_img, 1.0, 1.0, cv::THRESH_TRUNC);
+    cv::threshold(view_img, view_img, 0.0, 0.0, cv::THRESH_TOZERO);
+
+    // --- Apply gamma ---
+    cv::Mat view_img_gamma;
+    cv::pow(view_img, 1.0 / 2.2, view_img_gamma);
+
+    // --- Convert to BGR ---
+    cv::Mat final_bgr_img;
+    // Ensure the gamma corrected image is finite before converting
+    cv::patchNaNs(view_img_gamma, 0.0); // Replace NaNs with 0
+    cv::cvtColor(view_img_gamma, final_bgr_img, cv::COLOR_GRAY2BGR);
+
+    return final_bgr_img;
 }
 
 /**
@@ -147,122 +247,214 @@ cv::Mat PrepareChartImage(
     std::ostream& log_stream,
     DataSource channel_to_extract,
     const PathManager& paths,
-    const std::string& camera_model_name
+    const std::string& camera_model_name,
+    bool generate_full_debug // --- NUEVO PARÁMETRO ---
 )
 {
+    // ... El resto de la función (que se modificará en el siguiente paso) ...
     // Use the active raw image area, which excludes masked pixels.
     cv::Mat raw_img = raw_file.GetActiveRawImage();
     if(raw_img.empty()){
         return {};
     }
+    // Normalize based on black/saturation level (Range [0, ~1])
     cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
 
+    // Extract the specific Bayer channel
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     std::string filter_pattern = raw_file.GetFilterPattern();
-
-    // The log message for non-RGGB patterns has been moved to the initialization phase to avoid repetition.
     ExtractBayerChannel(img_float, imgBayer, channel_to_extract, filter_pattern);
 
-    // --- *** INICIO: DEBUG PRE-KEYSTONE *** ---
-    #if DYNA_RANGE_DEBUG_MODE == 1 // Check main debug flag with preprocessor
-    // Check specific feature flag with C++ if
-    if (DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG) {
-        if (channel_to_extract == DataSource::G1) { // Save only for one channel to avoid duplicates
-            log_stream << "  - [DEBUG] Saving pre-keystone image..." << std::endl;
-            cv::Mat pre_keystone_view;
-            cv::normalize(imgBayer, pre_keystone_view, 0.0, 1.0, cv::NORM_MINMAX);
-            cv::cvtColor(pre_keystone_view, pre_keystone_view, cv::COLOR_GRAY2BGR);
+    // --- *** INICIO: CÁLCULO PARÁMETROS NORMALIZACIÓN VISUAL *** ---
+    float robust_min = 0.0f, robust_max = 1.0f; // Default values
+    #if DYNA_RANGE_DEBUG_MODE == 1
+    // Calculate only if compile-time OR runtime flag is enabled
+    if ((DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG || generate_full_debug) && channel_to_extract == DataSource::G1) {
+       // ... (cálculo de robust_min/max como antes) ...
+        cv::Mat hist;
+        int histSize = 256;
+        float range[] = { -0.1f, 1.1f };
+        const float* histRange = { range };
+        bool uniform = true; bool accumulate = false;
+        cv::Mat valid_mask = imgBayer > -std::numeric_limits<float>::infinity();
+        cv::calcHist(&imgBayer, 1, 0, valid_mask, hist, 1, &histSize, &histRange, uniform, accumulate);
 
-            // Get corners and convert to cv::Point for drawing
-            const auto& corners_d = chart.GetCornerPoints();
-            std::vector<cv::Point> corners_i;
-            corners_i.reserve(corners_d.size());
-            for(const auto& pt : corners_d) {
-                corners_i.emplace_back(cv::Point(static_cast<int>(round(pt.x)), static_cast<int>(round(pt.y))));
+        float total_valid_pixels = cv::countNonZero(valid_mask);
+        if (total_valid_pixels > 0) {
+            float lower_percentile_count = total_valid_pixels * 0.001f;
+            float upper_percentile_count = total_valid_pixels * 0.999f;
+            float cumulative_count = 0.0f;
+            bool min_found = false;
+            robust_min = range[0]; // Initialize just in case loop doesn't find it
+            robust_max = range[1];
+
+            for(int i = 0; i < histSize; i++) {
+                float bin_value = hist.at<float>(i);
+                if (!std::isfinite(bin_value)) continue;
+                float current_bin_start = range[0] + (i * (range[1] - range[0]) / histSize);
+                float next_bin_start = range[0] + ((i + 1) * (range[1] - range[0]) / histSize);
+
+                if (!min_found && cumulative_count + bin_value >= lower_percentile_count) {
+                    if (bin_value > 0) robust_min = current_bin_start + ((lower_percentile_count - cumulative_count) / bin_value) * (next_bin_start - current_bin_start);
+                    else robust_min = current_bin_start;
+                    min_found = true;
+                }
+                if (cumulative_count + bin_value >= upper_percentile_count) {
+                     if (bin_value > 0) robust_max = current_bin_start + ((upper_percentile_count - cumulative_count) / bin_value) * (next_bin_start - current_bin_start);
+                     else robust_max = current_bin_start;
+                    break;
+                }
+                cumulative_count += bin_value;
             }
 
-            // Draw polygon (yellow)
-            cv::polylines(pre_keystone_view, corners_i, true, cv::Scalar(0, 255, 255), 2); // BGR for Yellow
-
-            // Gamma correct
-            cv::Mat final_debug_image;
-            cv::pow(pre_keystone_view, 1.0 / 2.2, final_debug_image);
-
-            // Prepare context and save using ArtifactFactory
-            OutputNamingContext naming_ctx_debug;
-            naming_ctx_debug.camera_name_exif = camera_model_name; // Use EXIF name for debug
-            naming_ctx_debug.effective_camera_name_for_output = camera_model_name; // Use EXIF for suffix in debug
-            fs::path debug_filename = OutputFilenameGenerator::GeneratePreKeystoneDebugFilename(naming_ctx_debug);
-            ArtifactFactory::CreateGenericDebugImage(final_debug_image, debug_filename, paths, log_stream);
+            if (robust_max <= robust_min) {
+                 double min_val_raw, max_val_raw;
+                 cv::minMaxLoc(imgBayer, &min_val_raw, &max_val_raw, nullptr, nullptr, valid_mask);
+                 robust_min = static_cast<float>(min_val_raw);
+                 robust_max = static_cast<float>(max_val_raw);
+                 if (robust_max <= robust_min) { robust_min = 0.0f; robust_max = 1.0f; }
+            }
+            robust_min = std::max(range[0], robust_min);
+            robust_max = std::min(range[1], robust_max);
+        }
+    }
+    #else
+    // If compile-time debug is off, check runtime flag for calculation
+    if (generate_full_debug && channel_to_extract == DataSource::G1) {
+       // ... (duplicate calculation logic needed here if compile-time is off but runtime is on) ...
+       // This code duplication isn't ideal, but necessary to keep the #if logic simple.
+        cv::Mat hist;
+        int histSize = 256;
+        float range[] = { -0.1f, 1.1f };
+        const float* histRange = { range };
+        bool uniform = true; bool accumulate = false;
+        cv::Mat valid_mask = imgBayer > -std::numeric_limits<float>::infinity();
+        cv::calcHist(&imgBayer, 1, 0, valid_mask, hist, 1, &histSize, &histRange, uniform, accumulate);
+        float total_valid_pixels = cv::countNonZero(valid_mask);
+        if (total_valid_pixels > 0) {
+            float lower_percentile_count = total_valid_pixels * 0.001f;
+            float upper_percentile_count = total_valid_pixels * 0.999f;
+            float cumulative_count = 0.0f;
+            bool min_found = false;
+            robust_min = range[0]; robust_max = range[1];
+             for(int i = 0; i < histSize; i++) {
+                float bin_value = hist.at<float>(i); if (!std::isfinite(bin_value)) continue;
+                float current_bin_start = range[0] + (i * (range[1] - range[0]) / histSize);
+                float next_bin_start = range[0] + ((i + 1) * (range[1] - range[0]) / histSize);
+                if (!min_found && cumulative_count + bin_value >= lower_percentile_count) {
+                    if (bin_value > 0) robust_min = current_bin_start + ((lower_percentile_count - cumulative_count) / bin_value) * (next_bin_start - current_bin_start); else robust_min = current_bin_start; min_found = true;
+                }
+                if (cumulative_count + bin_value >= upper_percentile_count) {
+                    if (bin_value > 0) robust_max = current_bin_start + ((upper_percentile_count - cumulative_count) / bin_value) * (next_bin_start - current_bin_start); else robust_max = current_bin_start; break;
+                }
+                cumulative_count += bin_value;
+            }
+            if (robust_max <= robust_min) {
+                 double min_val_raw, max_val_raw; cv::minMaxLoc(imgBayer, &min_val_raw, &max_val_raw, nullptr, nullptr, valid_mask); robust_min = static_cast<float>(min_val_raw); robust_max = static_cast<float>(max_val_raw); if (robust_max <= robust_min) { robust_min = 0.0f; robust_max = 1.0f; }
+            }
+            robust_min = std::max(range[0], robust_min); robust_max = std::min(range[1], robust_max);
         }
     }
     #endif
+    // --- *** FIN: CÁLCULO PARÁMETROS NORMALIZACIÓN VISUAL *** ---
+
+
+    // --- *** INICIO: DEBUG PRE-KEYSTONE *** ---
+    #if DYNA_RANGE_DEBUG_MODE == 1
+    bool should_generate_debug = DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG || generate_full_debug;
+    #else
+    bool should_generate_debug = generate_full_debug;
+    #endif
+
+    if (should_generate_debug) {
+        if (channel_to_extract == DataSource::G1) {
+            log_stream << "  - [DEBUG] Saving pre-keystone image..." << std::endl;
+             // Apply manual normalization
+            cv::Mat pre_keystone_view_norm;
+            float range_diff = robust_max - robust_min;
+            if (range_diff > 1e-6) {
+                cv::subtract(imgBayer, cv::Scalar(robust_min), pre_keystone_view_norm);
+                pre_keystone_view_norm /= range_diff;
+            } else {
+                 imgBayer.copyTo(pre_keystone_view_norm); // Avoid division by zero
+            }
+            // Clamp, Gamma, BGR
+            cv::threshold(pre_keystone_view_norm, pre_keystone_view_norm, 1.0, 1.0, cv::THRESH_TRUNC);
+            cv::threshold(pre_keystone_view_norm, pre_keystone_view_norm, 0.0, 0.0, cv::THRESH_TOZERO);
+            cv::Mat pre_keystone_view_gamma;
+            cv::pow(pre_keystone_view_norm, 1.0 / 2.2, pre_keystone_view_gamma);
+            cv::Mat pre_keystone_view_bgr;
+            cv::patchNaNs(pre_keystone_view_gamma, 0.0);
+            cv::cvtColor(pre_keystone_view_gamma, pre_keystone_view_bgr, cv::COLOR_GRAY2BGR);
+
+            if (!pre_keystone_view_bgr.empty()) {
+                const auto& corners_d = chart.GetCornerPoints(); std::vector<cv::Point> corners_i; corners_i.reserve(corners_d.size()); for(const auto& pt : corners_d) corners_i.emplace_back(cv::Point(static_cast<int>(round(pt.x)), static_cast<int>(round(pt.y))));
+                cv::polylines(pre_keystone_view_bgr, corners_i, true, cv::Scalar(0, 255, 255), 2); // BGR Yellow
+                OutputNamingContext naming_ctx_debug; naming_ctx_debug.camera_name_exif = camera_model_name; naming_ctx_debug.effective_camera_name_for_output = camera_model_name; fs::path debug_filename = OutputFilenameGenerator::GeneratePreKeystoneDebugFilename(naming_ctx_debug); ArtifactFactory::CreateGenericDebugImage(pre_keystone_view_bgr, debug_filename, paths, log_stream);
+            }
+        }
+    }
     // --- *** FIN: DEBUG PRE-KEYSTONE *** ---
 
-
+    // Apply Keystone correction (geometric transformation)
     cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(imgBayer, keystone_params);
 
-    const auto& dst_pts = chart.GetDestinationPoints();
-    double xtl = dst_pts[0].x;
-    double ytl = dst_pts[0].y;
-    double xbr = dst_pts[2].x;
-    double ybr = dst_pts[2].y;
-
-    double gap_x = 0.0;
-    double gap_y = 0.0;
+    // Get destination points and calculate crop area
+     const auto& dst_pts = chart.GetDestinationPoints();
+    double xtl = dst_pts[0].x; double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x; double ybr = dst_pts[2].y;
+    double gap_x = 0.0; double gap_y = 0.0;
     if (!chart.HasManualCoords()) {
         gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
         gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
     }
-
     cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
 
+
     // --- *** INICIO: DEBUG POST-KEYSTONE Y CROP AREA *** ---
-    #if DYNA_RANGE_DEBUG_MODE == 1 // Check main debug flag with preprocessor
-    // Check specific feature flag with C++ if
-    if (DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG) {
-        if (channel_to_extract == DataSource::G1) { // Save only for one channel
+    #if DYNA_RANGE_DEBUG_MODE == 1
+    // Re-use variable from above
+    // bool should_generate_debug = DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG || generate_full_debug;
+    #else
+    // bool should_generate_debug = generate_full_debug;
+    #endif
+
+    if (should_generate_debug) {
+        if (channel_to_extract == DataSource::G1) {
             log_stream << "  - [DEBUG] Saving post-keystone and crop area images..." << std::endl;
-            cv::Mat post_keystone_view;
-            cv::normalize(img_corrected, post_keystone_view, 0.0, 1.0, cv::NORM_MINMAX);
-            cv::cvtColor(post_keystone_view, post_keystone_view, cv::COLOR_GRAY2BGR);
-            cv::Mat crop_area_view = post_keystone_view.clone(); // Clone for the third image
 
-            // Draw destination rectangle (red) on post-keystone image
-            cv::rectangle(post_keystone_view,
-                          cv::Point(static_cast<int>(round(xtl)), static_cast<int>(round(ytl))),
-                          cv::Point(static_cast<int>(round(xbr)), static_cast<int>(round(ybr))),
-                          cv::Scalar(0, 0, 255), 2); // BGR for Red
+            // Apply manual normalization using PRE-KEYSTONE min/max
+            cv::Mat img_corrected_norm;
+            float range_diff = robust_max - robust_min;
+             if (range_diff > 1e-6) {
+                cv::subtract(img_corrected, cv::Scalar(robust_min), img_corrected_norm);
+                img_corrected_norm /= range_diff;
+            } else {
+                 img_corrected.copyTo(img_corrected_norm); // Avoid division by zero
+            }
+            // Clamp, Gamma, BGR
+            cv::threshold(img_corrected_norm, img_corrected_norm, 1.0, 1.0, cv::THRESH_TRUNC);
+            cv::threshold(img_corrected_norm, img_corrected_norm, 0.0, 0.0, cv::THRESH_TOZERO);
+            cv::Mat img_corrected_gamma;
+            cv::pow(img_corrected_norm, 1.0 / 2.2, img_corrected_gamma);
+            cv::Mat post_keystone_base_bgr;
+            cv::patchNaNs(img_corrected_gamma, 0.0);
+            cv::cvtColor(img_corrected_gamma, post_keystone_base_bgr, cv::COLOR_GRAY2BGR);
 
-            // Draw crop area rectangle (magenta) on the third image
-            cv::rectangle(crop_area_view,
-                          crop_area.tl(), // crop_area is relative to img_corrected
-                          crop_area.br(),
-                          cv::Scalar(255, 0, 255), 2); // BGR for Magenta
-
-            // Gamma correct both images
-            cv::Mat final_post_keystone_img, final_crop_area_img;
-            cv::pow(post_keystone_view, 1.0 / 2.2, final_post_keystone_img);
-            cv::pow(crop_area_view, 1.0 / 2.2, final_crop_area_img);
-
-            // Prepare context (same for both)
-            OutputNamingContext naming_ctx_debug;
-            naming_ctx_debug.camera_name_exif = camera_model_name;
-            naming_ctx_debug.effective_camera_name_for_output = camera_model_name;
-
-            // Save post-keystone image
-            fs::path post_filename = OutputFilenameGenerator::GeneratePostKeystoneDebugFilename(naming_ctx_debug);
-            ArtifactFactory::CreateGenericDebugImage(final_post_keystone_img, post_filename, paths, log_stream);
-
-            // Save crop area image
-            fs::path crop_filename = OutputFilenameGenerator::GenerateCropAreaDebugFilename(naming_ctx_debug);
-            ArtifactFactory::CreateGenericDebugImage(final_crop_area_img, crop_filename, paths, log_stream);
+            if (!post_keystone_base_bgr.empty()) {
+                cv::Mat post_keystone_view_bgr = post_keystone_base_bgr.clone();
+                cv::Mat crop_area_view_bgr = post_keystone_base_bgr.clone();
+                cv::rectangle(post_keystone_view_bgr, cv::Point(static_cast<int>(round(xtl)), static_cast<int>(round(ytl))), cv::Point(static_cast<int>(round(xbr)), static_cast<int>(round(ybr))), cv::Scalar(0, 0, 255), 2); // BGR Red
+                cv::rectangle(crop_area_view_bgr, crop_area.tl(), crop_area.br(), cv::Scalar(255, 0, 255), 2); // BGR Magenta
+                OutputNamingContext naming_ctx_debug; naming_ctx_debug.camera_name_exif = camera_model_name; naming_ctx_debug.effective_camera_name_for_output = camera_model_name;
+                fs::path post_filename = OutputFilenameGenerator::GeneratePostKeystoneDebugFilename(naming_ctx_debug); ArtifactFactory::CreateGenericDebugImage(post_keystone_view_bgr, post_filename, paths, log_stream);
+                fs::path crop_filename = OutputFilenameGenerator::GenerateCropAreaDebugFilename(naming_ctx_debug); ArtifactFactory::CreateGenericDebugImage(crop_area_view_bgr, crop_filename, paths, log_stream);
+            }
         }
     }
-    #endif
     // --- *** FIN: DEBUG POST-KEYSTONE Y CROP AREA *** ---
 
-
+    // Validate crop area boundaries
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {
@@ -270,6 +462,6 @@ cv::Mat PrepareChartImage(
         return {};
     }
 
-    // Return the final cropped image for analysis
+    // Return the final cropped image (img_corrected, *not* processed for viewing) for analysis
     return img_corrected(crop_area).clone();
 }

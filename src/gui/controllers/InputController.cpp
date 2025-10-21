@@ -12,7 +12,6 @@
 #include "../../core/utils/OutputNamingContext.hpp" 
 #include "../../core/utils/OutputFilenameGenerator.hpp"
 #include "../GuiPresenter.hpp"
-//#include "../graphics/Constants.hpp"
 #include "../helpers/RawExtensionHelper.hpp"
 #include <libraw/libraw.h>
 #include <set>
@@ -25,7 +24,6 @@
 
 InputController::InputController(DynaRangeFrame* frame) : m_frame(frame), m_cachedExifName("") {
     m_previewController = std::make_unique<PreviewController>(frame);
-
     // Populate polynomial order choice
     m_frame->m_PlotChoice->Clear();
     for (const auto& order : VALID_POLY_ORDERS) {
@@ -59,9 +57,8 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame), m_cach
     m_frame->m_plotParamLabelsCheckBox->SetValue(true);
     m_frame->m_plotingChoice->SetSelection(3);
 
-    // *** Establecer estado inicial de controles de nombre  ***
-    bool initialAddSuffix = m_frame->m_subnameOutputcheckBox->IsChecked(); // Leer estado inicial
-    bool initialUseExif = m_frame->m_fromExifOutputCheckBox->IsChecked(); // Leer estado inicial
+    bool initialAddSuffix = m_frame->m_subnameOutputcheckBox->IsChecked();
+    bool initialUseExif = m_frame->m_fromExifOutputCheckBox->IsChecked();
 
     if (initialAddSuffix) {
         m_frame->m_fromExifOutputCheckBox->Enable(true);
@@ -70,18 +67,16 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame), m_cach
             m_frame->m_subnameTextCtrl->Clear();
         }
     } else {
-        m_frame->m_fromExifOutputCheckBox->SetValue(false); // Forzar desmarcado
+        m_frame->m_fromExifOutputCheckBox->SetValue(false);
         m_frame->m_fromExifOutputCheckBox->Enable(false);
         m_frame->m_subnameTextCtrl->Clear();
         m_frame->m_subnameTextCtrl->Enable(false);
     }
-    // *** FIN Estado inicial ***
 
-    // Llamar al helper para establecer nombres iniciales (ahora usa DetermineEffectiveCameraName)
     UpdateDefaultFilenamesInUI();
-
-    // Update AVG choice options
     UpdateAvgChoiceOptions();
+
+    m_frame->m_fullDebug->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, this);
 }
 
 // Explicit destructor implementation
@@ -101,6 +96,7 @@ double InputController::GetDrNormalization() const { return static_cast<double>(
 int InputController::GetPolyOrder() const { return PolyOrderFromIndex(m_frame->m_PlotChoice->GetSelection()); }
 int InputController::GetPlotMode() const { return m_frame->m_plotingChoice->GetSelection();
 }
+bool InputController::ShouldGenerateFullDebug() const { return m_frame->m_fullDebug->IsChecked(); }
 std::vector<double> InputController::GetSnrThresholds() const {
     std::vector<double> thresholds;
     std::string text = std::string(m_frame->m_snrThresholdsValues->GetValue().mb_str());

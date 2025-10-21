@@ -23,11 +23,11 @@ namespace { // Anonymous namespace for internal helper functions
 
 std::vector<SingleFileResult> AnalyzeSingleRawFile(
     const RawFile& raw_file,
-    const AnalysisParameters& params,
+    const AnalysisParameters& params, // Contiene generate_full_debug
     const ChartProfile& chart,
     const cv::Mat& keystone_params,
     std::ostream& log_stream,
-    bool generate_debug_image,
+    bool generate_debug_image, // Este es para printpatches
     const std::atomic<bool>& cancel_flag,
     std::mutex& log_mutex,
     const PathManager& paths,
@@ -63,8 +63,10 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
         if (params.raw_channels.B) channels_to_analyze.push_back(DataSource::B);
     }
 
+
     for (const auto& channel : channels_to_analyze) {
         if (cancel_flag) return {};
+        // *** PASAR params.generate_full_debug ***
         cv::Mat img_prepared = PrepareChartImage(
             raw_file,
             params.dark_value,
@@ -74,7 +76,8 @@ std::vector<SingleFileResult> AnalyzeSingleRawFile(
             log_stream,
             channel,
             paths,
-            camera_model_name
+            camera_model_name,
+            params.generate_full_debug // <-- Pasar el flag
         );
         if (img_prepared.empty()) {
             std::lock_guard<std::mutex> lock(log_mutex);
@@ -151,11 +154,13 @@ ProcessingResult AnalysisLoopRunner::Run()
 
             bool generate_debug_image = (j == m_source_image_index && !m_params.print_patch_filename.empty());
             batch_futures.push_back(std::async(std::launch::async,
+                // Captura m_params por referencia porque AnalysisLoopRunner vive durante la ejecución
                 [&, generate_debug_image, keystone_params, &raw_file = raw_file, camera_model = m_camera_model_name]() {
                     cv::Mat local_keystone = keystone_params;
                     if (!optimized) {
                         local_keystone = DynaRange::Graphics::Geometry::CalculateKeystoneParams(m_chart.GetCornerPoints(), m_chart.GetDestinationPoints());
                     }
+                    // m_params ya contiene generate_full_debug
                     return AnalyzeSingleRawFile(raw_file, m_params, m_chart, local_keystone, m_log_stream, generate_debug_image, m_cancel_flag, log_mutex, m_paths, camera_model);
                 }
             ));
@@ -167,9 +172,6 @@ ProcessingResult AnalysisLoopRunner::Run()
             for (auto& file_result : file_results_vec) {
 
                 if (!file_result.final_debug_image.empty()) {
-                    // This logic is now handled *after* ProcessFiles returns,
-                    // using the ArtifactFactory in Engine::RunDynamicRangeAnalysis.
-                    // We just store the image in the result struct.
                     std::lock_guard<std::mutex> lock(log_mutex);
                     result.debug_patch_image = file_result.final_debug_image;
                 }
