@@ -6,9 +6,13 @@
 #include "ImageProcessing.hpp"
 #include "../DebugConfig.hpp"
 #include "geometry/KeystoneCorrection.hpp"
+#include "../artifacts/ArtifactFactory.hpp"   
+#include "../utils/OutputNamingContext.hpp"   
+#include "../utils/OutputFilenameGenerator.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <vector>
 
 #define _(string) gettext(string)
 
@@ -119,7 +123,6 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
     return color_image;
 }
 
-// File: src/core/graphics/ImageProcessing.cpp
 /**
  * @brief Prepares a single-channel Bayer image for analysis by extracting the channel,
  * normalizing its values, applying keystone correction, and cropping to the chart area.
@@ -130,19 +133,22 @@ cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& 
  * @param chart The chart profile defining the geometry (corner points and grid size).
  * @param log_stream Stream for logging potential errors.
  * @param channel_to_extract The specific Bayer channel to extract (R, G1, G2, or B).
- * @param paths The PathManager for resolving debug output paths (not currently used in this function).
+ * @param paths The PathManager for resolving debug output paths.
+ * @param camera_model_name The camera model name (for debug filenames).
  * @return A fully prepared cv::Mat (CV_32FC1) for the specified channel, ready for patch analysis.
  * Returns an empty Mat on failure.
  */
 cv::Mat PrepareChartImage(
-    const RawFile& raw_file, 
+    const RawFile& raw_file,
     double dark_value,
     double saturation_value,
     const cv::Mat& keystone_params,
-    const ChartProfile& chart, 
+    const ChartProfile& chart,
     std::ostream& log_stream,
     DataSource channel_to_extract,
-    const PathManager& paths)
+    const PathManager& paths,
+    const std::string& camera_model_name
+)
 {
     // Use the active raw image area, which excludes masked pixels.
     cv::Mat raw_img = raw_file.GetActiveRawImage();
@@ -150,13 +156,50 @@ cv::Mat PrepareChartImage(
         return {};
     }
     cv::Mat img_float = NormalizeRawImage(raw_img, dark_value, saturation_value);
-    
+
     cv::Mat imgBayer(img_float.rows / 2, img_float.cols / 2, CV_32FC1);
     std::string filter_pattern = raw_file.GetFilterPattern();
-    
+
     // The log message for non-RGGB patterns has been moved to the initialization phase to avoid repetition.
     ExtractBayerChannel(img_float, imgBayer, channel_to_extract, filter_pattern);
-    
+
+    // --- *** INICIO: DEBUG PRE-KEYSTONE *** ---
+    #if DYNA_RANGE_DEBUG_MODE == 1 // Check main debug flag with preprocessor
+    // Check specific feature flag with C++ if
+    if (DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG) {
+        if (channel_to_extract == DataSource::G1) { // Save only for one channel to avoid duplicates
+            log_stream << "  - [DEBUG] Saving pre-keystone image..." << std::endl;
+            cv::Mat pre_keystone_view;
+            cv::normalize(imgBayer, pre_keystone_view, 0.0, 1.0, cv::NORM_MINMAX);
+            cv::cvtColor(pre_keystone_view, pre_keystone_view, cv::COLOR_GRAY2BGR);
+
+            // Get corners and convert to cv::Point for drawing
+            const auto& corners_d = chart.GetCornerPoints();
+            std::vector<cv::Point> corners_i;
+            corners_i.reserve(corners_d.size());
+            for(const auto& pt : corners_d) {
+                corners_i.emplace_back(cv::Point(static_cast<int>(round(pt.x)), static_cast<int>(round(pt.y))));
+            }
+
+            // Draw polygon (yellow)
+            cv::polylines(pre_keystone_view, corners_i, true, cv::Scalar(0, 255, 255), 2); // BGR for Yellow
+
+            // Gamma correct
+            cv::Mat final_debug_image;
+            cv::pow(pre_keystone_view, 1.0 / 2.2, final_debug_image);
+
+            // Prepare context and save using ArtifactFactory
+            OutputNamingContext naming_ctx_debug;
+            naming_ctx_debug.camera_name_exif = camera_model_name; // Use EXIF name for debug
+            naming_ctx_debug.effective_camera_name_for_output = camera_model_name; // Use EXIF for suffix in debug
+            fs::path debug_filename = OutputFilenameGenerator::GeneratePreKeystoneDebugFilename(naming_ctx_debug);
+            ArtifactFactory::CreateGenericDebugImage(final_debug_image, debug_filename, paths, log_stream);
+        }
+    }
+    #endif
+    // --- *** FIN: DEBUG PRE-KEYSTONE *** ---
+
+
     cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(imgBayer, keystone_params);
 
     const auto& dst_pts = chart.GetDestinationPoints();
@@ -167,20 +210,66 @@ cv::Mat PrepareChartImage(
 
     double gap_x = 0.0;
     double gap_y = 0.0;
-
     if (!chart.HasManualCoords()) {
         gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
         gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
     }
 
     cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), round((xbr - gap_x) - (xtl + gap_x)), round((ybr - gap_y) - (ytl + gap_y)));
-    
+
+    // --- *** INICIO: DEBUG POST-KEYSTONE Y CROP AREA *** ---
+    #if DYNA_RANGE_DEBUG_MODE == 1 // Check main debug flag with preprocessor
+    // Check specific feature flag with C++ if
+    if (DynaRange::Debug::ENABLE_KEYSTONE_CROP_DEBUG) {
+        if (channel_to_extract == DataSource::G1) { // Save only for one channel
+            log_stream << "  - [DEBUG] Saving post-keystone and crop area images..." << std::endl;
+            cv::Mat post_keystone_view;
+            cv::normalize(img_corrected, post_keystone_view, 0.0, 1.0, cv::NORM_MINMAX);
+            cv::cvtColor(post_keystone_view, post_keystone_view, cv::COLOR_GRAY2BGR);
+            cv::Mat crop_area_view = post_keystone_view.clone(); // Clone for the third image
+
+            // Draw destination rectangle (red) on post-keystone image
+            cv::rectangle(post_keystone_view,
+                          cv::Point(static_cast<int>(round(xtl)), static_cast<int>(round(ytl))),
+                          cv::Point(static_cast<int>(round(xbr)), static_cast<int>(round(ybr))),
+                          cv::Scalar(0, 0, 255), 2); // BGR for Red
+
+            // Draw crop area rectangle (magenta) on the third image
+            cv::rectangle(crop_area_view,
+                          crop_area.tl(), // crop_area is relative to img_corrected
+                          crop_area.br(),
+                          cv::Scalar(255, 0, 255), 2); // BGR for Magenta
+
+            // Gamma correct both images
+            cv::Mat final_post_keystone_img, final_crop_area_img;
+            cv::pow(post_keystone_view, 1.0 / 2.2, final_post_keystone_img);
+            cv::pow(crop_area_view, 1.0 / 2.2, final_crop_area_img);
+
+            // Prepare context (same for both)
+            OutputNamingContext naming_ctx_debug;
+            naming_ctx_debug.camera_name_exif = camera_model_name;
+            naming_ctx_debug.effective_camera_name_for_output = camera_model_name;
+
+            // Save post-keystone image
+            fs::path post_filename = OutputFilenameGenerator::GeneratePostKeystoneDebugFilename(naming_ctx_debug);
+            ArtifactFactory::CreateGenericDebugImage(final_post_keystone_img, post_filename, paths, log_stream);
+
+            // Save crop area image
+            fs::path crop_filename = OutputFilenameGenerator::GenerateCropAreaDebugFilename(naming_ctx_debug);
+            ArtifactFactory::CreateGenericDebugImage(final_crop_area_img, crop_filename, paths, log_stream);
+        }
+    }
+    #endif
+    // --- *** FIN: DEBUG POST-KEYSTONE Y CROP AREA *** ---
+
+
     if (crop_area.x < 0 || crop_area.y < 0 || crop_area.width <= 0 || crop_area.height <= 0 ||
         crop_area.x + crop_area.width > img_corrected.cols ||
         crop_area.y + crop_area.height > img_corrected.rows) {
         log_stream << _("Error: Invalid crop area calculated for keystone correction.") << std::endl;
         return {};
     }
-    
+
+    // Return the final cropped image for analysis
     return img_corrected(crop_area).clone();
 }

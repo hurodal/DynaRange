@@ -11,19 +11,19 @@
 #include "../utils/PathManager.hpp"
 #include <opencv2/core.hpp>
 #include <map>
+#include <string> // Added for camera_model_name
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
 /**
  * @brief Creates the final, viewable debug image from the overlay data.
  * @details This function normalizes the image based on the maximum signal value found in valid patches,
- * clamps the range, and applies gamma correction for proper viewing. If no valid patches were found
- * (max_pixel_value <= 0), it will find the maximum value in the image itself to perform normalization.
+ * clamps the range, and applies gamma correction for proper viewing.
+ * If no valid patches were found (max_pixel_value <= 0), it will find the maximum value in the image itself to perform normalization.
  * @param overlay_image The single-channel image with patch outlines drawn on it.
  * @param max_pixel_value The maximum signal value from all valid patches.
  * @return A gamma-corrected cv::Mat (CV_32F, range 0.0-1.0) ready for saving.
  */
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value);
-
 /**
  * @brief Prepares a single-channel Bayer image for analysis.
  * @param raw_file The source RawFile object.
@@ -34,6 +34,7 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
  * @param log_stream Stream for logging messages.
  * @param channel_to_extract The specific Bayer channel to extract.
  * @param paths The PathManager for resolving debug output paths.
+ * @param camera_model_name The camera model name (for debug filenames). // *** NUEVO PARÁMETRO ***
  * @return A fully prepared cv::Mat for the specified channel.
  */
 cv::Mat PrepareChartImage(
@@ -44,9 +45,9 @@ cv::Mat PrepareChartImage(
     const ChartProfile& chart,
     std::ostream& log_stream,
     DataSource channel_to_extract,
-    const PathManager& paths
+    const PathManager& paths,
+    const std::string& camera_model_name
 );
-
 /**
  * @brief Draws cross markers on an image at specified corner locations.
  * @param image The source image to draw on.
@@ -54,7 +55,6 @@ cv::Mat PrepareChartImage(
  * @return A new image with the markers drawn on it.
  */
 cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners);
-
 /**
  * @brief Prepares all four Bayer channels from a single RAW file in one pass.
  * @param raw_file The source RawFile object.

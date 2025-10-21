@@ -27,6 +27,14 @@ public:
     static fs::path GenerateTestChartFilename(const OutputNamingContext& ctx);
     /** B6: Generates the filename for the corner detection debug image. */
     static fs::path GenerateCornerDebugFilename(const OutputNamingContext& ctx);
+
+    /** B7: Generates the filename for the pre-keystone debug image. */
+    static fs::path GeneratePreKeystoneDebugFilename(const OutputNamingContext& ctx);
+    /** B8: Generates the filename for the post-keystone debug image. */
+    static fs::path GeneratePostKeystoneDebugFilename(const OutputNamingContext& ctx);
+    /** B9: Generates the filename for the crop area debug image. */
+    static fs::path GenerateCropAreaDebugFilename(const OutputNamingContext& ctx);
+
     /**
      * @brief Internal helper to get the sanitized camera name suffix part.
      * @param ctx The context providing the effective_camera_name_for_output.
