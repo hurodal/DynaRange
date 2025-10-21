@@ -27,8 +27,8 @@ namespace DynaRange::Engine::Processing {
 
 /**
  * @brief Attempts to automatically detect chart corners if no manual coordinates are provided.
- * @details Extracts G1 channel, detects corners, optionally saves debug image using ArtifactFactory, // Updated Doxygen
- * and validates detected area.
+ * @details Extracts G1 channel, detects corners, optionally saves debug image using ArtifactFactory,
+ * and validates detected area. Uses ApplyMinMaxNormalizationView for visualization.
  * @param source_raw_file The single loaded RAW file to use for detection.
  * @param chart_coords The vector of manually provided chart coordinates.
  * @param dark_value The black level for normalization.
@@ -54,7 +54,7 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
     cv::Mat raw_img = source_raw_file.GetActiveRawImage();
     if (raw_img.empty()) {
          log_stream << _("Error: Could not get active raw image for corner detection.") << std::endl;
-        return std::nullopt;
+         return std::nullopt;
     }
 
     // Normalize the raw image
@@ -72,10 +72,8 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
     // Calculate offsets based on pattern (simplified example for G1)
     int r_offset = 0, c_offset = 1;
     // Default for RGGB
-    if (pattern == "GRBG" || pattern == "GBRG") { r_offset = 0;
-        c_offset = 0; }
-    else if (pattern == "BGGR") { r_offset = 1; c_offset = 1;
-    }
+    if (pattern == "GRBG" || pattern == "GBRG") { r_offset = 0; c_offset = 0; }
+    else if (pattern == "BGGR") { r_offset = 1; c_offset = 1; }
     // Add other patterns if necessary
 
     for (int r = 0; r < bayer_rows; ++r) {
@@ -87,39 +85,46 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
             }
         }
     }
-    // Apply threshold
-    cv::threshold(g1_bayer, g1_bayer, 0.0, 1.0, cv::THRESH_TOZERO);
-    // Perform corner detection
-    std::optional<std::vector<cv::Point2d>> detected_corners_opt = DynaRange::Graphics::Detection::DetectChartCorners(g1_bayer, log_stream);
+    // Apply threshold (needed for corner detection algorithm)
+    cv::Mat g1_bayer_thresh = g1_bayer.clone(); // Clone for detection
+    cv::threshold(g1_bayer_thresh, g1_bayer_thresh, 0.0, 1.0, cv::THRESH_TOZERO);
+    // Perform corner detection on the thresholded image
+    std::optional<std::vector<cv::Point2d>> detected_corners_opt = DynaRange::Graphics::Detection::DetectChartCorners(g1_bayer_thresh, log_stream);
+
     // Save debug image if debug mode is enabled and corners were found
     #if DYNA_RANGE_DEBUG_MODE == 1
     if (DynaRange::Debug::ENABLE_CORNER_DETECTION_DEBUG && detected_corners_opt.has_value()) {
         log_stream << "  - [DEBUG] Saving corner detection visual confirmation..." << std::endl;
-        cv::Mat viewable_image;
-        cv::normalize(g1_bayer, viewable_image, 0.0, 1.0, cv::NORM_MINMAX);
-        cv::Mat image_with_markers = DrawCornerMarkers(viewable_image, *detected_corners_opt);
-        cv::Mat final_debug_image;
-        cv::pow(image_with_markers, 1.0 / 2.2, final_debug_image);
-        // Create context for Factory
-        OutputNamingContext naming_ctx_corner;
-        naming_ctx_corner.camera_name_exif = source_raw_file.GetCameraModel();
-        // Determine effective name based on context or fallback
-        // For debug images, usually suffix isn't critical, using EXIF is fine
-        naming_ctx_corner.effective_camera_name_for_output = naming_ctx_corner.camera_name_exif;
 
-        // *** MODIFICACIÓN: Generar nombre de fichero y llamar a CreateGenericDebugImage ***
-        fs::path debug_filename = OutputFilenameGenerator::GenerateCornerDebugFilename(naming_ctx_corner);
-        std::optional<fs::path> saved_path = ArtifactFactory::CreateGenericDebugImage(
-            final_debug_image,
-            debug_filename, // Pass the generated filename
-            paths,
-            log_stream
-        );
-        // Logging is handled by the factory, but we can add a warning on failure
-        if (!saved_path) {
-            log_stream << _("Warning: Failed to save corner detection debug image.") << std::endl;
+        // --- MODIFICATION START ---
+        // Use the new ApplyMinMaxNormalizationView function on the non-thresholded G1 image
+        cv::Mat final_debug_image_bgr = ApplyMinMaxNormalizationView(g1_bayer);
+
+        if (!final_debug_image_bgr.empty()) {
+             // Draw markers directly onto the prepared BGR image
+             DrawCornerMarkers(final_debug_image_bgr, *detected_corners_opt);
+
+             // Create context for Factory
+             OutputNamingContext naming_ctx_corner;
+             naming_ctx_corner.camera_name_exif = source_raw_file.GetCameraModel();
+             naming_ctx_corner.effective_camera_name_for_output = naming_ctx_corner.camera_name_exif; // Use EXIF for debug img name
+
+             fs::path debug_filename = OutputFilenameGenerator::GenerateCornerDebugFilename(naming_ctx_corner);
+             // Use ArtifactFactory to save the final image
+             std::optional<fs::path> saved_path = ArtifactFactory::CreateGenericDebugImage(
+                 final_debug_image_bgr, // Pass the BGR image with markers
+                 debug_filename,        // Pass the generated filename
+                 paths,
+                 log_stream
+             );
+
+             if (!saved_path) {
+                 log_stream << _("Warning: Failed to save corner detection debug image.") << std::endl;
+             }
+        } else {
+             log_stream << _("Warning: Failed to prepare debug view for corner detection image.") << std::endl;
         }
-
+        // --- MODIFICATION END ---
     }
     #endif
 
@@ -129,10 +134,10 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
         for (const auto& pt : *detected_corners_opt) {
             corners_float.push_back(cv::Point2f(static_cast<float>(pt.x), static_cast<float>(pt.y)));
         }
-        double total_image_area = static_cast<double>(g1_bayer.cols * g1_bayer.rows);
+        // Use the thresholded image dimensions for area calculation if that's what detection used
+        double total_image_area = static_cast<double>(g1_bayer_thresh.cols * g1_bayer_thresh.rows);
         double detected_chart_area = cv::contourArea(corners_float);
         double area_percentage = (total_image_area > 0) ? (detected_chart_area / total_image_area) : 0.0;
-
         /* // --- AREA VALIDATION TEMPORARILY DISABLED ---
         if (area_percentage < DynaRange::Engine::Constants::MINIMUM_CHART_AREA_PERCENTAGE) {
             log_stream << _("Warning: Automatic corner detection found an area covering only ")

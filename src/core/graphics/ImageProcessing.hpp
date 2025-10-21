@@ -15,8 +15,8 @@
 
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
 /**
- * @brief Creates the final, viewable debug image from the overlay data.
- * @details Applies consistent visualization processing (contrast stretch, gamma)
+ * @brief Creates the final, viewable debug image from the overlay data using ApplyMinMaxNormalizationView.
+ * @details Applies consistent visualization processing (THRESH_TOZERO, min/max normalization, gamma)
  * to the input image which already contains overlays.
  * @param overlay_image The single-channel image (CV_32F) with patch outlines drawn on it.
  * @param max_pixel_value The maximum signal value from valid patches (currently unused).
@@ -33,7 +33,8 @@ cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_val
  * @param log_stream Stream for logging messages.
  * @param channel_to_extract The specific Bayer channel to extract.
  * @param paths The PathManager for resolving debug output paths.
- * @param camera_model_name The camera model name (for debug filenames). // *** NUEVO PARÁMETRO ***
+ * @param camera_model_name The camera model name (for debug filenames).
+ * @param generate_full_debug Flag to enable extended debug image generation at runtime.
  * @return A fully prepared cv::Mat for the specified channel.
  */
 cv::Mat PrepareChartImage(
@@ -50,11 +51,12 @@ cv::Mat PrepareChartImage(
 );
 /**
  * @brief Draws cross markers on an image at specified corner locations.
- * @param image The source image to draw on.
- * @param corners A vector of 4 corner points.
- * @return A new image with the markers drawn on it.
+ * @param image The source/destination image (CV_32FC3 BGR) to draw on. Modified in place.
+ * @param corners A vector of 4 corner points in the image's coordinate system.
+ * @return The input image matrix with markers drawn (returned by reference).
  */
-cv::Mat DrawCornerMarkers(const cv::Mat& image, const std::vector<cv::Point2d>& corners);
+cv::Mat& DrawCornerMarkers(cv::Mat& image, const std::vector<cv::Point2d>& corners); // Modified signature
+
 /**
  * @brief Prepares all four Bayer channels from a single RAW file in one pass.
  * @param raw_file The source RawFile object.
@@ -74,11 +76,19 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     const ChartProfile& chart,
     std::ostream& log_stream
 );
-
 /**
- * @brief Prepares a single-channel float image for consistent visual debugging display.
+ * @brief Prepares a single-channel float image for visual debugging display using percentile-based stretching.
  * @details Applies robust contrast stretching based on percentiles and gamma correction.
  * @param img_float The input single-channel image (CV_32F), assumed normalized by black/saturation.
  * @return A 3-channel BGR image (CV_32F, range [0,1]) ready for drawing overlays or saving. Returns empty Mat on error.
  */
-cv::Mat PrepareDebugImageView(const cv::Mat& img_float);
+cv::Mat PrepareDebugImageView(const cv::Mat& img_float); // Uses percentiles
+
+/**
+ * @brief Applies a min/max normalization followed by gamma correction for visualization.
+ * @details This method replicates the visual processing originally used for the corner detection debug image.
+ * It applies THRESH_TOZERO, then normalizes using absolute min/max values (NORM_MINMAX), and finally applies gamma correction.
+ * @param img_float The input single-channel image (CV_32FC1), typically normalized by black/saturation beforehand.
+ * @return A 3-channel BGR image (CV_32F, range [0,1]) ready for drawing overlays or saving. Returns empty Mat on error.
+ */
+cv::Mat ApplyMinMaxNormalizationView(const cv::Mat& img_float); // Added declaration, uses min/max
