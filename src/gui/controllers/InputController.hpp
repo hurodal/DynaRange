@@ -87,6 +87,8 @@ public:
     bool GetUseExifNameFlag() const;
     /** @brief Gets the state of the 'Add Suffix' checkbox. */
     bool GetUseSuffixFlag() const;
+    /** @brief Checks if the 'Full debug' checkbox is checked. */
+    bool ShouldGenerateFullDebug() const;
 
     /**
      * @brief Determines the effective camera name based on GUI control states.

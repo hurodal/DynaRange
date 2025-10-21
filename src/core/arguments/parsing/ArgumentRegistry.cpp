@@ -50,6 +50,8 @@ std::map<std::string, ArgumentDescriptor> ArgumentRegistry::RegisterAll()
     // Initialize default chart patches using constants from ArgumentsOptions.hpp
     descriptors[ChartPatches] = { ChartPatches, "M", _("Patches grid: M Rows, N Cols (def=4 6)"), ArgType::IntVector, std::vector<int>{DEFAULT_CHART_PATCHES_M, DEFAULT_CHART_PATCHES_N} };
     descriptors[ChartCoords] = { ChartCoords, "x", _("Manual chart corners: x1 y1 x2 y2 x3 y3 x4 y4"), ArgType::DoubleVector, std::vector<double>() };
+    descriptors[FullDebug] = { FullDebug, "D", _("Generate additional debug images (pre/post keystone, crop area)"), ArgType::Flag, false };
+
 
     // --- Internal Flags (no CLI exposure) ---
     descriptors[GeneratePlot] = { GeneratePlot, "", "", ArgType::Flag, false };

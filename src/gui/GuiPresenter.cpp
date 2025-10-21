@@ -76,7 +76,6 @@ void GuiPresenter::UpdateManagerFromView()
 {
     using namespace DynaRange::Arguments::Constants;
     auto& mgr = ArgumentManager::Instance();
-
     // Check if view and input controller are valid
     if (!m_view || !m_view->GetInputController()) {
         return;
@@ -84,21 +83,20 @@ void GuiPresenter::UpdateManagerFromView()
     const InputController* inputCtrl = m_view->GetInputController();
 
     // --- Update ArgumentManager with values from GUI controls (most are unchanged) ---
-    mgr.Set(InputFiles, m_preAnalysisManager.GetSortedFileList());
+    mgr.Set(InputFiles, m_inputFileManager.GetInputFiles()); // Use manager's clean list
     mgr.Set(BlackFile, inputCtrl->GetDarkFilePath());
     mgr.Set(SaturationFile, inputCtrl->GetSaturationFilePath());
     mgr.Set(BlackLevel, inputCtrl->GetDarkValue());
     mgr.Set(SaturationLevel, inputCtrl->GetSaturationValue());
     mgr.Set(PatchRatio, inputCtrl->GetPatchRatio());
-    mgr.Set(OutputFile, inputCtrl->GetOutputFilePath()); // Keep user override separate
-    mgr.Set(PrintPatches, inputCtrl->GetPrintPatchesFilename()); // Keep user override separate
+    mgr.Set(OutputFile, inputCtrl->GetOutputFilePath());
+    mgr.Set(PrintPatches, inputCtrl->GetPrintPatchesFilename());
     mgr.Set(SnrThresholdDb, inputCtrl->GetSnrThresholds());
     mgr.Set(DrNormalizationMpx, inputCtrl->GetDrNormalization());
     mgr.Set(PolyFit, inputCtrl->GetPolyOrder());
     mgr.Set(ChartCoords, inputCtrl->GetChartCoords());
     std::vector<int> patches = { inputCtrl->GetChartPatchesM(), inputCtrl->GetChartPatchesN() };
     mgr.Set(ChartPatches, patches);
-
     // Plotting flags and parameters
     int plotModeChoice = inputCtrl->GetPlotMode();
     bool generatePlot = (plotModeChoice != 0);
@@ -120,17 +118,16 @@ void GuiPresenter::UpdateManagerFromView()
     RawChannelSelection channels = inputCtrl->GetRawChannelSelection();
     std::vector<int> channels_vec = { static_cast<int>(channels.R), static_cast<int>(channels.G1), static_cast<int>(channels.G2), static_cast<int>(channels.B), static_cast<int>(channels.avg_mode) };
     mgr.Set(RawChannels, channels_vec);
-
     // Internal flags (Calibration Defaults, SNR Default)
     mgr.Set(BlackLevelIsDefault, inputCtrl->ShouldEstimateBlackLevel());
     mgr.Set(SaturationLevelIsDefault, inputCtrl->ShouldEstimateSaturationLevel());
     std::vector<double> current_thresholds = inputCtrl->GetSnrThresholds();
     const std::vector<double> default_snr = DEFAULT_SNR_THRESHOLDS_DB;
     mgr.Set(SnrThresholdIsDefault, current_thresholds == default_snr);
+    mgr.Set(FullDebug, inputCtrl->ShouldGenerateFullDebug()); // Leer estado del checkbox
     mgr.Set(GuiManualCameraName, inputCtrl->GetManualCameraName());
     mgr.Set(GuiUseExifNameFlag, inputCtrl->GetUseExifNameFlag());
     mgr.Set(GuiUseSuffixFlag, inputCtrl->GetUseSuffixFlag());
-
 }
 
 /**

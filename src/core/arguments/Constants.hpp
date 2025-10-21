@@ -40,7 +40,6 @@ namespace DynaRange::Arguments::Constants {
     constexpr const char* BlackLevelIsDefault = "black-level-is-default";
     constexpr const char* SaturationLevelIsDefault = "saturation-level-is-default";
 
-    // --- NEW INTERNAL FLAGS FOR GUI STATE ---
     /** @brief Internal name for storing the manual camera name from the GUI. */
     constexpr const char* GuiManualCameraName = "gui-manual-camera-name";
     /** @brief Internal name for storing the 'Use EXIF Name' flag state from the GUI. */
@@ -48,4 +47,6 @@ namespace DynaRange::Arguments::Constants {
     /** @brief Internal name for storing the 'Add Suffix' flag state from the GUI. */
     constexpr const char* GuiUseSuffixFlag = "gui-use-suffix-flag";
 
+    // Debug plotting
+    constexpr const char* FullDebug = "debug"; // Argumento para activar debug extendido en runtime
 } // namespace DynaRange::Arguments::Constants

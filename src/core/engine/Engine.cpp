@@ -36,7 +36,7 @@ namespace DynaRange {
  * or an empty struct on failure or cancellation.
  */
 ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_stream, const std::atomic<bool>& cancel_flag) {
-    // Phase 1: Preparation - Initialize calibration, load/sort files, get metadata
+    // Phase 1: Preparation
     InitializationResult init_result = InitializeAnalysis(opts, log_stream);
     if (!init_result.success) {
         log_stream << _("Error during initialization phase. Aborting.") << std::endl;
@@ -72,12 +72,12 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .print_patch_filename = opts.print_patch_filename, // Pass user request/sentinel
         .plot_labels = init_result.plot_labels,
         .generated_command = init_result.generated_command,
-        .source_image_index = init_result.source_image_index
+        .source_image_index = init_result.source_image_index,
+        .generate_full_debug = opts.generate_full_debug // Copiar flag desde ProgramOptions
     };
 
     // Phase 2: Processing - Run the analysis loop over the loaded RAW files
     ProcessingResult results = ProcessFiles(analysis_params, paths, log_stream, cancel_flag, init_result.loaded_raw_files);
-
     // Guardar PrintPatches DESPUÉS del procesamiento usando Factory
     if (results.debug_patch_image.has_value() && !analysis_params.print_patch_filename.empty())
     {
@@ -95,7 +95,6 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
             }
         }
         naming_ctx_patches.effective_camera_name_for_output = effective_name;
-
         naming_ctx_patches.user_print_patches_filename = analysis_params.print_patch_filename; // Pass user request/sentinel
 
         // Call Factory to create the file
@@ -148,7 +147,6 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
 
     // Call the already modified FinalizeAndReport
     ReportOutput report = FinalizeAndReport(results, reporting_params, paths, log_stream);
-
     // Add final results data to the report struct (for GUI presenter)
     report.dr_results = results.dr_results;
     report.curve_data = results.curve_data;

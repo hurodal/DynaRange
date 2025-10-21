@@ -123,6 +123,8 @@ struct ProgramOptions {
     int full_raw_height = 0;
     /** @brief Index of the file used for corner/patch detection. */
     int source_image_index = 0;
+    /** @brief If true, generate extended debug images (pre/post keystone, crop). */
+    bool generate_full_debug = false;
 
     // --- Output Settings ---
     /** @brief Base filename (or full path) for the output CSV file. */

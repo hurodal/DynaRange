@@ -54,7 +54,8 @@ namespace DynaRange::Arguments::Parsing {
 ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, std::any>& values)
 {
     using namespace DynaRange::Arguments::Constants;
-    ProgramOptions opts; // Initialize with defaults from ArgumentsOptions.hpp
+    ProgramOptions opts;
+    // Initialize with defaults from ArgumentsOptions.hpp
 
     // --- Populate options from the 'values' map using the Get helper ---
     opts.create_chart_mode = Get<bool>(CreateChartMode, values);
@@ -71,7 +72,6 @@ ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, st
     opts.poly_order = Get<int>(PolyFit, values);
     opts.dr_normalization_mpx = Get<double>(DrNormalizationMpx, values);
     opts.patch_ratio = Get<double>(PatchRatio, values);
-
     // Plotting options
     opts.generate_plot = Get<bool>(GeneratePlot, values);
     if (opts.generate_plot) {
@@ -103,23 +103,19 @@ ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, st
     } else {
         // Ensure command mode is consistent if plotting is disabled
         opts.plot_command_mode = 0; // Set to "No plot"
-        // Reset plot details to default values as well? Current behavior keeps last parsed/default.
-        // opts.plot_details = { true, true, true }; // Optional: Reset details too
+        // Current behavior keeps last parsed/default plot_details.
     }
 
     // Print Patches filename (sentinel or user-provided)
     opts.print_patch_filename = Get<std::string>(PrintPatches, values);
-
     // Internal flags
     opts.black_level_is_default = Get<bool>(BlackLevelIsDefault, values);
     opts.saturation_level_is_default = Get<bool>(SaturationLevelIsDefault, values);
-
     // SNR Thresholds (handle default case)
     if (Get<bool>(SnrThresholdIsDefault, values)) {
         opts.snr_thresholds_db = DEFAULT_SNR_THRESHOLDS_DB;
     } else {
         opts.snr_thresholds_db = Get<std::vector<double>>(SnrThresholdDb, values);
-        // Add validation? Ensure thresholds are reasonable?
     }
 
     // Raw Channels and Average Mode
@@ -140,21 +136,21 @@ ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, st
             opts.raw_channels.avg_mode = AvgMode::Full; // Revert to default
         }
     } else {
-        // Handle error: vector size incorrect. Fallback to default channel selection.
+        // Fallback to default channel selection.
         opts.raw_channels = {}; // Re-initialize to default RawChannelSelection state (AvgMode::Full)
     }
 
+    // --debug -D Full Plotting
+    opts.generate_full_debug = Get<bool>(FullDebug, values);
+
 
     // --- Populate NEW GUI-specific members ---
-    // Read the values from the map using the internal names defined in Constants.hpp
-    // These values originate from GuiPresenter::UpdateManagerFromView
     opts.gui_manual_camera_name = Get<std::string>(GuiManualCameraName, values);
     opts.gui_use_exif_camera_name = Get<bool>(GuiUseExifNameFlag, values);
     opts.gui_use_camera_suffix = Get<bool>(GuiUseSuffixFlag, values);
 
     // Note: Fields like generated_command, plot_labels, sensor_resolution_mpx, raw dimensions
     // are populated later during the initialization phase (InitializeAnalysis), not directly from arguments.
-
     return opts;
 }
 

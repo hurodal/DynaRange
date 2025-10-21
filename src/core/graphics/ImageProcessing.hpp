@@ -16,12 +16,11 @@
 cv::Mat NormalizeRawImage(const cv::Mat& raw_image, double black_level, double sat_level);
 /**
  * @brief Creates the final, viewable debug image from the overlay data.
- * @details This function normalizes the image based on the maximum signal value found in valid patches,
- * clamps the range, and applies gamma correction for proper viewing.
- * If no valid patches were found (max_pixel_value <= 0), it will find the maximum value in the image itself to perform normalization.
- * @param overlay_image The single-channel image with patch outlines drawn on it.
- * @param max_pixel_value The maximum signal value from all valid patches.
- * @return A gamma-corrected cv::Mat (CV_32F, range 0.0-1.0) ready for saving.
+ * @details Applies consistent visualization processing (contrast stretch, gamma)
+ * to the input image which already contains overlays.
+ * @param overlay_image The single-channel image (CV_32F) with patch outlines drawn on it.
+ * @param max_pixel_value The maximum signal value from valid patches (currently unused).
+ * @return A gamma-corrected cv::Mat (CV_32F BGR, range 0.0-1.0) ready for saving.
  */
 cv::Mat CreateFinalDebugImage(const cv::Mat& overlay_image, double max_pixel_value);
 /**
@@ -46,7 +45,8 @@ cv::Mat PrepareChartImage(
     std::ostream& log_stream,
     DataSource channel_to_extract,
     const PathManager& paths,
-    const std::string& camera_model_name
+    const std::string& camera_model_name,
+    bool generate_full_debug
 );
 /**
  * @brief Draws cross markers on an image at specified corner locations.
@@ -74,3 +74,11 @@ std::map<DataSource, cv::Mat> PrepareAllBayerChannels(
     const ChartProfile& chart,
     std::ostream& log_stream
 );
+
+/**
+ * @brief Prepares a single-channel float image for consistent visual debugging display.
+ * @details Applies robust contrast stretching based on percentiles and gamma correction.
+ * @param img_float The input single-channel image (CV_32F), assumed normalized by black/saturation.
+ * @return A 3-channel BGR image (CV_32F, range [0,1]) ready for drawing overlays or saving. Returns empty Mat on error.
+ */
+cv::Mat PrepareDebugImageView(const cv::Mat& img_float);
