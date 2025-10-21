@@ -1,19 +1,29 @@
 BUGS
 ====
 
-- La nueva casilla para subnombre no acaba de funcionar: el campo de texto deberia de volverse blanco al activarla, porque se mantiene gris y no deja escribir
-en ningun momento. Por otra parte, yo la llamaria "añadir sufijo" en vez de "subnombre".
+- Probando los RAW de la carpeta "Test convergencia" se ve que detecta bien las esquinas pero parece que los parches no,
+porque salen cosas raras en la curva (he usado mi version especial modificada para cartas anteriores y lo he configurado como 7x11).
+
+- La nueva casilla para subnombre: yo la llamaria "add suffix to filenames" en vez de "Output subname".
+
+- Una vez has escrito algo en Output subname y activas Save Log (coge bien el sufijo), si cambias el nombre de la casilla original, no se actualiza.
+
+- Despues de haber cargado, analizado y borrado RAWs, cargo los de otra camara, marco "From EXIF"
+y coge el nombre de camara de los RAW anteriores, no de los actuales.
+
+- Cuando has introducido manualmente el nombre de la camara como sufijo, no muestra el nombre final actualizado en "Debug patches" ni en "Output file".
+
+- Al analizar los RAWs en modo "LiveND" de la OM-1 salen cosas rarisimas en las curvas y puntos...
 
 - Al introducir las esquinas manualmente, ya no deberia exportar el "Debug detected corners".
-
-- (COMPROBAR AHORA Y DIME ALGO) Probando los RAW de la carpeta "Test convergencia" veo que detecta bien las esquinas pero parece que los parches no, porque salen cosas raras en la curva
- (he usado mi version especial modificada para cartas anteriores y lo he configurado como 7x11). El problema es que no exporta los detected patches y
- y no se puede saber si falla por eso...
 
  ---------------------------------
 
  CORREGIDOS
  ==========
+
+- La casilla subnombre: el campo de texto deberia de volverse blanco al activarla, porque se mantiene gris y no deja escribir
+en ningun momento.
 
 - Al desmarcar la opcion SCATTERS, dejan de plotearse los puntos... (esto es lo esperable) (COMPROBAR DE NUEVO A VER SI FUNCIONA)
 y desaparecen las etiquetas de ISO de cada curva. (esto es lo raro)
