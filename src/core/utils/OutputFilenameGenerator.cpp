@@ -24,7 +24,6 @@ std::string OutputFilenameGenerator::GetSafeCameraSuffix(const OutputNamingConte
     using namespace DynaRange::Utils::Constants;
     // Use the effective name directly from the context
     const std::string& effective_name = ctx.effective_camera_name_for_output;
-
     if (!effective_name.empty()) {
         // Use separator and sanitize the provided effective name
         return FNAME_SEPARATOR + SanitizeForFilename(effective_name);
@@ -93,7 +92,7 @@ fs::path OutputFilenameGenerator::GenerateCsvFilename(const OutputNamingContext&
 fs::path OutputFilenameGenerator::GeneratePrintPatchesFilename(const OutputNamingContext& ctx) {
     using namespace DynaRange::Utils::Constants;
     // B4: Check for user override first
-    if (!ctx.user_print_patches_filename.empty() && ctx.user_print_patches_filename != "_USE_DEFAULT_PRINT_PATCHES_") { // Handle sentinel value [cite: 2124]
+    if (!ctx.user_print_patches_filename.empty() && ctx.user_print_patches_filename != "_USE_DEFAULT_PRINT_PATCHES_") {
         return ctx.user_print_patches_filename;
     }
     // Default generation
@@ -120,6 +119,33 @@ fs::path OutputFilenameGenerator::GenerateCornerDebugFilename(const OutputNaming
     std::stringstream ss;
     ss << FNAME_BASE_CORNER_DEBUG              // 1. "debug_corners_detected"
        << GetSafeCameraSuffix(ctx)             // 2. Optional camera name
+       << EXT_PNG;                             // 3. ".png"
+    return ss.str();
+}
+
+fs::path OutputFilenameGenerator::GeneratePreKeystoneDebugFilename(const OutputNamingContext& ctx) {
+    using namespace DynaRange::Utils::Constants;
+    std::stringstream ss;
+    ss << "debug_pre_keystone"                 // 1. Base name
+       << GetSafeCameraSuffix(ctx)             // 2. Optional camera name (using EXIF for debug)
+       << EXT_PNG;                             // 3. ".png"
+    return ss.str();
+}
+
+fs::path OutputFilenameGenerator::GeneratePostKeystoneDebugFilename(const OutputNamingContext& ctx) {
+    using namespace DynaRange::Utils::Constants;
+    std::stringstream ss;
+    ss << "debug_post_keystone"                // 1. Base name
+       << GetSafeCameraSuffix(ctx)             // 2. Optional camera name (using EXIF for debug)
+       << EXT_PNG;                             // 3. ".png"
+    return ss.str();
+}
+
+fs::path OutputFilenameGenerator::GenerateCropAreaDebugFilename(const OutputNamingContext& ctx) {
+    using namespace DynaRange::Utils::Constants;
+    std::stringstream ss;
+    ss << "debug_crop_area"                    // 1. Base name
+       << GetSafeCameraSuffix(ctx)             // 2. Optional camera name (using EXIF for debug)
        << EXT_PNG;                             // 3. ".png"
     return ss.str();
 }

@@ -21,7 +21,6 @@
 #include <vector>
 
 namespace fs = std::filesystem;
-
 /**
  * @struct InMemoryImage
  * @brief A generic, library-agnostic container for raw image data (e.g., thumbnails).
@@ -31,7 +30,6 @@ struct InMemoryImage {
     int width;                       ///< Image width in pixels.
     int height;                      ///< Image height in pixels.
 };
-
 namespace ArtifactFactory {
 
 /**
@@ -47,7 +45,6 @@ std::optional<fs::path> CreateCsvReport(
     const OutputNamingContext& ctx,
     const PathManager& paths,
     std::ostream& log_stream);
-
 /**
  * @brief Creates and saves the summary plot image.
  * @param curves The aggregated curve data for all files.
@@ -65,7 +62,6 @@ std::optional<fs::path> CreateSummaryPlot(
     const ReportingParameters& reporting_params,
     const PathManager& paths,
     std::ostream& log_stream);
-
 /**
  * @brief Creates and saves an individual plot image for a single input file/ISO.
  * @param curves_for_file The curve data specific to this file.
@@ -85,7 +81,6 @@ std::optional<fs::path> CreateIndividualPlot(
     const std::map<std::string, double>& global_bounds,
     const PathManager& paths,
     std::ostream& log_stream);
-
 /**
  * @brief Creates and saves the debug image showing analyzed patches.
  * @param debug_image The OpenCV matrix (CV_32F, 0-1 range, gamma corrected) to save.
@@ -99,7 +94,6 @@ std::optional<fs::path> CreatePrintPatchesImage(
     const OutputNamingContext& ctx,
     const PathManager& paths,
     std::ostream& log_stream);
-
 /**
  * @brief Creates and saves the generated test chart image.
  * @param chart_opts Parameters defining the chart to generate.
@@ -115,16 +109,18 @@ std::optional<fs::path> CreateTestChartImage(
     std::ostream& log_stream);
 
 /**
- * @brief Creates and saves the debug image showing detected corners.
- * @param debug_image The OpenCV matrix (CV_32F, 0-1 range, gamma corrected) with markers.
- * @param ctx The context for generating the filename.
+ * @brief Creates and saves a generic debug image (e.g., corners, pre/post keystone).
+ * @details This function determines the correct filename using OutputFilenameGenerator based on
+ * the type hinted by the OutputNamingContext (though currently relies on caller providing correct filename generator).
+ * @param debug_image The OpenCV matrix (CV_32F, 0-1 range, gamma corrected) with markers/overlays.
+ * @param filename The pre-generated, specific filename for this debug image.
  * @param paths The PathManager to resolve the final output path.
  * @param log_stream Stream for logging messages.
  * @return An optional containing the full path to the saved image file on success, or std::nullopt on failure.
  */
-std::optional<fs::path> CreateCornerDebugImage(
+std::optional<fs::path> CreateGenericDebugImage(
     const cv::Mat& debug_image,
-    const OutputNamingContext& ctx,
+    const fs::path& filename, // Takes pre-generated filename
     const PathManager& paths,
     std::ostream& log_stream);
 
@@ -133,14 +129,12 @@ std::optional<fs::path> CreateCornerDebugImage(
  * @param log_content The complete log content as a string.
  * @param ctx The context for generating the filename suffix.
  * @param base_output_directory The directory where the log should be saved (e.g., same as CSV).
- * @param log_stream Stream for logging messages about the save operation itself.
  * @return An optional containing the full path to the saved log file on success, or std::nullopt on failure.
  */
 std::optional<fs::path> CreateLogFile(
     const std::string& log_content,
     const OutputNamingContext& ctx,
     const fs::path& base_output_directory);
-
 /**
  * @brief Generates a small, in-memory thumbnail of a test chart.
  * @param opts A struct containing all validated chart parameters.
@@ -148,5 +142,4 @@ std::optional<fs::path> CreateLogFile(
  * @return An optional containing the generated thumbnail data, or nullopt on failure.
  */
 std::optional<InMemoryImage> GenerateChartThumbnail(const ChartGeneratorOptions& opts, int thumb_width);
-
 } // namespace ArtifactFactory
