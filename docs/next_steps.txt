@@ -1,14 +1,18 @@
 PRIORITARIAS
 ============
 
-0d: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
+0a: REVISAR EL PROCESO DE DETECCIÓN DE NIVEL NEGRO/SAT:
     1. Si se suministran ficheros -> BLACK=mean(darkframe), SAT=median(saturation).
     2. Si se suministran valores se usan
     3. En otro caso proceso Automático (explicado abajo)
 
     IMPORTANTE: (HECHO, aplicado método 2 y 3, actualmente 3) PENDIENTE DETECCIÓN DE CÁMARAS CON NIVEL DE NEGRO=0 (Nikon) -> para ellas el nivel de negro=0 y se aplica reconstrucción de la distr. normal (VERLO CON CALMA)
 
-0e: AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
+0b: AÑADIR UNA OPCIÓN (o comando, no sé) para EXPORTAR los datos de SEÑAL, DESV. ESTANDAR y SNR de todos los parches analizados en un fichero de texto.
+    Puede ser el mismo DynaRange Analysis Results.txt o el CSV. Esto permitira varias cosas: exportar esos datos para plotear externamente para analisis,
+    verificar algun punto "rebelde" que a veces aparecen, para buscar la causa, y sobre todo, poder plotear en la web la nube de puntos.
+    Los datos deberian estar numerados por la posicion de cada celda: (primera fila) A1, A2, A3, A4, A5, A6, (segunda fila) B1, B2... etc.
+    y en varias columnas (o separados por comas si va en el CSV) incluir estos datos comentados.
 
 1: CONTROL DE EXPOSICIÓN: AVISAR EL USUARIO SI EL RAW QUEDA POR ENCIMA/DEBAJO DEL RANGO DE EXPOSICIÓN NECESARIO PARA EL CÁLCULO SIN EXTRAPOLAR, ESTIMANDO LA CORRECCIÓN EN EV
    Decidir qué subexposicion aplicar a las fotos: -5 EV o otra mayor, fija o dependiente del ISO. O incluso recomendaciones según el modelo de cámara (año de fabricación, etc...)
@@ -63,6 +67,8 @@ NO PRIORITARIAS
 
 HECHOS
 ======
+
+(HECHO) AÑADIR UN CAMPO para indicar qué nombre de cámara aparece como titulo (texto dentro de la imagen) en las graficas (en vez de sacarlo de los EXIF)
 
 (HECHO) EN LA PESTAÑA CHART HACEN FALTA 2 CELDAS DE ASPECT RATIO PARA PODER METER LAS DOS PROPORCIONES: 3:2, 4:3, 1:1,...
 
