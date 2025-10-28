@@ -34,6 +34,8 @@ public:
     static fs::path GeneratePostKeystoneDebugFilename(const OutputNamingContext& ctx);
     /** B9: Generates the filename for the crop area debug image. */
     static fs::path GenerateCropAreaDebugFilename(const OutputNamingContext& ctx);
+    /** B10: Generates the filename for the corners position  debug image. */
+    static fs::path GenerateCornersDebugFilename(const OutputNamingContext& ctx);
 
     /**
      * @brief Internal helper to get the sanitized camera name suffix part.

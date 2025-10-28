@@ -82,6 +82,10 @@ set(CORE_SOURCES
     src/core/arguments/parsing/ArgumentRegistry.cpp
     src/core/arguments/parsing/CliParser.cpp
     src/core/arguments/parsing/OptionsConverter.cpp
+    src/core/artifacts/ArtifactFactory.cpp
+    src/core/artifacts/data/ReportWriter.cpp
+    src/core/artifacts/image/DebugImageWriter.cpp
+    src/core/artifacts/plot/PlotWriter.cpp
     src/core/engine/Engine.cpp
     src/core/engine/Initialization.cpp
     src/core/engine/initialization/CalibrationHandler.cpp
@@ -113,21 +117,22 @@ set(CORE_SOURCES
     src/core/graphics/PlotDataGenerator.cpp
     src/core/graphics/PlotInfoBox.cpp
     src/core/graphics/PlotOrchestrator.cpp
-    # src/core/graphics/Plotting.cpp # *** LÍNEA ELIMINADA ***
     src/core/io/OutputWriter.cpp
     src/core/io/raw/RawFile.cpp
     src/core/io/raw/RawImageAccessor.cpp
     src/core/io/raw/RawLoader.cpp
     src/core/io/raw/RawMetadataExtractor.cpp
-    src/core/math/Math.cpp
-    src/core/math/estimation/TruncatedNormalEstimator.cpp
-    src/core/math/estimation/lbfgspp_optimizer.cpp
     src/core/math/estimation/gradient_descent.cpp
+    src/core/math/estimation/lbfgspp_optimizer.cpp
+    src/core/math/estimation/TruncatedNormalEstimator.cpp
+    src/core/math/Math.cpp
     src/core/setup/CalibrationEstimator.cpp
     src/core/setup/ChartProfile.cpp
     src/core/setup/InputFileManager.cpp
     src/core/setup/MetadataExtractor.cpp
     src/core/setup/PlotLabelGenerator.cpp
+    src/core/setup/PreAnalysis.cpp
+    src/core/setup/PreAnalysisManager.cpp
     src/core/setup/SensorResolution.cpp
     src/core/utils/Base64Encode.cpp
     src/core/utils/CommandGenerator.cpp
@@ -137,9 +142,6 @@ set(CORE_SOURCES
     src/core/utils/PathManager.cpp
     src/core/utils/PlatformUtils.cpp
     src/core/utils/PlotTitleGenerator.cpp
-    src/core/setup/PreAnalysis.cpp
-    src/core/setup/PreAnalysisManager.cpp
-    src/core/artifacts/ArtifactFactory.cpp # *** NUEVA LÍNEA ***
 )
 
 # =============================================================================

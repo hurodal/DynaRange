@@ -8,7 +8,7 @@
 #include "processing/Processing.hpp"
 #include "Reporting.hpp"
 #include "Validation.hpp"
-#include "../artifacts/ArtifactFactory.hpp"
+#include "../artifacts/image/DebugImageWriter.hpp"
 #include "../arguments/ArgumentsOptions.hpp"
 #include "../utils/OutputNamingContext.hpp"
 #include "../utils/PathManager.hpp"
@@ -99,7 +99,7 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
 
         // Call Factory to create the file
         // The factory handles filename generation and writing
-        std::optional<fs::path> saved_path = ArtifactFactory::CreatePrintPatchesImage(
+        std::optional<fs::path> saved_path = ArtifactFactory::Image::CreatePrintPatchesImage(
             *results.debug_patch_image,
             naming_ctx_patches,
             paths,

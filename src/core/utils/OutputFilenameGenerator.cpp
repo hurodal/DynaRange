@@ -149,3 +149,12 @@ fs::path OutputFilenameGenerator::GenerateCropAreaDebugFilename(const OutputNami
        << EXT_PNG;                             // 3. ".png"
     return ss.str();
 }
+
+fs::path OutputFilenameGenerator::GenerateCornersDebugFilename(const OutputNamingContext& ctx) {
+    using namespace DynaRange::Utils::Constants;
+    std::stringstream ss;
+    ss << "debug_corners"                    // 1. Base name
+       << GetSafeCameraSuffix(ctx)             // 2. Optional camera name (using EXIF for debug)
+       << EXT_PNG;                             // 3. ".png"
+    return ss.str();
+}

@@ -4,7 +4,8 @@
  * @brief Implements the report generation logic using ArtifactFactory.
  */
 #include "Reporting.hpp"
-#include "../artifacts/ArtifactFactory.hpp"
+#include "../artifacts/data/ReportWriter.hpp"
+#include "../artifacts/plot/PlotWriter.hpp"
 #include "../utils/PathManager.hpp"
 #include "../utils/OutputNamingContext.hpp"
 #include "../utils/Formatters.hpp"
@@ -71,7 +72,7 @@ ReportOutput FinalizeAndReport(
     auto sorted_rows = Formatters::FlattenAndSortResults(results.dr_results);
     log_stream << Formatters::FormatResultsTable(sorted_rows);
 
-    std::optional<fs::path> csv_path_opt = ArtifactFactory::CreateCsvReport(
+    std::optional<fs::path> csv_path_opt = ArtifactFactory::Report::CreateCsvReport(
         results.dr_results, ctx, paths, log_stream);
     if (csv_path_opt) {
         output.final_csv_path = csv_path_opt->string();
@@ -91,7 +92,7 @@ ReportOutput FinalizeAndReport(
         const auto global_bounds = DynaRange::Graphics::CalculateGlobalBounds(all_curves_with_points);
 
         // --- Generate Summary Plot ---
-        std::optional<fs::path> summary_plot_path_opt = ArtifactFactory::CreateSummaryPlot(
+        std::optional<fs::path> summary_plot_path_opt = ArtifactFactory::Plot::CreateSummaryPlot(
             all_curves_with_points, // Pass curves with points
             results.dr_results,
             ctx,
@@ -134,7 +135,7 @@ ReportOutput FinalizeAndReport(
                 OutputNamingContext individual_ctx = ctx; // Copy base context
                 individual_ctx.iso_speed = curves_for_this_file[0].iso_speed; // Add ISO
 
-                std::optional<fs::path> individual_plot_path_opt = ArtifactFactory::CreateIndividualPlot(
+                std::optional<fs::path> individual_plot_path_opt = ArtifactFactory::Plot::CreateIndividualPlot(
                     curves_for_this_file,
                     results_for_this_file,
                     individual_ctx,

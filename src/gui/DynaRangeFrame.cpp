@@ -4,22 +4,18 @@
  * @brief Implementation of the DynaRange GUI's main frame (the View).
  */
 #include "DynaRangeFrame.hpp"
-#include "Constants.hpp"
 #include "controllers/InputController.hpp" // Need full definition for getter return type
 #include "controllers/LogController.hpp"
 #include "controllers/ResultsController.hpp"
 #include "controllers/ChartController.hpp"
-#include "../artifacts/ArtifactFactory.hpp"
+#include "../artifacts/data/ReportWriter.hpp"
 #include "../graphics/Constants.hpp"
-#include "../core/utils/PathManager.hpp"
 #include "../core/utils/OutputNamingContext.hpp"     // Added include for log saving
-#include "../core/utils/OutputFilenameGenerator.hpp" // Added include for log saving (though constant is used)
 #include <wx/msgdlg.h>
 #include <wx/filename.h>
 #include <wx/dcclient.h>   // For event handlers if needed later
 #include <wx/graphics.h>   // For event handlers if needed later
 #include <wx/dcbuffer.h>   // For event handlers if needed later
-#include <fstream>         // For std::ofstream
 #include <filesystem>      // For fs::path
 
 // Use alias for filesystem
@@ -510,7 +506,7 @@ void DynaRangeFrame::OnWorkerCompleted(wxCommandEvent& event) {
             // std::ostream& factory_log_stream = factory_log_stream_ptr ? *factory_log_stream_ptr : std::cerr; // LÍNEA ELIMINADA
 
             // Use ArtifactFactory to create and save the log file
-            std::optional<fs::path> log_path_opt = ArtifactFactory::CreateLogFile(
+            std::optional<fs::path> log_path_opt = ArtifactFactory::Report::CreateLogFile(
                 log_content_std,
                 naming_ctx_log,
                 output_dir

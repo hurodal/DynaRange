@@ -4,11 +4,10 @@
  * @brief Implements the automatic chart corner detection logic.
  */
 #include "CornerDetectionHandler.hpp"
-#include "../../artifacts/ArtifactFactory.hpp"
+#include "../../artifacts/image/DebugImageWriter.hpp"
 #include "../../graphics/ImageProcessing.hpp"
 #include "../../graphics/detection/ChartCornerDetector.hpp"
 #include "../../utils/OutputNamingContext.hpp"
-#include "../../utils/OutputFilenameGenerator.hpp"
 #include "../../DebugConfig.hpp"
 #include <libintl.h>
 #include <opencv2/imgproc.hpp>
@@ -109,11 +108,12 @@ std::optional<std::vector<cv::Point2d>> AttemptAutomaticCornerDetection(
              naming_ctx_corner.camera_name_exif = source_raw_file.GetCameraModel();
              naming_ctx_corner.effective_camera_name_for_output = naming_ctx_corner.camera_name_exif; // Use EXIF for debug img name
 
-             fs::path debug_filename = OutputFilenameGenerator::GenerateCornerDebugFilename(naming_ctx_corner);
+             //fs::path debug_filename = OutputFilenameGenerator::GenerateCornerDebugFilename(naming_ctx_corner);
              // Use ArtifactFactory to save the final image
-             std::optional<fs::path> saved_path = ArtifactFactory::CreateGenericDebugImage(
+             std::optional<fs::path> saved_path = ArtifactFactory::Image::CreateGenericDebugImage(
                  final_debug_image_bgr, // Pass the BGR image with markers
-                 debug_filename,        // Pass the generated filename
+                 naming_ctx_corner,
+                 ArtifactFactory::Image::DebugImageType::Corners,        // Pass the generated filename
                  paths,
                  log_stream
              );

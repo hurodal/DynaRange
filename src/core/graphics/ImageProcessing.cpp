@@ -6,7 +6,7 @@
 #include "ImageProcessing.hpp"
 #include "../DebugConfig.hpp"
 #include "geometry/KeystoneCorrection.hpp"
-#include "../artifacts/ArtifactFactory.hpp"   
+#include "../artifacts/image/DebugImageWriter.hpp"
 #include "../utils/OutputNamingContext.hpp"   
 #include "../utils/OutputFilenameGenerator.hpp"
 #include <libintl.h>
@@ -15,7 +15,6 @@
 #include <vector>
 
 #define _(string) gettext(string)
-
 
 namespace { // Anonymous namespace for internal helpers
 
@@ -309,8 +308,14 @@ cv::Mat PrepareChartImage(
             OutputNamingContext naming_ctx_debug;
             naming_ctx_debug.camera_name_exif = camera_model_name;
             naming_ctx_debug.effective_camera_name_for_output = camera_model_name; // Use EXIF for debug img name
-            fs::path debug_filename = OutputFilenameGenerator::GeneratePreKeystoneDebugFilename(naming_ctx_debug);
-            ArtifactFactory::CreateGenericDebugImage(pre_keystone_view_bgr, debug_filename, paths, log_stream);
+            //fs::path debug_filename = OutputFilenameGenerator::GeneratePreKeystoneDebugFilename(naming_ctx_debug);
+            ArtifactFactory::Image::CreateGenericDebugImage(
+                pre_keystone_view_bgr,
+                naming_ctx_debug,
+                ArtifactFactory::Image::DebugImageType::PreKeystone,
+                paths, 
+                log_stream
+                );
         } else {
              log_stream << "  - [DEBUG] Warning: Failed to prepare pre-keystone debug view." << std::endl;
         }
@@ -363,10 +368,20 @@ cv::Mat PrepareChartImage(
             OutputNamingContext naming_ctx_debug;
             naming_ctx_debug.camera_name_exif = camera_model_name;
             naming_ctx_debug.effective_camera_name_for_output = camera_model_name; // Use EXIF for debug img name
-            fs::path post_filename = OutputFilenameGenerator::GeneratePostKeystoneDebugFilename(naming_ctx_debug);
-            ArtifactFactory::CreateGenericDebugImage(post_keystone_view_bgr, post_filename, paths, log_stream);
-            fs::path crop_filename = OutputFilenameGenerator::GenerateCropAreaDebugFilename(naming_ctx_debug);
-            ArtifactFactory::CreateGenericDebugImage(crop_area_view_bgr, crop_filename, paths, log_stream);
+            //fs::path post_filename = OutputFilenameGenerator::GeneratePostKeystoneDebugFilename(naming_ctx_debug);
+            ArtifactFactory::Image::CreateGenericDebugImage(
+                post_keystone_view_bgr,
+                naming_ctx_debug,
+                ArtifactFactory::Image::DebugImageType::PostKeystone,
+                paths,
+                log_stream);
+            //fs::path crop_filename = OutputFilenameGenerator::GenerateCropAreaDebugFilename(naming_ctx_debug);
+            ArtifactFactory::Image::CreateGenericDebugImage(
+                crop_area_view_bgr,
+                naming_ctx_debug,    
+                ArtifactFactory::Image::DebugImageType::CropArea, 
+                paths, 
+                log_stream);
         } else {
              log_stream << "  - [DEBUG] Warning: Failed to prepare post-keystone debug view." << std::endl;
         }
