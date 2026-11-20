@@ -49,6 +49,24 @@ cv::Mat PrepareChartImage(
     const std::string& camera_model_name,
     bool generate_full_debug
 );
+
+/**
+ * @brief Chart crop rectangle (in the keystone-corrected Bayer image) used for patch analysis.
+ */
+cv::Rect ComputeChartCropArea(const ChartProfile& chart);
+
+/**
+ * @brief Same geometry as PrepareChartImage (nearest-neighbour keystone + crop), but returns
+ * the untouched RAW values of one Bayer channel as CV_16UC1 (no black subtraction, no scaling).
+ * @return Empty Mat on failure.
+ */
+cv::Mat PrepareChartRawImage(
+    const RawFile& raw_file,
+    const cv::Mat& keystone_params,
+    const ChartProfile& chart,
+    DataSource channel_to_extract
+);
+
 /**
  * @brief Draws cross markers on an image at specified corner locations.
  * @param image The source/destination image (CV_32FC3 BGR) to draw on. Modified in place.

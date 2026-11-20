@@ -89,6 +89,8 @@ public:
     bool GetUseSuffixFlag() const;
     /** @brief Checks if the 'Full debug' checkbox is checked. */
     bool ShouldGenerateFullDebug() const;
+    /** @brief Checks if the 'Export grid (RAW)' checkbox is checked. */
+    bool ShouldExportGrid() const;
 
     /**
      * @brief Determines the effective camera name based on GUI control states.

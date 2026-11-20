@@ -87,7 +87,11 @@ void GuiPresenter::UpdateManagerFromView()
     mgr.Set(BlackFile, inputCtrl->GetDarkFilePath());
     mgr.Set(SaturationFile, inputCtrl->GetSaturationFilePath());
     mgr.Set(BlackLevel, inputCtrl->GetDarkValue());
-    mgr.Set(SaturationLevel, inputCtrl->GetSaturationValue());
+    {
+        // Empty field = automatic (0.0); keep a sane fallback in case the engine estimate fails.
+        const double sat = inputCtrl->GetSaturationValue();
+        mgr.Set(SaturationLevel, sat > 0.0 ? sat : DEFAULT_SATURATION_LEVEL);
+    }
     mgr.Set(PatchRatio, inputCtrl->GetPatchRatio());
     mgr.Set(OutputFile, inputCtrl->GetOutputFilePath());
     mgr.Set(PrintPatches, inputCtrl->GetPrintPatchesFilename());
@@ -125,6 +129,7 @@ void GuiPresenter::UpdateManagerFromView()
     const std::vector<double> default_snr = DEFAULT_SNR_THRESHOLDS_DB;
     mgr.Set(SnrThresholdIsDefault, current_thresholds == default_snr);
     mgr.Set(FullDebug, inputCtrl->ShouldGenerateFullDebug()); // Leer estado del checkbox
+    mgr.Set(ExportGrid, inputCtrl->ShouldExportGrid());
     mgr.Set(GuiManualCameraName, inputCtrl->GetManualCameraName());
     mgr.Set(GuiUseExifNameFlag, inputCtrl->GetUseExifNameFlag());
     mgr.Set(GuiUseSuffixFlag, inputCtrl->GetUseSuffixFlag());
@@ -356,9 +361,15 @@ void GuiPresenter::AddInputFiles(const std::vector<std::string>& files_to_add)
                 return {file, -1.0, 0.0f, true, sat_value}; // Signal invalid image
             }
             double mean_brightness = cv::mean(active_img)[0];
-            int saturated_pixels = cv::countNonZero(active_img >= (sat_value * 0.99));
-           
-             return {file, mean_brightness, raw_file.GetIsoSpeed(), saturated_pixels > 0, sat_value};
+            // sat_value <= 0 means "automatic": use this file's white level from its bit depth.
+            double file_sat = sat_value;
+            if (file_sat <= 0.0) {
+                const int bits = raw_file.GetBitDepth().value_or(14);
+                file_sat = static_cast<double>((1 << bits) - 1);
+            }
+            int saturated_pixels = cv::countNonZero(active_img >= (file_sat * 0.99));
+
+             return {file, mean_brightness, raw_file.GetIsoSpeed(), saturated_pixels > 0, file_sat};
         }));
     }
 

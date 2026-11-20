@@ -73,7 +73,8 @@ ReportOutput RunDynamicRangeAnalysis(ProgramOptions& opts, std::ostream& log_str
         .plot_labels = init_result.plot_labels,
         .generated_command = init_result.generated_command,
         .source_image_index = init_result.source_image_index,
-        .generate_full_debug = opts.generate_full_debug // Copiar flag desde ProgramOptions
+        .generate_full_debug = opts.generate_full_debug, // Copiar flag desde ProgramOptions
+        .export_grid = opts.export_grid
     };
 
     // Phase 2: Processing - Run the analysis loop over the loaded RAW files

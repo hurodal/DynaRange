@@ -45,24 +45,21 @@ double RawMetadataExtractor::GetSensorResolutionMPx() const {
     return total_pixels / 1000000.0;
 }
 
-int RawMetadataExtractor::GetBlackLevelFromMetadata() const {
-    if (!m_raw_processor) return 0;
-    int black_level = m_raw_processor->imgdata.color.black;
-    if (black_level > 0) {
-        return black_level;
+double RawMetadataExtractor::GetBlackLevelFromMetadata() const {
+    if (!m_raw_processor) return 0.0;
+    // LibRaw black level of a pixel = black + cblack[colour] + pattern value, where
+    // cblack[4] x cblack[5] are the dimensions of an optional pattern stored from cblack[6].
+    // (The old code averaged all non-zero cblack entries, including the two dimensions.)
+    const auto& c = m_raw_processor->imgdata.color;
+    double level = static_cast<double>(c.black);
+    level += (static_cast<double>(c.cblack[0]) + c.cblack[1] + c.cblack[2] + c.cblack[3]) / 4.0;
+    const unsigned pattern_size = c.cblack[4] * c.cblack[5];
+    if (pattern_size > 0 && pattern_size + 6 <= LIBRAW_CBLACK_SIZE) {
+        double sum = 0.0;
+        for (unsigned i = 0; i < pattern_size; ++i) sum += c.cblack[6 + i];
+        level += sum / pattern_size;
     }
-    double sum = 0;
-    int count = 0;
-    for (int i = 0; i < LIBRAW_CBLACK_SIZE; ++i) {
-        if (m_raw_processor->imgdata.color.cblack[i] > 0) {
-            sum += m_raw_processor->imgdata.color.cblack[i];
-            count++;
-        }
-    }
-    if (count > 0) {
-        return static_cast<int>(std::round(sum / count));
-    }
-    return 0;
+    return level;
 }
 
 int RawMetadataExtractor::GetActiveWidth() const {

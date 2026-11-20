@@ -14,7 +14,8 @@ const std::vector<std::string>& GetSupportedRawExtensions() {
     static std::vector<std::string> extensions;
     if (extensions.empty()) {
         #if defined(LIBRAW_MAJOR_VERSION) && defined(LIBRAW_MINOR_VERSION)
-            #if LIBRAW_MAJOR_VERSION > 0 || (LIBRAW_MAJOR_VERSION == 0 && LIBRAW_MINOR_VERSION >= 22)
+            // LibRaw (up to 0.22.x) has no get_supported_extensions_list(); only enable if a build defines it.
+            #if defined(LIBRAW_HAS_SUPPORTED_EXTENSIONS_LIST)
                 LibRaw proc;
                 int count = 0;
                 const char** ext_list = proc.get_supported_extensions_list(&count);

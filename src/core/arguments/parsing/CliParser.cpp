@@ -51,6 +51,7 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     auto print_patch_opt = app.add_option("-g,--print-patches", temp_opts.print_patch_filename, descriptors.at(PrintPatches).help_text)->expected(0, 1)->default_str("_USE_DEFAULT_PRINT_PATCHES_");
     auto raw_channel_opt = app.add_option("-w,--raw-channels", temp_raw_channels, descriptors.at(RawChannels).help_text)->expected(5);
     auto debug_opt = app.add_flag("-D,--debug", temp_opts.generate_full_debug, descriptors.at(FullDebug).help_text);
+    app.add_flag("-E,--export-grid", temp_opts.export_grid, descriptors.at(ExportGrid).help_text);
 
 
     // --- Single Parse Pass ---
@@ -104,6 +105,7 @@ std::map<std::string, std::any> CliParser::Parse(int argc, char* argv[], const s
     // --debug -D Full debug plotting
     // Read the actual boolean value parsed by CLI11 into temp_opts.generate_full_debug
     values[FullDebug] = temp_opts.generate_full_debug;
+    values[ExportGrid] = temp_opts.export_grid;
 
     values[InputFiles] = PlatformUtils::ExpandWildcards(temp_opts.input_files);
     if (snr_opt->count() > 0) {

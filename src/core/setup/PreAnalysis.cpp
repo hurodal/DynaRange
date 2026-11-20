@@ -36,8 +36,16 @@ std::vector<PreAnalysisResult> PreAnalyzeRawFiles(
         }
         double mean_brightness = cv::mean(active_img)[0];
         
+        // A saturation value <= 0 means "automatic" (GUI with an empty field): use this
+        // file's own white level from its bit depth (same rule as the engine estimate).
+        double file_saturation = saturation_value;
+        if (file_saturation <= 0.0) {
+            const int bits = raw_file.GetBitDepth().value_or(14);
+            file_saturation = static_cast<double>((1 << bits) - 1);
+        }
+
         // Se calcula el ratio de píxeles saturados.
-        int saturated_pixels = cv::countNonZero(active_img >= (saturation_value * 0.99));
+        int saturated_pixels = cv::countNonZero(active_img >= (file_saturation * 0.99));
         double total_pixels = active_img.total();
         double saturation_ratio = (total_pixels > 0) ? static_cast<double>(saturated_pixels) / total_pixels : 0.0;
         
@@ -48,7 +56,7 @@ std::vector<PreAnalysisResult> PreAnalyzeRawFiles(
         // Se utiliza la nueva constante para determinar si el fichero está saturado.
         result.has_saturated_pixels = (saturation_ratio > DynaRange::Setup::Constants::MAX_PRE_ANALYSIS_SATURATION_RATIO);
 
-        result.saturation_value_used = saturation_value;
+        result.saturation_value_used = file_saturation;
         results.push_back(result);
 
         if (log_stream) {

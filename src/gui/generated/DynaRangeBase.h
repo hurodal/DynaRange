@@ -84,6 +84,7 @@ class MyFrameBase : public wxFrame
 		wxTextCtrl* m_outputTextCtrl;
 		wxCheckBox* m_saveLog;
 		wxCheckBox* m_fullDebug;
+		wxCheckBox* m_exportGrid;
 		wxCheckBox* m_plotParamScattersCheckBox;
 		wxCheckBox* m_plotParamCurveCheckBox;
 		wxCheckBox* m_plotParamLabelsCheckBox;

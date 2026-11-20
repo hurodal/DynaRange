@@ -1,0 +1,8 @@
+ISO 6400 R: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 6400 G1: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 6400 G2: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 6400 B: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 100 R: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 100 G1: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 100 G2: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT
+ISO 100 B: exported (1717, 2355) uint16; pixels different from the RAW at the mapped position: 0 of 4043535 -> EXACT

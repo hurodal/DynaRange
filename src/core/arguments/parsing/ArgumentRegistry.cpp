@@ -51,6 +51,7 @@ std::map<std::string, ArgumentDescriptor> ArgumentRegistry::RegisterAll()
     descriptors[ChartPatches] = { ChartPatches, "M", _("Patches grid: M Rows, N Cols (def=4 6)"), ArgType::IntVector, std::vector<int>{DEFAULT_CHART_PATCHES_M, DEFAULT_CHART_PATCHES_N} };
     descriptors[ChartCoords] = { ChartCoords, "x", _("Manual chart corners: x1 y1 x2 y2 x3 y3 x4 y4"), ArgType::DoubleVector, std::vector<double>() };
     descriptors[FullDebug] = { FullDebug, "D", _("Generate additional debug images (pre/post keystone, crop area)"), ArgType::Flag, false };
+    descriptors[ExportGrid] = { ExportGrid, "E", _("Export the keystone-corrected chart of every RAW and channel as 16-bit TIFF with untouched RAW values (nearest neighbour), plus a CSV with the patch grid"), ArgType::Flag, false };
 
 
     // --- Internal Flags (no CLI exposure) ---

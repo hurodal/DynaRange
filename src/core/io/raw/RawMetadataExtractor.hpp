@@ -27,7 +27,7 @@ public:
     int GetHeight() const;
     float GetIsoSpeed() const;
     double GetSensorResolutionMPx() const;
-    int GetBlackLevelFromMetadata() const;
+    double GetBlackLevelFromMetadata() const;
     int GetActiveWidth() const;
     int GetActiveHeight() const;
     int GetTopMargin() const;

@@ -142,6 +142,7 @@ ProgramOptions OptionsConverter::ToProgramOptions(const std::map<std::string, st
 
     // --debug -D Full Plotting
     opts.generate_full_debug = Get<bool>(FullDebug, values);
+    opts.export_grid = Get<bool>(ExportGrid, values);
 
 
     // --- Populate NEW GUI-specific members ---

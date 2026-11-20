@@ -125,6 +125,8 @@ struct ProgramOptions {
     int source_image_index = 0;
     /** @brief If true, generate extended debug images (pre/post keystone, crop). */
     bool generate_full_debug = false;
+    /** @brief If true, export the corrected chart with untouched RAW values (16-bit TIFF + patch CSV). */
+    bool export_grid = false;
 
     // --- Output Settings ---
     /** @brief Base filename (or full path) for the output CSV file. */

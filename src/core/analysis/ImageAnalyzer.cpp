@@ -72,8 +72,19 @@ PatchAnalysisResult AnalyzePatches(cv::Mat imgcrop, int NCOLS, int NROWS, double
                 // Copiar los datos del parche a un std::vector<double>
                 roi_double.reshape(1, 1).copyTo(patch_pixels);
 
-                // Llamar al nuevo estimador para obtener mu y sigma originales
-                auto estimated_params = DynaRange::Math::Estimation::EstimateTruncatedNormal(patch_pixels, 0.0);
+                // RAW values are integers: a stored 0 means "true value below half a
+                // quantisation step". The step is 1 ADU normally, but cameras that apply
+                // digital gain (e.g. Nikon D610 ISO 3200 = x2, ISO 6400 = x4) use coarser
+                // steps. Use half of the smallest positive value in the patch as the
+                // censoring point.
+                double min_positive = 0.0;
+                for (double v : patch_pixels) {
+                    if (v > 0.0 && (min_positive == 0.0 || v < min_positive)) min_positive = v;
+                }
+                const double censor_point = 0.5 * min_positive;
+
+                // Llamar al estimador para obtener mu y sigma originales (normal censurada)
+                auto estimated_params = DynaRange::Math::Estimation::EstimateTruncatedNormal(patch_pixels, censor_point);
 
                 if (estimated_params) {
                     // Si la estimación tuvo éxito, usar los parámetros estimados

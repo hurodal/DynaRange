@@ -41,8 +41,13 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame), m_cach
     }
 
     // Set other default values
-    m_frame->m_darkValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_BLACK_LEVEL));
-    m_frame->m_saturationValueTextCtrl->SetValue(wxString::Format("%.1f", DEFAULT_SATURATION_LEVEL));
+    // Black and saturation start EMPTY = automatic: the engine reads them from the RAW
+    // (metadata black, e.g. 0 for Nikon D600/D610; white level from the bit depth).
+    // Pre-filling 256 / 4095 forced -B 256 -S 4095 on every camera.
+    m_frame->m_darkValueTextCtrl->SetValue(wxEmptyString);
+    m_frame->m_saturationValueTextCtrl->SetValue(wxEmptyString);
+    m_frame->m_darkValueTextCtrl->SetHint(_("auto"));
+    m_frame->m_saturationValueTextCtrl->SetHint(_("auto"));
     m_frame->m_patchRatioSlider->SetValue(static_cast<int>(DEFAULT_PATCH_RATIO * 100));
     m_frame->m_patchRatioValueText->SetLabel(wxString::Format("%.2f", DEFAULT_PATCH_RATIO));
     m_frame->m_drNormalizationSlider->SetValue(static_cast<int>(DEFAULT_DR_NORMALIZATION_MPX));
@@ -77,6 +82,7 @@ InputController::InputController(DynaRangeFrame* frame) : m_frame(frame), m_cach
     UpdateAvgChoiceOptions();
 
     m_frame->m_fullDebug->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, this);
+    m_frame->m_exportGrid->Bind(wxEVT_CHECKBOX, &InputController::OnInputChanged, this);
 }
 
 // Explicit destructor implementation
@@ -86,8 +92,18 @@ InputController::~InputController() = default;
 std::string InputController::GetDarkFilePath() const { return std::string(m_frame->m_darkFilePicker->GetPath().mb_str()); }
 std::string InputController::GetSaturationFilePath() const { return std::string(m_frame->m_saturationFilePicker->GetPath().mb_str());
 }
-double InputController::GetDarkValue() const { double val; m_frame->m_darkValueTextCtrl->GetValue().ToDouble(&val); return val; }
-double InputController::GetSaturationValue() const { double val; m_frame->m_saturationValueTextCtrl->GetValue().ToDouble(&val); return val;
+// An empty (or invalid) field means "automatic". The value is then only a placeholder:
+// ShouldEstimate*Level() is true and the engine replaces it. For saturation, 0.0 tells
+// the pre-analysis to use each RAW file's own white level.
+double InputController::GetDarkValue() const {
+    double val = DEFAULT_BLACK_LEVEL;
+    if (!m_frame->m_darkValueTextCtrl->GetValue().ToDouble(&val)) val = DEFAULT_BLACK_LEVEL;
+    return val;
+}
+double InputController::GetSaturationValue() const {
+    double val = 0.0;
+    if (!m_frame->m_saturationValueTextCtrl->GetValue().ToDouble(&val)) val = 0.0;
+    return val;
 }
 double InputController::GetPatchRatio() const { return static_cast<double>(m_frame->m_patchRatioSlider->GetValue()) / 100.0; }
 std::string InputController::GetOutputFilePath() const { return std::string(m_frame->m_outputTextCtrl->GetValue().mb_str()); }
@@ -97,6 +113,7 @@ int InputController::GetPolyOrder() const { return PolyOrderFromIndex(m_frame->m
 int InputController::GetPlotMode() const { return m_frame->m_plotingChoice->GetSelection();
 }
 bool InputController::ShouldGenerateFullDebug() const { return m_frame->m_fullDebug->IsChecked(); }
+bool InputController::ShouldExportGrid() const { return m_frame->m_exportGrid->IsChecked(); }
 std::vector<double> InputController::GetSnrThresholds() const {
     std::vector<double> thresholds;
     std::string text = std::string(m_frame->m_snrThresholdsValues->GetValue().mb_str());

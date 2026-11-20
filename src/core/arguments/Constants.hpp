@@ -49,4 +49,6 @@ namespace DynaRange::Arguments::Constants {
 
     // Debug plotting
     constexpr const char* FullDebug = "debug"; // Argumento para activar debug extendido en runtime
+    // Export of the keystone-corrected chart with untouched RAW values
+    constexpr const char* ExportGrid = "export-grid";
 } // namespace DynaRange::Arguments::Constants

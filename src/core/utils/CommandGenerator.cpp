@@ -39,7 +39,7 @@ std::string GenerateCommand(CommandFormat format)
             = { { BlackLevel, " -B" }, { BlackFile, " -b" }, { SaturationLevel, " -S" }, { SaturationFile, " -s" }, { InputFiles, " -i" }, { PatchRatio, " -r" },
                   { SnrThresholdDb, " -d" }, { DrNormalizationMpx, " -m" }, { PolyFit, " -f" }, { OutputFile, " -o" }, { PlotFormat, " -p" }, { PlotParams, " -P" },
                   { PrintPatches, " -g" }, { RawChannels, " -w" }, { Chart, " -c" }, { ChartColour, " -C" }, { ChartCoords, " -x" }, { ChartPatches, " -M" },
-                  { FullDebug, " -D"} }; // Agrega la versión corta del flag
+                  { FullDebug, " -D"}, { ExportGrid, " -E"} }; // Agrega la versión corta del flag
 
         auto it = short_map.find(name);
         if (it != short_map.end()) {
@@ -52,6 +52,9 @@ std::string GenerateCommand(CommandFormat format)
     // --debug / -D SI ESTÁ ACTIVO ---
     if (mgr.Get<bool>(FullDebug)) {
         add_arg(FullDebug); // Añade --debug o -D
+    }
+    if (mgr.Get<bool>(ExportGrid)) {
+        add_arg(ExportGrid);
     }
 
     std::string black_file = mgr.Get<std::string>(BlackFile);

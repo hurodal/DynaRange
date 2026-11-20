@@ -241,6 +241,54 @@ cv::Mat PrepareDebugImageView(const cv::Mat& img_float) {
     return final_bgr_img;
 }
 
+cv::Rect ComputeChartCropArea(const ChartProfile& chart)
+{
+    const auto& dst_pts = chart.GetDestinationPoints();
+    double xtl = dst_pts[0].x; double ytl = dst_pts[0].y;
+    double xbr = dst_pts[2].x; double ybr = dst_pts[2].y;
+    double gap_x = 0.0;
+    double gap_y = 0.0;
+    // Apply gap only if corners were auto-detected or default (not manually specified)
+    if (!chart.HasManualCoords()) {
+        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
+        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
+    }
+    double crop_width = round((xbr - gap_x) - (xtl + gap_x));
+    double crop_height = round((ybr - gap_y) - (ytl + gap_y));
+    if (crop_width <= 0 || crop_height <= 0) return {};
+    return cv::Rect(round(xtl + gap_x), round(ytl + gap_y), crop_width, crop_height);
+}
+
+cv::Mat PrepareChartRawImage(
+    const RawFile& raw_file,
+    const cv::Mat& keystone_params,
+    const ChartProfile& chart,
+    DataSource channel_to_extract)
+{
+    cv::Mat raw_img = raw_file.GetActiveRawImage();
+    if (raw_img.empty()) return {};
+
+    // Same steps as PrepareChartImage but WITHOUT black/saturation normalisation:
+    // RAW integers (< 2^24) are exact in float, and UndoKeystone is nearest-neighbour,
+    // so every output pixel is an untouched RAW value of the selected Bayer channel.
+    cv::Mat raw_float;
+    raw_img.convertTo(raw_float, CV_32F);
+    cv::Mat imgBayer(raw_float.rows / 2, raw_float.cols / 2, CV_32FC1);
+    ExtractBayerChannel(raw_float, imgBayer, channel_to_extract, raw_file.GetFilterPattern());
+
+    cv::Mat img_corrected = DynaRange::Graphics::Geometry::UndoKeystone(imgBayer, keystone_params);
+    cv::Rect crop_area = ComputeChartCropArea(chart);
+    if (crop_area.width <= 0 || crop_area.height <= 0 ||
+        crop_area.x < 0 || crop_area.y < 0 ||
+        crop_area.x + crop_area.width > img_corrected.cols ||
+        crop_area.y + crop_area.height > img_corrected.rows) {
+        return {};
+    }
+    cv::Mat out;
+    img_corrected(crop_area).convertTo(out, CV_16U); // exact: values are integers in [0, 65535]
+    return out;
+}
+
 /**
  * @brief Prepares a single-channel Bayer image for analysis by extracting the channel,
  * normalizing its values, applying keystone correction, and cropping to the chart area.
@@ -328,21 +376,11 @@ cv::Mat PrepareChartImage(
     const auto& dst_pts = chart.GetDestinationPoints();
     double xtl = dst_pts[0].x; double ytl = dst_pts[0].y;
     double xbr = dst_pts[2].x; double ybr = dst_pts[2].y;
-    double gap_x = 0.0;
-    double gap_y = 0.0;
-    // Apply gap only if corners were auto-detected or default (not manually specified)
-    if (!chart.HasManualCoords()) {
-        gap_x = (xbr - xtl) / (chart.GetGridCols() + 1) / 2.0;
-        gap_y = (ybr - ytl) / (chart.GetGridRows() + 1) / 2.0;
-    }
-    // Ensure crop dimensions are positive before creating Rect
-    double crop_width = round((xbr - gap_x) - (xtl + gap_x));
-    double crop_height = round((ybr - gap_y) - (ytl + gap_y));
-    if (crop_width <= 0 || crop_height <= 0) {
+    cv::Rect crop_area = ComputeChartCropArea(chart);
+    if (crop_area.width <= 0 || crop_area.height <= 0) {
         log_stream << _("Error: Invalid crop area dimensions calculated after keystone correction (width or height <= 0).") << std::endl;
         return {}; // Return empty matrix
     }
-    cv::Rect crop_area(round(xtl + gap_x), round(ytl + gap_y), crop_width, crop_height);
 
 
     // --- DEBUG POST-KEYSTONE AND CROP AREA (using ApplyMinMaxNormalizationView) ---

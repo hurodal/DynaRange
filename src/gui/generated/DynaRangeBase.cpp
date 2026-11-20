@@ -255,6 +255,11 @@ MyFrameBase::MyFrameBase( wxWindow* parent, wxWindowID id, const wxString& title
 	m_fullDebug = new wxCheckBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Full debug"), wxDefaultPosition, wxDefaultSize, 0 );
 	outputSaveLogSizer->Add( m_fullDebug, 0, wxALL, 5 );
 
+	m_exportGrid = new wxCheckBox( analysisParamsSizer->GetStaticBox(), wxID_ANY, _("Export grid (RAW)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_exportGrid->SetToolTip( _("Save the corrected chart of every RAW and channel as 16-bit TIFF with untouched RAW values, plus a CSV with the patch grid") );
+
+	outputSaveLogSizer->Add( m_exportGrid, 0, wxALL, 5 );
+
 
 	analysisParamsSizer->Add( outputSaveLogSizer, 1, wxALL|wxEXPAND, 5 );
 

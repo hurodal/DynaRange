@@ -1,0 +1,78 @@
+Pre-analyzing files to extract metadata...
+Pre-analyzed file: ../sony/iso100.ARW
+Pre-analyzed file: ../sony/iso800.ARW
+Pre-analyzed file: ../sony/iso6400.ARW
+[INFO] Black level not specified. Using the black level stored in the RAW metadata: 512
+  - NOTE: For maximum accuracy, providing a dedicated dark frame (-b) is recommended.
+[INFO] Saturation level not specified. Attempting to estimate from RAW file...
+  - Estimated from 'iso6400.ARW' (Highest ISO file, 14 bits): 16383
+
+Sorting files based on pre-analyzed data:
+  File           Brightness   ISO
+  -------------------------------
+  iso100.ARW         514.69   100
+  iso800.ARW         532.06   800
+  iso6400.ARW        671.78  6400
+Sorting by brightness and by ISO produce the same file order.
+Using final file order from: Image Brightness (List A)
+Sensor resolution detected from RAW metadata: 36.7 Mpx
+
+[Final configuration]
+Black level: 512.00 (estimated)
+Saturation point: 16383.00 (estimated)
+Analysis channel: AVG (Full)
+Bayer pattern detected: RGBG
+Sensor resolution: 36.70 Mpx
+Detected active area: 7028x4688 pixels (from 7168x5120 full with masked pixels)
+SNR threshold(s): 12.00, 0.00 dB
+DR normalization: 0.00 Mpx
+Polynomic order: 3
+Patch ratio: 0.50
+Plotting: No graphics
+Output file: res.csv
+
+[INFO] Selected 'iso6400.ARW' as the source image for detection (brightest with < 0.10% saturated pixels).
+Manual coordinates not provided, attempting automatic corner detection...
+  - [DEBUG] Saving corner detection visual confirmation...
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_corners_ILCE-7M4.png
+Using automatically detected coordinates:
+            x      y          x      y
+  TL-> [ 1486,   560 ]   [ 6113,   667 ] <-TR
+  BL-> [ 1403,  3823 ]   [ 5999,  3993 ] <-BR
+Analyzing chart using a grid of 6 columns by 4 rows.
+Starting Dynamic Range calculation process...
+Starting parallel processing with 16 threads...
+Using optimized keystone: calculating parameters once for the series...
+Processing "iso100.ARW"...
+Processing "iso6400.ARW"...
+Processing "iso800.ARW"...
+  - [DEBUG] Saving pre-keystone image...
+  - [DEBUG] Saving pre-keystone image...
+  - [DEBUG] Saving pre-keystone image...
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_pre_keystone_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_pre_keystone_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_pre_keystone_ILCE-7M4.png
+  - [DEBUG] Saving post-keystone and crop area images...
+  - [DEBUG] Saving post-keystone and crop area images...
+  - [DEBUG] Saving post-keystone and crop area images...
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_post_keystone_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_post_keystone_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_post_keystone_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_crop_area_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_crop_area_ILCE-7M4.png
+  - Info: Debug patch image saved to: <carpeta de salida>\debug_crop_area_ILCE-7M4.png
+Processed "iso100.ARW".
+Processed "iso800.ARW".
+Processed "iso6400.ARW".
+
+--- Dynamic Range Results ---
+raw_file       SNR_db   ISO    DR_EV  Channel  samples_R  samples_G1  samples_G2  samples_B
+-------------------------------------------------------------------------------------------
+iso100.ARW      12.00   100  11.4584      AVG         21          24          24         24
+iso800.ARW      12.00   800   9.0716      AVG         23          24          24         24
+iso6400.ARW     12.00  6400   6.0329      AVG         23          24          24         24
+iso100.ARW       0.00   100  13.7521      AVG         21          24          24         24
+iso800.ARW       0.00   800  12.2498      AVG         23          24          24         24
+iso6400.ARW      0.00  6400   9.2544      AVG         23          24          24         24
+
+Results saved to <carpeta de salida>\results_ILCE-7M4.csv

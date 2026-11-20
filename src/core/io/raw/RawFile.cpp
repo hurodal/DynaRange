@@ -71,8 +71,8 @@ double RawFile::GetSensorResolutionMPx() const {
     return m_is_loaded ? m_metadata_extractor->GetSensorResolutionMPx() : 0.0;
 }
 
-int RawFile::GetBlackLevelFromMetadata() const {
-    return m_is_loaded ? m_metadata_extractor->GetBlackLevelFromMetadata() : 0;
+double RawFile::GetBlackLevelFromMetadata() const {
+    return m_is_loaded ? m_metadata_extractor->GetBlackLevelFromMetadata() : 0.0;
 }
 
 int RawFile::GetActiveWidth() const {

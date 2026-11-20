@@ -24,7 +24,10 @@ find_package(PkgConfig REQUIRED)
 
 # --- Dependencias Comunes (CLI y GUI) ---
 pkg_check_modules(LIBRAW REQUIRED libraw)
-find_package(OpenCV 4 REQUIRED)
+find_package(OpenCV REQUIRED)
+if(OpenCV_VERSION VERSION_LESS 4)
+    message(FATAL_ERROR "OpenCV >= 4 required, found ${OpenCV_VERSION}")
+endif()
 find_package(CLI11 REQUIRED)
 find_package(Gettext REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo)
